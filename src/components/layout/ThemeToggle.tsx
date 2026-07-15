@@ -31,7 +31,15 @@ export const ThemeToggle: React.FC = () => {
     const tooltipText: string = `Сменить тему: ${currentOption?.description || 'Выберите тему'}`
 
     return (
-        <div className="tooltip tooltip-left" data-tip={tooltipText}>
+        <div
+            className="tooltip tooltip-left
+            before:pointer-events-none
+            before:opacity-0 hover:before:opacity-100
+            hover:before:transition-opacity hover:before:delay-1000
+            hover:before:duration-200
+            after:hidden"
+            data-tip={tooltipText}
+        >
             <div className="join border border-base-300 shadow-xs">
                 <button
                     key={themeMode}
