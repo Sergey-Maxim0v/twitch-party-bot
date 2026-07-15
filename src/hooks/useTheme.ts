@@ -1,16 +1,19 @@
 import {useEffect} from 'react';
-import type {ThemeMode} from "../types/theme.types";
+import {THEME_OPTIONS} from "../constants";
 import {useLocalStorage} from "./useLocalStorage.ts";
+import type {ThemeConfig, ThemeMode} from "../types";
 
 export const useTheme = () => {
-    const [themeMode, setThemeMode] = useLocalStorage<ThemeMode>('twitch_party_theme', 'system');
+    const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find((el) => el.id === 'system') || THEME_OPTIONS[0]
+    const [themeMode, setThemeMode] = useLocalStorage<ThemeMode>('twitch_party_theme', DEFAULT_THEME.id);
 
     useEffect(() => {
         const root = document.documentElement;
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
         const applyTheme = () => {
             if (themeMode === 'system') {
-                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const isDark = mediaQuery.matches;
                 root.setAttribute('data-theme', isDark ? 'dark' : 'light');
             } else {
                 root.setAttribute('data-theme', themeMode);
@@ -20,12 +23,13 @@ export const useTheme = () => {
         applyTheme();
 
         if (themeMode === 'system') {
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const handleChange = () => applyTheme();
+            mediaQuery.addEventListener('change', applyTheme);
 
-            mediaQuery.addEventListener('change', handleChange);
-            return () => mediaQuery.removeEventListener('change', handleChange);
+            return () => {
+                mediaQuery.removeEventListener('change', applyTheme);
+            };
         }
+
     }, [themeMode]);
 
     return {themeMode, setThemeMode};
