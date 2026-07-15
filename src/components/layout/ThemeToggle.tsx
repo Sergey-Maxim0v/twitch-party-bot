@@ -2,13 +2,13 @@ import React, {useCallback} from 'react';
 import {THEME_OPTIONS} from '../../constants';
 import {useTheme} from "../../hooks";
 import type {ThemeMode} from "../../types";
-import {LuMoon, LuCloud, LuSun, LuSunMoon} from "react-icons/lu";
+import {LuMoon, LuCloudSun, LuSun, LuSunMoon} from "react-icons/lu";
 
 
 const THEME_ICONS = {
     light: LuSun,
     dark: LuMoon,
-    dim: LuCloud,
+    dim: LuCloudSun,
     system: LuSunMoon,
 };
 
@@ -27,16 +27,20 @@ export const ThemeToggle: React.FC = () => {
     }, [setThemeMode]);
 
     const Icon = THEME_ICONS[themeMode as keyof typeof THEME_ICONS] || LuSunMoon;
+    const currentOption = THEME_OPTIONS.find((option) => option.id === themeMode)
+    const tooltipText: string = `Сменить тему: ${currentOption?.description || 'Выберите тему'}`
 
     return (
-        <div className="join border border-base-300 shadow-xs">
-            <button
-                key={themeMode}
-                onClick={toggleTheme}
-                className={`btn btn-sm join-item font-medium transition-colors`}
-            >
-                <Icon className="w-4 h-4"/>
-            </button>
+        <div className="tooltip tooltip-left" data-tip={tooltipText}>
+            <div className="join border border-base-300 shadow-xs">
+                <button
+                    key={themeMode}
+                    onClick={toggleTheme}
+                    className={`btn btn-sm join-item font-medium transition-colors`}
+                >
+                    <Icon className="w-4 h-4"/>
+                </button>
+            </div>
         </div>
     );
 };
