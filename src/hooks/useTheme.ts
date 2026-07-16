@@ -14,7 +14,7 @@ export const useTheme = () => {
         const applyTheme = () => {
             if (themeMode === 'system') {
                 const isDark = mediaQuery.matches;
-                root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                root.setAttribute('data-theme', isDark ? 'dim' : 'nord');
             } else {
                 root.setAttribute('data-theme', themeMode);
             }

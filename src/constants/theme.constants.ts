@@ -1,8 +1,7 @@
 import type {ThemeConfig} from "../types";
 
 export const THEME_OPTIONS: ThemeConfig[] = [
-    {id: 'light', description: 'Светлая'},
-    {id: 'dark', description: 'Тёмная'},
-    {id: 'dim', description: 'Приглушенная'},
+    {id: 'nord', description: 'Светлая'},
+    {id: 'dim', description: 'Темная'},
     {id: 'system', description: 'Системная'},
 ];

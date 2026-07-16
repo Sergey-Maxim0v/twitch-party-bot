@@ -2,13 +2,12 @@ import React, {useCallback} from 'react';
 import {THEME_OPTIONS} from '../../constants';
 import {useTheme} from "../../hooks";
 import type {ThemeMode} from "../../types";
-import {LuMoon, LuCloudSun, LuSun, LuSunMoon} from "react-icons/lu";
+import {LuMoon, LuSun, LuSunMoon} from "react-icons/lu";
 
 
 const THEME_ICONS = {
-    light: LuSun,
-    dark: LuMoon,
-    dim: LuCloudSun,
+    nord: LuSun,
+    dim: LuMoon,
     system: LuSunMoon,
 };
 
