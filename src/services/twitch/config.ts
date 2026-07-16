@@ -11,7 +11,6 @@ export const TWITCH_REDIRECT_URI = window.location.origin + window.location.path
 /**
  * @see{@link https://dev.twitch.tv/docs/authentication/scopes/}
  */
-
 export const TWITCH_SCOPES = {
     READ_CHAT: 'user:read:chat',
     WRITE_CHAT: 'user:write:chat'
