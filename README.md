@@ -9,9 +9,7 @@
 
 ---
 
-<!-- TODO: ![screenshot](public/screenshot.png) -->
-
-<!-- TODO: description -->
+<!-- ![screenshot](public/screenshot.png) -->
 
 ---
 
@@ -38,4 +36,3 @@ npm run preview
 ```
 
 ---
-<!-- TODO: Структура проекта -->
