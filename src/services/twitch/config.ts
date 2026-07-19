@@ -15,3 +15,7 @@ export const TWITCH_SCOPES = {
     READ_CHAT: 'user:read:chat',
     WRITE_CHAT: 'user:write:chat'
 }
+
+export const TWITCH_AUTH_ERRORS = {
+    CSRF_FAILED: 'CSRF_VALIDATION_FAILED',
+} as const;

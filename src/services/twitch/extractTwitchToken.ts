@@ -1,4 +1,6 @@
 import {isValidState} from "./crypto.ts";
+import type {TwitchAuthMessageData} from "./types/messages.types.ts";
+import {TWITCH_AUTH_ERRORS} from "./config.ts";
 
 export interface TwitchHashData {
     token: string | null;
@@ -39,7 +41,7 @@ export const extractTwitchToken = (): TwitchHashData => {
             if (isValidState(state)) {
                 token = accessToken;
             } else {
-                error = 'CSRF_VALIDATION_FAILED';
+                error = TWITCH_AUTH_ERRORS.CSRF_FAILED;
             }
         }
     }
@@ -48,13 +50,15 @@ export const extractTwitchToken = (): TwitchHashData => {
     const isPopup = window.opener && window.opener !== window;
 
     if (isPopup && (token || error)) {
+        const messagePayload: TwitchAuthMessageData = {
+            type: 'TWITCH_AUTH_RESULT',
+            token,
+            error,
+        };
+
         // Передача результатов авторизации в родительское окно приложения
         window.opener.postMessage(
-            {
-                type: 'TWITCH_AUTH_RESULT',
-                token,
-                error,
-            },
+            messagePayload,
             window.location.origin
         );
 

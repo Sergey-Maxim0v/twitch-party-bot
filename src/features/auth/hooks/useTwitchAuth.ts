@@ -2,7 +2,12 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type {TwitchAuthHookResult, TwitchUserSession} from "../types";
 import {useLocalStorage} from "../../../hooks";
 import {validateTwitchToken} from "../../../services/twitch/validateTwitchToken.ts";
-import {extractTwitchToken, getTwitchAuthUrl} from "../../../services/twitch";
+import {
+    extractTwitchToken,
+    getTwitchAuthUrl,
+    TWITCH_AUTH_ERRORS,
+    type TwitchAuthMessageData
+} from "../../../services/twitch";
 
 
 const STORAGE_KEY = 'tqp_twitch_session';
@@ -66,12 +71,12 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         const handleMessage = async (event: MessageEvent) => {
             if (event.origin !== window.location.origin) return;
 
-            const {data} = event;
+            const data = event.data as Partial<TwitchAuthMessageData>;
             if (!data || data.type !== 'TWITCH_AUTH_RESULT') return;
 
             if (data.error) {
                 setAuthStage('error');
-                if (data.error === 'CSRF_VALIDATION_FAILED') {
+                if (data.error === TWITCH_AUTH_ERRORS.CSRF_FAILED) {
                     setError('Ошибка безопасности (CSRF): верификация контекста не пройдена.');
                 } else {
                     setError(`Авторизация отклонена Twitch: ${data.error}`);
