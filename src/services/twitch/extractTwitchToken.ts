@@ -1,25 +1,71 @@
 import {isValidState} from "./crypto.ts";
 
+export interface TwitchHashData {
+    token: string | null;
+    error: string | null;
+}
+
 /**
- * Извлекает токен доступа из хэша URL после возвращения от Twitch с проверкой state
+ * Извлекает токен или ошибку из URL.
+ * Если код выполняется внутри всплывающего окна (Popup),
+ * он пересылает результат главному окну и закрывает себя.
+ *
  * @see {@link https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/}
- * */
-export const extractTwitchToken = (): { token: string | null; error: string | null } => {
+ */
+export const extractTwitchToken = (): TwitchHashData => {
     const hash = window.location.hash;
-    if (!hash) return {token: null, error: null};
+    const search = window.location.search;
 
-    const params = new URLSearchParams(hash.substring(1));
-    const token = params.get('access_token');
-    const state = params.get('state');
+    let token: string | null = null;
+    let error: string | null = null;
 
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    if (token) {
-        if (!isValidState(state)) {
-            return {token: null, error: 'CSRF_VALIDATION_FAILED'};
+    // 1. Извлечение ошибки авторизации из параметров запроса (Query Parameters)
+    if (search) {
+        const searchParams = new URLSearchParams(search);
+        const errorType = searchParams.get('error');
+        const errorDesc = searchParams.get('error_description');
+        if (errorType) {
+            error = errorDesc || errorType;
         }
-        return {token, error: null};
     }
 
-    return {token: null, error: null};
+    // 2. Извлечение токена доступа из параметров хэша (URL Hash)
+    if (hash && !error) {
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const state = hashParams.get('state');
+
+        if (accessToken) {
+            if (isValidState(state)) {
+                token = accessToken;
+            } else {
+                error = 'CSRF_VALIDATION_FAILED';
+            }
+        }
+    }
+
+    // Проверка контекста выполнения: открыто ли текущее окно как всплывающее (Popup)
+    const isPopup = window.opener && window.opener !== window;
+
+    if (isPopup && (token || error)) {
+        // Передача результатов авторизации в родительское окно приложения
+        window.opener.postMessage(
+            {
+                type: 'TWITCH_AUTH_RESULT',
+                token,
+                error,
+            },
+            window.location.origin
+        );
+
+        // Закрытие контекста всплывающего окна
+        window.close();
+    }
+
+    // Очистка параметров URL в контексте главного окна приложения
+    if (!isPopup && (hash || search)) {
+        window.history.replaceState(null, '', window.location.pathname);
+    }
+
+    return {token, error};
 };

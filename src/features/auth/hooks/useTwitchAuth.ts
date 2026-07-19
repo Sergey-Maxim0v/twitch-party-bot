@@ -1,35 +1,27 @@
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {TwitchAuthHookResult, TwitchUserSession} from "../types";
 import {useLocalStorage} from "../../../hooks";
-import {useCallback, useEffect, useRef, useState} from "react";
 import {validateTwitchToken} from "../../../services/twitch/validateTwitchToken.ts";
 import {extractTwitchToken, getTwitchAuthUrl} from "../../../services/twitch";
 
+
 const STORAGE_KEY = 'tqp_twitch_session';
-const VALIDATION_INTERVAL = 45 * 60 * 1000; // 45 минут
+const VALIDATION_INTERVAL = 45 * 60 * 1000; // Интервал проверки токена (45 минут)
 
 export const useTwitchAuth = (): TwitchAuthHookResult => {
     const [session, setSession] = useLocalStorage<TwitchUserSession | null>(STORAGE_KEY, null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [authStage, setAuthStage] = useState<'idle' | 'waiting' | 'validating' | 'success' | 'error'>('idle');
+
     const isProcessingHash = useRef(false);
-
-    const login = useCallback(() => {
-        window.location.href = getTwitchAuthUrl();
-    }, []);
-
-    const logout = useCallback(() => {
-        setSession(null);
-        setError(null);
-    }, [setSession]);
+    const popupRef = useRef<Window | null>(null);
 
     const validateSession = useCallback(async (token: string): Promise<TwitchUserSession | null> => {
         const userData = await validateTwitchToken(token);
-
-        if (!userData) {
-            return null;
-        }
-
+        if (!userData) return null;
         return {
             accessToken: token,
             userId: userData.userId,
@@ -37,6 +29,93 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         };
     }, []);
 
+    const login = useCallback(() => {
+        setError(null);
+        setAuthStage('waiting');
+        setIsModalOpen(true);
+
+        const width = 500;
+        const height = 650;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+
+        const url = getTwitchAuthUrl();
+        popupRef.current = window.open(
+            url,
+            'TwitchAuthPopup',
+            `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+        );
+    }, []);
+
+    const logout = useCallback(() => {
+        setSession(null);
+        setError(null);
+        setAuthStage('idle');
+        setIsModalOpen(false);
+    }, [setSession]);
+
+    const closeModal = useCallback(() => {
+        setIsModalOpen(false);
+        if (popupRef.current && !popupRef.current.closed) {
+            popupRef.current.close();
+        }
+    }, []);
+
+    // Слушатель событий message от всплывающего окна авторизации Twitch
+    useEffect(() => {
+        const handleMessage = async (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+
+            const {data} = event;
+            if (!data || data.type !== 'TWITCH_AUTH_RESULT') return;
+
+            if (data.error) {
+                setAuthStage('error');
+                if (data.error === 'CSRF_VALIDATION_FAILED') {
+                    setError('Ошибка безопасности (CSRF): верификация контекста не пройдена.');
+                } else {
+                    setError(`Авторизация отклонена Twitch: ${data.error}`);
+                }
+                return;
+            }
+
+            if (data.token) {
+                setAuthStage('validating');
+                const validated = await validateSession(data.token);
+
+                if (validated) {
+                    setSession(validated);
+                    setAuthStage('success');
+                    setTimeout(() => setIsModalOpen(false), 1000);
+                } else {
+                    setAuthStage('error');
+                    setError('Не удалось подтвердить валидность токена через Twitch API.');
+                }
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [validateSession, setSession]);
+
+    // Отслеживание закрытия всплывающего окна пользователем вручную
+    useEffect(() => {
+        if (!isModalOpen || authStage !== 'waiting') return;
+
+        const timer = setInterval(() => {
+            if (popupRef.current && popupRef.current.closed) {
+                clearInterval(timer);
+                if (authStage === 'waiting') {
+                    setAuthStage('error');
+                    setError('Авторизация отменена: всплывающее окно было закрыто.');
+                }
+            }
+        }, 500);
+
+        return () => clearInterval(timer);
+    }, [isModalOpen, authStage]);
+
+    // Инициализация приложения и обработка извлечения токена в контексте Popup
     useEffect(() => {
         const handleAuthInit = async () => {
             if (isProcessingHash.current) return;
@@ -44,51 +123,26 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
             setIsLoading(true);
 
-            const hashData = extractTwitchToken();
+            // Инициирует отправку postMessage и закрывает окно, если контекст является всплывающим окном
+            extractTwitchToken();
 
-            // Case 1: Обработка ошибки валидации CSRF state, которую вернул ваш сервис
-            if (hashData.error === 'CSRF_VALIDATION_FAILED') {
-                setError('Атака CSRF? Несовпадение проверочного контекста (state).');
-                setSession(null);
-                setIsLoading(false);
-                return;
-            }
-
-            // Case 2: Успешно вернулись от Twitch с токеном
-            if (hashData.token) {
-                const validated = await validateSession(hashData.token);
-                if (validated) {
-                    setSession(validated);
-                    setError(null);
-                } else {
-                    setError('Не удалось верифицировать полученный токен Twitch.');
-                    setSession(null);
-                }
-                setIsLoading(false);
-                return;
-            }
-
-            // Case 3: Токена в URL нет, проверяем существующую сессию в LocalStorage
-            if (session?.accessToken) {
+            // Проверка существующей локальной сессии в главном окне
+            if (!window.opener && session?.accessToken) {
                 const validated = await validateSession(session.accessToken);
                 if (!validated) {
                     logout();
-                    setError('Сессия Twitch истекла. Пожалуйста, войдите снова.');
                 } else {
                     setSession(validated);
                 }
-                setIsLoading(false);
-                return;
             }
 
-            // Case 4: Чистый первый заход
             setIsLoading(false);
         };
 
         handleAuthInit().catch(() => 'useTwitchAuth / handleAuthInit');
     }, [validateSession, setSession, session?.accessToken, logout]);
 
-    // Фоновая проверка токена
+    // Периодическая проверка статуса токена в фоновом режиме согласно требованиям Twitch
     useEffect(() => {
         if (!session?.accessToken) return;
 
@@ -96,7 +150,6 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
             const validated = await validateSession(session.accessToken);
             if (!validated) {
                 logout();
-                setError('Сессия Twitch завершена в фоновом режиме.');
             }
         }, VALIDATION_INTERVAL);
 
@@ -110,5 +163,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         error,
         login,
         logout,
+        isModalOpen,
+        authStage,
+        closeModal
     };
 };

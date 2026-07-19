@@ -11,4 +11,7 @@ export interface TwitchAuthHookResult {
     error: string | null;
     login: () => void;
     logout: () => void;
+    isModalOpen: boolean;
+    authStage: 'idle' | 'waiting' | 'validating' | 'success' | 'error';
+    closeModal: () => void;
 }

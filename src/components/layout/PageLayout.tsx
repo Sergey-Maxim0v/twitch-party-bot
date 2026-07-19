@@ -1,12 +1,14 @@
 import React from 'react';
 import {Header} from './Header';
 import {Footer} from './Footer';
+import {AuthModal} from "../../features/auth";
 
 interface PageLayoutProps {
     children: React.ReactNode;
 }
 
 export const PageLayout: React.FC<PageLayoutProps> = ({children}) => {
+
     return (
         <div
             className="h-screen w-screen flex flex-col bg-base-100 text-base-content antialiased transition-colors duration-200">
@@ -16,8 +18,9 @@ export const PageLayout: React.FC<PageLayoutProps> = ({children}) => {
                 {children}
             </main>
 
+            <AuthModal/>
+
             <Footer/>
         </div>
     );
 };
-
