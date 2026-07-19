@@ -1,5 +1,5 @@
 import React from "react";
-import {useAuth} from "../context/AuthProvider.tsx";
+import {useAuth} from "../hooks/useAuth.tsx";
 
 export const AuthModal: React.FC = () => {
     const {isModalOpen, authStage, error, login, closeModal} = useAuth();
