@@ -1,8 +1,8 @@
 import React from "react";
-import {useTwitchAuth} from "../hooks/useTwitchAuth.ts";
+import {useAuth} from "../context/AuthProvider.tsx";
 
 export const AuthModal: React.FC = () => {
-    const {isModalOpen, authStage, error, login, closeModal} = useTwitchAuth();
+    const {isModalOpen, authStage, error, login, closeModal} = useAuth();
 
     if (!isModalOpen) return null;
 

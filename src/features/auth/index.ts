@@ -1,3 +1,4 @@
 export * from './types';
-export {useTwitchAuth} from './hooks/useTwitchAuth';
 export {AuthModal} from './components/AuthModal';
+export {AuthProvider} from './context/AuthProvider.tsx';
+export {useAuth} from './hooks/useAuth';

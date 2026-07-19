@@ -1,10 +1,10 @@
 import React from 'react';
 import {ThemeToggle} from './ThemeToggle';
 import {LuTwitch} from "react-icons/lu";
-import {useTwitchAuth} from "../../features/auth";
+import {useAuth} from "../../features/auth";
 
 export const Header: React.FC = () => {
-    const {session, isAuthenticated, isLoading, login, logout} = useTwitchAuth();
+    const {session, isAuthenticated, isLoading, login, logout} = useAuth();
 
     return (
         <header className="navbar bg-base-200 border-b border-base-300 px-6 flex justify-between items-center">
