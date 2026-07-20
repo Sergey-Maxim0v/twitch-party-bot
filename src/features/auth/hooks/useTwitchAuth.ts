@@ -1,29 +1,20 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
 import type {TwitchAuthHookResult, TwitchUserSession} from "../types";
 import {useLocalStorage} from "../../../hooks";
+import {extractTwitchToken, TWITCH_STORAGE_KEYS} from "../../../services/twitch";
 import {validateTwitchToken} from "../../../services/twitch/validateTwitchToken.ts";
-import {
-    extractTwitchToken,
-    getTwitchAuthUrl,
-    TWITCH_AUTH_ERRORS, TWITCH_STORAGE_KEYS,
-    type TwitchAuthMessageData, validateChannelName
-} from "../../../services/twitch";
+import {useTwitchPopup} from "./useTwitchPopup.ts";
+import {useTwitchChannelState} from "./useTwitchChannelState.ts";
 
 
-const STORAGE_KEY = 'tqp_twitch_session';
-const VALIDATION_INTERVAL = 45 * 60 * 1000; // Интервал проверки токена (45 минут)
+const VALIDATION_INTERVAL = 45 * 60 * 1000;
 
 export const useTwitchAuth = (): TwitchAuthHookResult => {
-    const [session, setSession] = useLocalStorage<TwitchUserSession | null>(STORAGE_KEY, null);
-    const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL, null);
+    const [session, setSession] = useLocalStorage<TwitchUserSession | null>(TWITCH_STORAGE_KEYS.SESSION, null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [authStage, setAuthStage] = useState<'idle' | 'waiting' | 'validating' | 'success' | 'error'>('idle');
-
     const isProcessingHash = useRef(false);
-    const popupRef = useRef<Window | null>(null);
 
     const validateSession = useCallback(async (token: string): Promise<TwitchUserSession | null> => {
         const userData = await validateTwitchToken(token);
@@ -35,136 +26,49 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         };
     }, []);
 
-    const login = useCallback(() => {
-        setError(null);
-        setAuthStage('waiting');
-        setIsModalOpen(true);
+    const handlePopupSuccess = useCallback(async (
+        token: string,
+        setAuthStage: (stage: 'idle' | 'waiting' | 'validating' | 'success' | 'error') => void,
+        setIsModalOpen: (open: boolean) => void
+    ): Promise<void> => {
+        const userData = await validateTwitchToken(token);
 
-        const width = 500;
-        const height = 650;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
+        if (userData) {
+            setSession({
+                accessToken: token,
+                userId: userData.userId,
+                login: userData.login,
+            });
+            setAuthStage('success');
+            setTimeout(() => setIsModalOpen(false), 1000);
+        } else {
+            setAuthStage('error');
+            setError('Не удалось подтвердить валидность токена через Twitch API.');
+        }
+    }, [setSession]);
 
-        const url = getTwitchAuthUrl();
-        popupRef.current = window.open(
-            url,
-            'TwitchAuthPopup',
-            `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
-        );
-    }, []);
+    // Подключаем изолированные суб-хуки
+    const popupManager = useTwitchPopup(handlePopupSuccess, setError);
+    const channelManager = useTwitchChannelState(session?.login, setError);
 
+    // Синхронный полный сброс стейтов при разлогине
     const logout = useCallback(() => {
         setSession(null);
+        channelManager.setActiveChannel(null);
         setError(null);
-        setAuthStage('idle');
-        setIsModalOpen(false);
-        setActiveChannel(null);
-    }, [setSession, setActiveChannel]);
+        popupManager.setAuthStage('idle');
+        popupManager.setIsModalOpen(false);
+    }, [setSession, channelManager, popupManager]);
 
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
-        if (popupRef.current && !popupRef.current.closed) {
-            popupRef.current.close();
-        }
-    }, []);
-
-    const selectOwnChannel = useCallback(() => {
-        if (!session?.login) {
-            setError('Сессия не найдена.');
-            return;
-        }
-        setError(null);
-        setActiveChannel(session.login.toLowerCase());
-    }, [session, setActiveChannel]);
-
-    const selectCustomChannel = useCallback((channelName: string) => {
-        const trimmed = channelName.trim().toLowerCase();
-
-        if (!trimmed) {
-            setError('Имя канала не может быть пустым.');
-            return;
-        }
-
-        if (!validateChannelName(trimmed)) {
-            setError('Некорректное имя канала Twitch.');
-            return;
-        }
-
-        setError(null);
-        setActiveChannel(trimmed);
-    }, [setActiveChannel]);
-
-    const resetChannel = useCallback(() => {
-        setActiveChannel(null);
-        setError(null);
-    }, [setActiveChannel]);
-
-    // Слушатель событий message от всплывающего окна авторизации Twitch
-    useEffect(() => {
-        const handleMessage = async (event: MessageEvent) => {
-            if (event.origin !== window.location.origin) return;
-
-            const data = event.data as Partial<TwitchAuthMessageData>;
-            if (!data || data.type !== 'TWITCH_AUTH_RESULT') return;
-
-            if (data.error) {
-                setAuthStage('error');
-                if (data.error === TWITCH_AUTH_ERRORS.CSRF_FAILED) {
-                    setError('Ошибка безопасности (CSRF): верификация контекста не пройдена.');
-                } else {
-                    setError(`Авторизация отклонена Twitch: ${data.error}`);
-                }
-                return;
-            }
-
-            if (data.token) {
-                setAuthStage('validating');
-                const validated = await validateSession(data.token);
-
-                if (validated) {
-                    setSession(validated);
-                    setAuthStage('success');
-                    setTimeout(() => setIsModalOpen(false), 1000);
-                } else {
-                    setAuthStage('error');
-                    setError('Не удалось подтвердить валидность токена через Twitch API.');
-                }
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, [validateSession, setSession]);
-
-    // Отслеживание закрытия всплывающего окна пользователем вручную
-    useEffect(() => {
-        if (!isModalOpen || authStage !== 'waiting') return;
-
-        const timer = setInterval(() => {
-            if (popupRef.current && popupRef.current.closed) {
-                clearInterval(timer);
-                if (authStage === 'waiting') {
-                    setAuthStage('error');
-                    setError('Авторизация отменена: всплывающее окно было закрыто.');
-                }
-            }
-        }, 500);
-
-        return () => clearInterval(timer);
-    }, [isModalOpen, authStage]);
-
-    // Инициализация приложения и обработка извлечения токена в контексте Popup
+    // Инициализация приложения
     useEffect(() => {
         const handleAuthInit = async () => {
             if (isProcessingHash.current) return;
             isProcessingHash.current = true;
 
             setIsLoading(true);
-
-            // Инициирует отправку postMessage и закрывает окно, если контекст является всплывающим окном
             extractTwitchToken();
 
-            // Проверка существующей локальной сессии в главном окне
             if (!window.opener && session?.accessToken) {
                 const validated = await validateSession(session.accessToken);
                 if (!validated) {
@@ -180,7 +84,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         handleAuthInit().catch(() => 'useTwitchAuth / handleAuthInit');
     }, [validateSession, setSession, session?.accessToken, logout]);
 
-    // Периодическая проверка статуса токена в фоновом режиме согласно требованиям Twitch
+    // Фоновая проверка токена
     useEffect(() => {
         if (!session?.accessToken) return;
 
@@ -199,15 +103,15 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         isAuthenticated: !!session,
         isLoading,
         error,
-        login,
         logout,
-        isModalOpen,
-        authStage,
-        closeModal,
-        activeChannel,
-        hasSelectedChannel: !!activeChannel,
-        selectOwnChannel,
-        selectCustomChannel,
-        resetChannel
+        login: popupManager.login,
+        isModalOpen: popupManager.isModalOpen,
+        authStage: popupManager.authStage,
+        closeModal: popupManager.closeModal,
+        activeChannel: channelManager.activeChannel,
+        hasSelectedChannel: channelManager.hasSelectedChannel,
+        selectOwnChannel: channelManager.selectOwnChannel,
+        selectCustomChannel: channelManager.selectCustomChannel,
+        resetChannel: channelManager.resetChannel,
     };
 };
