@@ -1,19 +1,24 @@
 import React, {useState} from "react";
 import {useAuth} from "../hooks/useAuth.tsx";
-import {useChannelSelect} from "../hooks/useChannelSelect.ts";
 import {validateChannelName} from "../../../services/twitch";
 
 export const ChannelSelectModal: React.FC = () => {
-    const {session, isAuthenticated} = useAuth();
-    const {hasSelectedChannel, channelError, selectOwnChannel, selectCustomChannel} = useChannelSelect();
+    const {
+        session,
+        isAuthenticated,
+        hasSelectedChannel,
+        error,
+        selectOwnChannel,
+        selectCustomChannel
+    } = useAuth();
 
     const [inputValue, setInputValue] = useState(() => session?.login || '');
     const [isValidationTriggered, setIsValidationTriggered] = useState(false);
 
     let currentError: string | null = null;
 
-    if (channelError) {
-        currentError = channelError;
+    if (error) {
+        currentError = error;
     } else if (isValidationTriggered) {
         const trimmed = inputValue.trim();
         if (!trimmed) {

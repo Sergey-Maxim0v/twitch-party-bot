@@ -6,7 +6,7 @@ import {
     extractTwitchToken,
     getTwitchAuthUrl,
     TWITCH_AUTH_ERRORS, TWITCH_STORAGE_KEYS,
-    type TwitchAuthMessageData
+    type TwitchAuthMessageData, validateChannelName
 } from "../../../services/twitch";
 
 
@@ -15,6 +15,7 @@ const VALIDATION_INTERVAL = 45 * 60 * 1000; // Интервал проверки
 
 export const useTwitchAuth = (): TwitchAuthHookResult => {
     const [session, setSession] = useLocalStorage<TwitchUserSession | null>(STORAGE_KEY, null);
+    const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL, null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -57,8 +58,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         setError(null);
         setAuthStage('idle');
         setIsModalOpen(false);
-        localStorage.removeItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
-    }, [setSession]);
+        setActiveChannel(null);
+    }, [setSession, setActiveChannel]);
 
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
@@ -66,6 +67,37 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
             popupRef.current.close();
         }
     }, []);
+
+    const selectOwnChannel = useCallback(() => {
+        if (!session?.login) {
+            setError('Сессия не найдена.');
+            return;
+        }
+        setError(null);
+        setActiveChannel(session.login.toLowerCase());
+    }, [session, setActiveChannel]);
+
+    const selectCustomChannel = useCallback((channelName: string) => {
+        const trimmed = channelName.trim().toLowerCase();
+
+        if (!trimmed) {
+            setError('Имя канала не может быть пустым.');
+            return;
+        }
+
+        if (!validateChannelName(trimmed)) {
+            setError('Некорректное имя канала Twitch.');
+            return;
+        }
+
+        setError(null);
+        setActiveChannel(trimmed);
+    }, [setActiveChannel]);
+
+    const resetChannel = useCallback(() => {
+        setActiveChannel(null);
+        setError(null);
+    }, [setActiveChannel]);
 
     // Слушатель событий message от всплывающего окна авторизации Twitch
     useEffect(() => {
@@ -171,6 +203,11 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         logout,
         isModalOpen,
         authStage,
-        closeModal
+        closeModal,
+        activeChannel,
+        hasSelectedChannel: !!activeChannel,
+        selectOwnChannel,
+        selectCustomChannel,
+        resetChannel
     };
 };

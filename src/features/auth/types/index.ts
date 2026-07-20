@@ -14,4 +14,9 @@ export interface TwitchAuthHookResult {
     isModalOpen: boolean;
     authStage: 'idle' | 'waiting' | 'validating' | 'success' | 'error';
     closeModal: () => void;
+    activeChannel: string | null;
+    hasSelectedChannel: boolean;
+    selectOwnChannel: () => void;
+    selectCustomChannel: (channelName: string) => void;
+    resetChannel: () => void;
 }
