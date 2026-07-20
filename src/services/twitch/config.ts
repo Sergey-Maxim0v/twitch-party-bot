@@ -19,3 +19,8 @@ export const TWITCH_SCOPES = {
 export const TWITCH_AUTH_ERRORS = {
     CSRF_FAILED: 'CSRF_VALIDATION_FAILED',
 } as const;
+
+export const TWITCH_STORAGE_KEYS = {
+    SESSION: 'tqp_twitch_session',
+    ACTIVE_CHANNEL: 'tqp_active_channel',
+};
