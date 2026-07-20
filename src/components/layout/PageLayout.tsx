@@ -1,7 +1,7 @@
 import React from 'react';
 import {Header} from './Header';
 import {Footer} from './Footer';
-import {AuthModal} from "../../features/auth";
+import {AuthModal, ChannelSelectModal} from "../../features/auth";
 
 interface PageLayoutProps {
     children: React.ReactNode;
@@ -19,6 +19,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({children}) => {
             </main>
 
             <AuthModal/>
+            <ChannelSelectModal/>
 
             <Footer/>
         </div>

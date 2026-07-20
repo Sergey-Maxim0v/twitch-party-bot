@@ -1,7 +1,7 @@
 import React from 'react';
 import {ThemeToggle} from './ThemeToggle';
 import {LuTwitch} from "react-icons/lu";
-import {useAuth} from "../../features/auth";
+import {ChannelIndicator, useAuth} from "../../features/auth";
 
 export const Header: React.FC = () => {
     const {session, isAuthenticated, isLoading, login, logout} = useAuth();
@@ -17,6 +17,8 @@ export const Header: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
+                <ChannelIndicator/>
+
                 <div className="flex-none">
                     <ThemeToggle/>
                 </div>

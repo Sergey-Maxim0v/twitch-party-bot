@@ -5,7 +5,7 @@ import {validateTwitchToken} from "../../../services/twitch/validateTwitchToken.
 import {
     extractTwitchToken,
     getTwitchAuthUrl,
-    TWITCH_AUTH_ERRORS,
+    TWITCH_AUTH_ERRORS, TWITCH_STORAGE_KEYS,
     type TwitchAuthMessageData
 } from "../../../services/twitch";
 
@@ -57,6 +57,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         setError(null);
         setAuthStage('idle');
         setIsModalOpen(false);
+        localStorage.removeItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
     }, [setSession]);
 
     const closeModal = useCallback(() => {
