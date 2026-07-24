@@ -1,31 +1,28 @@
 import {PageLayout} from "./components/layout/PageLayout.tsx";
 import {AuthProvider, ProtectedView} from "./features/auth";
 import {WelcomeScreen} from "./components/layout/WelcomeScreen.tsx";
+import TwitchChat from "./components/chat/TwitchChat.tsx";
+import QueuePanel from "./components/queue/QueuePanel.tsx";
 
 function App() {
-
     return (
         <AuthProvider>
             <PageLayout>
                 <ProtectedView fallback={<WelcomeScreen/>}>
-                    <div className="flex h-full items-center justify-center bg-base-100 p-6">
-                        <div className="text-center">
-                            <div className="badge badge-success gap-2 mb-2 font-semibold">
-                                <span className="w-1.5 h-1.5 rounded-full bg-base-100 animate-ping"></span>
-                                Чат-бот активен
+                    <div className="flex flex-1 w-full h-full overflow-hidden bg-base-100">
+
+                        <div className="flex-1 h-full overflow-y-auto flex justify-center p-6">
+                            <div className="w-full max-w-[1400px] h-full flex flex-col">
+                                <QueuePanel/>
                             </div>
-                            <h2 className="text-2xl font-black text-base-content">
-                                Панель управления очередью
-                            </h2>
-                            <p className="text-sm text-base-content/60 mt-1">
-                                Здесь скоро появится список игроков из чата.
-                            </p>
                         </div>
+
+                        <TwitchChat className="h-full shrink-0 border-l border-base-300"/>
                     </div>
                 </ProtectedView>
             </PageLayout>
         </AuthProvider>
-    )
+    );
 }
 
-export default App
+export default App;

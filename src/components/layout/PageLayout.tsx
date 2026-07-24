@@ -1,6 +1,5 @@
 import React from 'react';
 import {Header} from './Header';
-import {Footer} from './Footer';
 import {AuthModal, ChannelSelectModal} from "../../features/auth";
 
 interface PageLayoutProps {
@@ -14,14 +13,14 @@ export const PageLayout: React.FC<PageLayoutProps> = ({children}) => {
             className="h-screen w-screen flex flex-col bg-base-100 text-base-content antialiased transition-colors duration-200">
             <Header/>
 
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8">
+            <main className="flex-1 w-full overflow-hidden flex flex-col">
                 {children}
             </main>
 
             <AuthModal/>
             <ChannelSelectModal/>
 
-            <Footer/>
+            {/*<Footer/>*/}
         </div>
     );
 };
