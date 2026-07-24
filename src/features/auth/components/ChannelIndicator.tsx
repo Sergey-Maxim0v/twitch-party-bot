@@ -1,6 +1,6 @@
 import React from "react";
 import {LuRefreshCw} from "react-icons/lu";
-import {useAuth} from "../hooks/useAuth.tsx";
+import {useAuth} from "../hooks/useAuth.ts";
 
 export const ChannelIndicator: React.FC = () => {
     const {activeChannel, resetChannel} = useAuth(); // Берем методы из единого источника

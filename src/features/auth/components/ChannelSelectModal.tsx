@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {useAuth} from "../hooks/useAuth.tsx";
+import {useAuth} from "../hooks/useAuth.ts";
 import {validateChannelName} from "../../../services/twitch";
 
 export const ChannelSelectModal: React.FC = () => {
