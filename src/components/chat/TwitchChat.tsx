@@ -22,9 +22,7 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
             <ChatToggle isOpen={isOpen} onOpen={() => setIsOpen(!isOpen)}/>
 
             {isOpen && (
-                <div className="flex flex-col h-full w-full overflow-hidden">
-                    <div className="h-14 shrink-0"/>
-
+                <div className="flex flex-col h-full w-full pt-14 overflow-hidden">
                     <ChatList/>
                     <ChatInput/>
                 </div>

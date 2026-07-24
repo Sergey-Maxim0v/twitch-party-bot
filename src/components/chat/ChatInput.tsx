@@ -11,12 +11,29 @@ const ChatInput = () => {
         const textarea = textareaRef.current;
         if (!textarea) return;
 
-        textarea.style.height = "auto";
-        const currentScrollHeight = textarea.scrollHeight;
-        textarea.style.height = `${currentScrollHeight}px`;
+        if (!value.trim()) {
+            textarea.style.height = "2rem"; // 32px
+            return;
+        }
 
-        setIsOverflowed(currentScrollHeight > 128);
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
     }, [value]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const text = e.target.value;
+        setValue(text);
+
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        if (!text.trim()) {
+            setIsOverflowed(false);
+        } else {
+            const currentHeight = textarea.scrollHeight;
+            setIsOverflowed(currentHeight > 128);
+        }
+    };
 
     const handleSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();
@@ -24,6 +41,7 @@ const ChatInput = () => {
 
         console.log("Отправка в чат Twitch:", value);
         setValue("");
+        setIsOverflowed(false);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -39,7 +57,7 @@ const ChatInput = () => {
                 <textarea
                     ref={textareaRef}
                     value={value}
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Отправить сообщение"
                     maxLength={TWITCH_CHAT_MAX_LENGTH}
