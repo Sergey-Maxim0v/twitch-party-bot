@@ -24,3 +24,23 @@ export const TWITCH_STORAGE_KEYS = {
     SESSION: 'tqp_twitch_session',
     ACTIVE_CHANNEL: 'tqp_active_channel',
 };
+
+// Команды протокола Twitch IRC для поддержания соединения (Keep-Alive)
+export const TWITCH_IRC_PING = 'PING';
+export const TWITCH_IRC_PONG = 'PONG :tmi.twitch.tv';
+
+// Команда протокола Twitch IRC для пользовательских текстовых сообщений
+export const TWITCH_IRC_PRIVMSG = 'PRIVMSG';
+
+// Системное сообщение Twitch IRC при ошибке авторизации
+export const TWITCH_AUTH_FAILED_NOTICE = 'Login authentication failed';
+
+// Системная команда уведомлений протокола IRC
+export const TWITCH_IRC_NOTICE = 'NOTICE';
+
+// Настройки автоматического переподключения (Auto-Reconnect)
+export const TWITCH_RECONNECT_MAX_ATTEMPTS = 5; // Максимальное количество попыток
+export const TWITCH_RECONNECT_DELAY_MS = 3000;  // Задержка между попытками (3 секунды)
+
+// Код протокола IRC, означающий успешное завершение подключения к каналу
+export const TWITCH_IRC_READY_CODE = '366';
