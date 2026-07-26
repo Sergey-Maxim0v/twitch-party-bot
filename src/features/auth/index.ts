@@ -1,6 +1,6 @@
 export * from './types';
 export {AuthModal} from './components/AuthModal';
-export {AuthProvider} from './context/AuthProvider.tsx';
+export {AuthContextProvider} from './context/AuthContextProvider.tsx';
 export {useAuth} from './hooks/useAuth.ts';
 export {ProtectedView} from './components/ProtectedView';
 export {ChannelSelectModal} from './components/ChannelSelectModal'
