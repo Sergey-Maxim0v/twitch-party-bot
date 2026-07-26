@@ -44,3 +44,6 @@ export const TWITCH_RECONNECT_DELAY_MS = 3000;  // Задержка между �
 
 // Код протокола IRC, означающий успешное завершение подключения к каналу
 export const TWITCH_IRC_READY_CODE = '366';
+
+// Максимальное количество сообщений, хранимых в стейте чата одновременно
+export const TWITCH_CHAT_MAX_MESSAGES = 100;
