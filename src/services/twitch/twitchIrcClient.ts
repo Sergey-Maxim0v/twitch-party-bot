@@ -5,11 +5,13 @@ import {disconnectClient} from "./utils/disconnectClient.ts";
 import {handleIncomingData} from "./utils/handleIncomingData.ts";
 import {sendMessage} from "./utils/sendMessage.ts";
 import {reconnectClient} from "./utils/reconnectClient.ts";
+import type {ParsedBanEvent} from "./utils/parseBanEvent.ts";
 
 // Описание типов для колбэков, которые React-компоненты смогут передавать в класс
 export type OnMessageCallback = (message: ParsedMessage) => void;
 export type OnStatusChangeCallback = (status: TwitchConnectionStatusType) => void;
 export type OnErrorCallback = (errorType: TwitchErrorTypeValues) => void;
+export type OnBanEventCallback = (event: ParsedBanEvent) => void;
 
 export class TwitchIrcClient {
     private ws: WebSocket | null = null;
@@ -22,6 +24,7 @@ export class TwitchIrcClient {
     private onMessageListener: OnMessageCallback | null = null;
     private onStatusListener: OnStatusChangeCallback | null = null;
     private onErrorListener: OnErrorCallback | null = null;
+    private onBanEventListener: OnBanEventCallback | null = null;
 
     constructor(channel: string, token: string) {
         this.channel = channel.toLowerCase().replace('#', '').trim();
@@ -37,8 +40,12 @@ export class TwitchIrcClient {
         this.onStatusListener = callback;
     }
 
-    public onError(callback: OnErrorCallback): void { // Новый публичный метод подписки
+    public onError(callback: OnErrorCallback): void {
         this.onErrorListener = callback;
+    }
+
+    public onBanEvent(callback: OnBanEventCallback): void {
+        this.onBanEventListener = callback;
     }
 
     // Основные методы управления соединением
@@ -48,7 +55,7 @@ export class TwitchIrcClient {
             channel: this.channel,
             token: this.token,
             onStatusListener: this.onStatusListener,
-            onErrorListener: this.onErrorListener, // Передаем слушатель ошибок в утилиту
+            onErrorListener: this.onErrorListener,
             handleIncomingData: (event) => this.handleIncomingData(event),
             setWs: (ws) => {
                 this.ws = ws;
@@ -98,7 +105,13 @@ export class TwitchIrcClient {
             ws: this.ws,
             onMessageListener: this.onMessageListener,
             onStatusListener: this.onStatusListener, // Передаем для изменения статуса при AUTH_FAILED
-            onErrorListener: this.onErrorListener    // Передаем для вызова ошибки авторизации
+            onErrorListener: this.onErrorListener,   // Передаем для вызова ошибки авторизации
+            onConnectSuccess: () => {
+                this.reconnectAttempts = 0;
+            },
+            onBanEventListener: (banEvent) => {
+                this.onBanEventListener?.(banEvent);
+            } // Передаем событие бана вверх
         });
     }
 }

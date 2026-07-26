@@ -1,9 +1,11 @@
 export * from './config';
-export * from './extractTwitchToken.ts';
-export * from './getTwitchAuthUrl.ts';
-export * from './checkAuthError.ts';
-export * from './parseChatMessage.ts';
+export * from './extractTwitchToken';
+export * from './getTwitchAuthUrl';
+export * from './checkAuthError';
+export * from './parseChatMessage';
 export * from './types/messages.types';
-export * from './validateChannelName.ts';
-export * from './twitchIrcClient.ts';
+export * from './validateChannelName';
+export * from './twitchIrcClient';
 
+export {manageMessageBuffer} from './utils/manageMessageBuffer';
+export {updateMessagesOnBan} from './utils/updateMessagesOnBan';
