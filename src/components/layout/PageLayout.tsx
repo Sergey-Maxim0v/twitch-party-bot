@@ -2,6 +2,8 @@ import React from 'react';
 import {Header} from './Header';
 import {AuthModal, ChannelSelectModal} from "../../features/auth";
 
+// import {Footer} from "./Footer.tsx";
+
 interface PageLayoutProps {
     children: React.ReactNode;
 }
