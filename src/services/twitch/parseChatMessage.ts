@@ -1,17 +1,13 @@
-import {parseBotCommand} from "./utils/parseBotCommand.ts";
-import {extractMentions} from "./utils/extractMentions.ts";
-import {extractUrls} from "./utils/extractUrls.ts";
-import {TWITCH_DEFAULT_COLOR} from "../../constants";
+/**
+ * @file Модуль парсинга сообщений чата Twitch.
+ * Разбирает входящий текст на команды, аргументы, упоминания и ссылки.
+ */
 
+/**
+ * Структура обработанного сообщения из чата.
+ */
 export interface ParsedMessage {
-    id: string;                // Уникальный ID сообщения (для key в React списках)
-    username: string;          // Логин отправителя
-    displayName: string;       // Красивое имя пользователя
-    rawText: string;           // Полный чистый текст сообщения
-    timestamp: number;         // Время получения
-    color: string;             // Цвет ника из Twitch тегов
-
-    // Результаты анализа текста
+    rawText: string;
     isCommand: boolean;
     commandName: string;
     commandArgs: string[];
@@ -21,34 +17,52 @@ export interface ParsedMessage {
 }
 
 /**
- * Главный парсер текстового контента сообщений.
- *  * @see {@link https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelchatmessage| EventSub Subscription Types - Twitch Developers}
+ * Парсит сырой текст сообщения из чата Twitch и извлекает из него команды и метаданные.
+ *
+ * @param {string} text - Сырой текст сообщения от пользователя.
+ * @param {string} [prefix='!'] - Символ-префикс, с которого должна начинаться команда.
+ * @returns {ParsedMessage} Объект с подробной структурой разобранного сообщения.
  */
-export const parseChatMessage = (
-    text: string,
-    username: string = '',
-    displayName: string = '',
-    tags: Record<string, string> = {},
-    prefix: string = '!'
-): ParsedMessage => {
-    const commandResult = parseBotCommand(text, prefix);
-    const mentions = extractMentions(text);
-    const urls = extractUrls(text);
+export const parseChatMessage = (text: string, prefix: string = '!'): ParsedMessage => {
+    const trimmedText = text.trim();
 
-    return {
-        id: tags['id'] || crypto.randomUUID(),
-        username: username.toLowerCase(),
-        displayName: displayName || username,
+    const result: ParsedMessage = {
         rawText: text,
-        timestamp: tags['tmi-sent-ts'] ? parseInt(tags['tmi-sent-ts'], 10) : Date.now(),
-        color: tags['color'] || TWITCH_DEFAULT_COLOR,
-
-        isCommand: commandResult.isCommand,
-        commandName: commandResult.commandName,
-        commandArgs: commandResult.commandArgs,
-        commandArgsString: commandResult.commandArgsString,
-
-        mentions,
-        urls
+        isCommand: false,
+        commandName: '',
+        commandArgs: [],
+        commandArgsString: '',
+        mentions: [],
+        urls: []
     };
+
+    if (!trimmedText) return result;
+
+    // 1. Поиск упоминаний пользователей (@username)
+    const mentionRegex = /@([a-zA-Z0-9_]{4,25})/g;
+    let mentionMatch;
+    while ((mentionMatch = mentionRegex.exec(trimmedText)) !== null) {
+        result.mentions.push(mentionMatch[1].toLowerCase());
+    }
+
+    // 2. Поиск веб-ссылок (простой URL regex)
+    const urlRegex = /(https?:\/\/[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
+    const urlMatches = trimmedText.match(urlRegex);
+    if (urlMatches) {
+        result.urls = urlMatches;
+    }
+
+    // 3. Проверка и парсинг команды бота
+    if (trimmedText.startsWith(prefix)) {
+        const tokens = trimmedText.slice(prefix.length).split(/\s+/);
+
+        if (tokens.length && tokens[0] !== '') {
+            result.isCommand = true;
+            result.commandName = tokens[0].toLowerCase();
+            result.commandArgs = tokens.slice(1);
+            result.commandArgsString = result.commandArgs.join(' ');
+        }
+    }
+
+    return result;
 };
