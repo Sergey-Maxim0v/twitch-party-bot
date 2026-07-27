@@ -47,6 +47,3 @@ export const TWITCH_IRC_READY_CODE = '366';
 
 // Максимальное количество сообщений, хранимых в стейте чата одновременно
 export const TWITCH_CHAT_MAX_MESSAGES = 100;
-
-// Команда протокола Twitch IRC для полной очистки чата или бана пользователя
-export const TWITCH_IRC_CLEARCHAT = 'CLEARCHAT';

@@ -9,7 +9,6 @@ import {
     type TwitchErrorTypeValues
 } from "../../../constants";
 import {handleConnectSuccess} from "./handleConnectSuccess.ts";
-import {parseBanEvent, type ParsedBanEvent} from "./parseBanEvent.ts";
 
 interface IncomingDataContext {
     ws: WebSocket | null;
@@ -17,7 +16,6 @@ interface IncomingDataContext {
     onStatusListener: ((status: TwitchConnectionStatusType) => void) | null;
     onErrorListener: ((errorType: TwitchErrorTypeValues) => void) | null;
     onConnectSuccess?: () => void;
-    onBanEventListener: (event: ParsedBanEvent) => void;
 }
 
 /**
@@ -37,26 +35,19 @@ export const handleIncomingData = (event: MessageEvent, context: IncomingDataCon
             continue;
         }
 
-        // 2. Проверка на событие бана или очистки чата (CLEARCHAT)
-        const banEvent = parseBanEvent(trimmedLine);
-        if (banEvent.isBanEvent) {
-            context.onBanEventListener(banEvent);
-            continue;
-        }
-
-        // 3. Проверка на ошибку невалидного OAuth-токена
+        // 2. Проверка на ошибку невалидного OAuth-токена
         if (handleAuthError(trimmedLine)) {
             context.onStatusListener?.(TwitchConnectionStatus.ERROR);
             context.onErrorListener?.(TwitchErrorType.AUTH_FAILED);
             continue;
         }
 
-        // 4. Обработка PING-PONG
+        // 3. Обработка PING-PONG
         if (handlePingPong(trimmedLine, context.ws)) {
             continue;
         }
 
-        // 5. Обработка пользовательских сообщений PRIVMSG
+        // 4. Обработка пользовательских сообщений PRIVMSG
         const parsedMessage = handlePrivmsg(trimmedLine);
         if (parsedMessage) {
             context.onMessageListener?.(parsedMessage);

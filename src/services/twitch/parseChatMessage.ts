@@ -10,8 +10,6 @@ export interface ParsedMessage {
     rawText: string;           // Полный чистый текст сообщения
     timestamp: number;         // Время получения
     color: string;             // Цвет ника из Twitch тегов
-    
-    isBanned: boolean;
 
     // Результаты анализа текста
     isCommand: boolean;
@@ -44,7 +42,6 @@ export const parseChatMessage = (
         rawText: text,
         timestamp: tags['tmi-sent-ts'] ? parseInt(tags['tmi-sent-ts'], 10) : Date.now(),
         color: tags['color'] || TWITCH_DEFAULT_COLOR,
-        isBanned: false,
 
         isCommand: commandResult.isCommand,
         commandName: commandResult.commandName,
