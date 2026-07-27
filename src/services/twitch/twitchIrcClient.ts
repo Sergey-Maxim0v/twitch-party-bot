@@ -65,6 +65,7 @@ export class TwitchIrcClient {
     }
 
     public disconnect(): void {
+        this.reconnectAttempts = 0;
         disconnectClient({
             ws: this.ws,
             onStatusListener: this.onStatusListener,
@@ -72,11 +73,6 @@ export class TwitchIrcClient {
                 this.ws = ws;
             }
         });
-    }
-
-    public manualDisconnect(): void {
-        this.reconnectAttempts = 0; // Сбрасываем счетчик только тут
-        this.disconnect();
     }
 
     // Метод отправки сообщений в чат

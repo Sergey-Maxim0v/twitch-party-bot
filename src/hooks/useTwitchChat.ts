@@ -47,7 +47,7 @@ export const useTwitchChat = (channelName: string | null, token: string | null |
 
         // Функция очистки (Cleanup)
         return () => {
-            client.manualDisconnect();
+            client.disconnect();
             if (clientRef.current === client) {
                 clientRef.current = null;
             }
