@@ -1,11 +1,10 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import type {TwitchAuthHookResult, TwitchUserSession} from "../types";
 import {useLocalStorage} from "../../../hooks";
-import {extractTwitchToken, TWITCH_STORAGE_KEYS} from "../../../services/twitch";
-import {validateTwitchToken} from "../../../services/twitch/validateTwitchToken.ts";
 import {useTwitchPopup} from "./useTwitchPopup.ts";
 import {useTwitchChannelState} from "./useTwitchChannelState.ts";
-
+import {extractTwitchToken, validateTwitchToken} from "../utils";
+import {TWITCH_STORAGE_KEYS} from "../config.ts";
 
 const VALIDATION_INTERVAL = 45 * 60 * 1000;
 

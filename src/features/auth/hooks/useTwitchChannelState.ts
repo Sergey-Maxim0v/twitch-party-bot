@@ -1,6 +1,7 @@
 import {useCallback} from "react";
 import {useLocalStorage} from "../../../hooks";
-import {TWITCH_STORAGE_KEYS, validateChannelName} from "../../../services/twitch";
+import {TWITCH_STORAGE_KEYS} from "../config.ts";
+import {validateChannelName} from "../utils/validateChannelName.ts";
 
 export const useTwitchChannelState = (sessionLogin: string | undefined, setError: (err: string | null) => void) => {
     const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL, null);

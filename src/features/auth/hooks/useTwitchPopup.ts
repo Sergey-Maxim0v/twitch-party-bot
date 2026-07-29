@@ -1,5 +1,7 @@
 import {useCallback, useEffect, useRef, useState} from "react";
-import {getTwitchAuthUrl, TWITCH_AUTH_ERRORS, type TwitchAuthMessageData} from "../../../services/twitch";
+import {getTwitchAuthUrl} from "../utils";
+import type {TwitchAuthMessageData} from "../types/messages.types.ts";
+import {TWITCH_AUTH_ERRORS} from "../config.ts";
 
 export const useTwitchPopup = (onSuccess: (
                                    token: string,

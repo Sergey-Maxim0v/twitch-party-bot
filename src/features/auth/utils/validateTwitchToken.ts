@@ -1,4 +1,4 @@
-import {TWITCH_AUTH_BASE_URL} from "./config.ts";
+import {TWITCH_AUTH_BASE_URL} from "../config.ts";
 
 export interface TwitchUserData {
     userId: string;

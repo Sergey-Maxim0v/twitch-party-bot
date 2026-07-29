@@ -1,4 +1,4 @@
-import type {TwitchUserData} from "../../../services/twitch/validateTwitchToken.ts";
+import type {TwitchUserData} from "../utils";
 
 export interface TwitchUserSession extends TwitchUserData {
     accessToken: string;
