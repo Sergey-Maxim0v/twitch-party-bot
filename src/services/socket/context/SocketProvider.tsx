@@ -1,5 +1,5 @@
-import {type FC, type ReactNode, useEffect, useMemo, useRef} from "react";
-import type {SocketStorage} from "../types";
+import {type FC, type ReactNode, useMemo, useRef} from "react";
+import {TwitchIrcClient} from "../../twitch";
 import {SocketInstance} from "./SocketInstance";
 
 interface SocketProviderProps {
@@ -7,28 +7,19 @@ interface SocketProviderProps {
 }
 
 export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
-    const socketRef = useRef<WebSocket | null>(null);
+    const clientRef = useRef<TwitchIrcClient>(new TwitchIrcClient());
 
-    // Добавляем методы-заглушки для проверки рендеров
-    const connect = (channel: string, token: string) => {
-        //TODO
-        console.log(`[SocketProvider] Вызван connect для канала: ${channel}, токен передан: ${!!token}`);
+    const connect = (channel: string, token: string, userLogin: string) => {
+        clientRef.current.connect(channel, token, userLogin);
     };
 
     const disconnect = () => {
-        //TODO
-        console.log("[SocketProvider] Вызван disconnect");
+        clientRef.current.disconnect();
     };
- 
-    // Закрываем сокет, если всё приложение вдруг размонтируется
-    useEffect(() => {
-        return () => socketRef.current?.close();
-    }, []);
 
-    const value: SocketStorage = useMemo(() => ({
-        get: () => socketRef.current,
-        set: (ws) => {
-            socketRef.current = ws;
+    const value = useMemo(() => ({
+        get: () => null,
+        set: () => {
         },
         connect,
         disconnect

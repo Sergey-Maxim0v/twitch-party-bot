@@ -8,11 +8,11 @@ export const TWITCH_CLIENT_ID = '13wnz7xzae0v5q4ohlh4kbv5dwh08i';
 export const TWITCH_REDIRECT_URI = window.location.origin + window.location.pathname;
 
 /**
- * @see{@link https://dev.twitch.tv/docs/authentication/scopes/}
+ * @see{@link https://dev.twitch.tv/docs/authentication/scopes/#irc-chat-scopes}
  */
 export const TWITCH_SCOPES = {
-    READ_CHAT: 'user:read:chat',
-    WRITE_CHAT: 'user:write:chat'
+    READ_CHAT: 'chat:read',
+    WRITE_CHAT: 'chat:edit'
 }
 
 export const TWITCH_AUTH_ERRORS = {

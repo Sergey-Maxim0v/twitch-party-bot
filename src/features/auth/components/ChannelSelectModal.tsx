@@ -1,4 +1,4 @@
-import {useState, type FC} from "react";
+import {useState, type FC, type ChangeEvent, type SyntheticEvent} from "react";
 import {useAuth} from "../hooks/useAuth.ts";
 import {useSocketRef} from "../../../services/socket/hooks/useSocketRef.ts";
 import {validateChannelName} from "../utils/validateChannelName.ts";
@@ -31,7 +31,7 @@ export const ChannelSelectModal: FC = () => {
         }
     }
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
     };
 
@@ -39,19 +39,19 @@ export const ChannelSelectModal: FC = () => {
     const handleOwnChannelClick = () => {
         if (session?.login && session?.accessToken) {
             selectOwnChannel();
-            connect(session.login, session.accessToken);
+            connect(session.login, session.accessToken, session.login);
         }
     };
 
     // Обработчик для ручного ввода канала
-    const handleCustomSubmit = (e: React.FormEvent) => {
+    const handleCustomSubmit = (e: SyntheticEvent) => {
         e.preventDefault();
         setIsValidationTriggered(true);
 
         const trimmed = inputValue.trim();
-        if (trimmed && validateChannelName(trimmed) && session?.accessToken) {
+        if (trimmed && validateChannelName(trimmed) && session?.accessToken && session?.login) {
             selectCustomChannel(trimmed);
-            connect(trimmed, session.accessToken);
+            connect(trimmed, session.accessToken, session.login);
         }
     };
 
