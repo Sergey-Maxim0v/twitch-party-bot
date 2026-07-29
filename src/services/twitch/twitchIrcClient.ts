@@ -37,6 +37,9 @@ export class TwitchIrcClient {
         this.socket.onmessage = (event) => {
             const rawMessage = event.data as string;
 
+            //TODO:
+            console.info(rawMessage);
+
             if (rawMessage.startsWith('PING')) {
                 this.socket?.send('PONG :tmi.twitch.tv');
                 return;

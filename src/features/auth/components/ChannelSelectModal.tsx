@@ -15,7 +15,7 @@ export const ChannelSelectModal: FC = () => {
 
     const {connect} = useSocketRef();
 
-    const [inputValue, setInputValue] = useState(() => session?.login || '');
+    const [inputValue, setInputValue] = useState('');
     const [isValidationTriggered, setIsValidationTriggered] = useState(false);
 
     let currentError: string | null = null;
@@ -103,17 +103,18 @@ export const ChannelSelectModal: FC = () => {
 
                     <button
                         type="submit"
-                        className="btn btn-primary  btn-outline w-full btn-sm flex flex-col h-14 py-2 gap-0.5 overflow-hidden"
+                        className="btn btn-primary btn-outline w-full btn-sm flex flex-col h-14 justify-center items-center py-2 gap-0.5 overflow-hidden"
+                        disabled={!inputValue.trim()}
                     >
-                        <span className="text-xs">Подключить канал</span>
-                        {inputValue ? (
-                            <span className="font-bold text-sm truncate max-w-full">
-                              {inputValue}
-                            </span>
+                        {inputValue.trim() ? (
+                            <>
+                                <span className="text-xs">Подключить канал</span>
+                                <span className="font-bold text-sm truncate max-w-full">
+                                    {inputValue}
+                                </span>
+                            </>
                         ) : (
-                            <span className="text-sm select-none opacity-0" aria-hidden="true">
-                              &nbsp;
-                            </span>
+                            <span className="font-bold text-sm">Введите название</span>
                         )}
                     </button>
                 </form>
