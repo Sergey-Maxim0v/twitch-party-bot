@@ -1,13 +1,13 @@
-import React from "react";
+import {type FC, type ReactNode} from "react";
 import {useAuth} from "../hooks/useAuth.ts";
 
 interface ProtectedViewProps {
-    children: React.ReactNode;
+    children: ReactNode;
     /** Компонент или разметка, отображаемая для неавторизованного пользователя */
-    fallback?: React.ReactNode;
+    fallback?: ReactNode;
 }
 
-export const ProtectedView: React.FC<ProtectedViewProps> = ({children, fallback = null}) => {
+export const ProtectedView: FC<ProtectedViewProps> = ({children, fallback = null}) => {
     const {isAuthenticated, isLoading} = useAuth();
 
     if (isLoading) {

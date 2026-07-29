@@ -39,7 +39,9 @@ const ChatInput = () => {
         e.preventDefault();
         if (!value.trim()) return;
 
+        // TODO
         console.log("Отправка в чат Twitch:", value);
+
         setValue("");
         setIsOverflowed(false);
     };

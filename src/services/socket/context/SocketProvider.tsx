@@ -9,6 +9,17 @@ interface SocketProviderProps {
 export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     const socketRef = useRef<WebSocket | null>(null);
 
+    // Добавляем методы-заглушки для проверки рендеров
+    const connect = (channel: string, token: string) => {
+        //TODO
+        console.log(`[SocketProvider] Вызван connect для канала: ${channel}, токен передан: ${!!token}`);
+    };
+
+    const disconnect = () => {
+        //TODO
+        console.log("[SocketProvider] Вызван disconnect");
+    };
+ 
     // Закрываем сокет, если всё приложение вдруг размонтируется
     useEffect(() => {
         return () => socketRef.current?.close();
@@ -18,7 +29,9 @@ export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         get: () => socketRef.current,
         set: (ws) => {
             socketRef.current = ws;
-        }
+        },
+        connect,
+        disconnect
     }), []);
 
     return (

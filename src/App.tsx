@@ -4,11 +4,13 @@ import {WelcomeScreen} from "./components/layout/WelcomeScreen.tsx";
 import TwitchChat from "./components/chat/TwitchChat.tsx";
 import QueuePanel from "./components/queue/QueuePanel.tsx";
 import {SocketProvider} from "./services/socket/context/SocketProvider.tsx";
+import {SocketInitializer} from "./services/socket/components/SocketInitializer.tsx";
 
 function App() {
     return (
         <SocketProvider>
             <AuthProvider>
+                <SocketInitializer/>
                 <PageLayout>
                     <ProtectedView fallback={<WelcomeScreen/>}>
                         <div className="flex flex-1 w-full h-full overflow-hidden bg-base-100">

@@ -1,8 +1,9 @@
-import React, {useState} from "react";
+import {useState, type FC} from "react";
 import {useAuth} from "../hooks/useAuth.ts";
 import {validateChannelName} from "../../../services/twitch";
+import {useSocketRef} from "../../../services/socket/hooks/useSocketRef.ts";
 
-export const ChannelSelectModal: React.FC = () => {
+export const ChannelSelectModal: FC = () => {
     const {
         session,
         isAuthenticated,
@@ -11,6 +12,8 @@ export const ChannelSelectModal: React.FC = () => {
         selectOwnChannel,
         selectCustomChannel
     } = useAuth();
+
+    const {connect} = useSocketRef();
 
     const [inputValue, setInputValue] = useState(() => session?.login || '');
     const [isValidationTriggered, setIsValidationTriggered] = useState(false);
@@ -32,10 +35,24 @@ export const ChannelSelectModal: React.FC = () => {
         setInputValue(e.target.value);
     };
 
+    // Обработчик для подключения к собственному каналу
+    const handleOwnChannelClick = () => {
+        if (session?.login && session?.accessToken) {
+            selectOwnChannel();
+            connect(session.login, session.accessToken);
+        }
+    };
+
+    // Обработчик для ручного ввода канала
     const handleCustomSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsValidationTriggered(true);
-        selectCustomChannel(inputValue);
+
+        const trimmed = inputValue.trim();
+        if (trimmed && validateChannelName(trimmed) && session?.accessToken) {
+            selectCustomChannel(trimmed);
+            connect(trimmed, session.accessToken);
+        }
     };
 
     if (!isAuthenticated || hasSelectedChannel) return null;
@@ -56,7 +73,7 @@ export const ChannelSelectModal: React.FC = () => {
 
                 {/* Способ 1: Быстрый вход на свой канал */}
                 <button
-                    onClick={selectOwnChannel}
+                    onClick={handleOwnChannelClick}
                     className="btn btn-primary w-full flex flex-col h-auto py-2.5 gap-0.5"
                 >
                     <span className="text-xs">Подключить канал</span>
