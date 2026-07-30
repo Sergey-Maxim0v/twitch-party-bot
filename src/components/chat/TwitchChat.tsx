@@ -13,6 +13,7 @@ const ANIMATION_TIME = "300ms";
 const TwitchChat = ({className = ""}: TwitchChatProps) => {
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("twitch_chat_open", true);
     const [isAnimationDone, setIsAnimationDone] = useState(isOpen);
+    const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>("twitch_chat_colored_names", true);
 
     const handleTransitionEnd = (e: React.TransitionEvent<HTMLElement>) => {
         if (e.propertyName === "width" && e.target === e.currentTarget) {
@@ -29,12 +30,29 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
             ${className} 
           `}
         >
-            <ChatToggle isOpen={isOpen}
-                        onOpen={() => {
-                            if (isOpen) setIsAnimationDone(false);
-                            setIsOpen(!isOpen);
-                        }}
-            />
+            {/* Обертка для элементов управления в шапке панели */}
+            <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2 z-10">
+                <ChatToggle isOpen={isOpen}
+                            onOpen={() => {
+                                if (isOpen) setIsAnimationDone(false);
+                                setIsOpen(!isOpen);
+                            }}
+                />
+
+                {/* Чекбокс показываем только когда панель чата открыта */}
+                {isOpen && isAnimationDone && (
+                    <label
+                        className="label cursor-pointer gap-2 bg-base-300/50 px-2 py-1 rounded-lg border border-base-content/5 animate-fadeIn">
+                        <span className="label-text text-xs font-medium">Цветные ники</span>
+                        <input
+                            type="checkbox"
+                            className="checkbox checkbox-xs checkbox-primary"
+                            checked={useColoredNames}
+                            onChange={(e) => setUseColoredNames(e.target.checked)}
+                        />
+                    </label>
+                )}
+            </div>
 
             {isOpen && (
                 <div
@@ -44,7 +62,8 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
                         ${isAnimationDone ? "opacity-100" : "opacity-0"}
                   `}
                 >
-                    <ChatList/>
+                    {/* Передаем настройку в список сообщений */}
+                    <ChatList useColoredNames={useColoredNames}/>
                     <ChatInput/>
                 </div>
             )}

@@ -1,6 +1,10 @@
 import {useTwitchChat} from "../../services/twitch/hooks/useTwitchChat.ts";
 
-const ChatList = () => {
+interface ChatListProps {
+    useColoredNames: boolean;
+}
+
+const ChatList = ({useColoredNames}: ChatListProps) => {
     const {messages} = useTwitchChat();
 
     return (
@@ -12,20 +16,28 @@ const ChatList = () => {
                     </span>
                 </div>
             ) : (
-                messages.map((msg) => (
-                    <div key={msg.id} className="text-sm wrap-break-word leading-relaxed animate-fadeIn">
-                        {/* Вывод времени сообщения */}
-                        <span className="text-xs text-base-content/40 mr-2 select-none">
-                            {msg.timestamp}
-                        </span>
-                        <span className="font-bold text-primary mr-2">
-                            {msg.user}:
-                        </span>
-                        <span className="text-base-content">
-                            {msg.text}
-                        </span>
-                    </div>
-                ))
+                messages.map((msg) => {
+                    const twitchColor = msg.tags.color;
+                    const nameStyle = useColoredNames && twitchColor ? {color: twitchColor} : undefined;
+                    const nameClassName = !nameStyle ? "font-bold text-primary mr-2" : "font-bold mr-2";
+
+                    return (
+                        <div key={msg.id} className="text-sm wrap-break-word leading-relaxed animate-fadeIn">
+                            <span className="text-xs text-base-content/40 mr-2 select-none">
+                                {msg.timestamp}
+                            </span>
+                            <span
+                                className={nameClassName}
+                                style={nameStyle}
+                            >
+                                {msg.user}:
+                            </span>
+                            <span className="text-base-content">
+                                {msg.text}
+                            </span>
+                        </div>
+                    );
+                })
             )}
         </div>
     );
