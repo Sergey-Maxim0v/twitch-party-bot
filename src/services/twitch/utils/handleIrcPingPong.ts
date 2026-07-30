@@ -1,3 +1,5 @@
+import {TwitchIrcCommand} from "../config.ts";
+
 interface HandleIrcPingProps {
     rawMessage: string;
     socket: WebSocket;
@@ -10,7 +12,7 @@ export const PONG_MESSAGE = "PONG :tmi.twitch.tv"
  * Возвращает true, если сообщение было PING-запросом.
  */
 export const handleIrcPingPong = ({rawMessage, socket}: HandleIrcPingProps): boolean => {
-    if (rawMessage.startsWith("PING")) {
+    if (rawMessage.startsWith(TwitchIrcCommand.PING)) {
         socket.send(PONG_MESSAGE);
         return true;
     }

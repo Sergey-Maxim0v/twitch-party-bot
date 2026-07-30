@@ -1,6 +1,6 @@
 import {useCallback, useRef, useState} from "react";
 import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
-import {MAX_MESSAGES} from "../config.ts";
+import {MAX_MESSAGES, TwitchIrcCommand} from "../config.ts";
 import {useTwitchSubscription} from "./useTwitchSubscription.ts";
 
 /**
@@ -9,33 +9,41 @@ import {useTwitchSubscription} from "./useTwitchSubscription.ts";
  */
 export const useTwitchChat = () => {
     const [messages, setMessages] = useState<ParsedIrcMessage[]>([]);
-    // Очередь отправленных сообщений для склейки с приходящим USERSTATE
+
     const pendingTextsRef = useRef<string[]>([]);
 
     const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-        // Очищаем чат при смене канала (сигнал JOIN)
-        if (message.command === "JOIN") {
+        if (message.command === TwitchIrcCommand.JOIN) {
             setMessages([]);
             return;
         }
 
-        // Перехватываем USERSTATE на нашу собственную отправку
-        if (message.command === "USERSTATE" && pendingTextsRef.current.length > 0) {
-            const savedText = pendingTextsRef.current.shift();
-            if (savedText) {
-                message.command = "PRIVMSG";
-                message.text = savedText;
-                message.user = message.tags["display-name"] || "dev_7788";
-            }
-        }
+        const isUserstate = message.command === TwitchIrcCommand.USER_STATE;
 
-        if (message.command !== "PRIVMSG") return;
+        if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return;
 
         setMessages((prev) => {
-            const updated = [...prev, message];
-            if (updated.length > MAX_MESSAGES) {
-                return updated.slice(0, MAX_MESSAGES);
+            let messageToPush = message;
+
+            if (isUserstate) {
+                const savedText = pendingTextsRef.current.shift();
+
+                if (!savedText) return prev;
+
+                messageToPush = {
+                    ...message,
+                    command: TwitchIrcCommand.PRIV_MSG,
+                    text: savedText,
+                    user: message.tags["display-name"] || "dev_7788"
+                };
             }
+
+            const updated = [...prev, messageToPush];
+
+            if (updated.length > MAX_MESSAGES) {
+                return updated.slice(updated.length - MAX_MESSAGES);
+            }
+
             return updated;
         });
     }, []);

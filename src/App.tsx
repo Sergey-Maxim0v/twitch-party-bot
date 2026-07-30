@@ -6,6 +6,14 @@ import QueuePanel from "./components/queue/QueuePanel.tsx";
 import {SocketProvider} from "./services/socket/context/SocketProvider.tsx";
 import {SocketInitializer} from "./services/socket/components/SocketInitializer.tsx";
 
+// TODO:
+//  1. после смены канала сообщения не приходят. после перезагрузки приходят
+//  2. добавить логику для чата при командах бана, очистки чата.
+//  3. закрытие модалки выбора канала без изменения состояний приложения
+//  4. Вывод сервисных сообщений в чат и чекбокс
+//  5. стили для сообщений от автора, канала, модеров, випов
+//  6. QueuePanel
+
 function App() {
     return (
         <SocketProvider>

@@ -1,8 +1,10 @@
+import type {TwitchIrcCommandType} from "../config.ts";
+
 export interface ParsedIrcMessage {
     id: string;       // Уникальный ID сообщения (msg-id из тегов Twitch)
     user: string;     // Никнейм отправителя
     text: string;     // Текст сообщения
-    command: string;  // Команда (например, 'PRIVMSG', 'JOIN', 'USERSTATE')
+    command: TwitchIrcCommandType;  // Команда (например, 'PRIVMSG', 'JOIN', 'USERSTATE')
     timestamp: string;// Время сообщения HH:MM
     tags: Record<string, string>; // Все остальные распарсенные теги на случай расширения логики
 }
@@ -36,7 +38,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
         }
     }
 
-    // 2. Ищем префикс источника (ник пользователя, начинается с :)
+    // 2. Ищем префикс источника (ник пользователя, начинается с ":")
     let user = "";
     if (remaining.startsWith(":")) {
         const spaceIndex = remaining.indexOf(" ");
@@ -61,7 +63,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     }
 
     const commandParts = commandPart.split(" ");
-    const command = commandParts[0] || "";
+    const command = (commandParts[0] || "") as TwitchIrcCommandType;
 
     // Генерируем запасной id, если Twitch не прислал его в тегах для этой команды
     const id = tags["id"] || tags["msg-id"] || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
