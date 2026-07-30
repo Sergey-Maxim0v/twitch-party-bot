@@ -8,16 +8,12 @@ interface HandleIrcMessageProps {
 }
 
 /**
- * Обрабатывает входящие сырые сообщения от Twitch IRC сокета.
- * Автоматически отвечает на PING-запросы для поддержания сессии.
- */
-/**
  * Главный диспетчер входящих сообщений.
  * Маршрутизирует сырые данные по специализированным обработчикам.
  */
 export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageProps): void => {
     const rawMessage = event.data as string;
-
+    
     // 1. Проверка и автоматический ответ на системный PING
     const isPing = handleIrcPingPong({rawMessage, socket});
     if (isPing) return;

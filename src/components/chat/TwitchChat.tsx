@@ -3,6 +3,7 @@ import ChatToggle from "./ChatToggle.tsx";
 import {useLocalStorage} from "../../hooks";
 import ChatInput from "./ChatInput.tsx";
 import ChatList from "./ChatList.tsx";
+import {useTwitchChat} from "../../services/twitch/hooks/useTwitchChat.ts";
 
 export interface TwitchChatProps {
     className?: string;
@@ -14,6 +15,8 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("twitch_chat_open", true);
     const [isAnimationDone, setIsAnimationDone] = useState(isOpen);
     const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>("twitch_chat_colored_names", true);
+
+    const {messages, registerPendingMessage} = useTwitchChat();
 
     const handleTransitionEnd = (e: React.TransitionEvent<HTMLElement>) => {
         if (e.propertyName === "width" && e.target === e.currentTarget) {
@@ -39,7 +42,6 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
                             }}
                 />
 
-                {/* Чекбокс показываем только когда панель чата открыта */}
                 {isOpen && isAnimationDone && (
                     <label
                         className="label cursor-pointer gap-2 bg-base-300/50 px-2 py-1 rounded-lg border border-base-content/5 animate-fadeIn">
@@ -63,8 +65,8 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
                   `}
                 >
                     {/* Передаем настройку в список сообщений */}
-                    <ChatList useColoredNames={useColoredNames}/>
-                    <ChatInput/>
+                    <ChatList messages={messages} useColoredNames={useColoredNames}/>
+                    <ChatInput onSendMessage={registerPendingMessage}/>
                 </div>
             )}
         </aside>

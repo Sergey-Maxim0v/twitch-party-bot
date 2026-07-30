@@ -1,12 +1,12 @@
-import {useTwitchChat} from "../../services/twitch/hooks/useTwitchChat.ts";
 import {ChatMessage} from "./ChatMessage.tsx";
+import type {ParsedIrcMessage} from "../../services/twitch";
 
 interface ChatListProps {
+    messages: ParsedIrcMessage[];
     useColoredNames: boolean;
 }
 
-const ChatList = ({useColoredNames}: ChatListProps) => {
-    const {messages} = useTwitchChat();
+const ChatList = ({messages, useColoredNames}: ChatListProps) => {
 
     const reversedMessages = [...messages].reverse();
 

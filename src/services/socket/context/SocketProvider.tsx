@@ -1,6 +1,7 @@
 import {type FC, type ReactNode, useMemo, useRef} from "react";
 import {type MessageCallback, TwitchIrcClient} from "../../twitch";
 import {SocketInstance} from "./SocketInstance";
+import type {SocketStorage} from "../types";
 
 interface SocketProviderProps {
     children: ReactNode;
@@ -24,10 +25,7 @@ export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         clientRef.current.sendMessage(text);
     };
 
-    const value = useMemo(() => ({
-        get: () => null,
-        set: () => {
-        },
+    const value: SocketStorage = useMemo(() => ({
         connect,
         disconnect,
         subscribe,

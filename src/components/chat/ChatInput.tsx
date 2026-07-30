@@ -3,7 +3,11 @@ import {LuSend} from "react-icons/lu";
 import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from "../../constants";
 import {useSocketRef} from "../../services/socket/hooks/useSocketRef.ts";
 
-const ChatInput = () => {
+interface ChatInputProps {
+    onSendMessage: (text: string) => void;
+}
+
+const ChatInput = ({onSendMessage}: ChatInputProps) => {
     const [value, setValue] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isOverflowed, setIsOverflowed] = useState(false);
@@ -40,10 +44,12 @@ const ChatInput = () => {
 
     const handleSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();
-        if (!value.trim()) return;
+        const trimmedValue = value.trim();
+        if (!trimmedValue) return;
 
         if (socketContext && socketContext.sendMessage) {
-            socketContext.sendMessage(value.trim());
+            onSendMessage(trimmedValue);
+            socketContext.sendMessage(trimmedValue);
         }
 
         setValue("");
