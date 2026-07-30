@@ -12,7 +12,8 @@ import {SocketInitializer} from "./services/socket/components/SocketInitializer.
 //  3. закрытие модалки выбора канала без изменения состояний приложения
 //  4. Вывод сервисных сообщений в чат и чекбокс
 //  5. стили для сообщений от автора, канала, модеров, випов
-//  6. QueuePanel
+//  6. обработка несуществующего канала
+//  7. QueuePanel
 
 function App() {
     return (

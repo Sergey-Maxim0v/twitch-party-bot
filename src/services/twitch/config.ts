@@ -21,6 +21,7 @@ export const TwitchIrcCommand = {
     USER_NOTICE: 'USERNOTICE',
     USER_STATE: 'USERSTATE',
     JOIN: 'JOIN',
+    MOTD_START: '375', // Сигнал начала приветствия сервера
 } as const;
 
 export type TwitchIrcCommandType = typeof TwitchIrcCommand[keyof typeof TwitchIrcCommand];

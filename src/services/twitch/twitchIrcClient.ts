@@ -9,6 +9,11 @@ export class TwitchIrcClient {
     private socket: WebSocket | null = null;
     private channel: string | null = null;
     private emitter = createMessageEmitter();
+    private onChannelChangeCallback: (() => void) | null = null;
+
+    public onChannelChange(callback: () => void): void {
+        this.onChannelChangeCallback = callback;
+    }
 
     public subscribe(callback: MessageCallback): () => void {
         return this.emitter.subscribe(callback);
@@ -24,6 +29,10 @@ export class TwitchIrcClient {
         if (this.socket && this.channel === targetChannel &&
             (this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN)) {
             return;
+        }
+
+        if (this.onChannelChangeCallback) {
+            this.onChannelChangeCallback();
         }
 
         if (this.socket) {
@@ -49,7 +58,6 @@ export class TwitchIrcClient {
                 event,
                 socket: this.socket,
                 emitMessage: (message: ParsedIrcMessage) => this.emitter.emit(message)
-
             });
         };
 
@@ -76,7 +84,6 @@ export class TwitchIrcClient {
     private cleanup(): void {
         this.socket = null;
         this.channel = null;
-        this.emitter.clear();
     }
 
     public sendMessage(text: string): void {
@@ -86,5 +93,9 @@ export class TwitchIrcClient {
         }
 
         this.socket.send(`PRIVMSG #${this.channel} :${text}`);
+    }
+
+    public get currentChannel(): TwitchIrcClient["channel"] {
+        return this.channel;
     }
 }

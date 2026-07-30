@@ -25,11 +25,16 @@ export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         clientRef.current.sendMessage(text);
     };
 
+    const getClient = (): TwitchIrcClient => {
+        return clientRef.current;
+    };
+
     const value: SocketStorage = useMemo(() => ({
         connect,
         disconnect,
         subscribe,
-        sendMessage
+        sendMessage,
+        getClient
     }), []);
 
     return (

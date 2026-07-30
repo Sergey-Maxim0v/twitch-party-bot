@@ -1,23 +1,28 @@
-import {useCallback, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
 import {MAX_MESSAGES, TwitchIrcCommand} from "../config.ts";
 import {useTwitchSubscription} from "./useTwitchSubscription.ts";
+import {useSocketRef} from "../../socket/hooks/useSocketRef.ts";
 
 /**
  * Единый хук управления состоянием чата Twitch.
- * Инкапсулирует историю сообщений, очистку при JOIN и перехват USERSTATE для эхо-ответов.
  */
 export const useTwitchChat = () => {
     const [messages, setMessages] = useState<ParsedIrcMessage[]>([]);
-
     const pendingTextsRef = useRef<string[]>([]);
+    const socketContext = useSocketRef();
+
+    useEffect(() => {
+        const client = socketContext?.getClient?.();
+
+        if (!client || !client.onChannelChange) return;
+
+        client.onChannelChange(() => {
+            setMessages([]);
+        });
+    }, [socketContext]);
 
     const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-        if (message.command === TwitchIrcCommand.JOIN) {
-            setMessages([]);
-            return;
-        }
-
         const isUserstate = message.command === TwitchIrcCommand.USER_STATE;
 
         if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return;
@@ -58,13 +63,8 @@ export const useTwitchChat = () => {
         pendingTextsRef.current.push(text);
     }, []);
 
-    const clearChat = useCallback(() => {
-        setMessages([]);
-    }, []);
-
     return {
         messages,
-        registerPendingMessage,
-        clearChat
+        registerPendingMessage
     };
 };

@@ -34,7 +34,6 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
             ${className} 
           `}
         >
-            {/* Обертка для элементов управления в шапке панели */}
             <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2 z-10">
                 <ChatToggle isOpen={isOpen}
                             onOpen={() => {
@@ -59,7 +58,6 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
                         ${isAnimationDone ? "opacity-100" : "opacity-0"}
                   `}
                 >
-                    {/* Передаем настройку в список сообщений */}
                     <ChatList messages={messages} useColoredNames={useColoredNames}/>
                     <ChatInput onSendMessage={registerPendingMessage}/>
                 </div>
