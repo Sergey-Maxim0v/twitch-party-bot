@@ -20,6 +20,9 @@ export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     const subscribe = (callback: MessageCallback) => {
         return clientRef.current.subscribe(callback);
     };
+    const sendMessage = (text: string) => {
+        clientRef.current.sendMessage(text);
+    };
 
     const value = useMemo(() => ({
         get: () => null,
@@ -27,7 +30,8 @@ export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         },
         connect,
         disconnect,
-        subscribe
+        subscribe,
+        sendMessage
     }), []);
 
     return (

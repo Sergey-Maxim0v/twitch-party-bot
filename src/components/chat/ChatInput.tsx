@@ -1,11 +1,14 @@
 import React, {useState, useRef, useEffect} from "react";
 import {LuSend} from "react-icons/lu";
 import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from "../../constants";
+import {useSocketRef} from "../../services/socket/hooks/useSocketRef.ts";
 
 const ChatInput = () => {
     const [value, setValue] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isOverflowed, setIsOverflowed] = useState(false);
+
+    const socketContext = useSocketRef();
 
     useEffect(() => {
         const textarea = textareaRef.current;
@@ -39,8 +42,9 @@ const ChatInput = () => {
         e.preventDefault();
         if (!value.trim()) return;
 
-        // TODO
-        console.log("Отправка в чат Twitch:", value);
+        if (socketContext && socketContext.sendMessage) {
+            socketContext.sendMessage(value.trim());
+        }
 
         setValue("");
         setIsOverflowed(false);

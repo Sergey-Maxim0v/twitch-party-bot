@@ -78,4 +78,13 @@ export class TwitchIrcClient {
         this.channel = null;
         this.emitter.clear();
     }
+
+    public sendMessage(text: string): void {
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN || !this.channel) {
+            console.error("[TwitchIRC Client] Невозможно отправить сообщение: сокет закрыт или канал не задан");
+            return;
+        }
+
+        this.socket.send(`PRIVMSG #${this.channel} :${text}`);
+    }
 }
