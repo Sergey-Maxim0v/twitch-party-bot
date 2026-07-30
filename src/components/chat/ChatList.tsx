@@ -7,8 +7,10 @@ interface ChatListProps {
 const ChatList = ({useColoredNames}: ChatListProps) => {
     const {messages} = useTwitchChat();
 
+    const reversedMessages = [...messages].reverse();
+
     return (
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col justify-end">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse">
             {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                     <span className="text-xs text-base-content/40 italic">
@@ -16,9 +18,11 @@ const ChatList = ({useColoredNames}: ChatListProps) => {
                     </span>
                 </div>
             ) : (
-                messages.map((msg) => {
+                reversedMessages.map((msg) => {
                     const twitchColor = msg.tags.color;
-                    const nameStyle = useColoredNames && twitchColor ? {color: twitchColor} : undefined;
+                    const nameStyle = useColoredNames && twitchColor
+                        ? {color: twitchColor}
+                        : undefined;
                     const nameClassName = !nameStyle ? "font-bold text-primary mr-2" : "font-bold mr-2";
 
                     return (
@@ -26,10 +30,7 @@ const ChatList = ({useColoredNames}: ChatListProps) => {
                             <span className="text-xs text-base-content/40 mr-2 select-none">
                                 {msg.timestamp}
                             </span>
-                            <span
-                                className={nameClassName}
-                                style={nameStyle}
-                            >
+                            <span className={nameClassName} style={nameStyle}>
                                 {msg.user}:
                             </span>
                             <span className="text-base-content">
