@@ -3,6 +3,7 @@ export interface ParsedIrcMessage {
     user: string;     // Никнейм отправителя
     text: string;     // Текст сообщения
     command: string;  // Команда (например, 'PRIVMSG', 'JOIN', 'USERSTATE')
+    timestamp: string;// Время сообщения HH:MM
     tags: Record<string, string>; // Все остальные распарсенные теги на случай расширения логики
 }
 
@@ -65,11 +66,10 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     // Генерируем запасной id, если Twitch не прислал его в тегах для этой команды
     const id = tags["id"] || tags["msg-id"] || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    return {
-        id,
-        user,
-        text,
-        command,
-        tags
-    };
+    // Извлекаем временную метку Twitch (tmi-sent-ts) или берем текущее время
+    const rawTimestamp = tags["tmi-sent-ts"] ? parseInt(tags["tmi-sent-ts"], 10) : Date.now();
+    const date = new Date(rawTimestamp);
+    const timestamp = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+    return {id, user, text, command, timestamp, tags};
 };
