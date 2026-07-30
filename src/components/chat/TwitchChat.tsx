@@ -4,6 +4,7 @@ import {useLocalStorage} from "../../hooks";
 import ChatInput from "./ChatInput.tsx";
 import ChatList from "./ChatList.tsx";
 import {useTwitchChat} from "../../services/twitch/hooks/useTwitchChat.ts";
+import {ColoredNamesToggle} from "./ColoredNamesToggle.tsx";
 
 export interface TwitchChatProps {
     className?: string;
@@ -43,16 +44,10 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
                 />
 
                 {isOpen && isAnimationDone && (
-                    <label
-                        className="label cursor-pointer gap-2 bg-base-300/50 px-2 py-1 rounded-lg border border-base-content/5 animate-fadeIn">
-                        <span className="label-text text-xs font-medium">Цветные ники</span>
-                        <input
-                            type="checkbox"
-                            className="checkbox checkbox-xs checkbox-primary"
-                            checked={useColoredNames}
-                            onChange={(e) => setUseColoredNames(e.target.checked)}
-                        />
-                    </label>
+                    <ColoredNamesToggle
+                        checked={useColoredNames}
+                        onChange={setUseColoredNames}
+                    />
                 )}
             </div>
 
