@@ -1,8 +1,18 @@
 import {TWITCH_SOCKET_BASE_URL} from "./config.ts";
+import {sendInitialIrcCommands} from "./utils/sendInitialIrcCommands.ts";
+import {handleIrcMessage} from "./utils/handleIrcMessage.ts";
+import {createMessageEmitter, type MessageCallback} from "./utils/createMessageEmitter.ts";
+import type {ParsedIrcMessage} from "./utils/parseIrcMessage.ts";
+
 
 export class TwitchIrcClient {
     private socket: WebSocket | null = null;
     private channel: string | null = null;
+    private emitter = createMessageEmitter();
+
+    public subscribe(callback: MessageCallback): () => void {
+        return this.emitter.subscribe(callback);
+    }
 
     public connect(channel: string, token: string, userLogin: string): void {
         if (!channel || !token || !userLogin) {
@@ -25,25 +35,22 @@ export class TwitchIrcClient {
         this.socket = new WebSocket(TWITCH_SOCKET_BASE_URL);
 
         this.socket.onopen = () => {
-
             if (!this.socket || !this.channel) return;
 
-            this.socket.send(`PASS oauth:${token}`);
-            this.socket.send(`NICK ${userLogin.toLowerCase()}`);
-            this.socket.send('CAP REQ :twitch.tv/commands twitch.tv/tags');
-            this.socket.send(`JOIN #${this.channel}`);
+            sendInitialIrcCommands({
+                socket: this.socket, token, userLogin, channel: this.channel
+            });
         };
 
         this.socket.onmessage = (event) => {
-            const rawMessage = event.data as string;
+            if (!this.socket) return;
 
-            //TODO:
-            console.info(rawMessage);
+            handleIrcMessage({
+                event,
+                socket: this.socket,
+                emitMessage: (message: ParsedIrcMessage) => this.emitter.emit(message)
 
-            if (rawMessage.startsWith('PING')) {
-                this.socket?.send('PONG :tmi.twitch.tv');
-                return;
-            }
+            });
         };
 
         const currentSocket = this.socket;
@@ -69,5 +76,6 @@ export class TwitchIrcClient {
     private cleanup(): void {
         this.socket = null;
         this.channel = null;
+        this.emitter.clear();
     }
 }

@@ -46,7 +46,6 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         }
     }, [setSession]);
 
-    // Подключаем изолированные суб-хуки
     const popupManager = useTwitchPopup(handlePopupSuccess, setError);
     const channelManager = useTwitchChannelState(session?.login, setError);
 

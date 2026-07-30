@@ -3,7 +3,10 @@ import {LuRefreshCw} from "react-icons/lu";
 import {useAuth} from "../hooks/useAuth.ts";
 
 export const ChannelIndicator: React.FC = () => {
-    const {activeChannel, resetChannel} = useAuth(); // Берем методы из единого источника
+
+    // TODO: отделить логику стирания выбранного канала от кнопки.
+    //  и сделать закрытие модалки выбора канала без изменения состояний приложения
+    const {activeChannel, resetChannel} = useAuth();
 
     if (!activeChannel) return null;
 
@@ -11,9 +14,9 @@ export const ChannelIndicator: React.FC = () => {
         <div className="flex items-center gap-2 bg-base-300/50 px-3 py-1 rounded-lg border border-base-300">
             <div className="flex flex-col text-right">
                 <span className="text-xs text-base-content/50 leading-none">Канал</span>
-                <span className="text-sm font-bold text-primary truncate max-w-[120px]">
-          {activeChannel}
-        </span>
+                <span className="text-sm font-bold text-primary truncate max-w-32">
+                  {activeChannel}
+                </span>
             </div>
             <button
                 onClick={resetChannel}
