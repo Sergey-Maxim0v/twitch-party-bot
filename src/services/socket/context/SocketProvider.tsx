@@ -1,5 +1,5 @@
 import {type FC, type ReactNode, useMemo, useRef} from "react";
-import {TwitchIrcClient} from "../../twitch";
+import {type MessageCallback, TwitchIrcClient} from "../../twitch";
 import {SocketInstance} from "./SocketInstance";
 
 interface SocketProviderProps {
@@ -17,12 +17,17 @@ export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         clientRef.current.disconnect();
     };
 
+    const subscribe = (callback: MessageCallback) => {
+        return clientRef.current.subscribe(callback);
+    };
+
     const value = useMemo(() => ({
         get: () => null,
         set: () => {
         },
         connect,
-        disconnect
+        disconnect,
+        subscribe
     }), []);
 
     return (
