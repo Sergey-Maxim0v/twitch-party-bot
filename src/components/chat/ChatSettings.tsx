@@ -1,5 +1,6 @@
 import type {FC} from "react";
 import {LuSettings} from 'react-icons/lu';
+import ChatSettingsToggle from "./ChatSettingsToggle.tsx";
 
 interface ChatSettingsProps {
     useColoredNames: boolean;
@@ -20,24 +21,36 @@ const ChatSettings: FC<ChatSettingsProps> = ({
             >
                 <LuSettings className="w-5 h-5 text-base-content/70"/>
             </button>
-            <ul
+            <div
                 tabIndex={0}
-                className="dropdown-content z-[50] menu p-4 shadow bg-base-200 rounded-box w-64 gap-3 mt-1"
+                className="dropdown-content z-50 p-4 shadow-2xl bg-base-100 border border-base-300 rounded-box w-80 mt-1 flex flex-col gap-3 overflow-hidden box-border"
             >
-                <li className="menu-title px-0 text-xs font-bold uppercase tracking-wider text-base-content/50">
-                    Настройки чата
-                </li>
+                <div className="text-xs font-bold uppercase tracking-wider text-base-content/50 w-full select-none">
+                    Отображение чата
+                </div>
 
-                <label className="label cursor-pointer justify-between p-0 field-label">
-                    <span className="label-text font-medium">Цветные ники</span>
-                    <input
-                        type="checkbox"
-                        className="toggle toggle-primary toggle-sm"
+                <div className="w-full flex flex-col gap-3">
+                    <ChatSettingsToggle
+                        label="Цветные ники"
                         checked={useColoredNames}
-                        onChange={(e) => setUseColoredNames(e.target.checked)}
+                        onChange={setUseColoredNames}
                     />
-                </label>
-            </ul>
+
+                    {/*    TODO     */}
+                    <ChatSettingsToggle
+                        label="Стили удаленных сообщений"
+                        checked={true}
+                        onChange={() => false}
+                    />
+
+                    {/*    TODO     */}
+                    <ChatSettingsToggle
+                        label="Стили модеров, випов"
+                        checked={false}
+                        onChange={() => false}
+                    />
+                </div>
+            </div>
         </div>
     );
 };

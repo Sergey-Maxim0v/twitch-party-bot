@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {type FC, useState} from "react";
 import ChatToggle from "./ChatToggle.tsx";
 import {useLocalStorage} from "../../hooks";
 import ChatInput from "./ChatInput.tsx";
@@ -12,7 +12,7 @@ export interface TwitchChatProps {
 
 const ANIMATION_TIME = "300ms";
 
-const TwitchChat = ({className = ""}: TwitchChatProps) => {
+const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("twitch_chat_open", true);
     const [isAnimationDone, setIsAnimationDone] = useState(isOpen);
     const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>("twitch_chat_colored_names", true);
