@@ -4,7 +4,7 @@ import {useLocalStorage} from "../../hooks";
 import ChatInput from "./ChatInput.tsx";
 import ChatList from "./ChatList.tsx";
 import {useTwitchChat} from "../../services/twitch/hooks/useTwitchChat.ts";
-import {ColoredNamesToggle} from "./ColoredNamesToggle.tsx";
+import ChatSettings from "./ChatSettings.tsx";
 
 export interface TwitchChatProps {
     className?: string;
@@ -43,9 +43,9 @@ const TwitchChat = ({className = ""}: TwitchChatProps) => {
                 />
 
                 {isOpen && isAnimationDone && (
-                    <ColoredNamesToggle
-                        checked={useColoredNames}
-                        onChange={setUseColoredNames}
+                    <ChatSettings
+                        useColoredNames={useColoredNames}
+                        setUseColoredNames={setUseColoredNames}
                     />
                 )}
             </div>
