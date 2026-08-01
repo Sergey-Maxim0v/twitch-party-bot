@@ -16,6 +16,8 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("twitch_chat_open", true);
     const [isAnimationDone, setIsAnimationDone] = useState(isOpen);
     const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>("twitch_chat_colored_names", true);
+    const [highlightRoles, setHighlightRoles] = useLocalStorage<boolean>("twitch_chat_highlight_roles", true);
+    const [IsShowDeletedMessages, setIsShowDeletedMessages] = useLocalStorage<boolean>("twitch_chat_show_moderation_logs", true);
 
     const {messages, registerPendingMessage} = useTwitchChat();
 
@@ -46,6 +48,10 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
                     <ChatSettings
                         useColoredNames={useColoredNames}
                         setUseColoredNames={setUseColoredNames}
+                        highlightRoles={highlightRoles}
+                        setHighlightRoles={setHighlightRoles}
+                        IsShowDeletedMessages={IsShowDeletedMessages}
+                        setIsShowDeletedMessages={setIsShowDeletedMessages}
                     />
                 )}
             </div>
@@ -58,7 +64,13 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
                         ${isAnimationDone ? "opacity-100" : "opacity-0"}
                   `}
                 >
-                    <ChatList messages={messages} useColoredNames={useColoredNames}/>
+                    <ChatList
+                        messages={messages}
+                        useColoredNames={useColoredNames}
+                        highlightRoles={highlightRoles}
+                        IsShowDeletedMessages={IsShowDeletedMessages}
+                    />
+
                     <ChatInput onSendMessage={registerPendingMessage}/>
                 </div>
             )}

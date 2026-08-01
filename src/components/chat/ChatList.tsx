@@ -4,9 +4,13 @@ import type {ParsedIrcMessage} from "../../services/twitch";
 interface ChatListProps {
     messages: ParsedIrcMessage[];
     useColoredNames: boolean;
+    highlightRoles: boolean;
+    IsShowDeletedMessages: boolean;
 }
 
-const ChatList = ({messages, useColoredNames}: ChatListProps) => {
+const ChatList = ({
+                      messages, useColoredNames, IsShowDeletedMessages, highlightRoles
+                  }: ChatListProps) => {
 
     const reversedMessages = [...messages].reverse();
 
@@ -24,6 +28,8 @@ const ChatList = ({messages, useColoredNames}: ChatListProps) => {
                         key={msg.id}
                         msg={msg}
                         useColoredNames={useColoredNames}
+                        highlightRoles={highlightRoles}
+                        IsShowDeletedMessages={IsShowDeletedMessages}
                     />
                 ))
             )}

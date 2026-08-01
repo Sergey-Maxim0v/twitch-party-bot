@@ -1,4 +1,4 @@
-import type {TwitchIrcCommandType} from "../config.ts";
+import {TwitchIrcCommand, type TwitchIrcCommandType} from "../config.ts";
 
 export interface ParsedIrcMessage {
     id: string;       // Уникальный ID сообщения (msg-id из тегов Twitch)
@@ -60,10 +60,21 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     if (colonIndex !== -1) {
         commandPart = remaining.slice(0, colonIndex);
         text = remaining.slice(colonIndex + 2); // Всё, что после " :" — это текст сообщения
+    } else {
+        // Для команд без текста (например, CLEARCHAT всего чата)
+        const parts = remaining.split(" ");
+        if (parts.length > 2 && (parts[0] === TwitchIrcCommand.CLEAR_CHAT || parts[0] === TwitchIrcCommand.CLEAR_MSG)) {
+            commandPart = parts.slice(0, 2).join(" ");
+        }
     }
 
     const commandParts = commandPart.split(" ");
     const command = (commandParts[0] || "") as TwitchIrcCommandType;
+
+    // Для CLEARCHAT, если текст не выделился через ":", ник забаненного может быть вторым аргументом команды
+    if ((command === TwitchIrcCommand.CLEAR_CHAT || command === TwitchIrcCommand.CLEAR_MSG) && !text && commandParts[2]) {
+        text = commandParts[2];
+    }
 
     // Генерируем запасной id, если Twitch не прислал его в тегах для этой команды
     const id = tags["id"] || tags["msg-id"] || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -72,6 +83,6 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     const rawTimestamp = tags["tmi-sent-ts"] ? parseInt(tags["tmi-sent-ts"], 10) : Date.now();
     const date = new Date(rawTimestamp);
     const timestamp = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-
+    
     return {id, user, text, command, timestamp, tags};
 };

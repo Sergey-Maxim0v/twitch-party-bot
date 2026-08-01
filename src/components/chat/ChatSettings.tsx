@@ -5,11 +5,19 @@ import ChatSettingsToggle from "./ChatSettingsToggle.tsx";
 interface ChatSettingsProps {
     useColoredNames: boolean;
     setUseColoredNames: (value: boolean) => void;
+    highlightRoles: boolean;
+    setHighlightRoles: (value: boolean) => void;
+    IsShowDeletedMessages: boolean;
+    setIsShowDeletedMessages: (value: boolean) => void
 }
 
 const ChatSettings: FC<ChatSettingsProps> = ({
                                                  useColoredNames,
                                                  setUseColoredNames,
+                                                 highlightRoles,
+                                                 setHighlightRoles,
+                                                 setIsShowDeletedMessages,
+                                                 IsShowDeletedMessages
                                              }) => {
 
     return (
@@ -36,18 +44,16 @@ const ChatSettings: FC<ChatSettingsProps> = ({
                         onChange={setUseColoredNames}
                     />
 
-                    {/*    TODO     */}
-                    <ChatSettingsToggle
-                        label="Стили удаленных сообщений"
-                        checked={true}
-                        onChange={() => false}
-                    />
-
-                    {/*    TODO     */}
                     <ChatSettingsToggle
                         label="Стили модеров, випов"
-                        checked={false}
-                        onChange={() => false}
+                        checked={highlightRoles}
+                        onChange={setHighlightRoles}
+                    />
+
+                    <ChatSettingsToggle
+                        label="Показать удаленные сообщения"
+                        checked={IsShowDeletedMessages}
+                        onChange={setIsShowDeletedMessages}
                     />
                 </div>
             </div>

@@ -14,12 +14,9 @@ interface HandleIrcMessageProps {
 export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageProps): void => {
     const rawMessage = event.data as string;
 
-    console.log(">>> IRC RAW:", JSON.stringify(rawMessage));
-
     const lines = rawMessage.split(/\r?\n/);
 
     for (const line of lines) {
-
         const trimmedLine = line.trim();
 
         if (!trimmedLine) continue;
@@ -30,7 +27,7 @@ export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageP
 
         // 2. Парсим сообщение
         const parsed = parseIrcMessage(trimmedLine);
-        if (!parsed) return;
+        if (!parsed) continue;
 
         // 3. Отправляем левой и правой панели через систему подписок
         emitMessage(parsed);

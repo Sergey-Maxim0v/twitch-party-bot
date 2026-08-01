@@ -26,7 +26,6 @@ export const TwitchIrcCommand = {
 
 export type TwitchIrcCommandType = typeof TwitchIrcCommand[keyof typeof TwitchIrcCommand];
 
-
 /**
  * Дополнительные возможности (Capabilities) Twitch IRC сокета.
  * @see https://dev.twitch.tv/docs/chat/irc#twitch-irc-membership-commands

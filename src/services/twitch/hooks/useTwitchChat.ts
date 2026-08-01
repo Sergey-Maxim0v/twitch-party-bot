@@ -3,6 +3,8 @@ import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
 import {MAX_MESSAGES, TwitchIrcCommand} from "../config.ts";
 import {useTwitchSubscription} from "./useTwitchSubscription.ts";
 import {useSocketRef} from "../../socket/hooks/useSocketRef.ts";
+import {markDeletedMessages} from "../utils/markDeletedMessages.ts";
+import {createSystemMessage} from "../utils/createSystemMessage.ts";
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -23,6 +25,34 @@ export const useTwitchChat = () => {
     }, [socketContext]);
 
     const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
+        // Обработка модераторских сообщений
+        const isModAction =
+            message.command === TwitchIrcCommand.CLEAR_CHAT ||
+            message.command === TwitchIrcCommand.CLEAR_MSG;
+
+        if (isModAction) {
+            setMessages((prev) => {
+                // Маркируем старые сообщения флагом удаления
+                const updatedHistory = markDeletedMessages({modMessage: message, currentMessages: prev});
+
+                // Генерируем новое системное сообщение для вывода в чат
+                const systemLog = createSystemMessage(message);
+
+                if (!systemLog) return updatedHistory;
+
+                const finalMessages = [...updatedHistory, systemLog];
+
+                // Контролируем переполнение массива
+                if (finalMessages.length > MAX_MESSAGES) {
+                    return finalMessages.slice(finalMessages.length - MAX_MESSAGES);
+                }
+
+                return finalMessages;
+            });
+            return;
+        }
+
+        // Обработка стандартных текстовых сообщений
         const isUserstate = message.command === TwitchIrcCommand.USER_STATE;
 
         if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return;
