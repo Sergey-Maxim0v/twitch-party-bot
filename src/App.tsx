@@ -7,10 +7,8 @@ import {SocketProvider} from "./services/socket/context/SocketProvider.tsx";
 import {SocketInitializer} from "./services/socket/components/SocketInitializer.tsx";
 
 // TODO:
-//   добавить логику для чата при командах бана, очистки чата.
 //   закрытие модалки выбора канала без изменения состояний приложения
 //   Вывод сервисных сообщений в чат и чекбокс
-//   стили для сообщений от автора, канала, модеров, випов
 //   обработка несуществующего канала
 //   QueuePanel
 

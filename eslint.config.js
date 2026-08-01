@@ -19,7 +19,13 @@ export default defineConfig([
             globals: globals.browser,
         },
         rules: {
-            'no-console': 'warn',
+            'no-restricted-syntax': [
+                'warn',
+                {
+                    selector: "CallExpression[callee.object.name='console'][callee.property.name='log']",
+                    message: 'Использование console.log запрещено. Используйте console.info, console.warn, console.error для логирования.',
+                },
+            ],
         },
     },
 ])
