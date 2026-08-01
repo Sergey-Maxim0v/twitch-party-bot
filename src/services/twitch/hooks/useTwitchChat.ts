@@ -25,15 +25,22 @@ export const useTwitchChat = () => {
     }, [socketContext]);
 
     const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-        // Обработка модераторских сообщений
+        // Модераторские сообщения
         const isModAction =
             message.command === TwitchIrcCommand.CLEAR_CHAT ||
             message.command === TwitchIrcCommand.CLEAR_MSG;
 
-        if (isModAction) {
+        // 2. Системные события канала (подписки/рейды/режимы)
+        const isChannelEvent =
+            message.command === TwitchIrcCommand.USER_NOTICE ||
+            message.command === TwitchIrcCommand.ROOM_STATE;
+
+        if (isModAction || isChannelEvent) {
             setMessages((prev) => {
-                // Маркируем старые сообщения флагом удаления
-                const updatedHistory = markDeletedMessages({modMessage: message, currentMessages: prev});
+                // Маркируем старые сообщения флагом удаления (только для модерации)
+                const updatedHistory = isModAction
+                    ? markDeletedMessages({modMessage: message, currentMessages: prev})
+                    : prev;
 
                 // Генерируем новое системное сообщение для вывода в чат
                 const systemLog = createSystemMessage(message);
@@ -42,7 +49,6 @@ export const useTwitchChat = () => {
 
                 const finalMessages = [...updatedHistory, systemLog];
 
-                // Контролируем переполнение массива
                 if (finalMessages.length > MAX_MESSAGES) {
                     return finalMessages.slice(finalMessages.length - MAX_MESSAGES);
                 }

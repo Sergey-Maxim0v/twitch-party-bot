@@ -9,6 +9,8 @@ interface ChatSettingsProps {
     setHighlightRoles: (value: boolean) => void;
     IsShowDeletedMessages: boolean;
     setIsShowDeletedMessages: (value: boolean) => void
+    showSystemNotifications: boolean;
+    setShowSystemNotifications: (value: boolean) => void
 }
 
 const ChatSettings: FC<ChatSettingsProps> = ({
@@ -17,7 +19,9 @@ const ChatSettings: FC<ChatSettingsProps> = ({
                                                  highlightRoles,
                                                  setHighlightRoles,
                                                  setIsShowDeletedMessages,
-                                                 IsShowDeletedMessages
+                                                 IsShowDeletedMessages,
+                                                 showSystemNotifications,
+                                                 setShowSystemNotifications
                                              }) => {
 
     return (
@@ -54,6 +58,12 @@ const ChatSettings: FC<ChatSettingsProps> = ({
                         label="Показать удаленные сообщения"
                         checked={IsShowDeletedMessages}
                         onChange={setIsShowDeletedMessages}
+                    />
+
+                    <ChatSettingsToggle
+                        label="Показать системные сообщения"
+                        checked={showSystemNotifications}
+                        onChange={setShowSystemNotifications}
                     />
                 </div>
             </div>

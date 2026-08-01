@@ -18,6 +18,7 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
     const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>("twitch_chat_colored_names", true);
     const [highlightRoles, setHighlightRoles] = useLocalStorage<boolean>("twitch_chat_highlight_roles", true);
     const [IsShowDeletedMessages, setIsShowDeletedMessages] = useLocalStorage<boolean>("twitch_chat_show_moderation_logs", true);
+    const [showSystemNotifications, setShowSystemNotifications] = useLocalStorage<boolean>("twitch_chat_show_system_notifications", true);
 
     const {messages, registerPendingMessage} = useTwitchChat();
 
@@ -52,6 +53,9 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
                         setHighlightRoles={setHighlightRoles}
                         IsShowDeletedMessages={IsShowDeletedMessages}
                         setIsShowDeletedMessages={setIsShowDeletedMessages}
+                        showSystemNotifications={showSystemNotifications}
+                        setShowSystemNotifications={setShowSystemNotifications}
+
                     />
                 )}
             </div>
@@ -69,6 +73,7 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
                         useColoredNames={useColoredNames}
                         highlightRoles={highlightRoles}
                         IsShowDeletedMessages={IsShowDeletedMessages}
+                        showSystemNotifications={showSystemNotifications}
                     />
 
                     <ChatInput onSendMessage={registerPendingMessage}/>
