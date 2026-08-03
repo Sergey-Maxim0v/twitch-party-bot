@@ -1,34 +1,30 @@
 import {PageLayout} from "./components/layout/PageLayout.tsx";
 import {AuthProvider, ProtectedView} from "./features/auth";
 import {WelcomeScreen} from "./components/layout/WelcomeScreen.tsx";
-import TwitchChat from "./components/chat/TwitchChat.tsx";
-import QueuePanel from "./components/queue/QueuePanel.tsx";
 import {SocketProvider} from "./services/socket/context/SocketProvider.tsx";
 import {SocketInitializer} from "./services/socket/components/SocketInitializer.tsx";
+import {StreamerWorkspace} from "./components/layout/StreamerWorkspace.tsx";
 
 // TODO:
-//   закрытие модалки выбора канала без изменения состояний приложения
-//   Вывод сервисных сообщений в чат и чекбокс
-//   обработка несуществующего канала
-//   QueuePanel
+//   системные сообщения о банах не регулируются чекбоксом.
+//   выделенные сообщения.
+//   в верстке чат не отдельным блоком, а один из 4х:
+//   настройки очереди, очередь, логи очереди, общий чат.
+//   закрытие модалки выбора канала без изменения состояний приложения.
+//   обработка несуществующего канала.
+//   логика если бот в муте / бане.
+//   QueuePanel.
+//   сохранение настроек очереди в файл, проверка с библиотекой zod.
 
 function App() {
     return (
         <SocketProvider>
             <AuthProvider>
                 <SocketInitializer/>
+
                 <PageLayout>
                     <ProtectedView fallback={<WelcomeScreen/>}>
-                        <div className="flex flex-1 w-full h-full overflow-hidden bg-base-100">
-
-                            <div className="flex-1 h-full overflow-y-auto flex justify-center p-6">
-                                <div className="w-full max-w-screen-2xl h-full flex flex-col">
-                                    <QueuePanel/>
-                                </div>
-                            </div>
-
-                            <TwitchChat className="h-full shrink-0 border-l border-base-300"/>
-                        </div>
+                        <StreamerWorkspace/>
                     </ProtectedView>
                 </PageLayout>
             </AuthProvider>

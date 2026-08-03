@@ -1,7 +1,7 @@
-import React from 'react';
+import {type FC} from 'react';
 import {LuCopyright} from "react-icons/lu";
 
-export const Footer: React.FC = () => {
+export const Footer: FC = () => {
     return (
         <footer className="footer footer-center p-4 bg-base-200 text-base-content border-t border-base-300">
             <aside>
