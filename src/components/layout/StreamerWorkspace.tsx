@@ -27,7 +27,9 @@ const StreamerWorkspace: FC = () => {
                            collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
                 />
 
-                <TwitchChat className="h-full shrink-0"/>
+                <TwitchChat className={PANEL_CLASSNAME}
+                            collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
+                />
             </div>
         </div>
     );
