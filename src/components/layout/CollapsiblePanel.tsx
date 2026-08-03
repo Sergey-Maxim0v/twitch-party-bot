@@ -62,7 +62,7 @@ const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
                 <div
                     className={`
                         flex flex-col h-full w-full pt-14 overflow-hidden
-                        transition-opacity duration-300 ease-in-out
+                        ${isOpen ? "transition-opacity duration-300 ease-in-out" : "hidden"}
                         ${isOpen && isAnimationDone ? "opacity-100" : "opacity-0"}
                     `}
                 >
