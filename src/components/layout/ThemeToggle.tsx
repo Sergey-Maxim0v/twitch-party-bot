@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {type FC, useCallback} from 'react';
 import {THEME_OPTIONS} from '../../constants';
 import {useTheme} from "../../hooks";
 import type {ThemeMode} from "../../types";
@@ -11,7 +11,7 @@ const THEME_ICONS = {
     system: LuSunMoon,
 };
 
-export const ThemeToggle: React.FC = () => {
+const ThemeToggle: FC = () => {
     const {themeMode, setThemeMode} = useTheme();
 
     const toggleTheme = useCallback(() => {
@@ -51,3 +51,5 @@ export const ThemeToggle: React.FC = () => {
         </div>
     );
 };
+
+export default ThemeToggle;

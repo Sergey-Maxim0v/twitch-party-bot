@@ -1,11 +1,12 @@
-import {PageLayout} from "./components/layout/PageLayout.tsx";
 import {AuthProvider, ProtectedView} from "./features/auth";
-import {WelcomeScreen} from "./components/layout/WelcomeScreen.tsx";
-import {SocketProvider} from "./services/socket/context/SocketProvider.tsx";
-import {SocketInitializer} from "./services/socket/components/SocketInitializer.tsx";
-import {StreamerWorkspace} from "./components/layout/StreamerWorkspace.tsx";
+import PageLayout from "./components/layout/PageLayout.tsx";
+import SocketProvider from "./services/socket/context/SocketProvider.tsx";
+import SocketInitializer from "./services/socket/components/SocketInitializer.tsx";
+import WelcomeScreen from "./components/layout/WelcomeScreen.tsx";
+import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 
 // TODO:
+//   header
 //   системные сообщения о банах не регулируются чекбоксом.
 //   выделенные сообщения.
 //   в верстке чат не отдельным блоком, а один из 4х:

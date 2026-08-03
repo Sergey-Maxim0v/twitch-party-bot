@@ -1,9 +1,9 @@
-import React from 'react';
-import {ThemeToggle} from './ThemeToggle';
+import React, {type FC} from 'react';
+import ThemeToggle from './ThemeToggle';
 import {LuTwitch} from "react-icons/lu";
 import {ChannelIndicator, useAuth} from "../../features/auth";
 
-export const Header: React.FC = () => {
+const Header: FC = () => {
     const {session, isAuthenticated, isLoading, login, logout} = useAuth();
 
     return (
@@ -56,3 +56,5 @@ export const Header: React.FC = () => {
         </header>
     );
 };
+
+export default Header;

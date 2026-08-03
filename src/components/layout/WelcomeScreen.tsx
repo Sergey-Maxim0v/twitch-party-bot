@@ -1,8 +1,8 @@
-import React from 'react';
+import {type FC} from 'react';
 import {LuTwitch} from 'react-icons/lu';
 import {useAuth} from '../../features/auth';
 
-export const WelcomeScreen: React.FC = () => {
+const WelcomeScreen: FC = () => {
     const {login} = useAuth();
 
     return (
@@ -32,3 +32,5 @@ export const WelcomeScreen: React.FC = () => {
         </div>
     );
 };
+
+export default WelcomeScreen;

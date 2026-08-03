@@ -1,14 +1,12 @@
-import React from 'react';
-import {Header} from './Header';
+import React, {type FC} from 'react';
+import Header from "./Header.tsx";
 import {AuthModal, ChannelSelectModal} from "../../features/auth";
-
-// import {Footer} from "./Footer.tsx";
 
 interface PageLayoutProps {
     children: React.ReactNode;
 }
 
-export const PageLayout: React.FC<PageLayoutProps> = ({children}) => {
+const PageLayout: FC<PageLayoutProps> = ({children}) => {
 
     return (
         <div
@@ -21,8 +19,9 @@ export const PageLayout: React.FC<PageLayoutProps> = ({children}) => {
 
             <AuthModal/>
             <ChannelSelectModal/>
-
-            {/*<Footer/>*/}
         </div>
     );
 };
+
+export default PageLayout;
+

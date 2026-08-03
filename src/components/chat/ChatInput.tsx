@@ -1,13 +1,14 @@
-import React, {useState, useRef, useEffect} from "react";
+import React, {useState, useRef, useEffect, type ReactNode} from "react";
 import {LuSend} from "react-icons/lu";
 import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from "../../constants";
 import {useSocketRef} from "../../services/socket/hooks/useSocketRef.ts";
 
 interface ChatInputProps {
     onSendMessage: (text: string) => void;
+    actions?: ReactNode;
 }
 
-const ChatInput = ({onSendMessage}: ChatInputProps) => {
+const ChatInput = ({onSendMessage, actions}: ChatInputProps) => {
     const [value, setValue] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isOverflowed, setIsOverflowed] = useState(false);
@@ -81,7 +82,9 @@ const ChatInput = ({onSendMessage}: ChatInputProps) => {
                     ${isOverflowed ? "overflow-y-auto" : "overflow-hidden"}`}
                 />
 
-                <div className="flex justify-end w-full">
+                <div className="flex justify-between items-center w-full">
+                    {actions}
+
                     <button
                         type="submit"
                         disabled={!value.trim()}

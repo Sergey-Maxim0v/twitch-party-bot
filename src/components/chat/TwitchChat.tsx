@@ -44,20 +44,6 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
                                 setIsOpen(!isOpen);
                             }}
                 />
-
-                {isOpen && isAnimationDone && (
-                    <ChatSettings
-                        useColoredNames={useColoredNames}
-                        setUseColoredNames={setUseColoredNames}
-                        highlightRoles={highlightRoles}
-                        setHighlightRoles={setHighlightRoles}
-                        IsShowDeletedMessages={IsShowDeletedMessages}
-                        setIsShowDeletedMessages={setIsShowDeletedMessages}
-                        showSystemNotifications={showSystemNotifications}
-                        setShowSystemNotifications={setShowSystemNotifications}
-
-                    />
-                )}
             </div>
 
             {isOpen && (
@@ -76,7 +62,21 @@ const TwitchChat: FC<TwitchChatProps> = ({className = ""}) => {
                         showSystemNotifications={showSystemNotifications}
                     />
 
-                    <ChatInput onSendMessage={registerPendingMessage}/>
+                    <ChatInput
+                        onSendMessage={registerPendingMessage}
+                        actions={
+                            <ChatSettings
+                                useColoredNames={useColoredNames}
+                                setUseColoredNames={setUseColoredNames}
+                                highlightRoles={highlightRoles}
+                                setHighlightRoles={setHighlightRoles}
+                                IsShowDeletedMessages={IsShowDeletedMessages}
+                                setIsShowDeletedMessages={setIsShowDeletedMessages}
+                                showSystemNotifications={showSystemNotifications}
+                                setShowSystemNotifications={setShowSystemNotifications}
+                            />
+                        }
+                    />
                 </div>
             )}
         </aside>

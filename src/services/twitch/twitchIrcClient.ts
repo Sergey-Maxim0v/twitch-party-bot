@@ -4,7 +4,6 @@ import {handleIrcMessage} from "./utils/handleIrcMessage.ts";
 import {createMessageEmitter, type MessageCallback} from "./utils/createMessageEmitter.ts";
 import type {ParsedIrcMessage} from "./utils/parseIrcMessage.ts";
 
-
 export class TwitchIrcClient {
     private socket: WebSocket | null = null;
     private channel: string | null = null;

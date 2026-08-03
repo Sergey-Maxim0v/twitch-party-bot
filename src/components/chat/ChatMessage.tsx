@@ -10,13 +10,13 @@ interface ChatMessageProps {
     showSystemNotifications: boolean;
 }
 
-export const ChatMessage: FC<ChatMessageProps> = ({
-                                                      msg,
-                                                      useColoredNames,
-                                                      highlightRoles,
-                                                      IsShowDeletedMessages,
-                                                      showSystemNotifications
-                                                  }) => {
+const ChatMessage: FC<ChatMessageProps> = ({
+                                               msg,
+                                               useColoredNames,
+                                               highlightRoles,
+                                               IsShowDeletedMessages,
+                                               showSystemNotifications
+                                           }) => {
     const isSystem = msg.tags["is-system"] === "1";
     const isDeleted = msg.tags["is-deleted"] === "1";
 
@@ -111,3 +111,6 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         </div>
     );
 };
+
+export default ChatMessage;
+

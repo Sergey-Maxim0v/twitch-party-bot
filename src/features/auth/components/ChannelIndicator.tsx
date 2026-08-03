@@ -1,8 +1,8 @@
-import React from "react";
+import {type FC} from "react";
 import {LuRefreshCw} from "react-icons/lu";
 import {useAuth} from "../hooks/useAuth.ts";
 
-export const ChannelIndicator: React.FC = () => {
+export const ChannelIndicator: FC = () => {
 
     // TODO: отделить логику стирания выбранного канала от кнопки.
     //  и сделать закрытие модалки выбора канала без изменения состояний приложения

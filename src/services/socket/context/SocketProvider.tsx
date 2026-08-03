@@ -7,7 +7,7 @@ interface SocketProviderProps {
     children: ReactNode;
 }
 
-export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
+const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     const clientRef = useRef<TwitchIrcClient>(new TwitchIrcClient());
 
     const connect = (channel: string, token: string, userLogin: string) => {
@@ -43,3 +43,5 @@ export const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         </SocketInstance.Provider>
     );
 };
+
+export default SocketProvider;

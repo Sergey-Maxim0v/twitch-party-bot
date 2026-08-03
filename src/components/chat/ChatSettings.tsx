@@ -25,7 +25,7 @@ const ChatSettings: FC<ChatSettingsProps> = ({
                                              }) => {
 
     return (
-        <div className="dropdown dropdown-end">
+        <div className="dropdown dropdown-top group">
             <button
                 tabIndex={0}
                 className="btn btn-ghost btn-sm btn-square"
@@ -35,9 +35,13 @@ const ChatSettings: FC<ChatSettingsProps> = ({
             </button>
             <div
                 tabIndex={0}
-                className="dropdown-content z-50 p-4 shadow-2xl bg-base-100 border border-base-300 rounded-box w-80 mt-1 flex flex-col gap-3 overflow-hidden box-border"
+                className="dropdown-content pointer-events-none group-focus-within:pointer-events-auto
+                z-50 p-4 shadow-2xl bg-base-100 border border-base-300 rounded-box w-72 mb-2
+                flex flex-col gap-3 overflow-hidden box-border"
             >
-                <div className="text-xs font-bold uppercase tracking-wider text-base-content/50 w-full select-none">
+                <div className="text-xs font-bold uppercase tracking-wider
+                    text-base-content/50 w-full select-none"
+                >
                     Отображение чата
                 </div>
 

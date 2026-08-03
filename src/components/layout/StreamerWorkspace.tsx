@@ -4,7 +4,7 @@ import TwitchChat from "../chat/TwitchChat.tsx";
 import QueueLogs from "../queue/QueueLogs.tsx";
 import QueueSettings from "../queue/QueueSettings.tsx";
 
-export const StreamerWorkspace: FC = () => {
+const StreamerWorkspace: FC = () => {
     return (
         <div className="w-full h-full flex justify-center bg-base-300 overflow-hidden">
 
@@ -27,3 +27,6 @@ export const StreamerWorkspace: FC = () => {
         </div>
     );
 };
+
+export default StreamerWorkspace;
+

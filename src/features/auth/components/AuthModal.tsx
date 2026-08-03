@@ -1,7 +1,7 @@
-import React from "react";
+import React, {type FC} from "react";
 import {useAuth} from "../hooks/useAuth.ts";
 
-export const AuthModal: React.FC = () => {
+export const AuthModal: FC = () => {
     const {isModalOpen, authStage, error, login, closeModal} = useAuth();
 
     if (!isModalOpen) return null;
