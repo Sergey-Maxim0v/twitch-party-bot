@@ -1,4 +1,5 @@
 import {type FC, type ReactNode} from "react";
+import PanelToggle from "./PanelToggle.tsx";
 
 export interface CollapsiblePanelProps {
     isOpen: boolean;
@@ -15,6 +16,8 @@ export interface CollapsiblePanelProps {
  */
 const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
                                                          isOpen,
+                                                         onToggle,
+                                                         title,
                                                          children,
                                                          className = "",
                                                          collapsedClassName = ""
@@ -23,11 +26,22 @@ const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
     return (
         <section
             className={`
-                flex
-                ${isOpen ? className : `${collapsedClassName}`}
+                flex flex-col bg-base-200 relative h-full border-l border-base-300
+                ${isOpen ? className : `${collapsedClassName} shrink-0 bg-base-300`}
             `}
         >
-            {children}
+            {/* Универсальная кнопка переключения состояния и вертикальный заголовок */}
+            <PanelToggle
+                isOpen={isOpen}
+                onOpen={onToggle}
+                title={title}
+            />
+            
+            {isOpen && (
+                <div className="flex flex-col h-full w-full pt-14 overflow-hidden">
+                    {children}
+                </div>
+            )}
         </section>
     );
 };

@@ -5,22 +5,27 @@ import QueueLogs from "../queue/QueueLogs.tsx";
 import QueueSettings from "../queue/QueueSettings.tsx";
 
 const StreamerWorkspace: FC = () => {
+    const PANEL_CLASSNAME = 'h-full flex-1 w-83';
+    const PANEL_CLASSNAME_COLLAPSED = 'w-12';
+
     return (
-        <div className="w-full h-full flex justify-center bg-base-300 overflow-hidden">
+        <div className="w-screen h-full flex justify-center
+        bg-base-300 overflow-hidden"
+        >
+            <div className="w-full h-full flex flex-row bg-base-100
+            overflow-hidden"
+            >
+                <QueueSettings className={PANEL_CLASSNAME}
+                               collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
+                />
 
-            <div className="w-full max-w-screen-2xl h-full flex flex-row bg-base-100 overflow-hidden">
+                <QueuePanel className={PANEL_CLASSNAME}
+                            collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
+                />
 
-                <div className="flex-1 h-full border-r border-base-300 overflow-hidden">
-                    <QueueSettings className="h-full w-full"/>
-                </div>
-
-                <div className="flex-1 h-full border-r border-base-300 overflow-hidden">
-                    <QueuePanel className="h-full w-full"/>
-                </div>
-
-                <div className="flex-1 h-full border-r border-base-300 overflow-hidden">
-                    <QueueLogs className="h-full w-full"/>
-                </div>
+                <QueueLogs className={PANEL_CLASSNAME}
+                           collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
+                />
 
                 <TwitchChat className="h-full shrink-0"/>
             </div>
