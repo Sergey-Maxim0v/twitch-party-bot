@@ -25,9 +25,16 @@ const ChatMessage: FC<ChatMessageProps> = ({
         return null;
     }
 
-    //  Скрытие системных уведомлений канала (подписки, рейды, режимы)
+    //  Скрытие системных уведомлений канала (подписки, рейды, режимы, баны)
     const isChannelEvent =
-        msg.command === TwitchIrcCommand.NOTICE || msg.command === TwitchIrcCommand.ROOM_STATE;
+        msg.command === TwitchIrcCommand.NOTICE ||
+        msg.command === TwitchIrcCommand.ROOM_STATE ||
+        msg.command === TwitchIrcCommand.USER_NOTICE ||
+        msg.command === TwitchIrcCommand.CLEAR_CHAT ||
+        msg.command === TwitchIrcCommand.CLEAR_MSG ||
+        msg.command === TwitchIrcCommand.GLOBAL_USER_STATE ||
+        msg.command === TwitchIrcCommand.MOTD_START;
+
     if (isSystem && isChannelEvent && !showSystemNotifications) {
         return null;
     }
