@@ -87,6 +87,7 @@ export const ChannelSelectModal: FC = () => {
                     <div className="form-control w-full">
                         <input
                             type="text"
+                            name="Channel-name"
                             placeholder="Название канала"
                             value={inputValue}
                             onChange={handleInputChange}
