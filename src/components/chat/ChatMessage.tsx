@@ -17,7 +17,6 @@ const ChatMessage: FC<ChatMessageProps> = ({
                                                IsShowDeletedMessages,
                                                showSystemNotifications
                                            }) => {
-    const isSystem = msg.tags["is-system"] === "1";
     const isDeleted = msg.tags["is-deleted"] === "1";
     const isHighlightedMessage = msg.tags["msg-id"] === "highlighted-message";
 
@@ -27,16 +26,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
     }
 
     //  Скрытие системных уведомлений канала (подписки, рейды, режимы, баны)
-    const isChannelEvent =
-        msg.command === TwitchIrcCommand.NOTICE ||
-        msg.command === TwitchIrcCommand.ROOM_STATE ||
-        msg.command === TwitchIrcCommand.USER_NOTICE ||
-        msg.command === TwitchIrcCommand.CLEAR_CHAT ||
-        msg.command === TwitchIrcCommand.CLEAR_MSG ||
-        msg.command === TwitchIrcCommand.GLOBAL_USER_STATE ||
-        msg.command === TwitchIrcCommand.MOTD_START;
-
-    if (isSystem && isChannelEvent && !showSystemNotifications) {
+    if (msg.isSystem && msg.isChannelEvent && !showSystemNotifications) {
         return null;
     }
 
@@ -49,14 +39,14 @@ const ChatMessage: FC<ChatMessageProps> = ({
     let containerClassName = "text-sm break-words leading-relaxed animate-fadeIn p-1 rounded transition-all block w-full";
 
     // Применяем фоновые цвета ролей
-    if (highlightRoles && !isSystem) {
+    if (highlightRoles && !msg.isSystem) {
         if (isBroadcaster) containerClassName += " bg-error/10";
         else if (isMod) containerClassName += " bg-success/10";
         else if (isVip) containerClassName += " bg-info/10";
     }
 
     // Если сообщение выделено за баллы
-    if (isHighlightedMessage && !isSystem) {
+    if (isHighlightedMessage && !msg.isSystem) {
         containerClassName += " shadow-[inset_0_0_0_1.5px_theme(colors.primary)]";
     }
 
@@ -69,7 +59,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
     const nameClassName = !nameStyle ? "font-bold text-primary mr-2 break-words" : "font-bold mr-2 break-words";
 
     // Системные сообщения
-    if (isSystem) {
+    if (msg.isSystem) {
         const isAnnouncement = msg.tags["system-type"] === "announcement";
         const isAlert = msg.command === TwitchIrcCommand.USER_NOTICE && !isAnnouncement;
 
@@ -103,7 +93,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
     const iconClassName = 'w-4 h-4 inline align-middle mr-1'
 
     return (
-        <div className={`${containerClassName} ${deletedClassName} block w-full break-words`}>
+        <div className={`${containerClassName} ${deletedClassName} block w-full wrap-break-word`}>
             <span className="inline-block select-none mr-1.5 align-middle">
                 <span className="text-xs text-base-content/40 mr-1.5">
                     {msg.timestamp}

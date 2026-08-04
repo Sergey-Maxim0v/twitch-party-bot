@@ -6,7 +6,9 @@ export interface ParsedIrcMessage {
     text: string;     // Текст сообщения
     command: TwitchIrcCommandType;  // Команда (например, 'PRIVMSG', 'JOIN', 'USERSTATE')
     timestamp: string;// Время сообщения HH:MM
-    tags: Record<string, string>; // Все остальные распарсенные теги на случай расширения логики
+    tags: Record<string, string>;
+    isSystem: boolean;       // Системное сообщение
+    isChannelEvent: boolean; // Событиям канала/модерации
 }
 
 /**
@@ -83,6 +85,19 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     const rawTimestamp = tags["tmi-sent-ts"] ? parseInt(tags["tmi-sent-ts"], 10) : Date.now();
     const date = new Date(rawTimestamp);
     const timestamp = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-    
-    return {id, user, text, command, timestamp, tags};
+
+    // Вычисляем флаги на основе прочитанной команды
+    const isSystem =
+        tags["is-system"] === "1" ||
+        command === TwitchIrcCommand.NOTICE ||
+        command === TwitchIrcCommand.ROOM_STATE ||
+        command === TwitchIrcCommand.USER_NOTICE ||
+        command === TwitchIrcCommand.CLEAR_CHAT ||
+        command === TwitchIrcCommand.CLEAR_MSG;
+
+    const isChannelEvent = isSystem ||
+        command === TwitchIrcCommand.GLOBAL_USER_STATE ||
+        command === TwitchIrcCommand.MOTD_START;
+
+    return {id, user, text, command, timestamp, isSystem, isChannelEvent, tags};
 };

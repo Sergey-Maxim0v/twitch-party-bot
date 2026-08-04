@@ -15,7 +15,9 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
         text: systemText,
         command,
         timestamp,
-        tags: {"is-system": "1"}
+        tags: {"is-system": "1"},
+        isSystem: true,
+        isChannelEvent: true,
     });
 
     // Полная очистка чата или бан/таймаут пользователя
@@ -70,6 +72,8 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
                 text: `@${login}: ${text}`,
                 command,
                 timestamp,
+                isSystem: true,
+                isChannelEvent: true,
                 tags: {"is-system": "1", "system-type": "announcement"}
             };
         }
