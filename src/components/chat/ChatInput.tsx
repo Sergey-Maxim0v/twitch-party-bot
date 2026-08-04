@@ -70,6 +70,7 @@ const ChatInput = ({onSendMessage, actions}: ChatInputProps) => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full">
                 <textarea
                     ref={textareaRef}
+                    name="chat-message"
                     value={value}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}

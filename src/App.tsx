@@ -6,7 +6,6 @@ import WelcomeScreen from "./components/layout/WelcomeScreen.tsx";
 import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 
 // TODO:
-//   header
 //   системные сообщения о банах не регулируются чекбоксом.
 //   выделенные сообщения.
 //   закрытие модалки выбора канала без изменения состояний приложения.
