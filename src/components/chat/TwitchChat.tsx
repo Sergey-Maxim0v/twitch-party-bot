@@ -17,6 +17,7 @@ const TwitchChat: FC<TwitchChatProps> = ({className = "", collapsedClassName}) =
     const [highlightRoles, setHighlightRoles] = useLocalStorage<boolean>("twitch_chat_highlight_roles", true);
     const [IsShowDeletedMessages, setIsShowDeletedMessages] = useLocalStorage<boolean>("twitch_chat_show_moderation_logs", true);
     const [showSystemNotifications, setShowSystemNotifications] = useLocalStorage<boolean>("twitch_chat_show_system_notifications", true);
+    const [highlightPointsMessages, setHighlightPointsMessages] = useLocalStorage<boolean>("twitch_chat_highlight_messages", true);
 
     const {messages, registerPendingMessage} = useTwitchChat();
 
@@ -34,6 +35,7 @@ const TwitchChat: FC<TwitchChatProps> = ({className = "", collapsedClassName}) =
                 highlightRoles={highlightRoles}
                 IsShowDeletedMessages={IsShowDeletedMessages}
                 showSystemNotifications={showSystemNotifications}
+                highlightPointsMessages={highlightPointsMessages}
             />
 
             <ChatInput
@@ -48,6 +50,8 @@ const TwitchChat: FC<TwitchChatProps> = ({className = "", collapsedClassName}) =
                         setIsShowDeletedMessages={setIsShowDeletedMessages}
                         showSystemNotifications={showSystemNotifications}
                         setShowSystemNotifications={setShowSystemNotifications}
+                        highlightPointsMessages={highlightPointsMessages}
+                        setHighlightPointsMessages={setHighlightPointsMessages}
                     />
                 }
             />

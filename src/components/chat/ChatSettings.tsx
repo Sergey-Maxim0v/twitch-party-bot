@@ -11,6 +11,8 @@ interface ChatSettingsProps {
     setIsShowDeletedMessages: (value: boolean) => void
     showSystemNotifications: boolean;
     setShowSystemNotifications: (value: boolean) => void
+    highlightPointsMessages: boolean;
+    setHighlightPointsMessages: (value: boolean) => void;
 }
 
 const ChatSettings: FC<ChatSettingsProps> = ({
@@ -21,7 +23,9 @@ const ChatSettings: FC<ChatSettingsProps> = ({
                                                  setIsShowDeletedMessages,
                                                  IsShowDeletedMessages,
                                                  showSystemNotifications,
-                                                 setShowSystemNotifications
+                                                 setShowSystemNotifications,
+                                                 highlightPointsMessages,
+                                                 setHighlightPointsMessages
                                              }) => {
 
     return (
@@ -56,6 +60,12 @@ const ChatSettings: FC<ChatSettingsProps> = ({
                         label="Стили модеров, випов"
                         checked={highlightRoles}
                         onChange={setHighlightRoles}
+                    />
+
+                    <ChatSettingsToggle
+                        label="Выделенные сообщения"
+                        checked={highlightPointsMessages}
+                        onChange={setHighlightPointsMessages}
                     />
 
                     <ChatSettingsToggle

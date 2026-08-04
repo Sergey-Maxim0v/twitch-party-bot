@@ -8,6 +8,7 @@ interface ChatMessageProps {
     highlightRoles: boolean;
     IsShowDeletedMessages: boolean;
     showSystemNotifications: boolean;
+    highlightPointsMessages: boolean;
 }
 
 const ChatMessage: FC<ChatMessageProps> = ({
@@ -15,7 +16,8 @@ const ChatMessage: FC<ChatMessageProps> = ({
                                                useColoredNames,
                                                highlightRoles,
                                                IsShowDeletedMessages,
-                                               showSystemNotifications
+                                               showSystemNotifications,
+                                               highlightPointsMessages
                                            }) => {
     const isDeleted = msg.tags["is-deleted"] === "1";
     const isHighlightedMessage = msg.tags["msg-id"] === "highlighted-message";
@@ -46,7 +48,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
     }
 
     // Если сообщение выделено за баллы
-    if (isHighlightedMessage && !msg.isSystem) {
+    if (isHighlightedMessage && highlightPointsMessages && !msg.isSystem) {
         containerClassName += " shadow-[inset_0_0_0_1.5px_theme(colors.primary)]";
     }
 
