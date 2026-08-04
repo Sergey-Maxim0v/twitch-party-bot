@@ -1,10 +1,10 @@
 import {type FC} from 'react';
 import ThemeToggle from './ThemeToggle';
-import {LuLogOut, LuRefreshCw, LuTwitch, LuUser} from "react-icons/lu";
-import {useAuth} from "../../features/auth";
+import {LuLogOut, LuTwitch, LuUser} from "react-icons/lu";
+import {ChannelISelectToggle, useAuth} from "../../features/auth";
 
 const Header: FC = () => {
-    const {session, isAuthenticated, isLoading, login, logout, activeChannel, resetChannel} = useAuth();
+    const {session, isAuthenticated, isLoading, login, logout, activeChannel} = useAuth();
 
     return (
         <header
@@ -48,26 +48,8 @@ const Header: FC = () => {
                             w-80 gap-0.5 z-50 mt-2 border border-base-100"
                         >
                             {/* Сменить канал */}
-                            <li>
-                                <div
-                                    role="button"
-                                    onClick={resetChannel}
-                                    className="flex items-center justify-between px-3 py-2.5 hover:bg-base-100
-                                    active:bg-primary active:text-primary-content rounded-md transition-colors"
-                                >
-                                    <div className="flex items-center gap-2.5 text-sm min-w-0 flex-1">
-                                        <LuTwitch className="text-primary text-base shrink-0"/>
-                                        <span className="text-base-content/70">Канал:</span>
-                                        <span className="font-semibold truncate max-w-30">
-                                            {activeChannel || session.login}
-                                        </span>
-                                    </div>
-                                    <span
-                                        className="badge badge-sm font-semibold opacity-60 flex items-center gap-1 text-[10px] uppercase tracking-wider">
-                                        <LuRefreshCw className="text-[9px]"/>
-                                        <span>Сменить</span>
-                                    </span>
-                                </div>
+                            <li className="p-0">
+                                <ChannelISelectToggle/>
                             </li>
 
                             {/* Переключить тему */}
