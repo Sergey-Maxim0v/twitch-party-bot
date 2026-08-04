@@ -1,9 +1,8 @@
-import React, {type FC, useCallback} from 'react';
+import {type FC, useCallback} from 'react';
 import {THEME_OPTIONS} from '../../constants';
 import {useTheme} from "../../hooks";
 import type {ThemeMode} from "../../types";
 import {LuMoon, LuSun, LuSunMoon} from "react-icons/lu";
-
 
 const THEME_ICONS = {
     nord: LuSun,

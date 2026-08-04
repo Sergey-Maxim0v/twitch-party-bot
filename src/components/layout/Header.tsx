@@ -1,4 +1,4 @@
-import React, {type FC} from 'react';
+import {type FC} from 'react';
 import ThemeToggle from './ThemeToggle';
 import {LuTwitch} from "react-icons/lu";
 import {ChannelIndicator, useAuth} from "../../features/auth";

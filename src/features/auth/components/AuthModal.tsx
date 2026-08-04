@@ -1,4 +1,4 @@
-import React, {type FC} from "react";
+import {type FC} from "react";
 import {useAuth} from "../hooks/useAuth.ts";
 
 export const AuthModal: FC = () => {

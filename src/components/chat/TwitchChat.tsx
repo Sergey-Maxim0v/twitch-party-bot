@@ -1,4 +1,4 @@
-import React, {type FC} from "react";
+import {type FC} from "react";
 import {useLocalStorage} from "../../hooks";
 import ChatInput from "./ChatInput.tsx";
 import ChatList from "./ChatList.tsx";

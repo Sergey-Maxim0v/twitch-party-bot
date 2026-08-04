@@ -1,9 +1,9 @@
-import React, {type FC} from 'react';
+import {type FC, type ReactNode} from 'react';
 import Header from "./Header.tsx";
 import {AuthModal, ChannelSelectModal} from "../../features/auth";
 
 interface PageLayoutProps {
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
 const PageLayout: FC<PageLayoutProps> = ({children}) => {
