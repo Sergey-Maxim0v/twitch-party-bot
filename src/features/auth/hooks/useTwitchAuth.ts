@@ -52,11 +52,10 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     // Синхронный полный сброс стейтов при разлогине
     const logout = useCallback(() => {
         setSession(null);
-        channelManager.setActiveChannel(null);
         setError(null);
         popupManager.setAuthStage(AUTH_STAGES.IDLE);
         popupManager.setIsModalOpen(false);
-    }, [setSession, channelManager, popupManager]);
+    }, [setSession, popupManager]);
 
     // Инициализация приложения
     useEffect(() => {

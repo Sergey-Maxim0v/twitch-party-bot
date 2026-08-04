@@ -53,6 +53,7 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
     const resetChannel = useCallback(() => {
         setActiveChannel(null);
         setChannelError(null);
+        setIsChannelModalOpen(false);
     }, [setActiveChannel]);
 
     return {

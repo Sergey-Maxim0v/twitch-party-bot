@@ -1,7 +1,7 @@
 import {validateChannelName} from "./validateChannelName.ts";
 
-export const getChannelSelectCurrentError = (error: string | null, isValidationTriggered: boolean, value: string): string | null => {
-    if (error) return error;
+export const getChannelSelectCurrentError = (channelError: string | null, isValidationTriggered: boolean, value: string): string | null => {
+    if (channelError) return channelError;
     if (!isValidationTriggered) return null;
 
     const trimmed = value.trim();

@@ -4,6 +4,7 @@ import {useSocketRef} from "../../../services/socket/hooks/useSocketRef.ts";
 import {validateChannelName} from "../utils/validateChannelName.ts";
 import {LuX} from "react-icons/lu";
 import {getChannelSelectCurrentError} from "../utils/getChannelSelectCurrentError.ts";
+import {TWITCH_STORAGE_KEYS} from "../config.ts";
 
 export const ChannelSelectModal: FC = () => {
     const {
@@ -12,7 +13,7 @@ export const ChannelSelectModal: FC = () => {
         hasSelectedChannel,
         isChannelModalOpen,
         closeChannelModal,
-        error,
+        channelError,
         selectOwnChannel,
         selectCustomChannel
     } = useAuth();
@@ -21,6 +22,9 @@ export const ChannelSelectModal: FC = () => {
 
     const [inputValue, setInputValue] = useState('');
     const [isValidationTriggered, setIsValidationTriggered] = useState(false);
+
+    const storedChannel = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
+    const isChannelSelectedInSystem = storedChannel && storedChannel !== 'null';
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -38,7 +42,7 @@ export const ChannelSelectModal: FC = () => {
         };
     }, [isChannelModalOpen, hasSelectedChannel, closeChannelModal]);
 
-    const currentError = getChannelSelectCurrentError(error, isValidationTriggered, inputValue);
+    const currentError = getChannelSelectCurrentError(channelError, isValidationTriggered, inputValue);
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
@@ -76,7 +80,7 @@ export const ChannelSelectModal: FC = () => {
             <div className="modal-box max-w-sm flex flex-col p-6 gap-4 relative">
 
                 {/* Кнопка закрытия */}
-                {hasSelectedChannel && (
+                {isChannelSelectedInSystem && (
                     <button
                         onClick={closeChannelModal}
                         className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/70 hover:text-base-content"
@@ -148,7 +152,7 @@ export const ChannelSelectModal: FC = () => {
 
             {/* Бэкдроп */}
             <div
-                onClick={hasSelectedChannel ? closeChannelModal : undefined}
+                onClick={isChannelSelectedInSystem ? closeChannelModal : undefined}
                 className={`modal-backdrop bg-black/10 backdrop-blur-xs ${hasSelectedChannel ? 'cursor-pointer' : ''}`}
             />
         </div>
