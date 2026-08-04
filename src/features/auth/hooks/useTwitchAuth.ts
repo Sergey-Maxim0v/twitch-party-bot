@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
-import type {TwitchAuthHookResult, TwitchUserSession} from "../types";
+import {AUTH_STAGES, type AuthStage, type TwitchAuthHookResult, type TwitchUserSession} from "../types";
 import {useLocalStorage} from "../../../hooks";
 import {useTwitchPopup} from "./useTwitchPopup.ts";
 import {useTwitchChannelState} from "./useTwitchChannelState.ts";
@@ -27,7 +27,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
     const handlePopupSuccess = useCallback(async (
         token: string,
-        setAuthStage: (stage: 'idle' | 'waiting' | 'validating' | 'success' | 'error') => void,
+        setAuthStage: (stage: AuthStage) => void,
         setIsModalOpen: (open: boolean) => void
     ): Promise<void> => {
         const userData = await validateTwitchToken(token);
@@ -38,23 +38,23 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
                 userId: userData.userId,
                 login: userData.login,
             });
-            setAuthStage('success');
+            setAuthStage(AUTH_STAGES.SUCCESS);
             setTimeout(() => setIsModalOpen(false), 1000);
         } else {
-            setAuthStage('error');
+            setAuthStage(AUTH_STAGES.ERROR);
             setError('Не удалось подтвердить валидность токена через Twitch API.');
         }
     }, [setSession]);
 
     const popupManager = useTwitchPopup(handlePopupSuccess, setError);
-    const channelManager = useTwitchChannelState(session?.login, setError);
+    const channelManager = useTwitchChannelState(session?.login);
 
     // Синхронный полный сброс стейтов при разлогине
     const logout = useCallback(() => {
         setSession(null);
         channelManager.setActiveChannel(null);
         setError(null);
-        popupManager.setAuthStage('idle');
+        popupManager.setAuthStage(AUTH_STAGES.IDLE);
         popupManager.setIsModalOpen(false);
     }, [setSession, channelManager, popupManager]);
 
@@ -101,6 +101,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         isAuthenticated: !!session,
         isLoading,
         error,
+        channelError: channelManager.channelError,
         logout,
         login: popupManager.login,
         isModalOpen: popupManager.isModalOpen,
@@ -108,6 +109,9 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         closeModal: popupManager.closeModal,
         activeChannel: channelManager.activeChannel,
         hasSelectedChannel: channelManager.hasSelectedChannel,
+        isChannelModalOpen: channelManager.isChannelModalOpen,
+        openChannelModal: channelManager.openChannelModal,
+        closeChannelModal: channelManager.closeChannelModal,
         selectOwnChannel: channelManager.selectOwnChannel,
         selectCustomChannel: channelManager.selectCustomChannel,
         resetChannel: channelManager.resetChannel,

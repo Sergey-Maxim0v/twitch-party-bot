@@ -2,22 +2,23 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import {getTwitchAuthUrl} from "../utils";
 import type {TwitchAuthMessageData} from "../types/messages.types.ts";
 import {TWITCH_AUTH_ERRORS} from "../config.ts";
+import {AUTH_STAGES, type AuthStage} from "../types";
 
 export const useTwitchPopup = (onSuccess: (
                                    token: string,
-                                   setAuthStage: (stage: 'idle' | 'waiting' | 'validating' | 'success' | 'error') => void,
+                                   setAuthStage: (stage: AuthStage) => void,
                                    setIsModalOpen: (open: boolean) => void
                                ) => Promise<void>,
                                setError: (err: string | null) => void
 ) => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [authStage, setAuthStage] = useState<'idle' | 'waiting' | 'validating' | 'success' | 'error'>('idle');
+    const [authStage, setAuthStage] = useState<AuthStage>(AUTH_STAGES.IDLE);
 
     const popupRef = useRef<Window | null>(null);
 
     const login = useCallback(() => {
         setError(null);
-        setAuthStage('waiting');
+        setAuthStage(AUTH_STAGES.WAITING);
         setIsModalOpen(true);
 
         const width = 500;
@@ -49,7 +50,7 @@ export const useTwitchPopup = (onSuccess: (
             if (!data || data.type !== 'TWITCH_AUTH_RESULT') return;
 
             if (data.error) {
-                setAuthStage('error');
+                setAuthStage(AUTH_STAGES.ERROR);
                 setError(data.error === TWITCH_AUTH_ERRORS.CSRF_FAILED
                     ? 'Ошибка безопасности (CSRF): верификация контекста не пройдена.'
                     : `Авторизация отклонена Twitch: ${data.error}`
@@ -58,7 +59,7 @@ export const useTwitchPopup = (onSuccess: (
             }
 
             if (data.token) {
-                setAuthStage('validating');
+                setAuthStage(AUTH_STAGES.VALIDATING);
                 await onSuccess(data.token, setAuthStage, setIsModalOpen);
             }
         };
@@ -69,13 +70,13 @@ export const useTwitchPopup = (onSuccess: (
 
     // Отслеживание ручного закрытия окна пользователем
     useEffect(() => {
-        if (!isModalOpen || authStage !== 'waiting') return;
+        if (!isModalOpen || authStage !== AUTH_STAGES.WAITING) return;
 
         const timer = setInterval(() => {
             if (popupRef.current && popupRef.current.closed) {
                 clearInterval(timer);
-                if (authStage === 'waiting') {
-                    setAuthStage('error');
+                if (authStage === AUTH_STAGES.WAITING) {
+                    setAuthStage(AUTH_STAGES.ERROR);
                     setError('Авторизация отменена: всплывающее окно было закрыто.');
                 }
             }

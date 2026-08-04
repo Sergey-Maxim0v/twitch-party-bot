@@ -1,7 +1,7 @@
 import {type FC} from 'react';
 import ThemeToggle from './ThemeToggle';
 import {LuTwitch} from "react-icons/lu";
-import {ChannelISelectToggle, LogoutToggle, useAuth} from "../../features/auth";
+import {ChannelSelectToggle, LogoutToggle, useAuth} from "../../features/auth";
 
 const Header: FC = () => {
     const {session, isAuthenticated, isLoading, login, activeChannel} = useAuth();
@@ -48,7 +48,7 @@ const Header: FC = () => {
                             w-80 gap-0.5 z-50 mt-2 border border-base-100"
                         >
                             <li className="p-0">
-                                <ChannelISelectToggle/>
+                                <ChannelSelectToggle/>
                             </li>
 
                             <li className="p-0">

@@ -1,13 +1,17 @@
-import {useState, type FC, type ChangeEvent, type SyntheticEvent} from "react";
+import {useState, type FC, type ChangeEvent, type SyntheticEvent, useEffect} from "react";
 import {useAuth} from "../hooks/useAuth.ts";
 import {useSocketRef} from "../../../services/socket/hooks/useSocketRef.ts";
 import {validateChannelName} from "../utils/validateChannelName.ts";
+import {LuX} from "react-icons/lu";
+import {getChannelSelectCurrentError} from "../utils/getChannelSelectCurrentError.ts";
 
 export const ChannelSelectModal: FC = () => {
     const {
         session,
         isAuthenticated,
         hasSelectedChannel,
+        isChannelModalOpen,
+        closeChannelModal,
         error,
         selectOwnChannel,
         selectCustomChannel
@@ -18,21 +22,27 @@ export const ChannelSelectModal: FC = () => {
     const [inputValue, setInputValue] = useState('');
     const [isValidationTriggered, setIsValidationTriggered] = useState(false);
 
-    let currentError: string | null = null;
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && hasSelectedChannel) {
+                closeChannelModal();
+            }
+        };
 
-    if (error) {
-        currentError = error;
-    } else if (isValidationTriggered) {
-        const trimmed = inputValue.trim();
-        if (!trimmed) {
-            currentError = 'Имя канала не может быть пустым.';
-        } else if (!validateChannelName(trimmed)) {
-            currentError = 'Некорректное имя канала Twitch.';
+        if (isChannelModalOpen) {
+            window.addEventListener('keydown', handleKeyDown);
         }
-    }
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isChannelModalOpen, hasSelectedChannel, closeChannelModal]);
+
+    const currentError = getChannelSelectCurrentError(error, isValidationTriggered, inputValue);
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInputValue(e.target.value);
+        if (isValidationTriggered) setIsValidationTriggered(false);
     };
 
     // Обработчик для подключения к собственному каналу
@@ -55,16 +65,28 @@ export const ChannelSelectModal: FC = () => {
         }
     };
 
-    if (!isAuthenticated || hasSelectedChannel) return null;
+    if (!isAuthenticated || !isChannelModalOpen) return null;
 
     const inputClassName = `input w-full ${
         currentError ? 'input-error text-error bg-error/10' : 'input-bordered'
     }`;
 
     return (
-        <div className="modal modal-open z-40">
-            <div className="modal-box max-w-sm flex flex-col p-6 gap-4">
-                <div className="text-center">
+        <div className="modal modal-open z-100">
+            <div className="modal-box max-w-sm flex flex-col p-6 gap-4 relative">
+
+                {/* Кнопка закрытия */}
+                {hasSelectedChannel && (
+                    <button
+                        onClick={closeChannelModal}
+                        className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/70 hover:text-base-content"
+                        aria-label="Закрыть модальное окно"
+                    >
+                        <LuX className="text-base"/>
+                    </button>
+                )}
+
+                <div className="text-center mt-2">
                     <h3 className="font-bold text-xl text-base-content">Выбор канала чата</h3>
                     <p className="text-sm text-base-content/60 mt-1">
                         Укажите канал, сообщения которого бот должен начать отслеживать.
@@ -97,7 +119,10 @@ export const ChannelSelectModal: FC = () => {
                         />
                         {currentError && (
                             <label className="label py-1">
-                                <span className="label-text-alt text-error font-medium">{currentError}</span>
+                                <span
+                                    className="label-text-alt text-error font-medium wrap-break-word whitespace-normal w-full">
+                                    {currentError}
+                                </span>
                             </label>
                         )}
                     </div>
@@ -120,7 +145,12 @@ export const ChannelSelectModal: FC = () => {
                     </button>
                 </form>
             </div>
-            <div className="modal-backdrop bg-black/10 backdrop-blur-xs"></div>
+
+            {/* Бэкдроп */}
+            <div
+                onClick={hasSelectedChannel ? closeChannelModal : undefined}
+                className={`modal-backdrop bg-black/10 backdrop-blur-xs ${hasSelectedChannel ? 'cursor-pointer' : ''}`}
+            />
         </div>
     );
 };

@@ -2,13 +2,13 @@ import {type FC} from "react";
 import {LuRefreshCw, LuTwitch} from "react-icons/lu";
 import {useAuth} from "../hooks/useAuth.ts";
 
-export const ChannelISelectToggle: FC = () => {
-    const {session, activeChannel, resetChannel} = useAuth();
+export const ChannelSelectToggle: FC = () => {
+    const {session, activeChannel, openChannelModal} = useAuth();
 
     return (
         <div
             role="button"
-            onClick={resetChannel}
+            onClick={openChannelModal}
             className="flex items-center justify-between px-3 py-2.5 hover:bg-base-100 active:bg-primary active:text-primary-content rounded-md transition-colors"
         >
             <div className="flex items-center gap-2.5 text-sm min-w-0 flex-1 w-0">

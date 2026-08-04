@@ -1,48 +1,70 @@
-import {useCallback} from "react";
+import {useCallback, useState} from "react";
 import {useLocalStorage} from "../../../hooks";
 import {TWITCH_STORAGE_KEYS} from "../config.ts";
 import {validateChannelName} from "../utils/validateChannelName.ts";
 
-export const useTwitchChannelState = (sessionLogin: string | undefined, setError: (err: string | null) => void) => {
+export const useTwitchChannelState = (sessionLogin: string | undefined) => {
     const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL, null);
+    const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(() => {
+        const stored = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
+        return !stored || stored === 'null';
+    });
+    const [channelError, setChannelError] = useState<string | null>(null);
+
+
+    const openChannelModal = useCallback(() => {
+        setChannelError(null);
+        setIsChannelModalOpen(true);
+    }, []);
+
+    const closeChannelModal = useCallback(() => {
+        setChannelError(null);
+        setIsChannelModalOpen(false);
+    }, []);
 
     const selectOwnChannel = useCallback(() => {
         if (!sessionLogin) {
-            setError('Сессия не найдена.');
+            setChannelError('Сессия не найдена.');
             return;
         }
-        setError(null);
+        setChannelError(null);
         setActiveChannel(sessionLogin.toLowerCase());
-    }, [sessionLogin, setActiveChannel, setError]);
+        setIsChannelModalOpen(false);
+    }, [sessionLogin, setActiveChannel]);
 
     const selectCustomChannel = useCallback((channelName: string) => {
         const trimmed = channelName.trim().toLowerCase();
 
         if (!trimmed) {
-            setError('Имя канала не может быть пустым.');
+            setChannelError('Имя канала не может быть пустым.');
             return;
         }
 
         if (!validateChannelName(trimmed)) {
-            setError('Некорректное имя канала Twitch.');
+            setChannelError('Некорректное имя канала Twitch.');
             return;
         }
 
-        setError(null);
+        setChannelError(null);
         setActiveChannel(trimmed);
-    }, [setActiveChannel, setError]);
+        setIsChannelModalOpen(false);
+    }, [setActiveChannel]);
 
     const resetChannel = useCallback(() => {
         setActiveChannel(null);
-        setError(null);
-    }, [setActiveChannel, setError]);
+        setChannelError(null);
+    }, [setActiveChannel]);
 
     return {
         activeChannel,
         setActiveChannel,
         hasSelectedChannel: !!activeChannel,
+        isChannelModalOpen,
+        openChannelModal,
+        closeChannelModal,
         selectOwnChannel,
         selectCustomChannel,
         resetChannel,
+        channelError,
     };
 };

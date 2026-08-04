@@ -5,5 +5,5 @@ export {AuthProvider} from './context/AuthProvider.tsx';
 export {useAuth} from './hooks/useAuth.ts';
 export {ProtectedView} from './components/ProtectedView';
 export {ChannelSelectModal} from './components/ChannelSelectModal'
-export {ChannelISelectToggle} from './components/ChannelISelectToggle'
+export {ChannelSelectToggle} from './components/ChannelSelectToggle.tsx'
 export {LogoutToggle} from './components/LogoutToggle'
