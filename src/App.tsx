@@ -6,7 +6,6 @@ import WelcomeScreen from "./components/layout/WelcomeScreen.tsx";
 import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 
 // TODO:
-//   выделенные сообщения.
 //   закрытие модалки выбора канала без изменения состояний приложения.
 //   обработка несуществующего канала.
 //   логика если бот в муте / бане.

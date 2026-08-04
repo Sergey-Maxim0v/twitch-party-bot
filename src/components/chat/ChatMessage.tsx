@@ -19,6 +19,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
                                            }) => {
     const isSystem = msg.tags["is-system"] === "1";
     const isDeleted = msg.tags["is-deleted"] === "1";
+    const isHighlightedMessage = msg.tags["msg-id"] === "highlighted-message";
 
     // Скрытие удаленных сообщений
     if (isDeleted && !IsShowDeletedMessages) {
@@ -47,10 +48,16 @@ const ChatMessage: FC<ChatMessageProps> = ({
 
     let containerClassName = "text-sm break-words leading-relaxed animate-fadeIn p-1 rounded transition-all block w-full";
 
+    // Применяем фоновые цвета ролей
     if (highlightRoles && !isSystem) {
         if (isBroadcaster) containerClassName += " bg-error/10";
         else if (isMod) containerClassName += " bg-success/10";
         else if (isVip) containerClassName += " bg-info/10";
+    }
+
+    // Если сообщение выделено за баллы
+    if (isHighlightedMessage && !isSystem) {
+        containerClassName += " shadow-[inset_0_0_0_1.5px_theme(colors.primary)]";
     }
 
     // Стили для удаленных сообщений
