@@ -1,57 +1,117 @@
 import {type FC} from 'react';
 import ThemeToggle from './ThemeToggle';
-import {LuTwitch} from "react-icons/lu";
-import {ChannelIndicator, useAuth} from "../../features/auth";
+import {LuLogOut, LuRefreshCw, LuTwitch, LuUser} from "react-icons/lu";
+import {useAuth} from "../../features/auth";
 
 const Header: FC = () => {
-    const {session, isAuthenticated, isLoading, login, logout} = useAuth();
+    const {session, isAuthenticated, isLoading, login, logout, activeChannel, resetChannel} = useAuth();
 
     return (
-        <header className="navbar bg-base-200 border-b border-base-300 px-6 flex justify-between items-center">
-            <LuTwitch className="mr-2 text-2xl font-black text-primary select-none"/>
-
-            <div className="flex-1">
-                <span className="text-xl font-black tracking-tight text-primary select-none">
-                  Twitch Party Bot
+        <header
+            className="navbar bg-base-200 border-b border-base-300 px-6 flex justify-between items-center select-none">
+            {/* Логотип */}
+            <div className="flex items-center gap-2">
+                <LuTwitch className="text-2xl font-black text-primary"/>
+                <span className="text-xl font-black tracking-tight text-primary">
+                    Twitch Party Bot
                 </span>
             </div>
 
+            {/* Правая часть */}
             <div className="flex items-center gap-4">
-                <ChannelIndicator/>
-
-                <div className="flex-none">
-                    <ThemeToggle/>
-                </div>
-
-                <div>
-                    {isLoading ? (
-                        <button className="btn btn-ghost btn-sm disabled" aria-label="Загрузка">
-                            <span className="loading loading-spinner loading-xs"></span>
-                        </button>
-                    ) : isAuthenticated && session ? (
-                        <div className="flex items-center gap-3">
-                            <div className="hidden sm:flex flex-col text-right">
-                                <span className="text-sm font-semibold leading-none text-base-content">
-                                  {session.login}
-                                </span>
-                            </div>
-                            <button
-                                onClick={logout}
-                                className="btn btn-outline btn-error btn-sm"
-                            >
-                                Выйти
-                            </button>
+                {isLoading ? (
+                    <button className="btn btn-ghost btn-sm disabled" aria-label="Загрузка">
+                        <span className="loading loading-spinner loading-xs"></span>
+                    </button>
+                ) : isAuthenticated && session ? (
+                    <div className="dropdown dropdown-end">
+                        <div
+                            role="button"
+                            tabIndex={0}
+                            className="btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
+                            hover:bg-base-300 transition-colors text-sm font-medium text-base-content"
+                        >
+                            <span className="opacity-60">канал</span>
+                            <span className="font-bold text-primary max-w-25 truncate">
+                                {activeChannel || session.login}
+                            </span>
+                            <span className="opacity-30 mx-0.5">|</span>
+                            <span className="opacity-60">аккаунт</span>
+                            <span className="font-bold max-w-25 truncate">
+                                {session.login}
+                            </span>
                         </div>
-                    ) : (
+
+                        <ul
+                            tabIndex={0}
+                            className="dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box
+                            w-80 gap-0.5 z-50 mt-2 border border-base-100"
+                        >
+                            {/* Сменить канал */}
+                            <li>
+                                <div
+                                    role="button"
+                                    onClick={resetChannel}
+                                    className="flex items-center justify-between px-3 py-2.5 hover:bg-base-100
+                                    active:bg-primary active:text-primary-content rounded-md transition-colors"
+                                >
+                                    <div className="flex items-center gap-2.5 text-sm min-w-0 flex-1">
+                                        <LuTwitch className="text-primary text-base shrink-0"/>
+                                        <span className="text-base-content/70">Канал:</span>
+                                        <span className="font-semibold truncate max-w-30">
+                                            {activeChannel || session.login}
+                                        </span>
+                                    </div>
+                                    <span
+                                        className="badge badge-sm font-semibold opacity-60 flex items-center gap-1 text-[10px] uppercase tracking-wider">
+                                        <LuRefreshCw className="text-[9px]"/>
+                                        <span>Сменить</span>
+                                    </span>
+                                </div>
+                            </li>
+
+                            {/* Переключить тему */}
+                            <li className="p-0">
+                                <ThemeToggle/>
+                            </li>
+
+                            {/* Выйти из аккаунта */}
+                            <li>
+                                <div
+                                    role="button"
+                                    onClick={logout}
+                                    className="flex items-center justify-between px-3 py-2.5 hover:bg-error/10 text-error rounded-md transition-colors"
+                                >
+                                    <div className="flex items-center gap-2.5 text-sm min-w-0 flex-1 w-0">
+                                        <LuUser className="text-base-content/60 text-base shrink-0"/>
+                                        <span className="text-base-content/70 shrink-0">Аккаунт:</span>
+                                        <span className="font-semibold text-base-content truncate max-w-27.5">
+                                            {session.login}
+                                        </span>
+                                    </div>
+                                    <span
+                                        className="badge badge-error badge-outline badge-sm font-semibold
+                                        text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0">
+                                        <LuLogOut className="text-[9px]"/>
+                                        <span>Выйти</span>
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                ) : (
+                    /* Неавторизованное состояние */
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle/>
                         <button
                             onClick={login}
                             className="btn btn-primary btn-sm flex items-center gap-2"
                         >
                             <LuTwitch className="text-lg"/>
-                            Войти
+                            <span>Войти</span>
                         </button>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </header>
     );
