@@ -16,8 +16,20 @@ export const useTwitchChat = () => {
     const pendingTextsRef = useRef<string[]>([]);
     const socketContext = useSocketContext();
     const {session} = useAuth();
+    const timeoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
     const currentUserLogin = session?.login?.toLowerCase();
+
+    useEffect(() => {
+        const currentTimer = timeoutTimerRef.current;
+
+        return () => {
+            if (currentTimer) {
+                clearTimeout(currentTimer);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         const client = socketContext?.getClient?.();
@@ -36,6 +48,7 @@ export const useTwitchChat = () => {
                 message,
                 currentUserLogin,
                 pendingTextsRef,
+                timeoutTimerRef,
                 updateChatAccessStatus: socketContext.updateChatAccessStatus
             });
         }

@@ -1,12 +1,14 @@
+import type {RefObject} from "react"; // Импортируем утилиту проверки
 import {TwitchIrcCommand} from "../config";
 import type {ParsedIrcMessage} from "./parseIrcMessage";
 import {CHAT_ACCESS_STATUSES, type ChatAccessStatus} from "../../socket/types";
-import {checkIsRoomRestricted} from "./checkIsRoomRestricted"; // Импортируем утилиту проверки
+import {checkIsRoomRestricted} from "./checkIsRoomRestricted";
 
 interface UpdateChatAccessProps {
     message: ParsedIrcMessage;
     currentUserLogin?: string;
     pendingTextsRef: { current: string[] };
+    timeoutTimerRef: RefObject<ReturnType<typeof setTimeout> | null>;
     updateChatAccessStatus: (status: ChatAccessStatus) => void;
 }
 
@@ -18,6 +20,7 @@ export const updateChatAccess = ({
                                      message,
                                      currentUserLogin,
                                      pendingTextsRef,
+                                     timeoutTimerRef,
                                      updateChatAccessStatus
                                  }: UpdateChatAccessProps): void => {
     // 1. Обработка глобальных настроек комнаты
@@ -45,16 +48,41 @@ export const updateChatAccess = ({
     if (message.command === TwitchIrcCommand.CLEAR_CHAT) {
         const targetUser = message.text?.trim()?.toLowerCase();
 
-        // Если модератор забанил/выдал таймаут именно нашему боту
+        // Если модератор забанил или выдал таймаут именно нашему боту
         if (targetUser && targetUser === currentUserLogin) {
-            const duration = message.tags?.["ban-duration"];
-            updateChatAccessStatus(duration ? CHAT_ACCESS_STATUSES.RESTRICTED : CHAT_ACCESS_STATUSES.BANNED);
+            const durationStr = message.tags?.["ban-duration"];
+
+            if (timeoutTimerRef.current) {
+                clearTimeout(timeoutTimerRef.current);
+                timeoutTimerRef.current = null;
+            }
+
+            if (durationStr) {
+                // Это временный мут (таймаут)
+                updateChatAccessStatus(CHAT_ACCESS_STATUSES.RESTRICTED);
+
+                const durationSeconds = parseInt(durationStr, 10);
+
+                if (!isNaN(durationSeconds) && durationSeconds > 0) {
+                    timeoutTimerRef.current = setTimeout(() => {
+                        updateChatAccessStatus(CHAT_ACCESS_STATUSES.CONNECTED);
+                        timeoutTimerRef.current = null;
+                    }, durationSeconds * 1000);
+                }
+            } else {
+                // Это перманентный бан
+                updateChatAccessStatus(CHAT_ACCESS_STATUSES.BANNED);
+            }
         }
         return;
     }
 
     // 4. Перехват успешного USER_STATE (сигнал разбана или успешной отправки)
     if (message.command === TwitchIrcCommand.USER_STATE) {
+        if (timeoutTimerRef.current) {
+            clearTimeout(timeoutTimerRef.current);
+            timeoutTimerRef.current = null;
+        }
         updateChatAccessStatus(CHAT_ACCESS_STATUSES.CONNECTED);
         return;
     }
