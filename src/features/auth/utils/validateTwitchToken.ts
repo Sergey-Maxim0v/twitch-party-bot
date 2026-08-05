@@ -9,7 +9,7 @@ export interface TwitchUserData {
  * Отправляет запрос на сервера Twitch для проверки активности токена.
  *
  * @param {string} token - Проверяемый токен доступа OAuth.
- * @returns {Promise<TwitchUserData | null>} Данные пользователя при успехе, или null при невалидном токене.
+ * @returns {Promise<TwitchUserData | null>} Данные пользователя при успехе, или null.
  * @see {@link https://dev.twitch.tv/docs/authentication/validate-tokens}
  */
 export const validateTwitchToken = async (token: string): Promise<TwitchUserData | null> => {

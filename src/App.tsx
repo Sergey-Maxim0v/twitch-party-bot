@@ -6,7 +6,6 @@ import WelcomeScreen from "./components/layout/WelcomeScreen.tsx";
 import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 
 // TODO:
-//   обработка несуществующего канала.
 //   логика если бот в муте / бане.
 //   QueuePanel.
 //   сохранение настроек очереди в файл, проверка с библиотекой zod.

@@ -1,7 +1,20 @@
 import {validateChannelName} from "./validateChannelName.ts";
 
-export const getChannelSelectCurrentError = (channelError: string | null, isValidationTriggered: boolean, value: string): string | null => {
+export interface GetChannelErrorParams {
+    channelError: string | null;
+    isValidationTriggered: boolean;
+    value: string;
+    isNotFound: boolean
+}
+
+export const getChannelSelectCurrentError = ({
+                                                 channelError,
+                                                 isValidationTriggered,
+                                                 value,
+                                                 isNotFound
+                                             }: GetChannelErrorParams): string | null => {
     if (channelError) return channelError;
+    if (isNotFound) return 'Канал не найден на Twitch.'
     if (!isValidationTriggered) return null;
 
     const trimmed = value.trim();
