@@ -5,6 +5,8 @@ import {useTwitchSubscription} from "./useTwitchSubscription.ts";
 import {useSocketContext} from "../../socket/hooks/useSocketContext.ts";
 import {markDeletedMessages} from "../utils/markDeletedMessages.ts";
 import {createSystemMessage} from "../utils/createSystemMessage.ts";
+import {useAuth} from "../../../features/auth";
+import {updateChatAccess} from "../utils/updateChatAccess.ts";
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -13,7 +15,9 @@ export const useTwitchChat = () => {
     const [messages, setMessages] = useState<ParsedIrcMessage[]>([]);
     const pendingTextsRef = useRef<string[]>([]);
     const socketContext = useSocketContext();
-    const updateChatAccessStatus = socketContext?.updateChatAccessStatus;
+    const {session} = useAuth();
+
+    const currentUserLogin = session?.login?.toLowerCase();
 
     useEffect(() => {
         const client = socketContext?.getClient?.();
@@ -26,31 +30,14 @@ export const useTwitchChat = () => {
     }, [socketContext]);
 
     const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-        // Анализ статуса доступности чата
-        if (updateChatAccessStatus) {
-            if (message.command === TwitchIrcCommand.ROOM_STATE) {
-                const tags = message.tags || {};
-                const isSubsOnly = tags["subs-only"] === "1";
-                const isEmoteOnly = tags["emote-only"] === "1";
-                const isSlowMode = tags["slow"] && tags["slow"] !== "0";
-
-                if (isSubsOnly || isEmoteOnly || isSlowMode) {
-                    updateChatAccessStatus("restricted");
-                } else {
-                    updateChatAccessStatus("connected");
-                }
-            }
-
-            // Обработка персональных блокировок или ошибок отправки
-            if (message.command === TwitchIrcCommand.NOTICE) {
-                const msgId = message.tags?.["msg-id"];
-
-                if (msgId === "msg_banned") {
-                    updateChatAccessStatus("banned");
-                } else if (msgId === "msg_subsonly" || msgId === "msg_followersonly" || msgId === "msg_timedout") {
-                    updateChatAccessStatus("restricted");
-                }
-            }
+        // Вычисляем права доступа и управляем очередью сообщений
+        if (socketContext?.updateChatAccessStatus) {
+            updateChatAccess({
+                message,
+                currentUserLogin,
+                pendingTextsRef,
+                updateChatAccessStatus: socketContext.updateChatAccessStatus
+            });
         }
 
         // Модераторские сообщения
@@ -115,7 +102,7 @@ export const useTwitchChat = () => {
 
             return updated;
         });
-    }, [updateChatAccessStatus]);
+    }, [currentUserLogin, socketContext.updateChatAccessStatus]);
 
     // Автоматически подписываемся на сырой IRC-поток
     useTwitchSubscription(handleIncomingMessage);

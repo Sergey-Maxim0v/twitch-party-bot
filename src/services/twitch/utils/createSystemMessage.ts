@@ -85,14 +85,14 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
 
     // Глобальные изменения режимов комнаты (ROOMSTATE)
     if (command === TwitchIrcCommand.ROOM_STATE) {
-        // Если это стартовый пакет инициализации комнаты — полностью игнорируем его
+        // Если это стартовый пакет инициализации комнаты — полностью игнорируем вывод сообщения в чат
         const hasAllTags = tags["subs-only"] !== undefined && tags["slow"] !== undefined && tags["emote-only"] !== undefined;
 
         if (hasAllTags) {
             return null;
         }
 
-        //
+        // Генерируем точечные системные сообщения для логов чата при их изменении
         if (tags["subs-only"] === "1") return buildSystemPayload("Включен режим 'Только для подписчиков'.");
         if (tags["subs-only"] === "0") return buildSystemPayload("Режим 'Только для подписчиков' отключен.");
 
