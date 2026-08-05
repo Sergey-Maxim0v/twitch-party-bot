@@ -10,7 +10,9 @@ const ActiveProfileInfo: FC<ActiveProfileInfo> = ({className = ''}) => {
         session,
         activeChannel,
         activeChannelDisplayName,
-        activeChannelAvatar
+        activeChannelAvatar,
+        userDisplayName,
+        userAvatar
     } = useAuth();
 
     return (
@@ -41,8 +43,19 @@ const ActiveProfileInfo: FC<ActiveProfileInfo> = ({className = ''}) => {
             {/* Аккаунт */}
             <span className="flex items-center gap-1">
                 <span className="opacity-60">аккаунт</span>
-                <span className="font-bold max-w-25 truncate">
-                    {session?.login}
+                <span className="flex items-center gap-1 font-bold max-w-25 truncate">
+                    {userAvatar && (
+                        <div className="avatar shrink-0">
+                            <div className="w-3.5 h-3.5 rounded-full ring-1 ring-base-content/20">
+                                <img
+                                    src={userAvatar}
+                                    alt={userDisplayName || session?.login || 'Аватар пользователя'}
+                                    referrerPolicy="no-referrer"
+                                />
+                            </div>
+                        </div>
+                    )}
+                    <span>{userDisplayName || session?.login}</span>
                 </span>
             </span>
         </div>

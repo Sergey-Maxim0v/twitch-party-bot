@@ -55,6 +55,14 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         accessToken: session?.accessToken
     });
 
+    const {
+        displayName: userDisplayName,
+        avatarUrl: userAvatar
+    } = useChannelProfile({
+        channel: session?.login ?? null,
+        accessToken: session?.accessToken
+    });
+
     // Синхронный полный сброс стейтов при разлогине
     const logout = useCallback(() => {
         setSession(null);
@@ -116,6 +124,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         hasSelectedChannel: channelManager.hasSelectedChannel,
         activeChannelDisplayName,
         activeChannelAvatar,
+        userDisplayName,
+        userAvatar,
         isChannelModalOpen: channelManager.isChannelModalOpen,
         openChannelModal: channelManager.openChannelModal,
         closeChannelModal: channelManager.closeChannelModal,

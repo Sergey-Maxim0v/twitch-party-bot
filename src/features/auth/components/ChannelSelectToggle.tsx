@@ -20,11 +20,9 @@ export const ChannelSelectToggle: FC = () => {
             rounded-md transition-colors select-none"
         >
             <div className="flex items-center gap-2 text-sm min-w-0 flex-1 w-0">
-                {/* Иконка Twitch всегда слева, как маркер пункта */}
-                <LuTwitch className="text-primary text-base shrink-0"/>
+                <LuTwitch className="text-base shrink-0"/>
                 <span className="text-base-content/70 shrink-0">Канал:</span>
 
-                {/* Контейнер для аватара и никнейма */}
                 <div className="flex items-center gap-1.5 min-w-0 truncate">
                     {activeChannelAvatar && (
                         <div className="avatar shrink-0">
