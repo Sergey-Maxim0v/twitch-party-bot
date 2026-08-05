@@ -34,7 +34,8 @@ const Header: FC = () => {
                                 role="button"
                                 tabIndex={0}
                                 className="btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
-                            hover:bg-base-300 transition-colors text-sm font-medium text-base-content"
+                                hover:bg-base-100 bg-base-300 transition-colors text-sm font-medium
+                                text-base-content border border-base-100"
                             >
                                 <ActiveProfileInfo/>
                             </div>

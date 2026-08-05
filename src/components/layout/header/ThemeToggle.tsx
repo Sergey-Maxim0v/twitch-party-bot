@@ -29,14 +29,14 @@ const ThemeToggle: FC = () => {
         <div
             role="button"
             onClick={toggleTheme}
-            className="flex items-center justify-between w-full h-full px-3 py-2.5 rounded-md transition-colors"
+            className="flex items-center justify-between w-full h-full px-3 py-2.5 rounded-md transition-colors select-none"
         >
-            <div className="flex items-center gap-2.5 text-sm">
-                <LuPalette className="text-base-content/60 text-base flex-shrink-0"/>
-                <span className="text-base-content/70">Тема оформления:</span>
+            <div className="flex items-center gap-2 text-sm">
+                <LuPalette className="text-base-content/60 text-base shrink-0"/>
+                <span className="opacity-60 font-medium">тема оформления:</span>
             </div>
-            <span className="badge badge-sm font-semibold opacity-60 flex items-center
-            gap-1 text-[10px] uppercase tracking-wider select-none">
+
+            <span className="badge badge-sm font-medium opacity-70 flex items-center gap-1 text-xs">
                 <Icon className="text-[10px]"/>
                 <span>{currentOption?.description || 'Тема'}</span>
             </span>
