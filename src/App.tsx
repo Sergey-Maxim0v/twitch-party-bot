@@ -7,7 +7,7 @@ import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 
 // TODO:
 //   логика если бот в муте / бане.
-//   QueuePanel.
+//   Queue Settings.
 //   сохранение настроек очереди в файл, проверка с библиотекой zod.
 
 function App() {

@@ -1,6 +1,6 @@
 import {useState, type FC, type ChangeEvent, type SyntheticEvent, useEffect} from "react";
 import {useAuth} from "../hooks/useAuth.ts";
-import {useSocketRef} from "../../../services/socket/hooks/useSocketRef.ts";
+import {useSocketContext} from "../../../services/socket/hooks/useSocketContext.ts";
 import {validateChannelName} from "../utils/validateChannelName.ts";
 import {LuX} from "react-icons/lu";
 import {getChannelSelectCurrentError} from "../utils/getChannelSelectCurrentError.ts";
@@ -19,7 +19,7 @@ export const ChannelSelectModal: FC = () => {
         selectCustomChannel
     } = useAuth();
 
-    const {connect} = useSocketRef();
+    const {connect} = useSocketContext();
 
     const [inputValue, setInputValue] = useState('');
     const [isChecking, setIsChecking] = useState(false);

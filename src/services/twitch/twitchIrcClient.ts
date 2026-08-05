@@ -3,6 +3,7 @@ import {sendInitialIrcCommands} from "./utils/sendInitialIrcCommands.ts";
 import {handleIrcMessage} from "./utils/handleIrcMessage.ts";
 import {createMessageEmitter, type MessageCallback} from "./utils/createMessageEmitter.ts";
 import type {ParsedIrcMessage} from "./utils/parseIrcMessage.ts";
+import {CONNECTION_STATUSES, type ConnectionStatus} from "../socket/types";
 
 export class TwitchIrcClient {
     private socket: WebSocket | null = null;
@@ -36,14 +37,16 @@ export class TwitchIrcClient {
 
         if (this.socket) {
             this.socket.close();
-            this.cleanup();
         }
 
         this.channel = targetChannel;
         this.socket = new WebSocket(TWITCH_SOCKET_BASE_URL);
+        this.emitStatus(CONNECTION_STATUSES.CONNECTING);
 
         this.socket.onopen = () => {
             if (!this.socket || !this.channel) return;
+
+            this.emitStatus(CONNECTION_STATUSES.CONNECTED);
 
             sendInitialIrcCommands({
                 socket: this.socket, token, userLogin, channel: this.channel
@@ -65,11 +68,13 @@ export class TwitchIrcClient {
         this.socket.onclose = () => {
             if (this.socket === currentSocket) {
                 this.cleanup();
+                this.emitStatus(CONNECTION_STATUSES.DISCONNECTED);
             }
         };
 
         this.socket.onerror = (error) => {
             console.error("[TwitchIRC Client] Ошибка сокета:", error);
+            this.emitStatus(CONNECTION_STATUSES.DISCONNECTED);
         };
     }
 
@@ -96,5 +101,17 @@ export class TwitchIrcClient {
 
     public get currentChannel(): TwitchIrcClient["channel"] {
         return this.channel;
+    }
+
+    private onStatusChangeCallback: ((status: ConnectionStatus) => void) | null = null;
+
+    public onStatusChange(callback: (status: ConnectionStatus) => void): void {
+        this.onStatusChangeCallback = callback;
+    }
+
+    private emitStatus(status: ConnectionStatus): void {
+        if (this.onStatusChangeCallback) {
+            this.onStatusChangeCallback(status);
+        }
     }
 }

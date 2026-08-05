@@ -1,5 +1,5 @@
 import type {FC} from "react";
-import {useAuth} from "../../features/auth";
+import {useAuth} from "../../../features/auth";
 
 export interface ActiveProfileInfo {
     className?: string;

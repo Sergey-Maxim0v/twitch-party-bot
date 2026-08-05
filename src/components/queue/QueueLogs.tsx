@@ -1,6 +1,6 @@
 import {type FC} from "react";
 import {useLocalStorage} from "../../hooks";
-import CollapsiblePanel from "../layout/CollapsiblePanel.tsx";
+import CollapsiblePanel from "../layout/panel/CollapsiblePanel.tsx";
 
 export interface QueueLogsProps {
     className?: string;

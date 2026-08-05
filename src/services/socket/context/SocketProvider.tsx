@@ -1,7 +1,13 @@
-import {type FC, type ReactNode, useMemo, useRef} from "react";
+import {type FC, type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {type MessageCallback, TwitchIrcClient} from "../../twitch";
 import {SocketInstance} from "./SocketInstance";
-import type {SocketStorage} from "../types";
+import {
+    CHAT_ACCESS_STATUSES,
+    type ChatAccessStatus,
+    CONNECTION_STATUSES,
+    type ConnectionStatus,
+    type SocketStorage
+} from "../types";
 
 interface SocketProviderProps {
     children: ReactNode;
@@ -9,6 +15,25 @@ interface SocketProviderProps {
 
 const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     const clientRef = useRef<TwitchIrcClient>(new TwitchIrcClient());
+    // Хранение реактивного статуса сетевого соединения
+    const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED);
+
+    // Хранение реактивного статуса доступности чата
+    const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE);
+
+    // Подписка на низкоуровневые изменения статуса сокета
+    useEffect(() => {
+        const client = clientRef.current;
+
+        client.onStatusChange((status) => {
+            setConnectionStatus(status);
+
+            // Если сеть отключилась, статус чата автоматически переводим в оффлайн
+            if (status === CONNECTION_STATUSES.DISCONNECTED) {
+                setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE);
+            }
+        });
+    }, []);
 
     const connect = (channel: string, token: string, userLogin: string) => {
         clientRef.current.connect(channel, token, userLogin);
@@ -34,8 +59,10 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         disconnect,
         subscribe,
         sendMessage,
-        getClient
-    }), []);
+        getClient,
+        connectionStatus,
+        chatAccessStatus
+    }), [connectionStatus, chatAccessStatus]);
 
     return (
         <SocketInstance.Provider value={value}>

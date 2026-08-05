@@ -1,5 +1,5 @@
 import {type FC, type ReactNode} from 'react';
-import Header from "./Header.tsx";
+import Header from "./header/Header.tsx";
 import {AuthModal, ChannelSelectModal} from "../../features/auth";
 
 interface PageLayoutProps {

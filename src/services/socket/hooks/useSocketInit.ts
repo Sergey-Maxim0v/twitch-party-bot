@@ -1,13 +1,13 @@
 import {useEffect} from "react";
 import {useAuth} from "../../../features/auth";
-import {useSocketRef} from "./useSocketRef.ts";
+import {useSocketContext} from "./useSocketContext.ts";
 
 /**
  * Изолированный хук для синхронизации состояния авторизации с WebSocket-соединением.
  */
 export const useSocketInit = (): void => {
     const {isAuthenticated, session, activeChannel} = useAuth();
-    const {connect, disconnect} = useSocketRef();
+    const {connect, disconnect} = useSocketContext();
 
     useEffect(() => {
         if (isAuthenticated && session?.accessToken && activeChannel && session?.login) {

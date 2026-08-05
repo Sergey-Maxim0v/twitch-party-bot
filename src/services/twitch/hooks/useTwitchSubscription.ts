@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {useSocketRef} from "../../socket/hooks/useSocketRef.ts";
+import {useSocketContext} from "../../socket/hooks/useSocketContext.ts";
 import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
 
 /**
@@ -7,7 +7,7 @@ import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
  * Автоматически управляет жизненным циклом подписки.
  */
 export const useTwitchSubscription = (callback: (message: ParsedIrcMessage) => void) => {
-    const socketContext = useSocketRef();
+    const socketContext = useSocketContext();
 
     useEffect(() => {
         if (!socketContext || !socketContext.subscribe) return;

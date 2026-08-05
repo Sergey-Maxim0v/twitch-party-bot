@@ -2,7 +2,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
 import {MAX_MESSAGES, TwitchIrcCommand} from "../config.ts";
 import {useTwitchSubscription} from "./useTwitchSubscription.ts";
-import {useSocketRef} from "../../socket/hooks/useSocketRef.ts";
+import {useSocketContext} from "../../socket/hooks/useSocketContext.ts";
 import {markDeletedMessages} from "../utils/markDeletedMessages.ts";
 import {createSystemMessage} from "../utils/createSystemMessage.ts";
 
@@ -12,7 +12,7 @@ import {createSystemMessage} from "../utils/createSystemMessage.ts";
 export const useTwitchChat = () => {
     const [messages, setMessages] = useState<ParsedIrcMessage[]>([]);
     const pendingTextsRef = useRef<string[]>([]);
-    const socketContext = useSocketRef();
+    const socketContext = useSocketContext();
 
     useEffect(() => {
         const client = socketContext?.getClient?.();
@@ -75,7 +75,7 @@ export const useTwitchChat = () => {
                     ...message,
                     command: TwitchIrcCommand.PRIV_MSG,
                     text: savedText,
-                    user: message.tags["display-name"] || "dev_7788"
+                    user: message.tags["display-name"] || ""
                 };
             }
 

@@ -1,8 +1,9 @@
 import {type FC} from 'react';
-import ThemeToggle from './ThemeToggle';
+import ThemeToggle from './ThemeToggle.tsx';
 import {LuTwitch} from "react-icons/lu";
-import {ChannelSelectToggle, LogoutToggle, useAuth} from "../../features/auth";
+import {ChannelSelectToggle, LogoutToggle, useAuth} from "../../../features/auth";
 import ActiveProfileInfo from "./ActiveProfileInfo.tsx";
+import ConnectionStatusPanel from "./ConnectionStatusPanel.tsx";
 
 const Header: FC = () => {
     const {session, isAuthenticated, isLoading, login} = useAuth();
@@ -25,33 +26,37 @@ const Header: FC = () => {
                         <span className="loading loading-spinner loading-xs"></span>
                     </button>
                 ) : isAuthenticated && session ? (
-                    <div className="dropdown dropdown-end">
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            className="btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
+                    <div className="flex items-center gap-4">
+                        <ConnectionStatusPanel/>
+
+                        <div className="dropdown dropdown-end">
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                className="btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
                             hover:bg-base-300 transition-colors text-sm font-medium text-base-content"
-                        >
-                            <ActiveProfileInfo/>
-                        </div>
+                            >
+                                <ActiveProfileInfo/>
+                            </div>
 
-                        <ul
-                            tabIndex={0}
-                            className="dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box
+                            <ul
+                                tabIndex={0}
+                                className="dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box
                             w-88 gap-0.5 z-50 mt-2 border border-base-100"
-                        >
-                            <li className="p-0">
-                                <ChannelSelectToggle/>
-                            </li>
+                            >
+                                <li className="p-0">
+                                    <ChannelSelectToggle/>
+                                </li>
 
-                            <li className="p-0">
-                                <ThemeToggle/>
-                            </li>
+                                <li className="p-0">
+                                    <ThemeToggle/>
+                                </li>
 
-                            <li className="p-0">
-                                <LogoutToggle/>
-                            </li>
-                        </ul>
+                                <li className="p-0">
+                                    <LogoutToggle/>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 ) : (
                     /* Неавторизованное состояние */

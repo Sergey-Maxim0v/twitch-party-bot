@@ -1,4 +1,4 @@
-import CollapsiblePanel from "../layout/CollapsiblePanel.tsx";
+import CollapsiblePanel from "../layout/panel/CollapsiblePanel.tsx";
 import {useLocalStorage} from "../../hooks";
 
 export interface QueuePanelProps {

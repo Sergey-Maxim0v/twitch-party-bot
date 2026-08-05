@@ -10,8 +10,7 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
         return !stored || stored === 'null';
     });
     const [channelError, setChannelError] = useState<string | null>(null);
-
-
+    
     const openChannelModal = useCallback(() => {
         setChannelError(null);
         setIsChannelModalOpen(true);
