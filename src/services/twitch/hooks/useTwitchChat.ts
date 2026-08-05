@@ -13,6 +13,7 @@ export const useTwitchChat = () => {
     const [messages, setMessages] = useState<ParsedIrcMessage[]>([]);
     const pendingTextsRef = useRef<string[]>([]);
     const socketContext = useSocketContext();
+    const updateChatAccessStatus = socketContext?.updateChatAccessStatus;
 
     useEffect(() => {
         const client = socketContext?.getClient?.();
@@ -25,6 +26,33 @@ export const useTwitchChat = () => {
     }, [socketContext]);
 
     const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
+        // Анализ статуса доступности чата
+        if (updateChatAccessStatus) {
+            if (message.command === TwitchIrcCommand.ROOM_STATE) {
+                const tags = message.tags || {};
+                const isSubsOnly = tags["subs-only"] === "1";
+                const isEmoteOnly = tags["emote-only"] === "1";
+                const isSlowMode = tags["slow"] && tags["slow"] !== "0";
+
+                if (isSubsOnly || isEmoteOnly || isSlowMode) {
+                    updateChatAccessStatus("restricted");
+                } else {
+                    updateChatAccessStatus("connected");
+                }
+            }
+
+            // Обработка персональных блокировок или ошибок отправки
+            if (message.command === TwitchIrcCommand.NOTICE) {
+                const msgId = message.tags?.["msg-id"];
+
+                if (msgId === "msg_banned") {
+                    updateChatAccessStatus("banned");
+                } else if (msgId === "msg_subsonly" || msgId === "msg_followersonly" || msgId === "msg_timedout") {
+                    updateChatAccessStatus("restricted");
+                }
+            }
+        }
+
         // Модераторские сообщения
         const isModAction =
             message.command === TwitchIrcCommand.CLEAR_CHAT ||
@@ -87,7 +115,7 @@ export const useTwitchChat = () => {
 
             return updated;
         });
-    }, []);
+    }, [updateChatAccessStatus]);
 
     // Автоматически подписываемся на сырой IRC-поток
     useTwitchSubscription(handleIncomingMessage);

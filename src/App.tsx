@@ -5,11 +5,6 @@ import SocketInitializer from "./services/socket/components/SocketInitializer.ts
 import WelcomeScreen from "./components/layout/WelcomeScreen.tsx";
 import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 
-// TODO:
-//   логика если бот в муте / бане.
-//   Queue Settings.
-//   сохранение настроек очереди в файл, проверка с библиотекой zod.
-
 function App() {
     return (
         <SocketProvider>

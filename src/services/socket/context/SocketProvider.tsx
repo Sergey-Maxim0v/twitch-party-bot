@@ -53,6 +53,10 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     const getClient = (): TwitchIrcClient => {
         return clientRef.current;
     };
+    
+    const updateChatAccessStatus = (status: ChatAccessStatus) => {
+        setChatAccessStatus(status);
+    };
 
     const value: SocketStorage = useMemo(() => ({
         connect,
@@ -61,7 +65,8 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         sendMessage,
         getClient,
         connectionStatus,
-        chatAccessStatus
+        chatAccessStatus,
+        updateChatAccessStatus
     }), [connectionStatus, chatAccessStatus]);
 
     return (

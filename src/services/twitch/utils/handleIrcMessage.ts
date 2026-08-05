@@ -29,7 +29,7 @@ export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageP
         const parsed = parseIrcMessage(trimmedLine);
         if (!parsed) continue;
 
-        // 3. Отправляем левой и правой панели через систему подписок
+        // 3. Отправляем панелям через систему подписок
         emitMessage(parsed);
     }
 };

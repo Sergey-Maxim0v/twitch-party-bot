@@ -8,6 +8,7 @@ export interface SocketStorage {
     getClient: () => TwitchIrcClient;
     connectionStatus: ConnectionStatus;
     chatAccessStatus: ChatAccessStatus;
+    updateChatAccessStatus: (status: ChatAccessStatus) => void;
 }
 
 // Константы для сетевого статуса WebSocket-соединения
