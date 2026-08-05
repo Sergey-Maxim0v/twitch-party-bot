@@ -27,6 +27,8 @@ export interface TwitchAuthHookResult {
     closeModal: () => void;
     activeChannel: string | null;
     hasSelectedChannel: boolean;
+    activeChannelDisplayName: string | null;
+    activeChannelAvatar: string | null;
     isChannelModalOpen: boolean;
     openChannelModal: () => void;
     closeChannelModal: () => void;

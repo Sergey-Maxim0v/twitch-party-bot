@@ -5,6 +5,7 @@ import {useTwitchPopup} from "./useTwitchPopup.ts";
 import {useTwitchChannelState} from "./useTwitchChannelState.ts";
 import {extractTwitchToken, validateTwitchToken} from "../utils";
 import {TWITCH_STORAGE_KEYS} from "../config.ts";
+import {useChannelProfile} from "./useChannelProfile.ts";
 
 const VALIDATION_INTERVAL = 45 * 60 * 1000;
 
@@ -48,6 +49,11 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
     const popupManager = useTwitchPopup(handlePopupSuccess, setError);
     const channelManager = useTwitchChannelState(session?.login);
+
+    const {displayName: activeChannelDisplayName, avatarUrl: activeChannelAvatar} = useChannelProfile({
+        channel: channelManager.activeChannel,
+        accessToken: session?.accessToken
+    });
 
     // Синхронный полный сброс стейтов при разлогине
     const logout = useCallback(() => {
@@ -108,11 +114,14 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         closeModal: popupManager.closeModal,
         activeChannel: channelManager.activeChannel,
         hasSelectedChannel: channelManager.hasSelectedChannel,
+        activeChannelDisplayName,
+        activeChannelAvatar,
         isChannelModalOpen: channelManager.isChannelModalOpen,
         openChannelModal: channelManager.openChannelModal,
         closeChannelModal: channelManager.closeChannelModal,
         selectOwnChannel: channelManager.selectOwnChannel,
         selectCustomChannel: channelManager.selectCustomChannel,
         resetChannel: channelManager.resetChannel,
+
     };
 };

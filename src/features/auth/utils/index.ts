@@ -3,4 +3,4 @@ export * from './getTwitchAuthUrl';
 export * from './crypto';
 export * from './getTwitchAuthUrl';
 export * from './validateTwitchToken';
-export * from './validateChannelExists';
+export * from './getTwitchChannelProfile.ts';

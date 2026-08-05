@@ -5,7 +5,7 @@ import {validateChannelName} from "../utils/validateChannelName.ts";
 import {LuX} from "react-icons/lu";
 import {getChannelSelectCurrentError} from "../utils/getChannelSelectCurrentError.ts";
 import {TWITCH_STORAGE_KEYS} from "../config.ts";
-import {validateChannelExists} from "../utils";
+import {getTwitchChannelProfile} from "../utils";
 
 export const ChannelSelectModal: FC = () => {
     const {
@@ -65,9 +65,10 @@ export const ChannelSelectModal: FC = () => {
         setIsChecking(true);
         setIsNotFound(false);
 
-        const exists = await validateChannelExists(session.login, session.accessToken);
+        // Запрашиваем профиль собственного канала
+        const channelProfile = await getTwitchChannelProfile(session.login, session.accessToken);
 
-        if (exists) {
+        if (channelProfile) {
             selectOwnChannel();
             connect(session.login, session.accessToken, session.login);
         } else {
@@ -89,9 +90,10 @@ export const ChannelSelectModal: FC = () => {
         if (trimmed && validateChannelName(trimmed) && session?.accessToken && session?.login) {
             setIsChecking(true);
 
-            const exists = await validateChannelExists(trimmed, session.accessToken);
+            // Запрашиваем профиль кастомного канала
+            const channelProfile = await getTwitchChannelProfile(trimmed, session.accessToken);
 
-            if (exists) {
+            if (channelProfile) {
                 selectCustomChannel(trimmed);
                 connect(trimmed, session.accessToken, session.login);
             } else {

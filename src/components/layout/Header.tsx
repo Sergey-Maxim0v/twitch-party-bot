@@ -2,9 +2,10 @@ import {type FC} from 'react';
 import ThemeToggle from './ThemeToggle';
 import {LuTwitch} from "react-icons/lu";
 import {ChannelSelectToggle, LogoutToggle, useAuth} from "../../features/auth";
+import ActiveProfileInfo from "./ActiveProfileInfo.tsx";
 
 const Header: FC = () => {
-    const {session, isAuthenticated, isLoading, login, activeChannel} = useAuth();
+    const {session, isAuthenticated, isLoading, login} = useAuth();
 
     return (
         <header
@@ -31,21 +32,13 @@ const Header: FC = () => {
                             className="btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
                             hover:bg-base-300 transition-colors text-sm font-medium text-base-content"
                         >
-                            <span className="opacity-60">канал</span>
-                            <span className="font-bold text-primary max-w-25 truncate">
-                                {activeChannel || session.login}
-                            </span>
-                            <span className="opacity-30 mx-0.5">|</span>
-                            <span className="opacity-60">аккаунт</span>
-                            <span className="font-bold max-w-25 truncate">
-                                {session.login}
-                            </span>
+                            <ActiveProfileInfo/>
                         </div>
 
                         <ul
                             tabIndex={0}
                             className="dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box
-                            w-80 gap-0.5 z-50 mt-2 border border-base-100"
+                            w-88 gap-0.5 z-50 mt-2 border border-base-100"
                         >
                             <li className="p-0">
                                 <ChannelSelectToggle/>
