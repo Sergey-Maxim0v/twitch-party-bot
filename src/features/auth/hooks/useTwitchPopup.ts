@@ -4,19 +4,24 @@ import {TWITCH_AUTH_ERRORS} from "../config.ts";
 import {AUTH_STAGES, type AuthStage} from "../types";
 import {getTwitchAuthUrl} from "../utils/getTwitchAuthUrl.ts";
 
-export const useTwitchPopup = (onSuccess: (
-                                   token: string,
-                                   setAuthStage: (stage: AuthStage) => void,
-                                   setIsModalOpen: (open: boolean) => void
-                               ) => Promise<void>,
-                               setError: (err: string | null) => void
-) => {
+interface UseTwitchPopupProps {
+    onSuccess: (token: string) => Promise<void>;
+    setError: (err: string | null) => void;
+}
+
+/**
+ * Хук для управления всплывающим окном (popup) авторизации Twitch.
+ */
+export const useTwitchPopup = ({onSuccess, setError}: UseTwitchPopupProps) => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [authStage, setAuthStage] = useState<AuthStage>(AUTH_STAGES.IDLE);
 
     const popupRef = useRef<Window | null>(null);
 
-    const login = useCallback(() => {
+    /**
+     * Инициализирует процесс авторизации и открывает всплывающее окно
+     */
+    const login = useCallback((): void => {
         setError(null);
         setAuthStage(AUTH_STAGES.WAITING);
         setIsModalOpen(true);
@@ -29,12 +34,15 @@ export const useTwitchPopup = (onSuccess: (
         const url = getTwitchAuthUrl();
         popupRef.current = window.open(
             url,
-            'TwitchAuthPopup',
+            "TwitchAuthPopup",
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
         );
     }, [setError]);
 
-    const closeModal = useCallback(() => {
+    /**
+     * Закрывает модальное и всплывающее окна
+     */
+    const closeModal = useCallback((): void => {
         setIsModalOpen(false);
         if (popupRef.current && !popupRef.current.closed) {
             popupRef.current.close();
@@ -43,29 +51,47 @@ export const useTwitchPopup = (onSuccess: (
 
     // Слушатель событий message от всплывающего окна
     useEffect(() => {
-        const handleMessage = async (event: MessageEvent) => {
+        const handleMessage = async (event: MessageEvent): Promise<void> => {
             if (event.origin !== window.location.origin) return;
 
             const data = event.data as Partial<TwitchAuthMessageData>;
-            if (!data || data.type !== 'TWITCH_AUTH_RESULT') return;
+            if (!data || data.type !== "TWITCH_AUTH_RESULT") return;
 
             if (data.error) {
                 setAuthStage(AUTH_STAGES.ERROR);
-                setError(data.error === TWITCH_AUTH_ERRORS.CSRF_FAILED
-                    ? 'Ошибка безопасности (CSRF): верификация контекста не пройдена.'
-                    : `Авторизация отклонена Twitch: ${data.error}`
+                setError(
+                    data.error === TWITCH_AUTH_ERRORS.CSRF_FAILED
+                        ? "Ошибка безопасности (CSRF): верификация контекста не пройдена."
+                        : `Авторизация отклонена Twitch: ${data.error}`
                 );
                 return;
             }
 
             if (data.token) {
                 setAuthStage(AUTH_STAGES.VALIDATING);
-                await onSuccess(data.token, setAuthStage, setIsModalOpen);
+                try {
+                    // Передаем токен во внешнюю логику сохранения сессии
+                    await onSuccess(data.token);
+
+                    // Если сохранение прошло успешно, переводим в статус SUCCESS
+                    setAuthStage(AUTH_STAGES.SUCCESS);
+
+                    // Плавно закрываем модальное окно через секунду
+                    setTimeout(() => {
+                        setIsModalOpen(false);
+                    }, 1000);
+                } catch (err) {
+                    setAuthStage(AUTH_STAGES.ERROR);
+                    const errorMessage = err instanceof Error ? err.message : "Неизвестная ошибка валидации токена.";
+                    setError(errorMessage);
+                }
             }
         };
 
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
+        window.addEventListener("message", handleMessage);
+        return () => {
+            window.removeEventListener("message", handleMessage);
+        };
     }, [onSuccess, setError]);
 
     // Отслеживание ручного закрытия окна пользователем
@@ -77,12 +103,14 @@ export const useTwitchPopup = (onSuccess: (
                 clearInterval(timer);
                 if (authStage === AUTH_STAGES.WAITING) {
                     setAuthStage(AUTH_STAGES.ERROR);
-                    setError('Авторизация отменена: всплывающее окно было закрыто.');
+                    setError("Авторизация отменена: всплывающее окно было закрыто.");
                 }
             }
         }, 500);
 
-        return () => clearInterval(timer);
+        return () => {
+            clearInterval(timer);
+        };
     }, [isModalOpen, authStage, setError]);
 
     return {

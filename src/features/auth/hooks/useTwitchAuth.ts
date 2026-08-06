@@ -1,5 +1,5 @@
-import {useState, useEffect, useCallback, useRef} from 'react';
-import {AUTH_STAGES, type AuthStage, type TwitchAuthHookResult, type TwitchUserSession} from "../types";
+import {useState, useEffect, useCallback, useRef} from "react";
+import {AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession} from "../types";
 import {useTwitchPopup} from "./useTwitchPopup.ts";
 import {useTwitchChannelState} from "./useTwitchChannelState.ts";
 import {TWITCH_STORAGE_KEYS} from "../config.ts";
@@ -27,28 +27,26 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         };
     }, []);
 
-    const handlePopupSuccess = useCallback(async (
-        token: string,
-        setAuthStage: (stage: AuthStage) => void,
-        setIsModalOpen: (open: boolean) => void
-    ): Promise<void> => {
+    // Логика обработки успешного получения токена из попапа
+    const handlePopupSuccess = useCallback(async (token: string): Promise<void> => {
         const userData = await validateTwitchToken(token);
 
-        if (userData) {
-            setSession({
-                accessToken: token,
-                userId: userData.userId,
-                login: userData.login,
-            });
-            setAuthStage(AUTH_STAGES.SUCCESS);
-            setTimeout(() => setIsModalOpen(false), 1000);
-        } else {
-            setAuthStage(AUTH_STAGES.ERROR);
-            setError('Не удалось подтвердить валидность токена через Twitch API.');
+        if (!userData) {
+            throw new Error("Не удалось подтвердить валидность токена через Twitch API.");
         }
+
+        setSession({
+            accessToken: token,
+            userId: userData.userId,
+            login: userData.login,
+        });
     }, [setSession]);
 
-    const popupManager = useTwitchPopup(handlePopupSuccess, setError);
+    const popupManager = useTwitchPopup({
+        onSuccess: handlePopupSuccess,
+        setError
+    });
+
     const channelManager = useTwitchChannelState(session?.login);
 
     const {displayName: activeChannelDisplayName, avatarUrl: activeChannelAvatar} = useChannelProfile({
@@ -65,7 +63,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     });
 
     // Синхронный полный сброс стейтов при разлогине
-    const logout = useCallback(() => {
+    const logout = useCallback((): void => {
         setSession(null);
         setError(null);
         popupManager.setAuthStage(AUTH_STAGES.IDLE);
@@ -74,7 +72,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
     // Инициализация приложения
     useEffect(() => {
-        const handleAuthInit = async () => {
+        const handleAuthInit = async (): Promise<void> => {
             if (isProcessingHash.current) return;
             isProcessingHash.current = true;
 
@@ -93,7 +91,9 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
             setIsLoading(false);
         };
 
-        handleAuthInit().catch(() => 'useTwitchAuth / handleAuthInit');
+        handleAuthInit().catch((err) => {
+            console.error("useTwitchAuth / handleAuthInit error:", err);
+        });
     }, [validateSession, setSession, session?.accessToken, logout]);
 
     // Фоновая проверка токена
@@ -107,7 +107,9 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
             }
         }, VALIDATION_INTERVAL);
 
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+        };
     }, [session?.accessToken, validateSession, logout]);
 
     return {
@@ -133,6 +135,5 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         selectOwnChannel: channelManager.selectOwnChannel,
         selectCustomChannel: channelManager.selectCustomChannel,
         resetChannel: channelManager.resetChannel,
-
     };
 };
