@@ -1,7 +1,7 @@
 import {useCallback, useState} from "react";
-import {useLocalStorage} from "../../../hooks";
 import {TWITCH_STORAGE_KEYS} from "../config.ts";
 import {validateChannelName} from "../utils/validateChannelName.ts";
+import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 
 export const useTwitchChannelState = (sessionLogin: string | undefined) => {
     const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL, null);
@@ -10,7 +10,7 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
         return !stored || stored === 'null';
     });
     const [channelError, setChannelError] = useState<string | null>(null);
-    
+
     const openChannelModal = useCallback(() => {
         setChannelError(null);
         setIsChannelModalOpen(true);

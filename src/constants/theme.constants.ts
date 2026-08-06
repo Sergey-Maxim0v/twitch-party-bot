@@ -1,4 +1,4 @@
-import type {ThemeConfig} from "../types";
+import type {ThemeConfig} from "../hooks/types/theme.types.ts";
 
 export const THEME_OPTIONS: ThemeConfig[] = [
     {id: 'nord', description: 'Светлая'},

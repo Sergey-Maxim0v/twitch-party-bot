@@ -1,9 +1,11 @@
 import {type FC} from 'react';
 import ThemeToggle from './ThemeToggle.tsx';
 import {LuTwitch} from "react-icons/lu";
-import {ChannelSelectToggle, LogoutToggle, useAuth} from "../../../features/auth";
 import ActiveProfileInfo from "./ActiveProfileInfo.tsx";
 import ConnectionStatusPanel from "./ConnectionStatusPanel.tsx";
+import {useAuth} from "../../../features/auth/hooks/useAuth.ts";
+import {ChannelSelectToggle} from "../../../features/auth/components/ChannelSelectToggle.tsx";
+import {LogoutToggle} from "../../../features/auth/components/LogoutToggle.tsx";
 
 const Header: FC = () => {
     const {session, isAuthenticated, isLoading, login} = useAuth();

@@ -1,10 +1,10 @@
 import {type FC} from "react";
-import {useLocalStorage} from "../../hooks";
 import ChatInput from "./ChatInput.tsx";
 import ChatList from "./ChatList.tsx";
 import {useTwitchChat} from "../../services/twitch/hooks/useTwitchChat.ts";
 import ChatSettings from "./ChatSettings.tsx";
 import CollapsiblePanel from "../layout/panel/CollapsiblePanel.tsx";
+import {useLocalStorage} from "../../hooks/useLocalStorage.ts";
 
 export interface TwitchChatProps {
     className?: string;

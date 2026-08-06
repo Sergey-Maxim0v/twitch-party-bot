@@ -1,5 +1,4 @@
 import {type FC, type ReactNode, useEffect, useMemo, useRef, useState} from "react";
-import {type MessageCallback, TwitchIrcClient} from "../../twitch";
 import {
     CHAT_ACCESS_STATUSES,
     type ChatAccessStatus,
@@ -9,6 +8,8 @@ import {
 } from "../types";
 import {useSocketNetworkSync} from "../hooks/useSocketNetworkSync.ts";
 import {SocketInstance} from "./SocketInstance.ts";
+import {TwitchIrcClient} from "../../twitch/twitchIrcClient.ts";
+import type {MessageCallback} from "../../twitch/utils/createMessageEmitter.ts";
 
 interface SocketProviderProps {
     children: ReactNode;

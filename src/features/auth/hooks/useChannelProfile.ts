@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {getTwitchChannelProfile, type TwitchChannelData} from "../utils";
+import {getTwitchChannelProfile, type TwitchChannelData} from "../utils/getTwitchChannelProfile.ts";
 
 export interface useChannelProfileParams {
     channel: string | null;

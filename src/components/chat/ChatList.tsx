@@ -1,5 +1,5 @@
-import type {ParsedIrcMessage} from "../../services/twitch";
 import ChatMessage from "./ChatMessage";
+import type {ParsedIrcMessage} from "../../services/twitch/utils/parseIrcMessage.ts";
 
 interface ChatListProps {
     messages: ParsedIrcMessage[];

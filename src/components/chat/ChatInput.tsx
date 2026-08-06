@@ -1,8 +1,8 @@
 import {useState, useRef, useEffect, type ReactNode} from "react";
 import {LuSend} from "react-icons/lu";
-import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from "../../constants";
 import {useSocketContext} from "../../services/socket/hooks/./useSocketContext.ts";
 import * as React from "react";
+import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from "../../constants/twitch.constants.ts";
 
 interface ChatInputProps {
     onSendMessage: (text: string) => void;

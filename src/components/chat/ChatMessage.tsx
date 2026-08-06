@@ -1,6 +1,7 @@
 import type {FC} from "react";
-import {type ParsedIrcMessage, TwitchIrcCommand} from "../../services/twitch";
 import {LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench} from "react-icons/lu";
+import type {ParsedIrcMessage} from "../../services/twitch/utils/parseIrcMessage.ts";
+import {TwitchIrcCommand} from "../../services/twitch/config.ts";
 
 interface ChatMessageProps {
     msg: ParsedIrcMessage;

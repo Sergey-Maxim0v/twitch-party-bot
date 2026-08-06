@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
-import {THEME_OPTIONS} from "../constants";
 import {useLocalStorage} from "./useLocalStorage.ts";
-import type {ThemeConfig, ThemeMode} from "../types";
+import {THEME_OPTIONS} from "../constants/theme.constants.ts";
+import type {ThemeConfig, ThemeMode} from "./types/theme.types.ts";
 
 export const useTheme = () => {
     const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find((el) => el.id === 'system') || THEME_OPTIONS[0]

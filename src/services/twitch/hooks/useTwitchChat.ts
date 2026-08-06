@@ -1,11 +1,11 @@
 import {useCallback} from "react";
 import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
 import {useSocketContext} from "../../socket/hooks/useSocketContext.ts";
-import {useAuth} from "../../../features/auth";
 import {useTwitchPendingMessages} from "./useTwitchPendingMessages.ts";
 import {useTwitchChatHistory} from "./useTwitchChatHistory.ts";
 import {updateChatAccess} from "../utils/updateChatAccess.ts";
 import {useTwitchSubscription} from "./useTwitchSubscription.ts";
+import {useAuth} from "../../../features/auth/hooks/useAuth.ts";
 
 /**
  * Единый хук управления состоянием чата Twitch.

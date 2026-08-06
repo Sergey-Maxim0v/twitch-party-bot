@@ -1,7 +1,7 @@
 import {useEffect, useRef, type RefObject} from "react";
-import type {TwitchIrcClient} from "../../twitch";
 import {CHAT_ACCESS_STATUSES, CONNECTION_STATUSES} from "../types";
 import type {ChatAccessStatus, ConnectionStatus} from "../types";
+import type {TwitchIrcClient} from "../../twitch/twitchIrcClient.ts";
 
 interface UseSocketNetworkSyncProps {
     clientRef: RefObject<TwitchIrcClient | null>;

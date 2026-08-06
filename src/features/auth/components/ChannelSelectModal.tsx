@@ -5,7 +5,7 @@ import {validateChannelName} from "../utils/validateChannelName.ts";
 import {LuX} from "react-icons/lu";
 import {getChannelSelectCurrentError} from "../utils/getChannelSelectCurrentError.ts";
 import {TWITCH_STORAGE_KEYS} from "../config.ts";
-import {getTwitchChannelProfile} from "../utils";
+import {getTwitchChannelProfile} from "../utils/getTwitchChannelProfile.ts";
 
 export const ChannelSelectModal: FC = () => {
     const {

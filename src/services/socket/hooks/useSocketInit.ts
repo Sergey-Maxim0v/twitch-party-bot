@@ -1,6 +1,6 @@
 import {useEffect} from "react";
-import {useAuth} from "../../../features/auth";
 import {useSocketContext} from "./useSocketContext.ts";
+import {useAuth} from "../../../features/auth/hooks/useAuth.ts";
 
 /**
  * Изолированный хук для синхронизации состояния авторизации с WebSocket-соединением.
