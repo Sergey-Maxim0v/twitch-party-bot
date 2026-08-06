@@ -1,4 +1,4 @@
-import {TWITCH_SOCKET_BASE_URL, TwitchIrcCommand} from "./config.ts";
+import {TWITCH_SOCKET_BASE_URL} from "./config.ts";
 import {sendInitialIrcCommands} from "./utils/sendInitialIrcCommands.ts";
 import {handleIrcMessage} from "./utils/handleIrcMessage.ts";
 import {createMessageEmitter, type MessageCallback} from "./utils/createMessageEmitter.ts";
@@ -105,8 +105,14 @@ export class TwitchIrcClient {
 
     private onStatusChangeCallback: ((status: ConnectionStatus) => void) | null = null;
 
-    public onStatusChange(callback: (status: ConnectionStatus) => void): void {
+    public onStatusChange(callback: (status: ConnectionStatus) => void): () => void {
         this.onStatusChangeCallback = callback;
+
+        return () => {
+            if (this.onStatusChangeCallback === callback) {
+                this.onStatusChangeCallback = null;
+            }
+        };
     }
 
     private emitStatus(status: ConnectionStatus): void {
@@ -118,4 +124,5 @@ export class TwitchIrcClient {
     public get readyState(): WebSocket["readyState"] | null {
         return this.socket ? this.socket.readyState : null;
     }
+
 }

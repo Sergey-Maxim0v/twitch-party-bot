@@ -1,6 +1,5 @@
 import {type FC, type ReactNode, useEffect, useMemo, useRef, useState} from "react";
 import {type MessageCallback, TwitchIrcClient} from "../../twitch";
-import {SocketInstance} from "./SocketInstance";
 import {
     CHAT_ACCESS_STATUSES,
     type ChatAccessStatus,
@@ -8,7 +7,8 @@ import {
     type ConnectionStatus,
     type SocketStorage
 } from "../types";
-import {useSocketNetworkSync} from "./useSocketNetworkSync.ts";
+import {useSocketNetworkSync} from "../hooks/useSocketNetworkSync.ts";
+import {SocketInstance} from "./SocketInstance.ts";
 
 interface SocketProviderProps {
     children: ReactNode;
@@ -16,13 +16,14 @@ interface SocketProviderProps {
 
 const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     const clientRef = useRef<TwitchIrcClient>(new TwitchIrcClient());
+
     // Хранение реактивного статуса сетевого соединения
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED);
 
     // Хранение реактивного статуса доступности чата
     const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE);
 
-    // Синхронизации системного статуса сети
+    // Синхронизация системного статуса сети
     useSocketNetworkSync({
         clientRef,
         chatAccessStatus,
@@ -34,28 +35,32 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     useEffect(() => {
         const client = clientRef.current;
 
-        client.onStatusChange((status) => {
+        const unsubscribe = client.onStatusChange((status: ConnectionStatus) => {
             setConnectionStatus(status);
 
-            // Если сеть отключилась, статус чата автоматически переводим в оффлайн
             if (status === CONNECTION_STATUSES.DISCONNECTED) {
                 setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE);
             }
         });
+
+        return () => {
+            unsubscribe();
+        };
     }, []);
 
-    const connect = (channel: string, token: string, userLogin: string) => {
+    const connect = (channel: string, token: string, userLogin: string): void => {
         clientRef.current.connect(channel, token, userLogin);
     };
 
-    const disconnect = () => {
+    const disconnect = (): void => {
         clientRef.current.disconnect();
     };
 
-    const subscribe = (callback: MessageCallback) => {
+    const subscribe = (callback: MessageCallback): (() => void) => {
         return clientRef.current.subscribe(callback);
     };
-    const sendMessage = (text: string) => {
+
+    const sendMessage = (text: string): void => {
         clientRef.current.sendMessage(text);
     };
 
@@ -63,7 +68,7 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         return clientRef.current;
     };
 
-    const updateChatAccessStatus = (status: ChatAccessStatus) => {
+    const updateChatAccessStatus = (status: ChatAccessStatus): void => {
         setChatAccessStatus(status);
     };
 

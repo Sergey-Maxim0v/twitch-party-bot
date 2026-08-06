@@ -1,4 +1,5 @@
-import {type MessageCallback, TwitchIrcClient} from "../../twitch";
+import type {TwitchIrcClient} from "../../twitch/twitchIrcClient.ts";
+import type {MessageCallback} from "../../twitch/utils/createMessageEmitter.ts";
 
 export interface SocketStorage {
     connect: (channel: string, token: string, userLogin: string) => void;
