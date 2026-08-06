@@ -15,7 +15,7 @@ export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageP
     const rawMessage = event.data as string;
 
     const lines = rawMessage.split(/\r?\n/);
-
+    
     for (const line of lines) {
         const trimmedLine = line.trim();
 

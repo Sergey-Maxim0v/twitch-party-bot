@@ -5,6 +5,10 @@ import SocketInitializer from "./services/socket/components/SocketInitializer.ts
 import WelcomeScreen from "./components/layout/WelcomeScreen.tsx";
 import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 
+//  TODO:
+//   проверить все перед написанием панелей
+//   проверить отправку сообщений когда в муте
+
 function App() {
     return (
         <SocketProvider>

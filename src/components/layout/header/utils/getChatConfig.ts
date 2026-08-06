@@ -15,7 +15,7 @@ export const getChatConfig = (chatAccessStatus: ChatAccessStatus) => {
             return {
                 statusText: "Ограничен",
                 badgeType: "warning" as const,
-                tooltipText: "Чат: Аккаунт ограничен. Вы можете читать чат, но отправка сообщений временно заблокирована (Slow/Sub mode или мут)."
+                tooltipText: "Чат: Аккаунт ограничен. Вы можете читать чат, но отправка сообщений заблокирована."
             };
         case CHAT_ACCESS_STATUSES.BANNED:
             return {

@@ -8,6 +8,7 @@ import {
     type ConnectionStatus,
     type SocketStorage
 } from "../types";
+import {useSocketNetworkSync} from "./useSocketNetworkSync.ts";
 
 interface SocketProviderProps {
     children: ReactNode;
@@ -20,6 +21,14 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
 
     // Хранение реактивного статуса доступности чата
     const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE);
+
+    // Синхронизации системного статуса сети
+    useSocketNetworkSync({
+        clientRef,
+        chatAccessStatus,
+        setConnectionStatus,
+        setChatAccessStatus
+    });
 
     // Подписка на низкоуровневые изменения статуса сокета
     useEffect(() => {
@@ -53,7 +62,7 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     const getClient = (): TwitchIrcClient => {
         return clientRef.current;
     };
-    
+
     const updateChatAccessStatus = (status: ChatAccessStatus) => {
         setChatAccessStatus(status);
     };
