@@ -7,8 +7,9 @@ import {AuthProvider} from "./features/auth/context/AuthProvider.tsx";
 import {ProtectedView} from "./features/auth/components/ProtectedView.tsx";
 
 //  TODO:
-//   проверить все перед написанием панелей
+//   написать таймаут на пингпонг твичу, когда от него ничего не приходит. через worker
 //   проверить отправку сообщений когда в муте
+//   проверить все перед написанием панелей
 
 function App() {
     return (
