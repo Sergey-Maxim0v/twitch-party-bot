@@ -60,15 +60,16 @@ export class TwitchIrcClient {
             return;
         }
 
-        if (this.onChannelChangeCallback) {
-            this.onChannelChangeCallback();
-        }
-
         // Сохраняем параметры сессии для возможных будущих реконнектов
         this.channel = targetChannel;
         this.lastToken = token;
         this.lastUserLogin = userLogin;
         this.isIntentionallyDisconnected = false;
+
+        // Смена канала
+        if (this.onChannelChangeCallback) {
+            this.onChannelChangeCallback();
+        }
 
         this.closeCurrentSocket();
 
@@ -80,6 +81,8 @@ export class TwitchIrcClient {
 
             this.reconnectAttempts = 0;
             this.emitStatus(CONNECTION_STATUSES.CONNECTED);
+
+            console.info(`[TwitchIRC Client] Установлено соединение с каналом: ${this.channel}`);
 
             sendInitialIrcCommands({
                 socket: this.socket, token, userLogin, channel: this.channel
@@ -129,7 +132,7 @@ export class TwitchIrcClient {
      * Метод жесткого аварийного обрыва сокета.
      */
     public forceCloseAndReconnect(): void {
-        console.warn("[TwitchIRC Client] Переподключение...");
+        console.info("[TwitchIRC Client] Переподключение...");
         this.isIntentionallyDisconnected = false;
 
         this.closeCurrentSocket();

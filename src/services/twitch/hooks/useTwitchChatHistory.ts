@@ -1,4 +1,4 @@
-import {type RefObject, useCallback, useEffect, useState} from "react";
+import {type RefObject, useCallback, useEffect, useRef, useState} from "react";
 import type {TwitchIrcClient} from "../twitchIrcClient.ts";
 import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
 import {MAX_MESSAGES, TwitchIrcCommand} from "../config.ts";
@@ -16,12 +16,24 @@ interface UseTwitchChatHistoryProps {
 export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHistoryProps) => {
     const [messages, setMessages] = useState<ParsedIrcMessage[]>([]);
 
+    const lastChannelRef = useRef<string | null>(null);
+
     // Очистка чата при смене канала
     useEffect(() => {
         if (!client || !client.onChannelChange) return;
 
+        if (client.currentChannel) {
+            lastChannelRef.current = client.currentChannel;
+        }
+
         client.onChannelChange(() => {
-            setMessages([]);
+            const nextChannel = client.currentChannel;
+
+            if (nextChannel !== lastChannelRef.current) {
+                setMessages([]);
+            }
+
+            lastChannelRef.current = nextChannel;
         });
     }, [client]);
 

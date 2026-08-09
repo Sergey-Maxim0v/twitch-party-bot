@@ -21,7 +21,7 @@ export const useTwitchHeartbeat = () => {
     const handleConnectionFailure = useCallback(() => {
         if (!socketContext) return;
 
-        console.warn("[Heartbeat] Фоновый воркер зафиксировал потерю сети. Жесткий обрыв.");
+        console.warn("[Heartbeat] Потеря сети.");
 
         workerRef.current?.postMessage({type: HeartbeatWorkerCommand.CLEAR_ALL});
 
