@@ -6,6 +6,7 @@ import {useTwitchChatHistory} from "./useTwitchChatHistory.ts";
 import {updateChatAccess} from "../utils/updateChatAccess.ts";
 import {useTwitchSubscription} from "./useTwitchSubscription.ts";
 import {useAuth} from "../../../features/auth/hooks/useAuth.ts";
+import {useTwitchHeartbeat} from "./useTwitchHeartbeat.ts";
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -14,6 +15,9 @@ import {useAuth} from "../../../features/auth/hooks/useAuth.ts";
 export const useTwitchChat = () => {
     const socketContext = useSocketContext();
     const {session} = useAuth();
+
+    // Подключаем контроль активности сокета (Heartbeat)
+    const {handleSocketActivity} = useTwitchHeartbeat();
 
     const {pendingTextsRef, timeoutTimerRef, registerPendingMessage} = useTwitchPendingMessages();
 
@@ -29,8 +33,11 @@ export const useTwitchChat = () => {
      * Главный диспетчер обработки каждого входящего IRC-сообщения
      */
     const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
+        // 0. Регистрируем сетевую активность для сброса таймеров Heartbeat
+        handleSocketActivity(message.command);
+
         // 1. Вычисляем права доступа и управляем состоянием блокировок
-        if (socketContext?.updateChatAccessStatus) {
+        if (socketContext && socketContext.updateChatAccessStatus) {
             updateChatAccess({
                 message,
                 currentUserLogin,
@@ -48,7 +55,15 @@ export const useTwitchChat = () => {
 
         // 3. Обрабатываем стандартные и подтвержденные текстовые сообщения
         handleStandardMessage(message);
-    }, [currentUserLogin, socketContext.updateChatAccessStatus, handleModerationAndEvents, handleStandardMessage, pendingTextsRef, timeoutTimerRef]);
+    }, [
+        currentUserLogin,
+        socketContext,
+        handleModerationAndEvents,
+        handleStandardMessage,
+        pendingTextsRef,
+        timeoutTimerRef,
+        handleSocketActivity
+    ]);
 
     // Автоматически подписываемся на сырой IRC-поток
     useTwitchSubscription(handleIncomingMessage);

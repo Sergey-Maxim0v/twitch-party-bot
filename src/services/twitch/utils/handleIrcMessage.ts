@@ -15,7 +15,7 @@ export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageP
     const rawMessage = event.data as string;
 
     const lines = rawMessage.split(/\r?\n/);
-    
+
     for (const line of lines) {
         const trimmedLine = line.trim();
 
@@ -23,7 +23,7 @@ export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageP
 
         // 1. Проверка и автоматический ответ на системный PING
         const isPing = handleIrcPingPong({rawMessage: trimmedLine, socket});
-        if (isPing) return;
+        if (isPing) continue;
 
         // 2. Парсим сообщение
         const parsed = parseIrcMessage(trimmedLine);
