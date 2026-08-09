@@ -5,8 +5,6 @@ export const TWITCH_SOCKET_BASE_URL = 'wss://irc-ws.chat.twitch.tv:443'
  */
 export const MAX_MESSAGES = 100;
 
-export const RECONNECT_TIME = 5000;
-
 /**
  * @see https://dev.twitch.tv/docs/chat/irc#irc-command-reference
  */

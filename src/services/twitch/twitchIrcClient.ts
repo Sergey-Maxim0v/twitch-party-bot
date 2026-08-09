@@ -1,9 +1,10 @@
-import {RECONNECT_TIME, TWITCH_SOCKET_BASE_URL} from "./config.ts";
+import {TWITCH_SOCKET_BASE_URL} from "./config.ts";
 import {sendInitialIrcCommands} from "./utils/sendInitialIrcCommands.ts";
 import {handleIrcMessage} from "./utils/handleIrcMessage.ts";
 import {createMessageEmitter, type MessageCallback} from "./utils/createMessageEmitter.ts";
 import type {ParsedIrcMessage} from "./utils/parseIrcMessage.ts";
 import {CONNECTION_STATUSES, type ConnectionStatus} from "../socket/types";
+import {getReconnectDelay} from "./utils/getReconnectDelay.ts";
 
 /**
  * Класс управления WebSocket-соединением с Twitch IRC.
@@ -16,7 +17,7 @@ export class TwitchIrcClient {
 
     // Параметры для реализации политики автоматического переподключения
     private reconnectAttempts = 0;
-    private readonly maxReconnectAttempts = 3;
+    private readonly maxReconnectAttempts = 5;
     private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
     private isIntentionallyDisconnected = false;
 
@@ -161,6 +162,11 @@ export class TwitchIrcClient {
 
         this.reconnectAttempts++;
 
+        const delay = getReconnectDelay(this.reconnectAttempts);
+        const delayInSeconds = (delay / 1000).toFixed(1);
+
+        console.info(`[TwitchIRC Client] Попытка переподключения ${this.reconnectAttempts}/${this.maxReconnectAttempts} через ${delayInSeconds} сек...`);
+
         this.emitStatus(CONNECTION_STATUSES.CONNECTING);
 
         this.clearReconnectTimer();
@@ -168,7 +174,7 @@ export class TwitchIrcClient {
             if (this.channel && this.lastToken && this.lastUserLogin) {
                 this.connect(this.channel, this.lastToken, this.lastUserLogin);
             }
-        }, RECONNECT_TIME);
+        }, delay);
     }
 
     /**

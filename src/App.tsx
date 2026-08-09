@@ -6,10 +6,6 @@ import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 import {AuthProvider} from "./features/auth/context/AuthProvider.tsx";
 import {ProtectedView} from "./features/auth/components/ProtectedView.tsx";
 
-//  TODO:
-//   проверить отправку сообщений когда в муте
-//   проверить все перед написанием панелей
-
 function App() {
     return (
         <SocketProvider>
