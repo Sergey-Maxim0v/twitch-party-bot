@@ -230,7 +230,7 @@ export class TwitchIrcClient {
         return this.channel;
     }
 
-    private onStatusChangeCallback: ((status: ConnectionStatus) => void) | null = null;
+    private onStatusChangeCallbacks = new Set<(status: ConnectionStatus) => void>();
 
     /**
      * Регистрирует функцию обратного вызова для уведомления системы о смене сетевого статуса сокета.
@@ -238,19 +238,21 @@ export class TwitchIrcClient {
      * @returns {() => void} Функция для безопасной отписки от событий изменения статуса.
      */
     public onStatusChange(callback: (status: ConnectionStatus) => void): () => void {
-        this.onStatusChangeCallback = callback;
+        this.onStatusChangeCallbacks.add(callback);
 
         return () => {
-            if (this.onStatusChangeCallback === callback) {
-                this.onStatusChangeCallback = null;
-            }
+            this.onStatusChangeCallbacks.delete(callback);
         };
     }
 
     private emitStatus(status: ConnectionStatus): void {
-        if (this.onStatusChangeCallback) {
-            this.onStatusChangeCallback(status);
-        }
+        this.onStatusChangeCallbacks.forEach((callback) => {
+            try {
+                callback(status);
+            } catch (error) {
+                console.error("Error in onStatusChange callback:", error);
+            }
+        });
     }
 
     /**
