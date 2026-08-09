@@ -99,6 +99,10 @@ export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHis
                 };
             }
 
+            if (prev.some((m) => m.id === messageToPush.id)) {
+                return prev;
+            }
+
             const updated = [...prev, messageToPush];
 
             if (updated.length > MAX_MESSAGES) {
