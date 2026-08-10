@@ -1,7 +1,7 @@
 import type {FC} from "react";
 import {useQueueSettings} from '../hooks/useQueueSettings';
-import {SettingsInput} from "./SettingsInput.tsx";
 import {SettingsCheckbox} from "./SettingsCheckbox.tsx";
+import {SettingsNumberInput} from "./SettingsNumberInput.tsx";
 
 export const GeneralSettingsSection: FC = () => {
     const {settings, updateSettings} = useQueueSettings();
@@ -26,10 +26,10 @@ export const GeneralSettingsSection: FC = () => {
             </div>
 
             {/* Лимит размера очереди */}
-            <SettingsInput
+            <SettingsNumberInput
                 label="Максимальный размер очереди"
-                type="number"
                 min={1}
+                max={99}
                 value={settings.maxQueueSize}
                 onChange={(val) => updateSettings({maxQueueSize: Number(val) || 1})}
             />
