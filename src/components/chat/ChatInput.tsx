@@ -3,11 +3,19 @@ import {LuSend} from "react-icons/lu";
 import {useSocketContext} from "../../services/socket/hooks/./useSocketContext.ts";
 import * as React from "react";
 import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from "../../constants/twitch.constants.ts";
+import {CHAT_ACCESS_STATUSES} from "../../services/socket/types";
 
 interface ChatInputProps {
     onSendMessage: (text: string) => void;
     actions?: ReactNode;
 }
+
+const STATUS_BUTTON_CLASSES: Record<string, string> = {
+    [CHAT_ACCESS_STATUSES.CONNECTED]: "btn-primary",
+    [CHAT_ACCESS_STATUSES.RESTRICTED]: "btn-warning text-black",
+    [CHAT_ACCESS_STATUSES.OFFLINE]: "btn-error text-white",
+    [CHAT_ACCESS_STATUSES.BANNED]: "btn-neutral"
+};
 
 const ChatInput = ({onSendMessage, actions}: ChatInputProps) => {
     const [value, setValue] = useState("");
@@ -65,6 +73,9 @@ const ChatInput = ({onSendMessage, actions}: ChatInputProps) => {
         }
     };
 
+    const currentStatus = socketContext?.chatAccessStatus || CHAT_ACCESS_STATUSES.OFFLINE;
+    const buttonStatusClass = STATUS_BUTTON_CLASSES[currentStatus] || "btn-primary";
+
     return (
         <div className="p-3 border-t border-base-300 bg-base-200 shrink-0">
             <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full">
@@ -90,7 +101,7 @@ const ChatInput = ({onSendMessage, actions}: ChatInputProps) => {
                     <button
                         type="submit"
                         disabled={!value.trim()}
-                        className="btn btn-sm btn-primary btn-square"
+                        className={`btn btn-sm btn-square transition-colors duration-200 ${buttonStatusClass}`}
                         title="Отправить"
                     >
                         <LuSend className="w-4 h-4"/>

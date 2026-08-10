@@ -120,7 +120,6 @@ export class TwitchIrcClient {
     }
 
     public forceCloseAndReconnect(): void {
-        console.info("[TwitchIRC Client] Переподключение...");
         this.reconnectManager.setIntentionallyDisconnected(false);
 
         this.socketManager.destroy();
