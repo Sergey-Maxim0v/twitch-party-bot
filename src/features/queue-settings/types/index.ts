@@ -46,32 +46,6 @@ export interface QueueGameConfig {
     validationPattern: string;
 }
 
-export interface QueueSettings {
-    isQueueOpen: boolean;
-    maxQueueSize: number;
-    allowPreJoin: boolean;
-    allowMultipleEntries: boolean;
-    botMessageCooldown: number;
-    autoCloseOnFull: boolean;
-    sessionHistoryCooldown: number;
-    gamesPlayedCooldown: number;
-    commands: {
-        join: QueueCommandConfig;
-        leave: QueueCommandConfig;
-        show: QueueCommandConfig;
-        clear: QueueCommandConfig;
-        add: QueueCommandConfig;
-        delete: QueueCommandConfig;
-    };
-    currentGame?: QueueGameConfig;
-    banList: string[];
-    checkInTimeout?: number;
-    requeueOnMiss?: boolean;
-    subscribersOnly?: boolean;
-    prioritizeSubscribers?: boolean;
-    maxGamesPerUser?: number;
-}
-
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
     isQueueOpen: false,
     maxQueueSize: 4,
@@ -89,6 +63,67 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
         add: {name: '!add', isModeratorOnly: true},
         delete: {name: '!delete', isModeratorOnly: true},
     },
-    currentGame: undefined,
-    banList: []
+    banList: [],
 };
+
+export interface QueueSettings {
+    /** Управление статусом очереди. */
+    isQueueOpen: boolean;
+
+    /** Лимит участников в очереди. */
+    maxQueueSize: number;
+
+    /** Разрешить заходить заранее (будущие очереди). */
+    allowPreJoin: boolean;
+
+    /** Разрешить несколько записей (будущие очереди). */
+    allowMultipleEntries: boolean;
+
+    /** Минимальное время ответа бота. */
+    botMessageCooldown: number;
+
+    /** Автоматическое закрытие очереди при ее заполнении. */
+    autoCloseOnFull: boolean;
+
+    /** Через сколько минут игрок может повторно участвовать. */
+    sessionHistoryCooldown: number;
+
+    /** Через сколько игр игрок может повторно участвовать. */
+    gamesPlayedCooldown: number;
+
+    /** Настройки команд: строки, сообщения с которыми бот будет обрабатывать. */
+    commands: {
+        /** Игрок присоединяется к очереди. */
+        join: QueueCommandConfig;
+
+        /** Игрок выходит из очереди. */
+        leave: QueueCommandConfig;
+
+        /** Бот пишет текущую очередь в чат. */
+        show: QueueCommandConfig;
+
+        /** Очистить текущую очередь. */
+        clear: QueueCommandConfig;
+
+        /** Добавить игрока в очередь. */
+        add: QueueCommandConfig;
+
+        /** Удалить игрока из очереди. */
+        delete: QueueCommandConfig;
+    };
+
+    /** Выбор регулярного выражения для проверки игрового никнейма. */
+    currentGame?: QueueGameConfig;
+
+    /** Список никнеймов, сообщения которых бот не будет учитывать при построении очереди. */
+    banList: string[];
+
+    /** Доступ к очереди только для подписчиков. */
+    subscribersOnly?: boolean;
+
+    /** Автоматически ставить подписчиков в начало очереди. */
+    prioritizeSubscribers?: boolean;
+
+    /** Максимально возможное количество игр для одного участника. */
+    maxGamesPerUser?: number;
+}

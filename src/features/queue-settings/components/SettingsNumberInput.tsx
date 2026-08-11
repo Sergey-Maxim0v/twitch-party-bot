@@ -1,4 +1,4 @@
-import type {FC} from "react";
+import {type ChangeEvent, type FC, useState} from "react";
 
 interface SettingsNumberInputProps {
     label: string;
@@ -14,11 +14,47 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
                                                                       label,
                                                                       value,
                                                                       onChange,
-                                                                      min = 1,
-                                                                      max,
+                                                                      min = 0,
+                                                                      max = 999999,
                                                                       disabled = false,
                                                                       className = '',
                                                                   }) => {
+    const [inputValue, setInputValue] = useState<string>(String(value));
+    const [prevValue, setPrevValue] = useState<number>(value);
+
+    if (value !== prevValue) {
+        setPrevValue(value);
+        setInputValue(String(value));
+    }
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const stringValue = e.target.value;
+        setInputValue(stringValue);
+
+        if (stringValue === "") {
+            onChange(min);
+            return;
+        }
+
+        const parsedValue = parseInt(stringValue, 10);
+
+        if (!isNaN(parsedValue)) {
+            const clampedValue = Math.max(min, Math.min(max, parsedValue));
+
+            onChange(clampedValue);
+
+            if (parsedValue !== clampedValue) {
+                setInputValue(String(clampedValue));
+            }
+        }
+    };
+
+    const handleBlur = () => {
+        if (inputValue === "") {
+            setInputValue(String(min));
+        }
+    };
+
     return (
         <div className={`form-control w-full min-w-0 ${className}`}>
             <label
@@ -36,8 +72,9 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
                     max={max}
                     disabled={disabled}
                     className="input input-bordered w-16 input-sm text-center focus:input-primary focus:outline-none text-sm shrink-0"
-                    value={value}
-                    onChange={(e) => onChange(Number(e.target.value) || min)}
+                    value={inputValue}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                 />
             </label>
         </div>

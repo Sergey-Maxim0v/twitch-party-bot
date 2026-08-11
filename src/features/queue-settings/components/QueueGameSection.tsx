@@ -1,4 +1,4 @@
-import type {FC} from "react";
+import type {ChangeEvent, FC} from "react";
 import {useQueueSettings} from "../hooks/useQueueSettings.ts";
 import {GAME_PATTERNS, QUEUE_GAMES, type QueueGameKey} from "../types";
 
@@ -11,7 +11,7 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
                                                             }) => {
     const {settings, updateSettings} = useQueueSettings();
 
-    const handleGameChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleGameChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const selectedKey = e.target.value as QueueGameKey | '';
 
         if (!selectedKey) {
