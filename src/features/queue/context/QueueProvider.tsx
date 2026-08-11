@@ -9,6 +9,7 @@ import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
 import {handleLeavePlayer} from "../utils/handleLeavePlayer.ts";
 import {handleClearCurrentSession} from "../utils/handleClearCurrentSession.ts";
 import {handleCompleteCurrentSession} from "../utils/handleCompleteCurrentSession.ts";
+import {handleBanPlayer} from "../utils/handleBanPlayer.ts";
 
 
 interface QueueProviderProps {
@@ -90,9 +91,18 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     /**
      * МЕТОД: Отправить игрока в бан-лист
      */
-    const banPlayer = (userId: string, username: string) => {
-        console.log("banPlayer", userId, username);
-    };
+    const banPlayer = (userId: string, username: string, initiator: LogInitiator, actorUsername: string) =>
+        handleBanPlayer({
+            userId,
+            username,
+            initiator,
+            actorUsername,
+            state,
+            settings,
+            setState,
+            updateSettings,
+            pushLog
+        });
 
     /**
      * МЕТОД: Переместить игрока между сессиями

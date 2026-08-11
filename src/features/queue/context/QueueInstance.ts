@@ -23,8 +23,8 @@ export interface QueueContextValue {
     ) => void;
 
     /** Отправить игрока в бан-лист */
-    banPlayer: (userId: string, username: string) => void;
-
+    banPlayer: (userId: string, username: string, initiator: LogInitiator, actorUsername: string) => void;
+    
     /** Переместить игрока из одной сессии в другую иливнутри состава   */
     movePlayer: (userId: string, fromSessionId: string, toSessionId: string, targetIndex?: number) => void;
 
