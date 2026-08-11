@@ -6,6 +6,7 @@ import {createInitialState} from "../utils/createInitialState";
 import {STORAGE_KEY} from "../constants.ts";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
+import {handleLeavePlayer} from "../utils/handleLeavePlayer.ts";
 
 
 interface QueueProviderProps {
@@ -67,9 +68,22 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     /**
      * МЕТОД: Удалить игрока из определенной сессии
      */
-    const leavePlayer = (userId: string, sessionId: string) => {
-        console.log("leavePlayer", userId, sessionId);
-    };
+    const leavePlayer = (
+        userId: string,
+        sessionId: string,
+        initiator: LogInitiator,
+        actorUsername: string,
+        rawCommand?: string
+    ) => handleLeavePlayer({
+        userId,
+        sessionId,
+        initiator,
+        actorUsername,
+        rawCommand,
+        state,
+        setState,
+        pushLog
+    });
 
     /**
      * МЕТОД: Отправить игрока в бан-лист

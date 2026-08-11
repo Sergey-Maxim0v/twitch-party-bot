@@ -14,7 +14,13 @@ export interface QueueContextValue {
     ) => void;
 
     /** Удалить игрока из конкретной сессии по его userId    */
-    leavePlayer: (userId: string, sessionId: string) => void;
+    leavePlayer: (
+        userId: string,
+        sessionId: string,
+        initiator: LogInitiator,
+        actorUsername: string,
+        rawCommand?: string
+    ) => void;
 
     /** Отправить игрока в бан-лист */
     banPlayer: (userId: string, username: string) => void;
