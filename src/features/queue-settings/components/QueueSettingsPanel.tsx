@@ -5,6 +5,7 @@ import {useQueueSettings} from "../hooks/useQueueSettings.ts";
 import {SettingsNumberInput} from "./SettingsNumberInput.tsx";
 import {SettingsCheckbox} from "./SettingsCheckbox.tsx";
 import {QueueCommandsSection} from "./QueueCommandsSection.tsx";
+import {QueueBanListSection} from "./QueueBanListSection.tsx";
 
 export interface QueueSettingsProps {
     className?: string;
@@ -18,7 +19,7 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("queue_settings_open", true);
     const {settings, updateSettings} = useQueueSettings();
 
-    const classNameTile = "text-xs font-bold tracking-wide text-base-content/50 uppercase"
+    const titleClassName = "text-xs font-bold tracking-wide text-base-content/50 uppercase"
 
     return (
         <CollapsiblePanel
@@ -29,7 +30,7 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
             collapsedClassName={collapsedClassName}
         >
             <div className="flex-1 p-4 space-y-6 overflow-y-auto custom-scrollbar min-w-0">
-                <h3 className={classNameTile}>
+                <h3 className={titleClassName}>
                     Основные настройки
                 </h3>
 
@@ -83,11 +84,13 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
                     onChange={(checked) => updateSettings({allowMultipleEntries: checked})}
                 />
 
-                <h3 className={classNameTile}>Команды чата</h3>
+                <h3 className={titleClassName}>Команды чата</h3>
 
                 <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
-                    <QueueCommandsSection titleClassName={classNameTile}/>
+                    <QueueCommandsSection titleClassName={titleClassName}/>
                 </div>
+
+                <QueueBanListSection titleClassName={titleClassName} className=''/>
             </div>
         </CollapsiblePanel>
     );
