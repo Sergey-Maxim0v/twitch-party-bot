@@ -6,6 +6,7 @@ import {SettingsNumberInput} from "./SettingsNumberInput.tsx";
 import {SettingsCheckbox} from "./SettingsCheckbox.tsx";
 import {QueueCommandsSection} from "./QueueCommandsSection.tsx";
 import {QueueBanListSection} from "./QueueBanListSection.tsx";
+import {QueueGameSection} from "./QueueGameSection.tsx";
 
 export interface QueueSettingsProps {
     className?: string;
@@ -85,9 +86,11 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
                 />
 
 
+                <QueueGameSection/>
+
                 <QueueCommandsSection titleClassName={titleClassName}/>
 
-                <QueueBanListSection titleClassName={titleClassName} className=''/>
+                <QueueBanListSection titleClassName={titleClassName}/>
             </div>
         </CollapsiblePanel>
     );
