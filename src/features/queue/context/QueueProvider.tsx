@@ -10,6 +10,7 @@ import {handleLeavePlayer} from "../utils/handleLeavePlayer.ts";
 import {handleClearCurrentSession} from "../utils/handleClearCurrentSession.ts";
 import {handleCompleteCurrentSession} from "../utils/handleCompleteCurrentSession.ts";
 import {handleBanPlayer} from "../utils/handleBanPlayer.ts";
+import {handleResetAllQueues} from "../utils/handleResetAllQueues.ts";
 
 
 interface QueueProviderProps {
@@ -138,9 +139,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     /**
      * МЕТОД: Полностью сбросить все данные очереди
      */
-    const resetAllQueues = () => {
-        console.log("resetAllQueues");
-    };
+    const resetAllQueues = (initiator: LogInitiator, actorUsername: string) =>
+        handleResetAllQueues({
+            initiator,
+            actorUsername,
+            setState,
+            pushLog
+        });
 
     const value = {
         state,

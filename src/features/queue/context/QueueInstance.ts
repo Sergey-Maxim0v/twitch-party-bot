@@ -24,7 +24,7 @@ export interface QueueContextValue {
 
     /** Отправить игрока в бан-лист */
     banPlayer: (userId: string, username: string, initiator: LogInitiator, actorUsername: string) => void;
-    
+
     /** Переместить игрока из одной сессии в другую иливнутри состава   */
     movePlayer: (userId: string, fromSessionId: string, toSessionId: string, targetIndex?: number) => void;
 
@@ -35,7 +35,7 @@ export interface QueueContextValue {
     clearCurrentSession: (initiator: LogInitiator, actorUsername: string) => void;
 
     /** Полностью сбросить все данные очереди   */
-    resetAllQueues: () => void;
+    resetAllQueues: (initiator: LogInitiator, actorUsername: string) => void;
 }
 
 export const QueueContext = createContext<QueueContextValue | undefined>(undefined);
