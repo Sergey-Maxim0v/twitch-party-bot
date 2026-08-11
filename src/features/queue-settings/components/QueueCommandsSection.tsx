@@ -30,7 +30,7 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
     };
 
     return (
-        <>
+        <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
             <h3 className={titleClassName}>Команды чата</h3>
 
             <div className="p-3 rounded-xl bg-base-200/40 border border-base-300 space-y-4 w-full min-w-0">
@@ -82,6 +82,6 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
                     onModeratorChange={(chk) => handleModChange('delete', chk)}
                 />
             </div>
-        </>
+        </div>
     );
 };

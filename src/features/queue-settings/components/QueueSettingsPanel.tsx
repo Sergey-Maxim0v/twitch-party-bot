@@ -84,11 +84,8 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
                     onChange={(checked) => updateSettings({allowMultipleEntries: checked})}
                 />
 
-                <h3 className={titleClassName}>Команды чата</h3>
 
-                <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
-                    <QueueCommandsSection titleClassName={titleClassName}/>
-                </div>
+                <QueueCommandsSection titleClassName={titleClassName}/>
 
                 <QueueBanListSection titleClassName={titleClassName} className=''/>
             </div>
