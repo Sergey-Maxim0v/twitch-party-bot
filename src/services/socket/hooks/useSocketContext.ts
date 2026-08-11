@@ -1,4 +1,4 @@
-import type {SocketStorage} from "../types";
+import type {SocketStorage} from "../types.ts";
 import {useContext} from "react";
 import {SocketInstance} from "../context/SocketInstance.ts";
 

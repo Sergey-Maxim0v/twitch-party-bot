@@ -1,4 +1,4 @@
-import {CHAT_ACCESS_STATUSES, type ChatAccessStatus} from "../../../../services/socket/types";
+import {CHAT_ACCESS_STATUSES, type ChatAccessStatus} from "../../../../services/socket/types.ts";
 
 /**
  * Конфигурация для индикатора "Доступность чата" (уровень прав аккаунта)

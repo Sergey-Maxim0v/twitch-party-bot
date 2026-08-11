@@ -5,7 +5,7 @@ import {
     CONNECTION_STATUSES,
     type ConnectionStatus,
     type SocketStorage
-} from "../types";
+} from "../types.ts";
 import {useSocketNetworkSync} from "../hooks/useSocketNetworkSync.ts";
 import {SocketInstance} from "./SocketInstance.ts";
 import {TwitchIrcClient} from "../../twitch/twitchIrcClient.ts";

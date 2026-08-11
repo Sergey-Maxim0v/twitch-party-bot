@@ -1,7 +1,7 @@
 import type {RefObject} from "react"; // Импортируем утилиту проверки
 import {TwitchIrcCommand} from "../config";
 import type {ParsedIrcMessage} from "./parseIrcMessage";
-import {CHAT_ACCESS_STATUSES, type ChatAccessStatus} from "../../socket/types";
+import {CHAT_ACCESS_STATUSES, type ChatAccessStatus} from "../../socket/types.ts";
 import {checkIsRoomRestricted} from "./checkIsRoomRestricted";
 
 interface UpdateChatAccessProps {

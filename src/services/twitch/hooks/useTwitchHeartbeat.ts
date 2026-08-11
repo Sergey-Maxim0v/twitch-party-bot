@@ -1,6 +1,6 @@
 import {useEffect, useRef, useCallback} from "react";
 import {useSocketContext} from "../../socket/hooks/useSocketContext.ts";
-import {CONNECTION_STATUSES} from "../../socket/types";
+import {CONNECTION_STATUSES} from "../../socket/types.ts";
 import {HeartbeatWorkerCommand, HeartbeatWorkerEvent, TwitchIrcCommand} from "../config.ts";
 
 import HeartbeatWorker from "../workers/heartbeat.worker.ts?worker";

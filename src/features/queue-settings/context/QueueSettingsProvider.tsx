@@ -1,10 +1,9 @@
-import {type FC, useEffect, useState} from 'react';
-import {DEFAULT_QUEUE_SETTINGS, type QueueSettings} from '../types';
+import {type FC, type ReactNode, useEffect, useState} from 'react';
+import {DEFAULT_QUEUE_SETTINGS, type QueueSettings} from '../types.ts';
 import {QueueSettingsContext} from "./QueueSettingsInstance";
+import {LOCAL_STORAGE_KEY} from "../constants.ts";
 
-const LOCAL_STORAGE_KEY = 'twitch_queue_settings';
-
-export const QueueSettingsProvider: FC<{ children: React.ReactNode }> = ({children}) => {
+export const QueueSettingsProvider: FC<{ children: ReactNode }> = ({children}) => {
     const [settings, setSettings] = useState<QueueSettings>(() => {
         try {
             const saved = localStorage.getItem(LOCAL_STORAGE_KEY);

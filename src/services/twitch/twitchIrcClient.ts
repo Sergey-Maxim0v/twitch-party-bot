@@ -2,7 +2,7 @@ import {sendInitialIrcCommands} from "./utils/sendInitialIrcCommands.ts";
 import {handleIrcMessage} from "./utils/handleIrcMessage.ts";
 import {createMessageEmitter, type MessageCallback} from "./utils/createMessageEmitter.ts";
 import type {ParsedIrcMessage} from "./utils/parseIrcMessage.ts";
-import {CONNECTION_STATUSES, type ConnectionStatus} from "../socket/types";
+import {CONNECTION_STATUSES, type ConnectionStatus} from "../socket/types.ts";
 import {ConnectionStateManager} from "./utils/ConnectionStateManager.ts";
 import {TwitchReconnectManager} from "./utils/TwitchReconnectManager.ts";
 import {SocketLifecycleManager} from "./utils/SocketLifecycleManager.ts";

@@ -1,4 +1,4 @@
-import type {ConnectionStatus} from "../../socket/types";
+import type {ConnectionStatus} from "../../socket/types.ts";
 
 /**
  * Менеджер управления подписками на сетевой статус соединения.

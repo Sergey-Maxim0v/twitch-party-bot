@@ -1,4 +1,4 @@
-import {CONNECTION_STATUSES, type ConnectionStatus} from "../../../../services/socket/types";
+import {CONNECTION_STATUSES, type ConnectionStatus} from "../../../../services/socket/types.ts";
 
 /**
  * Конфигурация для индикатора "Соединение" (сетевой уровень)

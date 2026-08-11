@@ -3,7 +3,7 @@ import {LuSend} from "react-icons/lu";
 import {useSocketContext} from "../../services/socket/hooks/./useSocketContext.ts";
 import * as React from "react";
 import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from "../../constants/twitch.constants.ts";
-import {CHAT_ACCESS_STATUSES} from "../../services/socket/types";
+import {CHAT_ACCESS_STATUSES} from "../../services/socket/types.ts";
 
 interface ChatInputProps {
     onSendMessage: (text: string) => void;

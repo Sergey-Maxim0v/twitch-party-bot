@@ -1,6 +1,6 @@
 import type {ChangeEvent, FC} from "react";
 import {useQueueSettings} from "../hooks/useQueueSettings.ts";
-import {GAME_PATTERNS, QUEUE_GAMES, type QueueGameKey} from "../types";
+import {GAME_PATTERNS, QUEUE_GAMES, type QueueGameKey} from "../types.ts";
 
 interface QueueGameSectionProps {
     className?: string;

@@ -1,5 +1,5 @@
 import {createContext} from 'react';
-import type {QueueSettings} from "../types";
+import type {QueueSettings} from "../types.ts";
 
 export interface QueueSettingsContextType {
     settings: QueueSettings;
