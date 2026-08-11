@@ -7,6 +7,7 @@ import {STORAGE_KEY} from "../constants.ts";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
 import {handleLeavePlayer} from "../utils/handleLeavePlayer.ts";
+import {handleClearCurrentSession} from "../utils/handleClearCurrentSession.ts";
 
 
 interface QueueProviderProps {
@@ -109,9 +110,14 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     /**
      * МЕТОД: Полностью очистить текущую очередь
      */
-    const clearCurrentSession = () => {
-        console.log("clearCurrentSession");
-    };
+    const clearCurrentSession = (initiator: LogInitiator, actorUsername: string) =>
+        handleClearCurrentSession({
+            initiator,
+            actorUsername,
+            state,
+            setState,
+            pushLog
+        });
 
     /**
      * МЕТОД: Полностью сбросить все данные очереди

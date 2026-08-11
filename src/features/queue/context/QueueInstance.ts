@@ -32,7 +32,7 @@ export interface QueueContextValue {
     completeCurrentSession: () => void;
 
     /** Полностью очистить текущую очередь  */
-    clearCurrentSession: () => void;
+    clearCurrentSession: (initiator: LogInitiator, actorUsername: string) => void;
 
     /** Полностью сбросить все данные очереди   */
     resetAllQueues: () => void;
