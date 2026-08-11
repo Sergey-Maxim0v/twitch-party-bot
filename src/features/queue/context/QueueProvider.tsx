@@ -8,6 +8,7 @@ import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
 import {handleLeavePlayer} from "../utils/handleLeavePlayer.ts";
 import {handleClearCurrentSession} from "../utils/handleClearCurrentSession.ts";
+import {handleCompleteCurrentSession} from "../utils/handleCompleteCurrentSession.ts";
 
 
 interface QueueProviderProps {
@@ -103,9 +104,14 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     /**
      * МЕТОД: Завершить текущую сессию и сдвинуть очередь
      */
-    const completeCurrentSession = () => {
-        console.log("completeCurrentSession");
-    };
+    const completeCurrentSession = (initiator: LogInitiator, actorUsername: string) =>
+        handleCompleteCurrentSession({
+            initiator,
+            actorUsername,
+            state,
+            setState,
+            pushLog
+        });
 
     /**
      * МЕТОД: Полностью очистить текущую очередь

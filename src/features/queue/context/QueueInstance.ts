@@ -29,7 +29,7 @@ export interface QueueContextValue {
     movePlayer: (userId: string, fromSessionId: string, toSessionId: string, targetIndex?: number) => void;
 
     /** Завершить текущий состав    */
-    completeCurrentSession: () => void;
+    completeCurrentSession: (initiator: LogInitiator, actorUsername: string) => void;
 
     /** Полностью очистить текущую очередь  */
     clearCurrentSession: (initiator: LogInitiator, actorUsername: string) => void;
