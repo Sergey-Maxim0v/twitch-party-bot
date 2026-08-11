@@ -1,9 +1,10 @@
 import type {FC} from "react";
-import QueuePanel from "../queue/QueuePanel.tsx";
 import TwitchChat from "../chat/TwitchChat.tsx";
-import QueueLogs from "../queue/QueueLogs.tsx";
 import QueueSettingsPanel from "../../features/queue-settings/components/QueueSettingsPanel.tsx";
 import {QueueSettingsProvider} from "../../features/queue-settings/context/QueueSettingsProvider.tsx";
+import QueuePanel from "../../features/queue/components/QueuePanel.tsx";
+import QueueLogsPanel from "../../features/queue/components/QueueLogsPanel.tsx";
+import {QueueProvider} from "../../features/queue/context/QueueProvider.tsx";
 
 const StreamerWorkspace: FC = () => {
     const PANEL_CLASSNAME = 'h-full flex-1 w-83';
@@ -20,14 +21,15 @@ const StreamerWorkspace: FC = () => {
                     <QueueSettingsPanel className={PANEL_CLASSNAME}
                                         collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
                     />
+                    <QueueProvider>
+                        <QueuePanel className={PANEL_CLASSNAME}
+                                    collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
+                        />
 
-                    <QueuePanel className={PANEL_CLASSNAME}
-                                collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
-                    />
-
-                    <QueueLogs className={PANEL_CLASSNAME}
-                               collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
-                    />
+                        <QueueLogsPanel className={PANEL_CLASSNAME}
+                                        collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
+                        />
+                    </QueueProvider>
                 </QueueSettingsProvider>
 
                 <TwitchChat className={PANEL_CLASSNAME}
