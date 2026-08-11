@@ -11,6 +11,7 @@ import {handleClearCurrentSession} from "../utils/handleClearCurrentSession.ts";
 import {handleCompleteCurrentSession} from "../utils/handleCompleteCurrentSession.ts";
 import {handleBanPlayer} from "../utils/handleBanPlayer.ts";
 import {handleResetAllQueues} from "../utils/handleResetAllQueues.ts";
+import {handleMovePlayer} from "../utils/handleMovePlayer.ts";
 
 
 interface QueueProviderProps {
@@ -108,9 +109,25 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     /**
      * МЕТОД: Переместить игрока между сессиями
      */
-    const movePlayer = (userId: string, fromSessionId: string, toSessionId: string, targetIndex?: number) => {
-        console.log("movePlayer", userId, fromSessionId, toSessionId, targetIndex);
-    };
+    const movePlayer = (
+        userId: string,
+        fromSessionId: string,
+        toSessionId: string,
+        targetIndex: number | undefined,
+        initiator: LogInitiator,
+        actorUsername: string
+    ) =>
+        handleMovePlayer({
+            userId,
+            fromSessionId,
+            toSessionId,
+            targetIndex,
+            initiator,
+            actorUsername,
+            state,
+            setState,
+            pushLog
+        });
 
     /**
      * МЕТОД: Завершить текущую сессию и сдвинуть очередь

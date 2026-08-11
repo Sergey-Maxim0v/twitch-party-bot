@@ -26,7 +26,14 @@ export interface QueueContextValue {
     banPlayer: (userId: string, username: string, initiator: LogInitiator, actorUsername: string) => void;
 
     /** Переместить игрока из одной сессии в другую иливнутри состава   */
-    movePlayer: (userId: string, fromSessionId: string, toSessionId: string, targetIndex?: number) => void;
+    movePlayer: (
+        userId: string,
+        fromSessionId: string,
+        toSessionId: string,
+        targetIndex: number | undefined,
+        initiator: LogInitiator,
+        actorUsername: string
+    ) => void;
 
     /** Завершить текущий состав    */
     completeCurrentSession: (initiator: LogInitiator, actorUsername: string) => void;
