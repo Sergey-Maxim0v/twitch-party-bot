@@ -4,7 +4,7 @@ import CollapsiblePanel from "../../../components/layout/panel/CollapsiblePanel.
 import {useQueueSettings} from "../hooks/useQueueSettings.ts";
 import {SettingsNumberInput} from "./SettingsNumberInput.tsx";
 import {SettingsCheckbox} from "./SettingsCheckbox.tsx";
-import {SettingsCommandInput} from "./SettingsCommandInput.tsx";
+import {QueueCommandsSection} from "./QueueCommandsSection.tsx";
 
 export interface QueueSettingsProps {
     className?: string;
@@ -86,25 +86,7 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
                 <h3 className={classNameTile}>Команды чата</h3>
 
                 <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
-                    <SettingsCommandInput
-                        label="Вступление в очередь (!join)"
-                        commandValue={settings.commands.join.name}
-                        isModeratorValue={settings.commands.join.isModeratorOnly}
-                        onCommandChange={(val) => updateSettings({
-                            commands: {
-                                ...settings.commands,
-                                join: {...settings.commands.join, name: val}
-                            }
-                        })}
-                        onModeratorChange={(chk) => updateSettings({
-                            commands: {
-                                ...settings.commands,
-                                join: {...settings.commands.join, isModeratorOnly: chk}
-                            }
-                        })}
-                    />
-
-                    // TODO
+                    <QueueCommandsSection titleClassName={classNameTile}/>
                 </div>
             </div>
         </CollapsiblePanel>
