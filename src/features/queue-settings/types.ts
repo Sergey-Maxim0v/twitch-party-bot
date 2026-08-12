@@ -52,7 +52,6 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
     allowPreJoin: false,
     allowMultipleEntries: false,
     botMessageCooldown: 5,
-    autoCloseOnFull: true,
     sessionHistoryCooldown: 0,
     gamesPlayedCooldown: 0,
     commands: {
@@ -81,9 +80,6 @@ export interface QueueSettings {
 
     /** Минимальное время ответа бота. */
     botMessageCooldown: number;
-
-    /** Автоматическое закрытие очереди при ее заполнении. */
-    autoCloseOnFull: boolean;
 
     /** Через сколько минут игрок может повторно участвовать. */
     sessionHistoryCooldown: number;

@@ -38,11 +38,25 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) =
                 onChange={(val) => updateSettings({maxQueueSize: Number(val) || 1})}
             />
 
-            {/* Автозакрытие при заполнении */}
+            {/* Разрешить вставать заранее */}
             <SettingsCheckbox
-                label="Автоматически закрывать очередь, когда она заполнится"
-                checked={settings.autoCloseOnFull}
-                onChange={(checked) => updateSettings({autoCloseOnFull: checked})}
+                label="Разрешить запись в будущие очереди"
+                checked={settings.allowPreJoin}
+                onChange={(checked) => {
+                    updateSettings({allowPreJoin: checked});
+
+                    if (!checked) {
+                        updateSettings({allowMultipleEntries: false});
+                    }
+                }}
+            />
+
+            {/* Повторные записи */}
+            <SettingsCheckbox
+                label="Разрешить повторную запись в будущие очереди"
+                checked={settings.allowMultipleEntries}
+                disabled={!settings.allowPreJoin}
+                onChange={(checked) => updateSettings({allowMultipleEntries: checked})}
             />
 
             {/* Через сколько игр игрок может повторно участвовать */}
@@ -61,27 +75,6 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) =
                 max={1440}
                 value={settings.sessionHistoryCooldown}
                 onChange={(val) => updateSettings({sessionHistoryCooldown: Number(val) || 0})}
-            />
-
-            {/* Разрешить вставать заранее */}
-            <SettingsCheckbox
-                label="Разрешить запись в будущие очереди"
-                checked={settings.allowPreJoin}
-                onChange={(checked) => {
-                    updateSettings({allowPreJoin: checked});
-
-                    if (!checked) {
-                        updateSettings({allowMultipleEntries: false});
-                    }
-                }}
-            />
-
-            {/* Повторные входы в один состав */}
-            <SettingsCheckbox
-                label="Разрешить повторную запись в будущие очереди"
-                checked={settings.allowMultipleEntries}
-                disabled={!settings.allowPreJoin}
-                onChange={(checked) => updateSettings({allowMultipleEntries: checked})}
             />
 
             {/* Максимально количество игр для одного участника */}
