@@ -1,49 +1,99 @@
-import type {QueueState, LogInitiator, LogStatus} from "../types";
-import {calculateMoveState} from "./calculateMoveState";
+import type {Dispatch, SetStateAction} from "react";
+import type {QueueState, LogInitiator} from "../types";
+import {LOG_STATUS} from "../types";
 
-interface HandleMoveOptions {
+export interface HandleMovePlayerArgs {
+    /** Уникальный ID пользователя на Twitch для перемещения */
     userId: string;
-    fromSessionId: string;
-    toSessionId: string;
-    targetIndex?: number;
+    /** Целевой тип очереди, куда перетаскивают игрока */
+    targetQueueType: 'active' | 'future';
+    /** Индекс (позиция), куда нужно вставить игрока (если не передан — падает в конец) */
+    targetIndex: number | undefined;
+    /** Источник вызова команды (чат/интерфейс) */
     initiator: LogInitiator;
+    /** Никнейм того, кто выполнил перемещение */
     actorUsername: string;
-
-    state: QueueState;
-    setState: (value: QueueState | ((val: QueueState) => QueueState)) => void;
-    pushLog: (message: string, status: LogStatus, initiator: LogInitiator, actorUsername: string) => void;
+    /** Функция обновления состояния */
+    setState: Dispatch<SetStateAction<QueueState>>;
+    /** Хелпер провайдера для записи логов */
+    pushLog: (
+        message: string,
+        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        initiator: LogInitiator,
+        actorUsername: string
+    ) => void;
 }
 
 /**
- * Перемещает игрока между составами и фиксирует лог операции
+ * Хендлер для перемещения игрока внутри одной очереди или между ними (Drag-and-Drop).
  */
 export const handleMovePlayer = ({
                                      userId,
-                                     fromSessionId,
-                                     toSessionId,
+                                     targetQueueType,
                                      targetIndex,
                                      initiator,
                                      actorUsername,
-                                     state,
                                      setState,
                                      pushLog
-                                 }: HandleMoveOptions): void => {
-    const {nextState, movedPlayer, fromSessionName, toSessionName} = calculateMoveState({
-        userId,
-        fromSessionId,
-        toSessionId,
-        targetIndex,
-        state
+                                 }: HandleMovePlayerArgs): void => {
+    let targetPlayerName = "";
+    let sourceQueueType: 'active' | 'future' | null = null;
+    let isMoved = false;
+
+    setState(prev => {
+        // 1. Ищем игрока в обеих очередях, чтобы понять откуда его забираем
+        const activeIdx = prev.activeQueue.findIndex(p => p.userId === userId);
+        const futureIdx = prev.futureQueue.findIndex(p => p.userId === userId);
+
+        let playerToMove = null;
+        const updatedActive = [...prev.activeQueue];
+        const updatedFuture = [...prev.futureQueue];
+
+        if (activeIdx !== -1) {
+            playerToMove = prev.activeQueue[activeIdx];
+            sourceQueueType = 'active';
+            updatedActive.splice(activeIdx, 1);
+        } else if (futureIdx !== -1) {
+            playerToMove = prev.futureQueue[futureIdx];
+            sourceQueueType = 'future';
+            updatedFuture.splice(futureIdx, 1);
+        }
+
+        // Если игрок вообще не найден в текущих списках, ничего не делаем
+        if (!playerToMove) return prev;
+
+        targetPlayerName = playerToMove.displayedUsername || playerToMove.username;
+        isMoved = true;
+
+        // 2. Вставляем игрока в целевую очередь
+        if (targetQueueType === 'active') {
+            const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, updatedActive.length) : updatedActive.length;
+            updatedActive.splice(insertIndex, 0, playerToMove);
+        } else {
+            const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, updatedFuture.length) : updatedFuture.length;
+            updatedFuture.splice(insertIndex, 0, playerToMove);
+        }
+
+        return {
+            ...prev,
+            activeQueue: updatedActive,
+            futureQueue: updatedFuture
+        };
     });
 
-    if (!movedPlayer) return; // Если игрока не нашли в исходной сессии, ничего не делаем
+    // 3. Логируем результат перемещения
+    if (isMoved) {
+        const fromLabel = sourceQueueType === 'active' ? "активной" : "будущей";
+        const toLabel = targetQueueType === 'active' ? "активную" : "будущую";
+        const positionLabel = targetIndex !== undefined ? ` на позицию ${targetIndex + 1}` : " в конец";
 
-    setState(nextState);
+        const logMessage = sourceQueueType === targetQueueType
+            ? `Перемещен игрок ${targetPlayerName} внутри ${fromLabel} очереди${positionLabel}.`
+            : `Игрок ${targetPlayerName} перенесен из ${fromLabel} очереди в ${toLabel}${positionLabel}.`;
 
-    // Генерируем детальный лог перемещения
-    const logMessage = fromSessionId === toSessionId
-        ? `позиция игрока ${movedPlayer.username} изменена внутри состава "${fromSessionName}"`
-        : `игрок ${movedPlayer.username} перемещен из "${fromSessionName}" в "${toSessionName}"`;
-
-    pushLog(logMessage, "info", initiator, actorUsername);
+        pushLog(logMessage, LOG_STATUS.SUCCESS, initiator, actorUsername);
+    } else {
+        const logMessage = `Ошибка перемещения: игрок с ID ${userId} не найден в очередях.`;
+        pushLog(logMessage, LOG_STATUS.REJECTED, initiator, actorUsername);
+    }
 };

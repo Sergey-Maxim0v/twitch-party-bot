@@ -1,6 +1,7 @@
 import type {FC} from "react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import CollapsiblePanel from "../../../components/layout/panel/CollapsiblePanel.tsx";
+import {useQueue} from "../hooks/useQueue.ts";
 
 export interface QueueLogsPanelProps {
     className?: string;
@@ -10,6 +11,10 @@ export interface QueueLogsPanelProps {
 const QueueLogsPanel: FC<QueueLogsPanelProps> = ({className = "w-80", collapsedClassName = ""}) => {
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("queue_logs_open", true);
 
+    const {queueLogs} = useQueue();
+
+    console.log(queueLogs)
+    
     return (
         <CollapsiblePanel
             isOpen={isOpen}

@@ -1,48 +1,78 @@
 import {createContext} from "react";
-import type {QueueState, QueuePlayer, LogInitiator} from "../types";
+import type {QueueState, QueuePlayer, QueueSession, QueueLogItem, LogInitiator, LogActorRole} from "../types";
 
 export interface QueueContextValue {
-    /** Текущее состояние всей очереди (активный состав, будущие, история, кулдауны) */
-    state: QueueState;
+    // === Реактивные состояния (Стейты) ===
+    /** Игроки в текущей активной очереди */
+    activeQueue: QueuePlayer[];
+    /** Игроки в будущих/ожидающих очередях */
+    futureQueue: QueuePlayer[];
+    /** История завершенных игровых сессий (составов) */
+    queueHistory: QueueSession[];
+    /** Массив логов действий очереди */
+    queueLogs: QueueLogItem[];
+    /** Полный сырой объект состояния очереди (для отладки/сохранения) */
+    rawState: QueueState;
 
-    /** Добавить игрока в очередь   */
-    joinPlayer: (
-        playerData: Omit<QueuePlayer, "timestamp">,
-        initiator: LogInitiator,
-        actorUsername: string,
-        rawCommand?: string
-    ) => void;
+    // === Методы очистки (Clear) ===
+    /** Очистить текущую активную очередь */
+    clearActiveQueue: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
+    /** Очистить будущие очереди */
+    clearFutureQueue: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
+    /** Очистить историю сыгранных сессий */
+    clearQueueHistory: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
+    /** Очистить логи очереди */
+    clearQueueLogs: () => void;
 
-    /** Удалить игрока из конкретной сессии по его userId    */
-    leavePlayer: (
-        userId: string,
-        sessionId: string,
-        initiator: LogInitiator,
-        actorUsername: string,
-        rawCommand?: string
-    ) => void;
+    // === Управление игроками (CRUD) ===
+    /** Добавить игрока в очередь (в активную или будущую на основе правил) */
+    addPlayerToQueue: (args: {
+        playerData: Omit<QueuePlayer, "timestamp">;
+        initiator: LogInitiator;
+        actorUsername: string;
+        actorRole: LogActorRole;
+        rawCommand?: string;
+        customTimestamp?: number;
+    }) => void;
 
-    /** Отправить игрока в бан-лист */
-    banPlayer: (userId: string, username: string, initiator: LogInitiator, actorUsername: string) => void;
+    /** Удалить первую найденную запись игрока из конкретной очереди (активной или будущей) */
+    removePlayerFromQueue: (args: {
+        userId: string;
+        targetQueueType: 'active' | 'future';
+        initiator: LogInitiator;
+        actorUsername: string;
+        rawCommand?: string;
+    }) => void;
 
-    /** Переместить игрока из одной сессии в другую иливнутри состава   */
-    movePlayer: (
-        userId: string,
-        fromSessionId: string,
-        toSessionId: string,
-        targetIndex: number | undefined,
-        initiator: LogInitiator,
-        actorUsername: string
-    ) => void;
+    /** Полностью удалить игрока из всех существующих очередей (например, при команде !leave) */
+    removePlayerFromAllQueues: (args: {
+        userId: string;
+        initiator: LogInitiator;
+        actorUsername: string;
+        rawCommand?: string;
+    }) => void;
 
-    /** Завершить текущий состав    */
-    completeCurrentSession: (initiator: LogInitiator, actorUsername: string) => void;
+    /** Добавить игрока во внутренний бан-лист очереди и выдворить его из текущих списков */
+    banPlayerFromQueue: (args: {
+        userId?: string;
+        username: string;
+        displayedUsername?: string;
+        initiator: LogInitiator;
+        actorUsername: string;
+    }) => void;
 
-    /** Полностью очистить текущую очередь  */
-    clearCurrentSession: (initiator: LogInitiator, actorUsername: string) => void;
+    /** Универсальное перемещение игрока внутри списков или между ними (Drag-and-Drop) */
+    movePlayer: (args: {
+        userId: string;
+        targetQueueType: 'active' | 'future';
+        targetIndex: number | undefined;
+        initiator: LogInitiator;
+        actorUsername: string;
+    }) => void;
 
-    /** Полностью сбросить все данные очереди   */
-    resetAllQueues: (initiator: LogInitiator, actorUsername: string) => void;
+    // === Жизненный цикл очереди ===
+    /** Завершить текущую очередь (активная улетает в историю, будущая ротируется) */
+    finishActiveQueue: (args: { initiator: LogInitiator; actorUsername: string }) => void;
 }
 
 export const QueueContext = createContext<QueueContextValue | undefined>(undefined);

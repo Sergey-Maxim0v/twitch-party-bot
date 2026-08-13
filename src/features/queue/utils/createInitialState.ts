@@ -1,10 +1,18 @@
-import type {QueueState} from "../types.ts";
-import {createNewSession} from "./createNewSession.ts";
+import type {QueueState} from "../types";
 
-export const createInitialState = (): QueueState => ({
-    currentSession: createNewSession("Текущий состав"),
-    futureSessions: [],
-    historySessions: [],
-    playerCooldownTimestamps: {},
-    logs: []
-});
+/**
+ * Генерирует дефолтное пустое состояние для очереди игроков и логов сессий.
+ * Используется для ленивой инициализации стейта в localStorage.
+ *
+ * @returns {QueueState} Начальное состояние очереди
+ */
+export const createInitialState = (): QueueState => {
+    return {
+        activeQueue: [],
+        futureQueue: [],
+        queueHistory: [],
+        globalSessionCounter: 0,
+        playerHistory: {},
+        queueLogs: []
+    };
+};

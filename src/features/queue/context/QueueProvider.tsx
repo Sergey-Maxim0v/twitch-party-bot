@@ -1,18 +1,20 @@
-import {type ReactNode, type FC} from "react";
+import {type ReactNode, type FC, useMemo, useCallback} from "react";
 import {QueueContext} from "./QueueInstance";
-import type {QueueState, QueuePlayer, LogInitiator, LogStatus, QueueLogItem} from "../types";
+import type {QueueContextValue} from "./QueueInstance";
+import type {QueueState, QueuePlayer, LogInitiator, LogStatus, QueueLogItem, LogActorRole} from "../types";
 import {useQueueSettings} from "../../queue-settings/hooks/useQueueSettings";
 import {createInitialState} from "../utils/createInitialState";
 import {STORAGE_KEY} from "../constants.ts";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
-import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
-import {handleLeavePlayer} from "../utils/handleLeavePlayer.ts";
-import {handleClearCurrentSession} from "../utils/handleClearCurrentSession.ts";
-import {handleCompleteCurrentSession} from "../utils/handleCompleteCurrentSession.ts";
+import {handleClearActiveQueue} from "../utils/handleClearActiveQueue.ts";
+import {handleClearFutureQueue} from "../utils/handleClearFutureQueue.ts";
+import {handleClearQueueHistory} from "../utils/handleClearQueueHistory.ts";
+import {handleRemovePlayer} from "../utils/handleRemovePlayer.ts";
+import {handleRemovePlayerFromAll} from "../utils/handleRemovePlayerFromAll.ts";
 import {handleBanPlayer} from "../utils/handleBanPlayer.ts";
-import {handleResetAllQueues} from "../utils/handleResetAllQueues.ts";
 import {handleMovePlayer} from "../utils/handleMovePlayer.ts";
-
+import {handleFinishActiveQueue} from "../utils/handleFinishActiveQueue.ts";
+import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
 
 interface QueueProviderProps {
     children: ReactNode;
@@ -23,9 +25,9 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState());
 
     /**
-     * Внутренний хелпер для добавления новой записи в лог
+     * Универсальный хелпер для генерации и добавления новой записи в логи очереди
      */
-    const pushLog = (
+    const pushLog = useCallback((
         message: string,
         status: LogStatus,
         initiator: LogInitiator,
@@ -46,137 +48,131 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
 
         setState(prev => ({
             ...prev,
-            logs: [newLog, ...prev.logs].slice(0, 200) // Ограничиваем историю до 200 логов
+            queueLogs: [newLog, ...prev.queueLogs].slice(0, 200)
         }));
-    };
+    }, [setState]);
 
-    /**
-     * МЕТОД: Присоединение игрока к очереди (вызывается из чата или UI)
-     */
-    const joinPlayer = (
-        playerData: Omit<QueuePlayer, "timestamp">,
-        initiator: LogInitiator,
-        actorUsername: string,
-        rawCommand?: string
-    ) => handleJoinPlayer({
-        playerData,
-        initiator,
-        actorUsername,
-        rawCommand,
-        state,
-        settings,
-        setState,
-        updateSettings,
-        pushLog
-    });
+    // === МЕТОДЫ ОЧИСТКИ (Clear) ===
 
-    /**
-     * МЕТОД: Удалить игрока из определенной сессии
-     */
-    const leavePlayer = (
-        userId: string,
-        sessionId: string,
-        initiator: LogInitiator,
-        actorUsername: string,
-        rawCommand?: string
-    ) => handleLeavePlayer({
-        userId,
-        sessionId,
-        initiator,
-        actorUsername,
-        rawCommand,
-        state,
-        setState,
-        pushLog
-    });
+    const clearActiveQueue = useCallback((args: {
+        initiator: LogInitiator;
+        actorUsername: string;
+        actorRole: LogActorRole
+    }) => {
+        handleClearActiveQueue({...args, setState, pushLog});
+    }, [setState, pushLog]);
 
-    /**
-     * МЕТОД: Отправить игрока в бан-лист
-     */
-    const banPlayer = (userId: string, username: string, initiator: LogInitiator, actorUsername: string) =>
-        handleBanPlayer({
-            userId,
-            username,
-            initiator,
-            actorUsername,
-            state,
-            settings,
-            setState,
-            updateSettings,
-            pushLog
-        });
+    const clearFutureQueue = useCallback((args: {
+        initiator: LogInitiator;
+        actorUsername: string;
+        actorRole: LogActorRole
+    }) => {
+        handleClearFutureQueue({...args, setState, pushLog});
+    }, [setState, pushLog]);
 
-    /**
-     * МЕТОД: Переместить игрока между сессиями
-     */
-    const movePlayer = (
-        userId: string,
-        fromSessionId: string,
-        toSessionId: string,
-        targetIndex: number | undefined,
-        initiator: LogInitiator,
-        actorUsername: string
-    ) =>
-        handleMovePlayer({
-            userId,
-            fromSessionId,
-            toSessionId,
-            targetIndex,
-            initiator,
-            actorUsername,
-            state,
-            setState,
-            pushLog
-        });
+    const clearQueueHistory = useCallback((args: {
+        initiator: LogInitiator;
+        actorUsername: string;
+        actorRole: LogActorRole
+    }) => {
+        handleClearQueueHistory({...args, setState, pushLog});
+    }, [setState, pushLog]);
 
-    /**
-     * МЕТОД: Завершить текущую сессию и сдвинуть очередь
-     */
-    const completeCurrentSession = (initiator: LogInitiator, actorUsername: string) =>
-        handleCompleteCurrentSession({
-            initiator,
-            actorUsername,
-            state,
-            setState,
-            pushLog
-        });
+    const clearQueueLogs = useCallback(() => {
+        setState(prev => ({...prev, queueLogs: []}));
+    }, [setState]);
 
-    /**
-     * МЕТОД: Полностью очистить текущую очередь
-     */
-    const clearCurrentSession = (initiator: LogInitiator, actorUsername: string) =>
-        handleClearCurrentSession({
-            initiator,
-            actorUsername,
-            state,
-            setState,
-            pushLog
-        });
+    // === УПРАВЛЕНИЕ ИГРОКАМИ (CRUD) ===
 
-    /**
-     * МЕТОД: Полностью сбросить все данные очереди
-     */
-    const resetAllQueues = (initiator: LogInitiator, actorUsername: string) =>
-        handleResetAllQueues({
-            initiator,
-            actorUsername,
-            setState,
-            pushLog
-        });
+    const addPlayerToQueue = useCallback((args: {
+        playerData: Omit<QueuePlayer, "timestamp">;
+        initiator: LogInitiator;
+        actorUsername: string;
+        actorRole: LogActorRole; // Роль передается для обхода ограничений стримером/модераторами
+        rawCommand?: string;
+        customTimestamp?: number;
+    }) => {
+        handleJoinPlayer({...args, state, settings, setState, pushLog});
+    }, [state, settings, setState, pushLog]);
 
-    const value = {
-        state,
-        joinPlayer,
-        leavePlayer,
-        banPlayer,
+    const removePlayerFromQueue = useCallback((args: {
+        userId: string;
+        targetQueueType: 'active' | 'future';
+        initiator: LogInitiator;
+        actorUsername: string;
+        rawCommand?: string;
+    }) => {
+        handleRemovePlayer({...args, setState, pushLog});
+    }, [setState, pushLog]);
+
+    const removePlayerFromAllQueues = useCallback((args: {
+        userId: string;
+        initiator: LogInitiator;
+        actorUsername: string;
+        rawCommand?: string;
+    }) => {
+        handleRemovePlayerFromAll({...args, setState, pushLog});
+    }, [setState, pushLog]);
+
+    const banPlayerFromQueue = useCallback((args: {
+        userId?: string;
+        username: string;
+        displayedUsername?: string;
+        initiator: LogInitiator;
+        actorUsername: string;
+    }) => {
+        handleBanPlayer({...args, settings, updateSettings, setState, pushLog});
+    }, [settings, updateSettings, setState, pushLog]);
+
+    const movePlayer = useCallback((args: {
+        userId: string;
+        targetQueueType: 'active' | 'future';
+        targetIndex: number | undefined;
+        initiator: LogInitiator;
+        actorUsername: string;
+    }) => {
+        handleMovePlayer({...args, setState, pushLog});
+    }, [setState, pushLog]);
+
+    // === ЖИЗНЕННЫЙ ЦИКЛ ОЧЕРЕДИ ===
+
+    const finishActiveQueue = useCallback((args: { initiator: LogInitiator; actorUsername: string }) => {
+        handleFinishActiveQueue({...args, settings, setState, pushLog});
+    }, [settings, setState, pushLog]);
+
+    // Сборка мемоизированного контекста
+    const contextValue = useMemo<QueueContextValue>(() => ({
+        activeQueue: state.activeQueue || [],
+        futureQueue: state.futureQueue || [],
+        queueHistory: state.queueHistory || [],
+        queueLogs: state.queueLogs || [],
+        rawState: state,
+        clearActiveQueue,
+        clearFutureQueue,
+        clearQueueHistory,
+        clearQueueLogs,
+        addPlayerToQueue,
+        removePlayerFromQueue,
+        removePlayerFromAllQueues,
+        banPlayerFromQueue,
         movePlayer,
-        completeCurrentSession,
-        resetAllQueues,
-        clearCurrentSession
-    }
+        finishActiveQueue
+    }), [
+        state,
+        clearActiveQueue,
+        clearFutureQueue,
+        clearQueueHistory,
+        clearQueueLogs,
+        addPlayerToQueue,
+        removePlayerFromQueue,
+        removePlayerFromAllQueues,
+        banPlayerFromQueue,
+        movePlayer,
+        finishActiveQueue
+    ]);
 
     return (
-        <QueueContext.Provider value={value}>
+        <QueueContext.Provider value={contextValue}>
             {children}
         </QueueContext.Provider>
     );
