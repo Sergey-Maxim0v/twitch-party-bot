@@ -36,7 +36,7 @@ const ChatList = ({
                         msg={msg}
                         useColoredNames={useColoredNames}
                         highlightRoles={highlightRoles}
-                        IsShowDeletedMessages={IsShowDeletedMessages}
+                        isShowDeletedMessages={IsShowDeletedMessages}
                         showSystemNotifications={showSystemNotifications}
                         highlightPointsMessages={highlightPointsMessages}
                     />

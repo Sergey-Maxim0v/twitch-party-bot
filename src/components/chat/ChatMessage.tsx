@@ -7,7 +7,7 @@ interface ChatMessageProps {
     msg: ParsedIrcMessage;
     useColoredNames: boolean;
     highlightRoles: boolean;
-    IsShowDeletedMessages: boolean;
+    isShowDeletedMessages: boolean;
     showSystemNotifications: boolean;
     highlightPointsMessages: boolean;
 }
@@ -16,7 +16,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
                                                msg,
                                                useColoredNames,
                                                highlightRoles,
-                                               IsShowDeletedMessages,
+                                               isShowDeletedMessages,
                                                showSystemNotifications,
                                                highlightPointsMessages
                                            }) => {
@@ -24,11 +24,11 @@ const ChatMessage: FC<ChatMessageProps> = ({
     const isHighlightedMessage = msg.tags["msg-id"] === "highlighted-message";
 
     // Скрытие удаленных сообщений
-    if (isDeleted && !IsShowDeletedMessages) {
+    if (isDeleted && !isShowDeletedMessages) {
         return null;
     }
 
-    //  Скрытие системных уведомлений канала (подписки, рейды, режимы, баны)
+    // Скрытие системных уведомлений канала (подписки, рейды, режимы, баны)
     if (msg.isSystem && msg.isChannelEvent && !showSystemNotifications) {
         return null;
     }
@@ -50,16 +50,19 @@ const ChatMessage: FC<ChatMessageProps> = ({
 
     // Если сообщение выделено за баллы
     if (isHighlightedMessage && highlightPointsMessages && !msg.isSystem) {
-        containerClassName += " shadow-[inset_0_0_0_1.5px_theme(colors.primary)]";
+        containerClassName += " outline outline-2 outline-primary -outline-offset-2";
     }
 
     // Стили для удаленных сообщений
-    const deletedClassName = isDeleted ? ' opacity-40 select-none ' : ' '
+    const deletedClassName = isDeleted ? " opacity-40 select-none" : "";
 
     // Стили никнеймов
     const twitchColor = msg.tags.color;
     const nameStyle = useColoredNames && twitchColor ? {color: twitchColor} : undefined;
     const nameClassName = !nameStyle ? "font-bold text-primary mr-2 break-words" : "font-bold mr-2 break-words";
+
+    // Никнейм для отображения
+    const displaySenderName = msg.displayName || msg.user;
 
     // Системные сообщения
     if (msg.isSystem) {
@@ -81,22 +84,22 @@ const ChatMessage: FC<ChatMessageProps> = ({
                 </span>
                 <span className="mr-2">
                     {isAlert || isAnnouncement ?
-                        <LuSparkles className='w-4 h-4 inline align-middle'/>
+                        <LuSparkles className="w-4 h-4 inline align-middle"/>
                         :
-                        <LuWrench className='w-4 h-4 inline align-middle'/>
+                        <LuWrench className="w-4 h-4 inline align-middle"/>
                     }
                 </span>
-                <span className="mr-2">{msg.user}:</span>
+                {isAnnouncement && <span className="mr-2">{displaySenderName}:</span>}
                 <span>{msg.text}</span>
             </div>
         );
     }
 
     // Текстовые сообщения
-    const iconClassName = 'w-4 h-4 inline align-middle mr-1'
+    const iconClassName = "w-4 h-4 inline align-middle mr-1";
 
     return (
-        <div className={`${containerClassName} ${deletedClassName} block w-full wrap-break-word`}>
+        <div className={`${containerClassName} ${deletedClassName}`}>
             <span className="inline-block select-none mr-1.5 align-middle">
                 <span className="text-xs text-base-content/40 mr-1.5">
                     {msg.timestamp}
@@ -109,7 +112,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
             </span>
 
             <span className={`${nameClassName} break-all inline align-middle`} style={nameStyle}>
-                {msg.user}:
+                {displaySenderName}:
             </span>
 
             <span className={`${isDeleted ? "text-base-content/60" : "text-base-content"} inline align-middle ml-1.5`}>
@@ -120,4 +123,3 @@ const ChatMessage: FC<ChatMessageProps> = ({
 };
 
 export default ChatMessage;
-
