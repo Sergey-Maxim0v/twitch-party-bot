@@ -1,10 +1,10 @@
 import type {FC} from "react";
-import TwitchChat from "../chat/TwitchChat.tsx";
 import QueueSettingsPanel from "../../features/queue-settings/components/QueueSettingsPanel.tsx";
 import {QueueSettingsProvider} from "../../features/queue-settings/context/QueueSettingsProvider.tsx";
 import {QueueProvider} from "../../features/queue/context/QueueProvider.tsx";
 import QueuePanel from "../../features/queue/components/QueuePanel.tsx";
 import QueueLogsPanel from "../../features/queue/components/QueueLogsPanel.tsx";
+import TwitchChat from "../../services/twitch/chat/TwitchChat.tsx";
 
 const StreamerWorkspace: FC = () => {
     const PANEL_CLASSNAME = 'h-full flex-1 w-83';
