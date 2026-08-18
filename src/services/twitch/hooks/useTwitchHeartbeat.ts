@@ -16,13 +16,17 @@ export const useTwitchHeartbeat = () => {
     const connectionStatus = socketContext?.connectionStatus;
 
     const workerRef = useRef<Worker | null>(null);
+    const connectionStatusRef = useRef(connectionStatus);
+
+    useEffect(() => {
+        connectionStatusRef.current = connectionStatus;
+    }, [connectionStatus]);
 
     // Принудительный обрыв зависшего сокета при отсутствии PONG-ответа.
     const handleConnectionFailure = useCallback(() => {
         if (!socketContext) return;
 
         console.warn("[Heartbeat] Потеря сети.");
-
         workerRef.current?.postMessage({type: HeartbeatWorkerCommand.CLEAR_ALL});
 
         const client = socketContext.getClient();
@@ -31,7 +35,7 @@ export const useTwitchHeartbeat = () => {
 
     // Отправка системного IRC-запроса PING на сервер Twitch.
     const sendPing = useCallback(() => {
-        if (!socketContext || connectionStatus !== CONNECTION_STATUSES.CONNECTED) return;
+        if (!socketContext || connectionStatusRef.current !== CONNECTION_STATUSES.CONNECTED) return;
 
         const client = socketContext.getClient();
 
@@ -41,13 +45,13 @@ export const useTwitchHeartbeat = () => {
             type: HeartbeatWorkerCommand.START_PONG_TIMER,
             payload: PONG_TIMEOUT
         });
-    }, [socketContext, connectionStatus]);
+    }, [socketContext]);
 
     /**
      * Сбрасывает таймер ожидания PONG при успехе и перезапускает таймер тишины.
      */
     const handleSocketActivity = useCallback((command: string) => {
-        if (connectionStatus !== CONNECTION_STATUSES.CONNECTED || !workerRef.current) return;
+        if (connectionStatusRef.current !== CONNECTION_STATUSES.CONNECTED || !workerRef.current) return;
 
         if (command === TwitchIrcCommand.PONG) {
             workerRef.current.postMessage({type: HeartbeatWorkerCommand.CLEAR_PONG_TIMER});
@@ -57,7 +61,15 @@ export const useTwitchHeartbeat = () => {
             type: HeartbeatWorkerCommand.START_PING_TIMER,
             payload: HEARTBEAT_INTERVAL
         });
-    }, [connectionStatus]);
+    }, []);
+
+    const sendPingRef = useRef(sendPing);
+    const handleConnectionFailureRef = useRef(handleConnectionFailure);
+
+    useEffect(() => {
+        sendPingRef.current = sendPing;
+        handleConnectionFailureRef.current = handleConnectionFailure;
+    }, [sendPing, handleConnectionFailure]);
 
     useEffect(() => {
         const worker = new HeartbeatWorker();
@@ -67,9 +79,9 @@ export const useTwitchHeartbeat = () => {
             const {type} = event.data;
 
             if (type === HeartbeatWorkerEvent.PING_TICK) {
-                sendPing();
+                sendPingRef.current();
             } else if (type === HeartbeatWorkerEvent.PONG_TIMEOUT) {
-                handleConnectionFailure();
+                handleConnectionFailureRef.current();
             }
         };
 
@@ -77,18 +89,22 @@ export const useTwitchHeartbeat = () => {
             worker.terminate();
             workerRef.current = null;
         };
-    }, [sendPing, handleConnectionFailure]);
+    }, []);
 
+    // Безопасное управление состояниями таймеров воркера
     useEffect(() => {
+        const currentWorker = workerRef.current;
+        if (!currentWorker) return;
+
         if (connectionStatus === CONNECTION_STATUSES.CONNECTED) {
-            workerRef.current?.postMessage({
+            currentWorker.postMessage({
                 type: HeartbeatWorkerCommand.START_PING_TIMER,
                 payload: HEARTBEAT_INTERVAL
             });
-        } else {
-            workerRef.current?.postMessage({type: HeartbeatWorkerCommand.CLEAR_ALL});
+        } else if (connectionStatus === CONNECTION_STATUSES.DISCONNECTED) {
+            currentWorker.postMessage({type: HeartbeatWorkerCommand.CLEAR_ALL});
         }
-    }, [connectionStatus]);
+    }, [connectionStatus, workerRef]);
 
     return {
         handleSocketActivity

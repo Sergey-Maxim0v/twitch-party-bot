@@ -8,6 +8,8 @@ import {ProtectedView} from "./features/auth/components/ProtectedView.tsx";
 
 // TODO:
 //  - связать приложение между вкладками (если открыть в нескольких вкладках)
+//  - сообщения серии просмотров
+//  - перенести в блок логов системные сообщения из консоли
 
 function App() {
     return (

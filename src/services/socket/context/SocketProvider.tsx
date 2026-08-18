@@ -1,4 +1,4 @@
-import {type FC, type ReactNode, useEffect, useMemo, useRef, useState} from "react";
+import {type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
     CHAT_ACCESS_STATUSES,
     type ChatAccessStatus,
@@ -6,9 +6,9 @@ import {
     type ConnectionStatus,
     type SocketStorage
 } from "../types.ts";
-import {useSocketNetworkSync} from "../hooks/useSocketNetworkSync.ts";
 import {SocketInstance} from "./SocketInstance.ts";
 import {TwitchIrcClient} from "../../twitch/twitchIrcClient.ts";
+import {useSocketNetworkSync} from "../hooks/useSocketNetworkSync.ts";
 import type {MessageCallback} from "../../twitch/utils/createMessageEmitter.ts";
 
 interface SocketProviderProps {
@@ -16,26 +16,20 @@ interface SocketProviderProps {
 }
 
 const SocketProvider: FC<SocketProviderProps> = ({children}) => {
-    const clientRef = useRef<TwitchIrcClient>(new TwitchIrcClient());
-
-    // Хранение реактивного статуса сетевого соединения
+    const [client] = useState<TwitchIrcClient>(() => new TwitchIrcClient());
     const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED);
-
-    // Хранение реактивного статуса доступности чата
     const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE);
 
-    // Синхронизация системного статуса сети
-    useSocketNetworkSync({
-        clientRef,
-        chatAccessStatus,
-        setConnectionStatus,
-        setChatAccessStatus
-    });
+    const lastActiveChatStatusRef = useRef<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE);
 
-    // Подписка на низкоуровневые изменения статуса сокета
     useEffect(() => {
-        const client = clientRef.current;
+        if (chatAccessStatus !== CHAT_ACCESS_STATUSES.OFFLINE) {
+            lastActiveChatStatusRef.current = chatAccessStatus;
+        }
+    }, [chatAccessStatus]);
 
+    // Единая подписка на системные изменения статуса сокета низкого уровня
+    useEffect(() => {
         const unsubscribe = client.onStatusChange((status: ConnectionStatus) => {
             setConnectionStatus(status);
 
@@ -47,31 +41,34 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         return () => {
             unsubscribe();
         };
-    }, []);
+    }, [client]);
 
-    const connect = (channel: string, token: string, userLogin: string): void => {
-        clientRef.current.connect(channel, token, userLogin);
-    };
+    // Подключаем изолированный модуль синхронизации сети ОС
+    useSocketNetworkSync({client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus});
 
-    const disconnect = (): void => {
-        clientRef.current.disconnect();
-    };
+    const connect = useCallback((channel: string, token: string, userLogin: string): void => {
+        client.connect(channel, token, userLogin);
+    }, [client]);
 
-    const subscribe = (callback: MessageCallback): (() => void) => {
-        return clientRef.current.subscribe(callback);
-    };
+    const disconnect = useCallback(() => {
+        client.disconnect();
+    }, [client]);
 
-    const sendMessage = (text: string): void => {
-        clientRef.current.sendMessage(text);
-    };
+    const subscribe = useCallback((callback: MessageCallback): (() => void) => {
+        return client.subscribe(callback);
+    }, [client]);
 
-    const getClient = (): TwitchIrcClient => {
-        return clientRef.current;
-    };
+    const sendMessage = useCallback((text: string): void => {
+        client.sendMessage(text);
+    }, [client]);
 
-    const updateChatAccessStatus = (status: ChatAccessStatus): void => {
+    const getClient = useCallback((): TwitchIrcClient => {
+        return client;
+    }, [client]);
+
+    const updateChatAccessStatus = useCallback((status: ChatAccessStatus): void => {
         setChatAccessStatus(status);
-    };
+    }, []);
 
     const value: SocketStorage = useMemo(() => ({
         connect,
@@ -82,7 +79,7 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
         connectionStatus,
         chatAccessStatus,
         updateChatAccessStatus
-    }), [connectionStatus, chatAccessStatus]);
+    }), [connect, disconnect, subscribe, sendMessage, getClient, connectionStatus, chatAccessStatus, updateChatAccessStatus]);
 
     return (
         <SocketInstance.Provider value={value}>

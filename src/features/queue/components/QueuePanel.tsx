@@ -12,8 +12,6 @@ const QueuePanel: FC<QueuePanelProps> = ({className = "", collapsedClassName = "
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("queue_panel_open", true);
 
     const {activeQueue, futureQueue, queueHistory} = useQueue();
-    
-    console.log(activeQueue, futureQueue, queueHistory)
 
     return (
         <CollapsiblePanel

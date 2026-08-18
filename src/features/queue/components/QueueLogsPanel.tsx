@@ -13,8 +13,6 @@ const QueueLogsPanel: FC<QueueLogsPanelProps> = ({className = "w-80", collapsedC
 
     const {queueLogs} = useQueue();
 
-    console.log(queueLogs)
-    
     return (
         <CollapsiblePanel
             isOpen={isOpen}
