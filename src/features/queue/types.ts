@@ -10,17 +10,6 @@ export const LOG_INITIATOR = {
 export type LogInitiator = typeof LOG_INITIATOR[keyof typeof LOG_INITIATOR];
 
 /**
- * Статусы логов для подсветки в интерфейсе
- */
-export const LOG_STATUS = {
-    SUCCESS: 'success',
-    REJECTED: 'rejected',
-    INFO: 'info',
-} as const;
-
-export type LogStatus = typeof LOG_STATUS[keyof typeof LOG_STATUS];
-
-/**
  * Типы возможных результатов добавления в очередь для логирования
  */
 export const JOIN_RESULT = {
@@ -79,26 +68,6 @@ export interface PlayerHistoryStats {
 }
 
 /**
- * Структура лога одного действия в очереди
- */
-export interface QueueLogItem {
-    id: string;
-    timestamp: number;
-    /** Кто вызвал действие */
-    initiator: LogInitiator;
-    /** Никнейм того, кто инициировал */
-    actorUsername: string;
-    /** Исходный текст команды */
-    rawCommand?: string;
-    /** Текст, отображаемый в логах */
-    message: string;
-    /** Статус для подсветки в интерфейсе */
-    status: LogStatus;
-    /** Извлеченный никнейм по регулярке, если он был */
-    extractedGameNickname?: string | null;
-}
-
-/**
  * Главный объект состояния всей очереди (для хранения в стейте / localStorage)
  */
 export interface QueueState {
@@ -112,8 +81,6 @@ export interface QueueState {
     globalSessionCounter: number;
     /** Быстрый индекс истории игроков для проверки временных и сессионных кулдаунов */
     playerHistory: Record<string, PlayerHistoryStats>;
-    /** Массив логов действий очереди */
-    queueLogs: QueueLogItem[];
 }
 
 /**

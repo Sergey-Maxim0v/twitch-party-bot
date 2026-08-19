@@ -5,11 +5,11 @@ import WelcomeScreen from "./components/layout/WelcomeScreen.tsx";
 import StreamerWorkspace from "./components/layout/StreamerWorkspace.tsx";
 import {AuthProvider} from "./features/auth/context/AuthProvider.tsx";
 import {ProtectedView} from "./features/auth/components/ProtectedView.tsx";
+import {AppLogsProvider} from "./features/appLogs/context/AppLogsProvider.tsx";
 
 // TODO:
 //  - связать приложение между вкладками (если открыть в нескольких вкладках)
 //  - сообщения серии просмотров
-//  - перенести в блок логов системные сообщения из консоли
 
 function App() {
     return (
@@ -19,7 +19,9 @@ function App() {
 
                 <PageLayout>
                     <ProtectedView fallback={<WelcomeScreen/>}>
-                        <StreamerWorkspace/>
+                        <AppLogsProvider>
+                            <StreamerWorkspace/>
+                        </AppLogsProvider>
                     </ProtectedView>
                 </PageLayout>
             </AuthProvider>

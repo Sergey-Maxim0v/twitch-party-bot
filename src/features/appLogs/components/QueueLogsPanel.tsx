@@ -1,7 +1,8 @@
 import type {FC} from "react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import CollapsiblePanel from "../../../components/layout/panel/CollapsiblePanel.tsx";
-import {useQueue} from "../hooks/useQueue.ts";
+import {useAppLogs} from "../hooks/useAppLogs.ts";
+import {APP_LOG_STATUSES} from "../types.ts";
 
 export interface QueueLogsPanelProps {
     className?: string;
@@ -11,7 +12,7 @@ export interface QueueLogsPanelProps {
 const QueueLogsPanel: FC<QueueLogsPanelProps> = ({className = "w-80", collapsedClassName = ""}) => {
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("queue_logs_open", true);
 
-    const {queueLogs} = useQueue();
+    const {logs} = useAppLogs();
 
     return (
         <CollapsiblePanel
@@ -21,14 +22,10 @@ const QueueLogsPanel: FC<QueueLogsPanelProps> = ({className = "w-80", collapsedC
             className={className}
             collapsedClassName={collapsedClassName}
         >
-            <div className="p-4 text-sm text-base-content/80">
-                Queue Logs
-            </div>
-
-            <div className="flex flex-col gap-1 p-4 max-h-96 overflow-y-auto font-mono text-xs">
-                {queueLogs.map((el) => (
-                    <div key={el.id} className="py-0.5 border-b border-base-content/5">
-                        <span className="text-base-content/40">
+            <div className="flex flex-col gap-1 p-4 flex-1 h-0 overflow-x-hidden overflow-y-auto font-mono text-xs">
+                {logs.map((el) => (
+                    <div key={el.id} className="py-0.5 border-b border-base-content/5 wrap-break-word">
+                        <span className="text-base-content/40 select-none">
                             [{new Date(el.timestamp).toLocaleTimeString()}]
                         </span>{" "}
                         <span className="font-bold text-primary">
@@ -36,7 +33,7 @@ const QueueLogsPanel: FC<QueueLogsPanelProps> = ({className = "w-80", collapsedC
                         </span>{" "}
                         <span className={
                             el.status === "success" ? "text-success" :
-                                el.status === "rejected" ? "text-error" : "text-base-content"
+                                el.status === APP_LOG_STATUSES.ERROR ? "text-error" : "text-base-content"
                         }>
                             {el.message}
                         </span>

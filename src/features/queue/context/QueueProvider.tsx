@@ -1,7 +1,7 @@
 import {type ReactNode, type FC, useMemo, useCallback} from "react";
 import {QueueContext} from "./QueueInstance";
 import type {QueueContextValue} from "./QueueInstance";
-import type {QueueState, QueuePlayer, LogInitiator, LogStatus, QueueLogItem, LogActorRole} from "../types";
+import type {QueueState, QueuePlayer, LogInitiator, LogActorRole} from "../types";
 import {useQueueSettings} from "../../queue-settings/hooks/useQueueSettings";
 import {createInitialState} from "../utils/createInitialState";
 import {STORAGE_KEY} from "../constants.ts";
@@ -15,6 +15,8 @@ import {handleBanPlayer} from "../utils/handleBanPlayer.ts";
 import {handleMovePlayer} from "../utils/handleMovePlayer.ts";
 import {handleFinishActiveQueue} from "../utils/handleFinishActiveQueue.ts";
 import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
+import {useAppLogs} from "../../appLogs/hooks/useAppLogs.ts";
+import {APP_LOG_STATUSES, type AppLogStatus} from "../../appLogs/types.ts";
 
 interface QueueProviderProps {
     children: ReactNode;
@@ -23,34 +25,29 @@ interface QueueProviderProps {
 export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     const {settings, updateSettings} = useQueueSettings();
     const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState());
+    const {pushLog: pushAppLog} = useAppLogs();
 
-    /**
-     * Универсальный хелпер для генерации и добавления новой записи в логи очереди
-     */
     const pushLog = useCallback((
         message: string,
-        status: LogStatus,
+        status: "success" | "rejected" | "info",
         initiator: LogInitiator,
         actorUsername: string,
         rawCommand?: string,
         extractedNickname?: string | null
     ) => {
-        const newLog: QueueLogItem = {
-            id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            timestamp: Date.now(),
+        let targetStatus: AppLogStatus = APP_LOG_STATUSES.INFO;
+        if (status === "success") targetStatus = APP_LOG_STATUSES.SUCCESS;
+        if (status === "rejected") targetStatus = APP_LOG_STATUSES.ERROR;
+
+        pushAppLog({
+            message,
+            status: targetStatus,
             initiator,
             actorUsername,
             rawCommand,
-            message,
-            status,
             extractedGameNickname: extractedNickname
-        };
-
-        setState(prev => ({
-            ...prev,
-            queueLogs: [newLog, ...prev.queueLogs].slice(0, 200)
-        }));
-    }, [setState]);
+        });
+    }, [pushAppLog]);
 
     // === МЕТОДЫ ОЧИСТКИ (Clear) ===
 
@@ -78,17 +75,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
         handleClearQueueHistory({...args, setState, pushLog});
     }, [setState, pushLog]);
 
-    const clearQueueLogs = useCallback(() => {
-        setState(prev => ({...prev, queueLogs: []}));
-    }, [setState]);
-
     // === УПРАВЛЕНИЕ ИГРОКАМИ (CRUD) ===
 
     const addPlayerToQueue = useCallback((args: {
         playerData: Omit<QueuePlayer, "timestamp">;
         initiator: LogInitiator;
         actorUsername: string;
-        actorRole: LogActorRole; // Роль передается для обхода ограничений стримером/модераторами
+        actorRole: LogActorRole;
         rawCommand?: string;
         customTimestamp?: number;
     }) => {
@@ -140,40 +133,21 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
         handleFinishActiveQueue({...args, settings, setState, pushLog});
     }, [settings, setState, pushLog]);
 
-    // Сборка мемоизированного контекста
     const contextValue = useMemo<QueueContextValue>(() => ({
         activeQueue: state.activeQueue || [],
         futureQueue: state.futureQueue || [],
         queueHistory: state.queueHistory || [],
-        queueLogs: state.queueLogs || [],
         rawState: state,
         clearActiveQueue,
         clearFutureQueue,
         clearQueueHistory,
-        clearQueueLogs,
         addPlayerToQueue,
         removePlayerFromQueue,
         removePlayerFromAllQueues,
         banPlayerFromQueue,
         movePlayer,
         finishActiveQueue
-    }), [
-        state,
-        clearActiveQueue,
-        clearFutureQueue,
-        clearQueueHistory,
-        clearQueueLogs,
-        addPlayerToQueue,
-        removePlayerFromQueue,
-        removePlayerFromAllQueues,
-        banPlayerFromQueue,
-        movePlayer,
-        finishActiveQueue
-    ]);
+    }), [state, clearActiveQueue, clearFutureQueue, clearQueueHistory, addPlayerToQueue, removePlayerFromQueue, removePlayerFromAllQueues, banPlayerFromQueue, movePlayer, finishActiveQueue]);
 
-    return (
-        <QueueContext.Provider value={contextValue}>
-            {children}
-        </QueueContext.Provider>
-    );
+    return <QueueContext.Provider value={contextValue}>{children}</QueueContext.Provider>;
 };

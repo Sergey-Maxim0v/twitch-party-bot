@@ -1,5 +1,5 @@
 import {createContext} from "react";
-import type {QueueState, QueuePlayer, QueueSession, QueueLogItem, LogInitiator, LogActorRole} from "../types";
+import type {QueueState, QueuePlayer, QueueSession, LogInitiator, LogActorRole} from "../types";
 
 export interface QueueContextValue {
     // === Реактивные состояния (Стейты) ===
@@ -9,8 +9,6 @@ export interface QueueContextValue {
     futureQueue: QueuePlayer[];
     /** История завершенных игровых сессий (составов) */
     queueHistory: QueueSession[];
-    /** Массив логов действий очереди */
-    queueLogs: QueueLogItem[];
     /** Полный сырой объект состояния очереди (для отладки/сохранения) */
     rawState: QueueState;
 
@@ -21,8 +19,6 @@ export interface QueueContextValue {
     clearFutureQueue: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
     /** Очистить историю сыгранных сессий */
     clearQueueHistory: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
-    /** Очистить логи очереди */
-    clearQueueLogs: () => void;
 
     // === Управление игроками (CRUD) ===
     /** Добавить игрока в очередь (в активную или будущую на основе правил) */

@@ -76,7 +76,6 @@ export class TwitchIrcClient {
 
         this.reconnectManager.resetAttempts();
         this.stateManager.emit(CONNECTION_STATUSES.CONNECTED);
-        console.info(`[TwitchIRC Client] Установлено соединение с каналом: ${this.channel}`);
 
         const socket = this.socketManager.rawSocket;
         if (socket) {
