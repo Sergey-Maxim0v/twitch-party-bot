@@ -25,7 +25,7 @@ export const useAppLogsObserver = (): void => {
             lastUserRef.current = session.login;
             pushLog({
                 message: `Вы вошли в аккаунт: ${session.login}`,
-                status: APP_LOG_STATUSES.SUCCESS,
+                status: APP_LOG_STATUSES.WARNING,
                 initiator: LOG_INITIATOR.STREAMER_UI,
                 actorUsername: LOG_ACTOR_ROLE.SYSTEM
             });
@@ -42,7 +42,7 @@ export const useAppLogsObserver = (): void => {
         const targetChannel = channel ? `@${channel}` : "Twitch";
 
         let message = "";
-        let status: AppLogStatus = APP_LOG_STATUSES.INFO;
+        let status: AppLogStatus = APP_LOG_STATUSES.SUCCESS;
 
         if (connectionStatus === CONNECTION_STATUSES.CONNECTING) {
             const currentAttempts = client?.reconnectAttempts ?? 0;
@@ -56,7 +56,7 @@ export const useAppLogsObserver = (): void => {
             const isIntentionally = client?.isIntentionallyDisconnected ?? false;
             if (isIntentionally) {
                 message = `Соединение с каналом ${targetChannel} закрыто пользователем.`;
-                status = APP_LOG_STATUSES.INFO;
+                status = APP_LOG_STATUSES.WARNING;
             } else {
                 message = "Соединение с Twitch потеряно. Запуск автоматического восстановления...";
                 status = APP_LOG_STATUSES.WARNING;
@@ -90,10 +90,10 @@ export const useAppLogsObserver = (): void => {
             status = APP_LOG_STATUSES.SUCCESS;
         } else if (chatAccessStatus === CHAT_ACCESS_STATUSES.RESTRICTED) {
             message = `Доступ к чату ${targetChannel} ограничен: бот может читать чат, отправка сообщений ограничена.`;
-            status = APP_LOG_STATUSES.WARNING;
+            status = APP_LOG_STATUSES.SUCCESS;
         } else if (chatAccessStatus === CHAT_ACCESS_STATUSES.BANNED) {
             message = `Доступ к чату ${targetChannel} заблокирован: аккаунт бота забанен на канале.`;
-            status = APP_LOG_STATUSES.ERROR;
+            status = APP_LOG_STATUSES.WARNING;
         }
 
         if (message) {
