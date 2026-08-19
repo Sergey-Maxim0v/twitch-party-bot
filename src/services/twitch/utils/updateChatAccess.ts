@@ -35,7 +35,7 @@ export const updateChatAccess = ({
         const msgId = message.tags?.["msg-id"];
 
         if (msgId === "msg_banned") {
-            updateChatAccessStatus("banned");
+            updateChatAccessStatus(CHAT_ACCESS_STATUSES.BANNED);
             pendingTextsRef.current = []; // Очищаем застрявшую очередь сообщений
         } else if (msgId === "msg_subsonly" || msgId === "msg_followersonly" || msgId === "msg_timedout") {
             updateChatAccessStatus(CHAT_ACCESS_STATUSES.RESTRICTED);

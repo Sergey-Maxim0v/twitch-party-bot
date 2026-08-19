@@ -9,7 +9,7 @@ export const getChatConfig = (chatAccessStatus: ChatAccessStatus) => {
             return {
                 statusText: "Подключен",
                 badgeType: "success" as const,
-                tooltipText: "Чат: Полный доступ. Вы можете читать и отправлять сообщения без ограничений."
+                tooltipText: "Чат: Полный доступ. Вы можете читать и отправлять сообщения."
             };
         case CHAT_ACCESS_STATUSES.RESTRICTED:
             return {

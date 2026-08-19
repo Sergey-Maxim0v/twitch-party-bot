@@ -34,6 +34,7 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
             setConnectionStatus(status);
 
             if (status === CONNECTION_STATUSES.DISCONNECTED) {
+                lastActiveChatStatusRef.current = CHAT_ACCESS_STATUSES.OFFLINE;
                 setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE);
             }
         });
@@ -47,10 +48,16 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     useSocketNetworkSync({client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus});
 
     const connect = useCallback((channel: string, token: string, userLogin: string): void => {
+        lastActiveChatStatusRef.current = CHAT_ACCESS_STATUSES.OFFLINE;
+        setConnectionStatus(CONNECTION_STATUSES.CONNECTING);
+        setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE);
+
         client.connect(channel, token, userLogin);
     }, [client]);
 
     const disconnect = useCallback(() => {
+        lastActiveChatStatusRef.current = CHAT_ACCESS_STATUSES.OFFLINE;
+        setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE);
         client.disconnect();
     }, [client]);
 
