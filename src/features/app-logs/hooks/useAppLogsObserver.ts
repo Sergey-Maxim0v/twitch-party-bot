@@ -32,25 +32,35 @@ export const useAppLogsObserver = (): void => {
         }
     }, [session, pushLog]);
 
-    // 2. Логирование состояний сетевого соединения
+    // 2. Логирование состояний сетевого соединения и попыток переподключения
     useEffect(() => {
         if (connectionStatus === lastStatusRef.current) return;
         lastStatusRef.current = connectionStatus;
 
-        const channel = getClient()?.currentChannel;
+        const client = getClient();
+        const channel = client?.currentChannel;
         const targetChannel = channel ? `#${channel}` : "Twitch";
 
         let message = "";
         let status: AppLogStatus = APP_LOG_STATUSES.INFO;
 
         if (connectionStatus === CONNECTION_STATUSES.CONNECTING) {
-            message = `Подключение к каналу ${targetChannel}...`;
+            const currentAttempts = client?.reconnectAttempts ?? 0;
+            message = currentAttempts > 0
+                ? `Повторная попытка подключения к каналу ${targetChannel} (№${currentAttempts})...`
+                : `Подключение к каналу ${targetChannel}...`;
         } else if (connectionStatus === CONNECTION_STATUSES.CONNECTED) {
             message = `Подключение к каналу ${targetChannel} установлено.`;
             status = APP_LOG_STATUSES.SUCCESS;
         } else if (connectionStatus === CONNECTION_STATUSES.DISCONNECTED) {
-            message = "Соединение с Twitch разорвано или потеряно.";
-            status = APP_LOG_STATUSES.WARNING;
+            const isIntentionally = client?.isIntentionallyDisconnected ?? false;
+            if (isIntentionally) {
+                message = `Соединение с каналом ${targetChannel} закрыто пользователем.`;
+                status = APP_LOG_STATUSES.INFO;
+            } else {
+                message = "Соединение с Twitch потеряно. Запуск автоматического восстановления...";
+                status = APP_LOG_STATUSES.WARNING;
+            }
         }
 
         if (message) {

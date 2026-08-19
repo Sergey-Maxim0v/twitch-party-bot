@@ -1,7 +1,7 @@
 import type {Dispatch, SetStateAction} from "react";
 import type {QueueState, LogInitiator} from "../types";
-import {LOG_STATUS} from "../types";
 import type {QueueSettings} from "../../queue-settings/types.ts";
+import {APP_LOG_STATUSES} from "../../app-logs/types.ts";
 
 export interface HandleBanPlayerArgs {
     /** Уникальный ID пользователя на Twitch (если известен, для фильтрации) */
@@ -23,7 +23,7 @@ export interface HandleBanPlayerArgs {
     /** Хелпер провайдера для записи логов */
     pushLog: (
         message: string,
-        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string
     ) => void;
@@ -53,7 +53,7 @@ export const handleBanPlayer = ({
     if (alreadyBanned) {
         pushLog(
             `Ошибка бана: пользователь ${displayName} уже находится в бан-листе очереди.`,
-            LOG_STATUS.REJECTED,
+            APP_LOG_STATUSES.ERROR,
             initiator,
             actorUsername
         );
@@ -88,5 +88,5 @@ export const handleBanPlayer = ({
     const cleanDetails = removedCount > 0 ? ` (удален из ${removedCount} очередей)` : "";
     const logMessage = `Пользователь ${displayName} добавлен во внутренний бан-лист очереди${cleanDetails}.`;
 
-    pushLog(logMessage, LOG_STATUS.SUCCESS, initiator, actorUsername);
+    pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername);
 };

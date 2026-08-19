@@ -66,7 +66,6 @@ export class TwitchReconnectManager {
         }
 
         if (this.isLimitReached) {
-            console.error(`[TwitchReconnectManager] Исчерпан лимит переподключений (${this.maxAttempts}). Остановка.`);
             this.resetAttempts();
             return;
         }
@@ -74,9 +73,6 @@ export class TwitchReconnectManager {
         this.incrementAttempts();
 
         const delay = getReconnectDelay(this.attempts);
-        const delayInSeconds = (delay / 1000).toFixed(1);
-
-        console.info(`[TwitchReconnectManager] Попытка переподключения ${this.attempts}/${this.maxAttempts} через ${delayInSeconds} сек...`);
 
         this.clearTimer();
         this.timerId = setTimeout(() => {

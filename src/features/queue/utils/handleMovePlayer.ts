@@ -1,6 +1,6 @@
 import type {Dispatch, SetStateAction} from "react";
 import type {QueueState, LogInitiator} from "../types";
-import {LOG_STATUS} from "../types";
+import {APP_LOG_STATUSES, type AppLogStatus} from "../../app-logs/types.ts";
 
 export interface HandleMovePlayerArgs {
     /** Уникальный ID пользователя на Twitch для перемещения */
@@ -18,7 +18,7 @@ export interface HandleMovePlayerArgs {
     /** Хелпер провайдера для записи логов */
     pushLog: (
         message: string,
-        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string
     ) => void;
@@ -91,9 +91,9 @@ export const handleMovePlayer = ({
             ? `Перемещен игрок ${targetPlayerName} внутри ${fromLabel} очереди${positionLabel}.`
             : `Игрок ${targetPlayerName} перенесен из ${fromLabel} очереди в ${toLabel}${positionLabel}.`;
 
-        pushLog(logMessage, LOG_STATUS.SUCCESS, initiator, actorUsername);
+        pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername);
     } else {
         const logMessage = `Ошибка перемещения: игрок с ID ${userId} не найден в очередях.`;
-        pushLog(logMessage, LOG_STATUS.REJECTED, initiator, actorUsername);
+        pushLog(logMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername);
     }
 };

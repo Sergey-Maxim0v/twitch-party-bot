@@ -1,6 +1,6 @@
 import type {Dispatch, SetStateAction} from "react";
 import type {QueueState, LogInitiator} from "../types";
-import {LOG_STATUS} from "../types";
+import {APP_LOG_STATUSES, type AppLogStatus} from "../../app-logs/types.ts";
 
 export interface HandleRemovePlayerFromAllArgs {
     /** Уникальный ID пользователя на Twitch для полного удаления отовсюду */
@@ -16,7 +16,7 @@ export interface HandleRemovePlayerFromAllArgs {
     /** Хелпер провайдера для записи логов */
     pushLog: (
         message: string,
-        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string,
         rawCommand?: string
@@ -70,9 +70,9 @@ export const handleRemovePlayerFromAll = ({
         if (removedFromFutureCount > 0) locations.push(`будущей (${removedFromFutureCount})`);
 
         const logMessage = `Игрок ${targetPlayerName || `с ID ${userId}`} удален из всех очередей: ${locations.join(" и ")}.`;
-        pushLog(logMessage, LOG_STATUS.SUCCESS, initiator, actorUsername, rawCommand);
+        pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername, rawCommand);
     } else {
         const logMessage = `Ошибка отмены записи: игрок с ID ${userId} не найден ни в одном из списков.`;
-        pushLog(logMessage, LOG_STATUS.REJECTED, initiator, actorUsername, rawCommand);
+        pushLog(logMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand);
     }
 };

@@ -48,6 +48,16 @@ export class TwitchIrcClient {
         return this.socketManager.readyState;
     }
 
+    /** Возвращает текущее количество попыток реконнекта из менеджера переподключений. */
+    public get reconnectAttempts(): number {
+        return this.reconnectManager.currentAttempts;
+    }
+
+    /** Возвращает флаг, было ли отключение инициировано пользователем намеренно. */
+    public get isIntentionallyDisconnected(): boolean {
+        return this.reconnectManager.isIntentionally;
+    }
+
     public connect(channel: string, token: string, userLogin: string): void {
         if (!channel || !token || !userLogin) return;
 

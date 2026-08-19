@@ -1,7 +1,7 @@
 import type {Dispatch, SetStateAction} from "react";
 import type {LogInitiator, QueueSession, QueueState} from "../types";
-import {LOG_STATUS} from "../types";
 import type {QueueSettings} from "../../queue-settings/types.ts";
+import {APP_LOG_STATUSES, type AppLogStatus} from "../../app-logs/types.ts";
 
 export interface HandleFinishActiveQueueArgs {
     /** Источник вызова команды (обычно интерфейс стримера) */
@@ -15,7 +15,7 @@ export interface HandleFinishActiveQueueArgs {
     /** Хелпер провайдера для записи логов */
     pushLog: (
         message: string,
-        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string
     ) => void;
@@ -88,8 +88,8 @@ export const handleFinishActiveQueue = ({
         const logMessage = `Состав №${nextSessionNumber} завершен (игроков: ${playedPlayersCount}). ` +
             `В активную очередь переведено игроков из ожидания: ${promotedPlayersCount}.`;
 
-        pushLog(logMessage, LOG_STATUS.SUCCESS, initiator, actorUsername);
+        pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername);
     } else {
-        pushLog("Не удалось завершить сессию: очереди пусты.", LOG_STATUS.REJECTED, initiator, actorUsername);
+        pushLog("Не удалось завершить сессию: очереди пусты.", APP_LOG_STATUSES.ERROR, initiator, actorUsername);
     }
 };

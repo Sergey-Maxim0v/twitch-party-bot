@@ -1,6 +1,6 @@
 import type {Dispatch, SetStateAction} from "react";
 import type {QueueState, LogInitiator} from "../types";
-import {LOG_STATUS} from "../types";
+import {APP_LOG_STATUSES, type AppLogStatus} from "../../app-logs/types.ts";
 
 export interface HandleRemovePlayerArgs {
     /** Уникальный ID пользователя на Twitch для удаления */
@@ -18,7 +18,7 @@ export interface HandleRemovePlayerArgs {
     /** Хелпер провайдера для записи логов */
     pushLog: (
         message: string,
-        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string,
         rawCommand?: string
@@ -66,9 +66,9 @@ export const handleRemovePlayer = ({
 
     if (isRemoved) {
         const logMessage = `Игрок ${targetPlayerName} удален из ${queueLabel}.`;
-        pushLog(logMessage, LOG_STATUS.SUCCESS, initiator, actorUsername, rawCommand);
+        pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername, rawCommand);
     } else {
         const logMessage = `Ошибка удаления: игрок с ID ${userId} не найден в ${queueLabel}.`;
-        pushLog(logMessage, LOG_STATUS.REJECTED, initiator, actorUsername, rawCommand);
+        pushLog(logMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand);
     }
 };

@@ -1,6 +1,6 @@
 import type {Dispatch, SetStateAction} from "react";
 import type {QueueState, LogInitiator, LogActorRole} from "../types";
-import {LOG_STATUS} from "../types";
+import {APP_LOG_STATUSES} from "../../app-logs/types.ts";
 
 export interface HandleClearFutureQueueArgs {
     /** Функция обновления состояния */
@@ -14,7 +14,7 @@ export interface HandleClearFutureQueueArgs {
     /** Хелпер провайдера для записи логов */
     pushLog: (
         message: string,
-        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string
     ) => void;
@@ -39,7 +39,7 @@ export const handleClearFutureQueue = ({
 
     pushLog(
         logMessage,
-        LOG_STATUS.INFO,
+        APP_LOG_STATUSES.INFO,
         initiator,
         actorUsername
     );

@@ -15,8 +15,8 @@ import {handleBanPlayer} from "../utils/handleBanPlayer.ts";
 import {handleMovePlayer} from "../utils/handleMovePlayer.ts";
 import {handleFinishActiveQueue} from "../utils/handleFinishActiveQueue.ts";
 import {handleJoinPlayer} from "../utils/handleJoinPlayer.ts";
-import {useAppLogs} from "../../appLogs/hooks/useAppLogs.ts";
-import {APP_LOG_STATUSES, type AppLogStatus} from "../../appLogs/types.ts";
+import {useAppLogs} from "../../app-logs/hooks/useAppLogs.ts";
+import type {AppLogStatus} from "../../app-logs/types.ts";
 
 interface QueueProviderProps {
     children: ReactNode;
@@ -29,19 +29,15 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
 
     const pushLog = useCallback((
         message: string,
-        status: "success" | "rejected" | "info",
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string,
         rawCommand?: string,
         extractedNickname?: string | null
     ) => {
-        let targetStatus: AppLogStatus = APP_LOG_STATUSES.INFO;
-        if (status === "success") targetStatus = APP_LOG_STATUSES.SUCCESS;
-        if (status === "rejected") targetStatus = APP_LOG_STATUSES.ERROR;
-
         pushAppLog({
             message,
-            status: targetStatus,
+            status,
             initiator,
             actorUsername,
             rawCommand,

@@ -1,9 +1,9 @@
 import type {Dispatch, SetStateAction} from "react";
 import type {QueueState, QueuePlayer, LogInitiator, LogActorRole} from "../types";
-import {LOG_STATUS} from "../types";
 import {validateQueueEntry} from "./validateQueueEntry";
 import {extractGameNickname} from "./extractGameNickname";
 import type {QueueSettings} from "../../queue-settings/types.ts";
+import {APP_LOG_STATUSES, type AppLogStatus} from "../../app-logs/types.ts";
 
 export interface HandleJoinPlayerArgs {
     playerData: Omit<QueuePlayer, "timestamp">;
@@ -17,7 +17,7 @@ export interface HandleJoinPlayerArgs {
     setState: Dispatch<SetStateAction<QueueState>>;
     pushLog: (
         message: string,
-        status: typeof LOG_STATUS[keyof typeof LOG_STATUS],
+        status: AppLogStatus,
         initiator: LogInitiator,
         actorUsername: string,
         rawCommand?: string,
@@ -49,7 +49,7 @@ export const handleJoinPlayer = ({
     // 1. Запуск валидации ограничений (кулдауны, бан-листы, открыта ли очередь)
     const validationError = validateQueueEntry({userId, username, isSubscriber, actorRole, state, settings});
     if (validationError) {
-        pushLog(validationError, LOG_STATUS.REJECTED, initiator, actorUsername, rawCommand);
+        pushLog(validationError, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand);
         return;
     }
 
@@ -126,8 +126,8 @@ export const handleJoinPlayer = ({
     });
 
     if (isSuccess) {
-        pushLog(finalLogMessage, LOG_STATUS.SUCCESS, initiator, actorUsername, rawCommand, extractedNickname);
+        pushLog(finalLogMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername, rawCommand, extractedNickname);
     } else if (finalLogMessage) {
-        pushLog(finalLogMessage, LOG_STATUS.REJECTED, initiator, actorUsername, rawCommand);
+        pushLog(finalLogMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand);
     }
 };

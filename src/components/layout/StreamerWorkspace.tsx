@@ -3,7 +3,7 @@ import QueueSettingsPanel from "../../features/queue-settings/components/QueueSe
 import {QueueSettingsProvider} from "../../features/queue-settings/context/QueueSettingsProvider.tsx";
 import {QueueProvider} from "../../features/queue/context/QueueProvider.tsx";
 import QueuePanel from "../../features/queue/components/QueuePanel.tsx";
-import QueueLogsPanel from "../../features/appLogs/components/QueueLogsPanel.tsx";
+import QueueLogsPanel from "../../features/app-logs/components/QueueLogsPanel.tsx";
 import TwitchChat from "../../services/twitch/components/TwitchChat.tsx";
 
 const StreamerWorkspace: FC = () => {
