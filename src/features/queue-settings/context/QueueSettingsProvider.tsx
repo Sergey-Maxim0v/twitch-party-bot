@@ -1,26 +1,11 @@
-import {type FC, type ReactNode, useEffect, useState} from 'react';
+import {type FC, type ReactNode} from 'react';
 import {DEFAULT_QUEUE_SETTINGS, type QueueSettings} from '../types.ts';
 import {QueueSettingsContext} from "./QueueSettingsInstance";
 import {LOCAL_STORAGE_KEY} from "../constants.ts";
+import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 
 export const QueueSettingsProvider: FC<{ children: ReactNode }> = ({children}) => {
-    const [settings, setSettings] = useState<QueueSettings>(() => {
-        try {
-            const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-            return saved ? JSON.parse(saved) : DEFAULT_QUEUE_SETTINGS;
-        } catch (error) {
-            console.error('Ошибка при загрузке настроек очереди из localStorage:', error);
-            return DEFAULT_QUEUE_SETTINGS;
-        }
-    });
-
-    useEffect(() => {
-        try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(settings));
-        } catch (error) {
-            console.error('Ошибка при сохранении настроек очереди в localStorage:', error);
-        }
-    }, [settings]);
+    const [settings, setSettings] = useLocalStorage<QueueSettings>(LOCAL_STORAGE_KEY, DEFAULT_QUEUE_SETTINGS);
 
     /**
      *  Функция для частичного обновления настроек

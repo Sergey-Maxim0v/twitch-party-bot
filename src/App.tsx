@@ -7,9 +7,6 @@ import {AuthProvider} from "./features/auth/context/AuthProvider.tsx";
 import {ProtectedView} from "./features/auth/components/ProtectedView.tsx";
 import {AppLogsProvider} from "./features/app-logs/context/AppLogsProvider.tsx";
 
-// TODO:
-//  - связать приложение между вкладками (если открыть в нескольких вкладках)
-
 function App() {
     return (
         <SocketProvider>
