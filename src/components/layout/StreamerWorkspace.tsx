@@ -25,11 +25,11 @@ const StreamerWorkspace: FC = () => {
                         <QueuePanel className={PANEL_CLASSNAME}
                                     collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
                         />
-
-                        <QueueLogsPanel className={PANEL_CLASSNAME}
-                                        collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
-                        />
                     </QueueProvider>
+
+                    <QueueLogsPanel className={PANEL_CLASSNAME}
+                                    collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
+                    />
                 </QueueSettingsProvider>
 
                 <TwitchChat className={PANEL_CLASSNAME}

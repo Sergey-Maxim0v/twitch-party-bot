@@ -22,7 +22,10 @@ const QueueLogsPanel: FC<QueueLogsPanelProps> = ({className = "w-80", collapsedC
             className={className}
             collapsedClassName={collapsedClassName}
         >
-            <div className="flex flex-col gap-1 p-4 flex-1 h-0 overflow-x-hidden overflow-y-auto font-mono text-xs">
+            <div
+                className="flex flex-col-reverse justify-start gap-1 p-4 mb-10 flex-1 h-0 overflow-x-hidden overflow-y-auto
+                font-mono text-xs shadow-[0_4px_4px_-4px]"
+            >
                 {logs.map((log) => (
                     <QueueLogsElement key={log.id} log={log}/>
                 ))}
