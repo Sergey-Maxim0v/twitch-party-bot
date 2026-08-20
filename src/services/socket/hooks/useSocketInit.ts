@@ -14,6 +14,8 @@ export const useSocketInit = (): void => {
             connect(activeChannel, session.accessToken, session.login);
         }
 
+        return () => {
+            disconnect();
+        };
     }, [isAuthenticated, session?.accessToken, session?.login, connect, disconnect, activeChannel]);
-
 };

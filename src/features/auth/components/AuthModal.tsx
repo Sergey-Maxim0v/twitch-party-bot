@@ -8,7 +8,7 @@ export const AuthModal: FC = () => {
     if (!isModalOpen) return null;
 
     return (
-        <div className="modal modal-open z-50">
+        <div className="modal modal-open z-200">
             <div className="modal-box max-w-sm flex flex-col items-center text-center p-6 gap-4">
 
                 {/* Ожидание действий в Popup-окне */}
