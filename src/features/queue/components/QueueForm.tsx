@@ -1,6 +1,5 @@
 import {type FC, useCallback, useState, type MouseEvent} from "react";
 import {LuUserRoundPlus} from "react-icons/lu";
-import {useQueueSettings} from "../../queue-settings/hooks/useQueueSettings.ts";
 import {useQueue} from "../hooks/useQueue.ts";
 import {LOG_ACTOR_ROLE, LOG_INITIATOR} from "../types.ts";
 import {TWITCH_STORAGE_KEYS} from "../../auth/config.ts";
@@ -10,7 +9,6 @@ export interface QueueFormProps {
 }
 
 const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
-    const {settings} = useQueueSettings();
     const {addPlayerToQueue} = useQueue();
 
     const storedChannel = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
@@ -18,9 +16,7 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
     const [username, setUsername] = useState<string>("");
     const [messageText, setMessageText] = useState<string>("");
 
-    const isAllowPreJoin = settings.allowPreJoin;
-
-    const handleAddPlayer = useCallback((e: MouseEvent<HTMLButtonElement>, targetQueueType: "active" | "future") => {
+    const handleAddPlayer = useCallback((e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
         const trimmedUsername = username.trim();
@@ -36,7 +32,6 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
             text: messageText.trim(),
             isSystem: false,
             isChannelEvent: false,
-            queueType: targetQueueType,
             username: lowerCaseUser,
             userId: `manual-id-${generatedId}`,
             isSubscriber: false,
@@ -48,7 +43,7 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
             initiator: LOG_INITIATOR.STREAMER_UI,
             actorUsername: storedChannel ?? "",
             actorRole: LOG_ACTOR_ROLE.APPLICATION,
-            rawCommand: `Ручное добавление в ${targetQueueType === "active" ? "текущую" : "будущую"} очередь`,
+            rawCommand: "Ручное добавление в очередь",
             customTimestamp: Date.now()
         });
 
@@ -67,7 +62,6 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
                     onChange={(e) => setUsername(e.target.value)}
                     required
                 />
-
                 <input
                     type="text"
                     placeholder="Сообщение или игровой ник..."
@@ -77,27 +71,15 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
                 />
             </div>
 
-            <div className="flex gap-2 w-full">
-                <button
-                    type="button"
-                    disabled={!username.trim()}
-                    className="btn btn-primary btn-outline btn-sm flex-1 font-semibold flex items-center justify-center gap-1.5"
-                    onClick={(e) => handleAddPlayer(e, "active")}
-                >
-                    <LuUserRoundPlus className="w-4 h-4 shrink-0"/>
-                    <span>Текущая</span>
-                </button>
-
-                <button
-                    type="button"
-                    disabled={!isAllowPreJoin || !username.trim()}
-                    className="btn btn-outline btn-sm flex-1 font-semibold flex items-center justify-center gap-1.5"
-                    onClick={(e) => handleAddPlayer(e, "future")}
-                >
-                    <LuUserRoundPlus className="w-4 h-4 shrink-0"/>
-                    <span>Будущая</span>
-                </button>
-            </div>
+            <button
+                type="button"
+                disabled={!username.trim()}
+                className="btn btn-primary btn-outline btn-sm w-full font-semibold flex items-center justify-center gap-1.5"
+                onClick={handleAddPlayer}
+            >
+                <LuUserRoundPlus className="w-4 h-4 shrink-0"/>
+                <span>Добавить в очередь</span>
+            </button>
         </div>
     );
 };
