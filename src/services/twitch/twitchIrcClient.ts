@@ -26,6 +26,9 @@ export class TwitchIrcClient {
     private lastToken: string | null = null;
     private lastUserLogin: string | null = null;
 
+    // Таймер для дебаунса инициализации в Strict Mode
+    private connectTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
     public onChannelChange(callback: () => void): void {
         this.onChannelChangeCallback = callback;
     }
@@ -62,7 +65,24 @@ export class TwitchIrcClient {
         if (!channel || !token || !userLogin) return;
 
         const targetChannel = channel.toLowerCase();
-        if (this.channel === targetChannel && this.socketManager.isConnectingOrOpen()) return;
+
+        if (
+            this.channel === targetChannel &&
+            this.lastToken === token &&
+            this.lastUserLogin === userLogin &&
+            this.socketManager.isConnectingOrOpen()
+        ) {
+            return;
+        }
+
+        if (this.connectTimeoutId) {
+            clearTimeout(this.connectTimeoutId);
+        }
+
+        if (this.channel !== targetChannel) {
+            this.reconnectManager.clearTimer();
+            this.reconnectManager.resetAttempts();
+        }
 
         this.saveSession(targetChannel, token, userLogin);
 
@@ -73,12 +93,15 @@ export class TwitchIrcClient {
         this.socketManager.destroy();
         this.stateManager.emit(CONNECTION_STATUSES.CONNECTING);
 
-        this.socketManager.create({
-            onOpen: () => this.handleSocketOpen(),
-            onMessage: (event) => this.handleSocketMessage(event),
-            onClose: () => this.handleSocketClose(),
-            onError: (error) => console.error("[TwitchIRC Client] Ошибка сокета:", error)
-        });
+        this.connectTimeoutId = setTimeout(() => {
+            this.socketManager.create({
+                onOpen: () => this.handleSocketOpen(),
+                onMessage: (event) => this.handleSocketMessage(event),
+                onClose: () => this.handleSocketClose(),
+                onError: (error) => console.error("[TwitchIRC Client] Ошибка сокета:", error)
+            });
+            this.connectTimeoutId = null;
+        }, 16);
     }
 
     private handleSocketOpen(): void {
@@ -122,6 +145,10 @@ export class TwitchIrcClient {
     }
 
     public disconnect(): void {
+        if (this.connectTimeoutId) {
+            clearTimeout(this.connectTimeoutId);
+            this.connectTimeoutId = null;
+        }
         this.reconnectManager.setIntentionallyDisconnected(true);
         this.reconnectManager.clearTimer();
         this.reconnectManager.resetAttempts();
@@ -129,6 +156,9 @@ export class TwitchIrcClient {
     }
 
     public forceCloseAndReconnect(): void {
+        if (this.connectTimeoutId) {
+            clearTimeout(this.connectTimeoutId);
+        }
         this.reconnectManager.setIntentionallyDisconnected(false);
 
         this.socketManager.destroy();
