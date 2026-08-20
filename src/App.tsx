@@ -9,7 +9,6 @@ import {AppLogsProvider} from "./features/app-logs/context/AppLogsProvider.tsx";
 
 // TODO:
 //  - связать приложение между вкладками (если открыть в нескольких вкладках)
-//  - сообщения серии просмотров
 
 function App() {
     return (

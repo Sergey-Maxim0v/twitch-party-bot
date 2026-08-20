@@ -64,6 +64,12 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
             return buildSystemPayload(`Канал @${login} устраивает рейд и приводит ${viewerCount} зрителей!`);
         }
 
+        // Серия просмотров
+        if (msgId === "viewermilestone") {
+            const value = tags["msg-param-value"] || "1";
+            return buildSystemPayload(`@${login} отмечает серию просмотров: ${value} трансляций подряд!`);
+        }
+
         // Объявление (анонс) от стримера или модератора
         if (msgId === "announcement") {
             return {
