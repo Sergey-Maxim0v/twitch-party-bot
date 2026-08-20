@@ -62,7 +62,7 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
                 <input
                     type="text"
                     placeholder="Никнейм Twitch..."
-                    className="input input-bordered input-sm w-full font-medium"
+                    className="input input-bordered input-sm w-full font-medium focus:outline-none"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
@@ -71,7 +71,7 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
                 <input
                     type="text"
                     placeholder="Сообщение или игровой ник..."
-                    className="input input-bordered input-sm w-full"
+                    className="input input-bordered input-sm w-full focus:outline-none"
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                 />
@@ -81,7 +81,7 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
                 <button
                     type="button"
                     disabled={!username.trim()}
-                    className="btn btn-primary btn-sm flex-1 font-semibold flex items-center justify-center gap-1.5"
+                    className="btn btn-primary btn-outline btn-sm flex-1 font-semibold flex items-center justify-center gap-1.5"
                     onClick={(e) => handleAddPlayer(e, "active")}
                 >
                     <LuUserRoundPlus className="w-4 h-4 shrink-0"/>
