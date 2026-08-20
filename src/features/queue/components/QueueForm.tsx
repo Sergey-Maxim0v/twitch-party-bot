@@ -1,0 +1,105 @@
+import {type FC, useCallback, useState, type MouseEvent} from "react";
+import {LuUserRoundPlus} from "react-icons/lu";
+import {useQueueSettings} from "../../queue-settings/hooks/useQueueSettings.ts";
+import {useQueue} from "../hooks/useQueue.ts";
+import {LOG_ACTOR_ROLE, LOG_INITIATOR} from "../types.ts";
+import {TWITCH_STORAGE_KEYS} from "../../auth/config.ts";
+
+export interface QueueFormProps {
+    className?: string;
+}
+
+const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
+    const {settings} = useQueueSettings();
+    const {addPlayerToQueue} = useQueue();
+
+    const storedChannel = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
+
+    const [username, setUsername] = useState<string>("");
+    const [messageText, setMessageText] = useState<string>("");
+
+    const isAllowPreJoin = settings.allowPreJoin;
+
+    const handleAddPlayer = useCallback((e: MouseEvent<HTMLButtonElement>, targetQueueType: "active" | "future") => {
+        e.preventDefault();
+
+        const trimmedUsername = username.trim();
+        if (!trimmedUsername) return;
+
+        const generatedId = `manual-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        const lowerCaseUser = trimmedUsername.toLowerCase();
+
+        const playerData = {
+            id: generatedId,
+            user: lowerCaseUser,
+            displayName: trimmedUsername,
+            text: messageText.trim(),
+            isSystem: false,
+            isChannelEvent: false,
+            queueType: targetQueueType,
+            username: lowerCaseUser,
+            userId: `manual-id-${generatedId}`,
+            isSubscriber: false,
+            rawMessage: messageText.trim()
+        };
+
+        addPlayerToQueue({
+            playerData,
+            initiator: LOG_INITIATOR.STREAMER_UI,
+            actorUsername: storedChannel ?? "",
+            actorRole: LOG_ACTOR_ROLE.APPLICATION,
+            rawCommand: `Ручное добавление в ${targetQueueType === "active" ? "текущую" : "будущую"} очередь`,
+            customTimestamp: Date.now()
+        });
+
+        setUsername("");
+        setMessageText("");
+    }, [username, messageText, storedChannel, addPlayerToQueue]);
+
+    return (
+        <div className={`flex flex-col gap-2 ${className}`}>
+            <div className="flex flex-col gap-2 w-full">
+                <input
+                    type="text"
+                    placeholder="Никнейм Twitch..."
+                    className="input input-bordered input-sm w-full font-medium"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                />
+
+                <input
+                    type="text"
+                    placeholder="Сообщение или игровой ник..."
+                    className="input input-bordered input-sm w-full"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                />
+            </div>
+
+            <div className="flex gap-2 w-full">
+                <button
+                    type="button"
+                    disabled={!username.trim()}
+                    className="btn btn-primary btn-sm flex-1 font-semibold flex items-center justify-center gap-1.5"
+                    onClick={(e) => handleAddPlayer(e, "active")}
+                >
+                    <LuUserRoundPlus className="w-4 h-4 shrink-0"/>
+                    <span>Текущая</span>
+                </button>
+
+                <button
+                    type="button"
+                    disabled={!isAllowPreJoin || !username.trim()}
+                    className="btn btn-outline btn-sm flex-1 font-semibold flex items-center justify-center gap-1.5"
+                    onClick={(e) => handleAddPlayer(e, "future")}
+                >
+                    <LuUserRoundPlus className="w-4 h-4 shrink-0"/>
+                    <span>Будущая</span>
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default QueueForm;
