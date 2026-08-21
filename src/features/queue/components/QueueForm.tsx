@@ -2,7 +2,7 @@ import {type FC, useCallback, useState, type MouseEvent} from "react";
 import {LuUserRoundPlus} from "react-icons/lu";
 import {useQueue} from "../hooks/useQueue.ts";
 import {LOG_ACTOR_ROLE, LOG_INITIATOR} from "../types.ts";
-import {TWITCH_STORAGE_KEYS} from "../../auth/config.ts";
+import {useAuth} from "../../auth/hooks/useAuth.ts";
 
 export interface QueueFormProps {
     className?: string;
@@ -10,8 +10,7 @@ export interface QueueFormProps {
 
 const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
     const {addPlayerToQueue} = useQueue();
-
-    const storedChannel = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
+    const {session} = useAuth();
 
     const [username, setUsername] = useState<string>("");
     const [messageText, setMessageText] = useState<string>("");
@@ -41,7 +40,7 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
         addPlayerToQueue({
             playerData,
             initiator: LOG_INITIATOR.STREAMER_UI,
-            actorUsername: storedChannel ?? "",
+            actorUsername: session?.login ?? "",
             actorRole: LOG_ACTOR_ROLE.APPLICATION,
             rawCommand: "Ручное добавление в очередь",
             customTimestamp: Date.now()
@@ -49,7 +48,7 @@ const QueueForm: FC<QueueFormProps> = ({className = ""}) => {
 
         setUsername("");
         setMessageText("");
-    }, [username, messageText, storedChannel, addPlayerToQueue]);
+    }, [username, messageText, session?.login, addPlayerToQueue]);
 
     return (
         <div className={`flex flex-col gap-2 ${className}`}>

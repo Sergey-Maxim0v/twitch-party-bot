@@ -2,7 +2,7 @@ import {type FC, useCallback} from "react";
 import {LOG_ACTOR_ROLE, LOG_INITIATOR} from "../types.ts";
 import {useQueue} from "../hooks/useQueue.ts";
 import {useQueueSettings} from "../../queue-settings/hooks/useQueueSettings.ts";
-import {TWITCH_STORAGE_KEYS} from "../../auth/config.ts";
+import {useAuth} from "../../auth/hooks/useAuth.ts";
 
 export interface QueueControlsProps {
     className?: string;
@@ -11,27 +11,26 @@ export interface QueueControlsProps {
 const QueueControls: FC<QueueControlsProps> = ({className = ""}) => {
     const {clearActiveQueue, clearFutureQueue, clearQueueHistory, finishActiveQueue} = useQueue();
     const {settings, updateSettings} = useQueueSettings();
-
-    const storedChannel = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL);
+    const {session} = useAuth();
 
     const handleClearAllQueue = useCallback(() => {
         const clearArgs = {
             initiator: LOG_INITIATOR.STREAMER_UI,
-            actorUsername: storedChannel ?? "",
+            actorUsername: session?.login ?? "",
             actorRole: LOG_ACTOR_ROLE.APPLICATION
         }
         clearActiveQueue(clearArgs)
         clearFutureQueue(clearArgs)
         clearQueueHistory(clearArgs)
-    }, [storedChannel, clearActiveQueue, clearFutureQueue, clearQueueHistory])
+    }, [session?.login, clearActiveQueue, clearFutureQueue, clearQueueHistory])
 
     const handleFinishActiveQueue = useCallback(() => {
-        finishActiveQueue({initiator: LOG_INITIATOR.STREAMER_UI, actorUsername: storedChannel ?? ""})
+        finishActiveQueue({initiator: LOG_INITIATOR.STREAMER_UI, actorUsername: session?.login ?? ""})
 
         if (!settings.allowPreJoin) {
             updateSettings({isQueueOpen: false})
         }
-    }, [storedChannel, finishActiveQueue, settings.allowPreJoin, updateSettings])
+    }, [session?.login, finishActiveQueue, settings.allowPreJoin, updateSettings])
 
     return (
         <div className={`flex flex-col gap-2 ${className}`}>
