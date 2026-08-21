@@ -1,7 +1,10 @@
-import type {FC} from "react";
+import {type FC, useCallback, useMemo} from "react";
 import {useQueueSettings} from "../hooks/useQueueSettings.ts";
 import {SettingsNumberInput} from "./SettingsNumberInput.tsx";
 import {SettingsCheckbox} from "./SettingsCheckbox.tsx";
+import {useQueue} from "../../queue/hooks/useQueue.ts";
+import {LOG_ACTOR_ROLE, LOG_INITIATOR} from "../../queue/types.ts";
+import {useAuth} from "../../auth/hooks/useAuth.ts";
 
 export interface QueueGeneralSettingsProps {
     titleClassName?: string;
@@ -9,6 +12,22 @@ export interface QueueGeneralSettingsProps {
 
 const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) => {
     const {settings, updateSettings} = useQueueSettings();
+    const {clearActiveQueue, clearQueueHistory, clearFutureQueue} = useQueue()
+    const {session} = useAuth()
+
+    const argsClearFnc = useMemo(() => {
+        return {
+            initiator: LOG_INITIATOR.STREAMER_UI,
+            actorUsername: session?.login ?? "",
+            actorRole: LOG_ACTOR_ROLE.APPLICATION
+        }
+    }, [session?.login])
+
+    const handleClearAllQueue = useCallback(() => {
+        clearActiveQueue(argsClearFnc)
+        clearFutureQueue(argsClearFnc)
+        clearQueueHistory(argsClearFnc)
+    }, [clearActiveQueue, argsClearFnc, clearQueueHistory, clearFutureQueue])
 
     return (
         <>
@@ -16,18 +35,6 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) =
                 Основные настройки
             </h3>
 
-            {/* Главная кнопка управления статусом очереди */}
-            <div className="form-control w-full">
-                <button
-                    type="button"
-                    className={`btn btn-block btn-sm shadow-sm font-semibold truncate ${
-                        settings.isQueueOpen ? 'btn-error btn-outline' : 'btn-primary'
-                    }`}
-                    onClick={() => updateSettings({isQueueOpen: !settings.isQueueOpen})}
-                >
-                    {settings.isQueueOpen ? 'Закрыть приём заявок' : 'Открыть приём заявок'}
-                </button>
-            </div>
 
             {/* Лимит участников в очереди */}
             <SettingsNumberInput
@@ -109,6 +116,37 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) =
                 value={settings.botMessageCooldown}
                 onChange={(val) => updateSettings({botMessageCooldown: Number(val)})}
             />
+
+            <div className="form-control w-full flex flex-col gap-2">
+                <button
+                    type="button"
+                    className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
+                    onClick={() => clearActiveQueue(argsClearFnc)}
+                >
+                    Очистить текущую очередь
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
+                    onClick={() => clearFutureQueue(argsClearFnc)}
+                >
+                    Очистить будущие очереди
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
+                    onClick={() => clearQueueHistory(argsClearFnc)}
+                >
+                    Очистить историю
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-block btn-error btn-sm shadow-sm font-semibold truncate"
+                    onClick={handleClearAllQueue}
+                >
+                    Очистить все очереди
+                </button>
+            </div>
         </>
     )
 }
