@@ -1,4 +1,4 @@
-import {type FC, useCallback, useMemo} from "react";
+import {type FC} from "react";
 import {useQueueSettings} from "../hooks/useQueueSettings.ts";
 import {SettingsNumberInput} from "./SettingsNumberInput.tsx";
 import {SettingsCheckbox} from "./SettingsCheckbox.tsx";
@@ -15,19 +15,11 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) =
     const {clearActiveQueue, clearQueueHistory, clearFutureQueue} = useQueue()
     const {session} = useAuth()
 
-    const argsClearFnc = useMemo(() => {
-        return {
-            initiator: LOG_INITIATOR.STREAMER_UI,
-            actorUsername: session?.login ?? "",
-            actorRole: LOG_ACTOR_ROLE.APPLICATION
-        }
-    }, [session?.login])
-
-    const handleClearAllQueue = useCallback(() => {
-        clearActiveQueue(argsClearFnc)
-        clearFutureQueue(argsClearFnc)
-        clearQueueHistory(argsClearFnc)
-    }, [clearActiveQueue, argsClearFnc, clearQueueHistory, clearFutureQueue])
+    const argsClearFnc = {
+        initiator: LOG_INITIATOR.STREAMER_UI,
+        actorUsername: session?.login ?? "",
+        actorRole: LOG_ACTOR_ROLE.APPLICATION
+    }
 
     return (
         <>
@@ -138,13 +130,6 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) =
                     onClick={() => clearQueueHistory(argsClearFnc)}
                 >
                     Очистить историю
-                </button>
-                <button
-                    type="button"
-                    className="btn btn-block btn-error btn-sm shadow-sm font-semibold truncate"
-                    onClick={handleClearAllQueue}
-                >
-                    Очистить все очереди
                 </button>
             </div>
         </>

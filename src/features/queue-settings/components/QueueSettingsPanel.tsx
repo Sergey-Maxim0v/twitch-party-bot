@@ -19,6 +19,11 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
 
     const titleClassName = "text-xs font-bold tracking-wide text-base-content/50 uppercase"
 
+    // TODO:
+    //  - закрывать очередь при перезагрузке страницы
+    //  - закрывать очередь при смене канала
+    //  - закрывать очередь при разлогине
+
     return (
         <CollapsiblePanel
             isOpen={isOpen}
