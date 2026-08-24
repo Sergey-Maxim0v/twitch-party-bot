@@ -9,6 +9,7 @@ import {useQueueSettings} from "../hooks/useQueueSettings.ts";
 import {useAuth} from "../../auth/hooks/useAuth.ts";
 import {useAppLogs} from "../../app-logs/hooks/useAppLogs.ts";
 import {LOG_INITIATOR} from "../../queue/types.ts";
+import QueueResetSettings from "./QueueResetSection.tsx";
 
 export interface QueueSettingsProps {
     className?: string;
@@ -59,6 +60,8 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
                 <QueueCommandsSection titleClassName={titleClassName}/>
 
                 <QueueBanListSection titleClassName={titleClassName}/>
+
+                <QueueResetSettings titleClassName={titleClassName}/>
             </div>
         </CollapsiblePanel>
     );
