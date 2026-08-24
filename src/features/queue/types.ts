@@ -10,18 +10,6 @@ export const LOG_INITIATOR = {
 export type LogInitiator = typeof LOG_INITIATOR[keyof typeof LOG_INITIATOR];
 
 /**
- * Типы возможных результатов добавления в очередь для логирования
- */
-export const JOIN_RESULT = {
-    ADDED_TO_CURRENT: 'added_to_current',
-    ADDED_TO_FUTURE_EXISTS_IN_CURRENT: 'added_to_future_exists_in_current',
-    ADDED_TO_FUTURE: 'added_to_future',
-    QUEUE_FULL: 'queue_full',
-} as const;
-
-export type JoinSuccessResult = typeof JOIN_RESULT[keyof typeof JOIN_RESULT];
-
-/**
  * Данные игрока в очереди (слепок сообщения из чата)
  */
 export interface QueuePlayer {
