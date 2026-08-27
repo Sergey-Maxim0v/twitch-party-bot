@@ -1,15 +1,12 @@
-import {type FC, useEffect} from "react";
+import {type FC} from "react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import CollapsiblePanel from "../../../components/layout/panel/CollapsiblePanel.tsx";
 import {QueueCommandsSection} from "./QueueCommandsSection.tsx";
 import {QueueBanListSection} from "./QueueBanListSection.tsx";
 import {QueueGameSection} from "./QueueGameSection.tsx";
 import QueueGeneralSettings from "./QueueGeneralSettings.tsx";
-import {useQueueSettings} from "../hooks/useQueueSettings.ts";
-import {useAuth} from "../../auth/hooks/useAuth.ts";
-import {useAppLogs} from "../../app-logs/hooks/useAppLogs.ts";
-import {LOG_INITIATOR} from "../../queue/types.ts";
 import QueueResetSettings from "./QueueResetSection.tsx";
+import {useQueueAutoClose} from "../hooks/useQueueAutoClose.ts";
 
 export interface QueueSettingsProps {
     className?: string;
@@ -22,26 +19,9 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
                                                     }) => {
     const [isOpen, setIsOpen] = useLocalStorage<boolean>("queue_settings_open", true);
 
-    const {session, activeChannel} = useAuth();
-    const {pushLog} = useAppLogs();
-    const {settings, updateSettings} = useQueueSettings();
+    useQueueAutoClose();
 
-
-    // TODO:
-    //  - посмотреть хук, убрать предупреждение зависимостей и двойной вызов при перезагрузке страницы
-
-    useEffect(() => {
-        if (!settings.isQueueOpen) return
-
-        updateSettings({isQueueOpen: false})
-        pushLog({
-            message: "Очередь закрыта",
-            initiator: LOG_INITIATOR.STREAMER_UI,
-            actorUsername: session?.login ?? ""
-        })
-    }, [session?.login, activeChannel]);
-
-    const titleClassName = "text-xs font-bold tracking-wide text-base-content/50 uppercase"
+    const titleClassName = "text-xs font-bold tracking-wide text-base-content/50 uppercase";
 
     return (
         <CollapsiblePanel

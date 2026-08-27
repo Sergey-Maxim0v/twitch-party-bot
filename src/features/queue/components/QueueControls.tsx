@@ -43,7 +43,7 @@ const QueueControls: FC<QueueControlsProps> = ({className = ""}) => {
                 }`}
                 onClick={handleQueueToggle}
             >
-                {settings.isQueueOpen ? 'Закрыть приём заявок' : 'Открыть приём заявок'}
+                {settings.isQueueOpen ? 'Закрыть очередь' : 'Открыть очередь'}
             </button>
 
             <button
