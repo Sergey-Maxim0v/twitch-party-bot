@@ -61,6 +61,8 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
         clear: {name: '!clear', isModeratorOnly: true},
         add: {name: '!add', isModeratorOnly: true},
         delete: {name: '!delete', isModeratorOnly: true},
+        start: {name: '!start', isModeratorOnly: true},
+        stop: {name: '!stop', isModeratorOnly: true}
     },
     banList: [],
 };
@@ -106,6 +108,12 @@ export interface QueueSettings {
 
         /** Удалить игрока из очереди. */
         delete: QueueCommandConfig;
+
+        /** Открыть очередь. */
+        start: QueueCommandConfig;
+
+        /** Закрыть очередь. */
+        stop: QueueCommandConfig;
     };
 
     /** Выбор регулярного выражения для проверки игрового никнейма. */

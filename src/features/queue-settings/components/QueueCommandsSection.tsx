@@ -81,6 +81,22 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
                     onCommandChange={(val) => handleCommandChange('delete', val)}
                     onModeratorChange={(chk) => handleModChange('delete', chk)}
                 />
+
+                <SettingsCommandInput
+                    label="Открыть очередь"
+                    commandValue={settings.commands.start.name}
+                    isModeratorValue={settings.commands.start.isModeratorOnly}
+                    onCommandChange={(val) => handleCommandChange('start', val)}
+                    onModeratorChange={(chk) => handleModChange('start', chk)}
+                />
+
+                <SettingsCommandInput
+                    label="Закрыть очередь"
+                    commandValue={settings.commands.stop.name}
+                    isModeratorValue={settings.commands.stop.isModeratorOnly}
+                    onCommandChange={(val) => handleCommandChange('stop', val)}
+                    onModeratorChange={(chk) => handleModChange('stop', chk)}
+                />
             </div>
         </div>
     );
