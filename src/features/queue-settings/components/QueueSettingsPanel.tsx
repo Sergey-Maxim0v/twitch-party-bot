@@ -7,6 +7,8 @@ import {QueueGameSection} from "./QueueGameSection.tsx";
 import QueueGeneralSettings from "./QueueGeneralSettings.tsx";
 import QueueResetSettings from "./QueueResetSection.tsx";
 import {useQueueAutoClose} from "../hooks/useQueueAutoClose.ts";
+import QueueMessageSection from "./QueueMessageSection.tsx";
+import QueueClearSection from "./QueueClearSection.tsx";
 
 export interface QueueSettingsProps {
     className?: string;
@@ -35,9 +37,13 @@ const QueueSettingsPanel: FC<QueueSettingsProps> = ({
 
                 <QueueGeneralSettings titleClassName={titleClassName}/>
 
-                <QueueGameSection/>
+                <QueueClearSection titleClassName={titleClassName}/>
+
+                <QueueGameSection titleClassName={titleClassName}/>
 
                 <QueueCommandsSection titleClassName={titleClassName}/>
+
+                <QueueMessageSection titleClassName={titleClassName}/>
 
                 <QueueBanListSection titleClassName={titleClassName}/>
 

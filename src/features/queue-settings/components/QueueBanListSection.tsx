@@ -33,7 +33,8 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
     };
 
     return (
-        <div className={`w-full min-w-0 space-y-3 ${className}`}>
+        <div
+            className={`w-full min-w-0 space-y-3 p-3 rounded-xl bg-base-200/50 border border-base-300/60 ${className}`}>
             <h3 className={titleClassName}>Банлист очереди</h3>
 
             <div className="p-3 rounded-xl bg-base-200/40 border border-base-300 space-y-2 w-full min-w-0">

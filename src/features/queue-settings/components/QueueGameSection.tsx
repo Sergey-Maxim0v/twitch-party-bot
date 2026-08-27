@@ -4,10 +4,12 @@ import {GAME_PATTERNS, QUEUE_GAMES, type QueueGameKey} from "../types.ts";
 
 interface QueueGameSectionProps {
     className?: string;
+    titleClassName?: string;
 }
 
 export const QueueGameSection: FC<QueueGameSectionProps> = ({
-                                                                className = '',
+                                                                className = "",
+                                                                titleClassName = "",
                                                             }) => {
     const {settings, updateSettings} = useQueueSettings();
 
@@ -28,12 +30,13 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
     };
 
     return (
-        <div className={`p-3 rounded-xl bg-base-200/40 border border-base-300 space-y-4 w-full min-w-0 ${className}`}>
-            <div className="flex flex-col gap-1 w-full min-w-0">
-                <span className="text-xs font-semibold tracking-wide text-base-content/60">
-                    Валидация никнеймов для игры
-                </span>
+        <div
+            className={`w-full min-w-0 space-y-3 p-3 rounded-xl bg-base-200/50 border border-base-300/60 ${className}`}>
+            <h3 className={titleClassName}>
+                Валидация никнеймов для игры
+            </h3>
 
+            <div className="flex flex-col gap-1 w-full min-w-0">
                 <select
                     className="select select-bordered select-sm w-full
                     focus:select-primary focus:outline-none focus:ring-0 focus:ring-offset-0 outline-none

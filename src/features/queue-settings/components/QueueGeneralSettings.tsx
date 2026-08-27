@@ -2,9 +2,6 @@ import {type FC} from "react";
 import {useQueueSettings} from "../hooks/useQueueSettings.ts";
 import {SettingsNumberInput} from "./SettingsNumberInput.tsx";
 import {SettingsCheckbox} from "./SettingsCheckbox.tsx";
-import {useQueue} from "../../queue/hooks/useQueue.ts";
-import {LOG_ACTOR_ROLE, LOG_INITIATOR} from "../../queue/types.ts";
-import {useAuth} from "../../auth/hooks/useAuth.ts";
 
 export interface QueueGeneralSettingsProps {
     titleClassName?: string;
@@ -12,17 +9,9 @@ export interface QueueGeneralSettingsProps {
 
 const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) => {
     const {settings, updateSettings} = useQueueSettings();
-    const {clearActiveQueue, clearQueueHistory, clearFutureQueue} = useQueue()
-    const {session} = useAuth()
-
-    const argsClearFnc = {
-        initiator: LOG_INITIATOR.STREAMER_UI,
-        actorUsername: session?.login ?? "",
-        actorRole: LOG_ACTOR_ROLE.APPLICATION
-    }
 
     return (
-        <>
+        <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
             <h3 className={titleClassName}>
                 Основные настройки
             </h3>
@@ -99,40 +88,7 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({titleClassName}) =
                 checked={settings.subscribersOnly || false}
                 onChange={(checked) => updateSettings({subscribersOnly: checked})}
             />
-
-            {/* Минимальное время ответа бота */}
-            <SettingsNumberInput
-                label="Задержка ответов бота (сек)"
-                min={0}
-                max={99}
-                value={settings.botMessageCooldown}
-                onChange={(val) => updateSettings({botMessageCooldown: Number(val)})}
-            />
-
-            <div className="form-control w-full flex flex-col gap-2">
-                <button
-                    type="button"
-                    className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
-                    onClick={() => clearActiveQueue(argsClearFnc)}
-                >
-                    Очистить текущую очередь
-                </button>
-                <button
-                    type="button"
-                    className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
-                    onClick={() => clearFutureQueue(argsClearFnc)}
-                >
-                    Очистить будущие очереди
-                </button>
-                <button
-                    type="button"
-                    className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
-                    onClick={() => clearQueueHistory(argsClearFnc)}
-                >
-                    Очистить историю
-                </button>
-            </div>
-        </>
+        </div>
     )
 }
 
