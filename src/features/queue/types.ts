@@ -2,83 +2,83 @@
  * Источники инициации действий в очереди
  */
 export const LOG_INITIATOR = {
-    CHAT_USER: 'chat_user',
-    CHAT_MODERATOR: 'chat_moderator',
-    STREAMER_UI: 'streamer_ui',
-} as const;
+  CHAT_USER: 'chat_user',
+  CHAT_MODERATOR: 'chat_moderator',
+  STREAMER_UI: 'streamer_ui',
+} as const
 
-export type LogInitiator = typeof LOG_INITIATOR[keyof typeof LOG_INITIATOR];
+export type LogInitiator = typeof LOG_INITIATOR[keyof typeof LOG_INITIATOR]
 
 /**
  * Данные игрока в очереди (слепок сообщения из чата)
  */
 export interface QueuePlayer {
-    /** Уникальный ID пользователя на Twitch */
-    userId: string;
-    /** Никнейм пользователя в чате для системных проверок (обычно в нижнем регистре) */
-    username: string;
-    /** Красивый никнейм пользователя с сохранением регистра (Display Name из Twitch) */
-    displayedUsername?: string;
-    /** Статус подписки на момент входа в очередь */
-    isSubscriber: boolean;
-    /** Полный текст сообщения из чата */
-    rawMessage: string;
-    /** Время сообщения (из тегов Twitch или Date.now()) */
-    timestamp: number;
-    /** Извлеченный и валидированный игровой никнейм */
-    gameNickname?: string | null;
+  /** Уникальный ID пользователя на Twitch */
+  userId: string;
+  /** Никнейм пользователя в чате для системных проверок (обычно в нижнем регистре) */
+  username: string;
+  /** Красивый никнейм пользователя с сохранением регистра (Display Name из Twitch) */
+  displayedUsername?: string;
+  /** Статус подписки на момент входа в очередь */
+  isSubscriber: boolean;
+  /** Полный текст сообщения из чата */
+  rawMessage: string;
+  /** Время сообщения (из тегов Twitch или Date.now()) */
+  timestamp: number;
+  /** Извлеченный и валидированный игровой никнейм */
+  gameNickname?: string | null;
 }
 
 /**
  * Структура одной игровой сессии (состава) в истории
  */
 export interface QueueSession {
-    /** Уникальный ID состава */
-    id: string;
-    /** Порядковое название для интерфейса */
-    name: string;
-    /** Время создания сессии */
-    createdAt: number;
-    /** Время, когда сессия была завершена/отправлена в историю */
-    playedAt?: number;
-    /** Список участников в этом конкретном составе */
-    players: QueuePlayer[];
+  /** Уникальный ID состава */
+  id: string;
+  /** Порядковое название для интерфейса */
+  name: string;
+  /** Время создания сессии */
+  createdAt: number;
+  /** Время, когда сессия была завершена/отправлена в историю */
+  playedAt?: number;
+  /** Список участников в этом конкретном составе */
+  players: QueuePlayer[];
 }
 
 /**
  * Статистика истории игрока для расчета всех типов кулдаунов
  */
 export interface PlayerHistoryStats {
-    /** Последний timestamp, когда игрок заходил/играл */
-    lastPlayedTimestamp: number;
-    /** Порядковый номер сессии, в которой игрок сыграл последний раз */
-    lastPlayedSessionNumber: number;
+  /** Последний timestamp, когда игрок заходил/играл */
+  lastPlayedTimestamp: number;
+  /** Порядковый номер сессии, в которой игрок сыграл последний раз */
+  lastPlayedSessionNumber: number;
 }
 
 /**
  * Главный объект состояния всей очереди (для хранения в стейте / localStorage)
  */
 export interface QueueState {
-    /** Игроки в текущей активной очереди */
-    activeQueue: QueuePlayer[];
-    /** Игроки в будущих/ожидающих очередях */
-    futureQueue: QueuePlayer[];
-    /** История завершенных игровых сессий (составов) */
-    queueHistory: QueueSession[];
-    /** Общий счетчик созданных/сыгранных сессий для расчета кулдауна по играм */
-    globalSessionCounter: number;
-    /** Быстрый индекс истории игроков для проверки временных и сессионных кулдаунов */
-    playerHistory: Record<string, PlayerHistoryStats>;
+  /** Игроки в текущей активной очереди */
+  activeQueue: QueuePlayer[];
+  /** Игроки в будущих/ожидающих очередях */
+  futureQueue: QueuePlayer[];
+  /** История завершенных игровых сессий (составов) */
+  queueHistory: QueueSession[];
+  /** Общий счетчик созданных/сыгранных сессий для расчета кулдауна по играм */
+  globalSessionCounter: number;
+  /** Быстрый индекс истории игроков для проверки временных и сессионных кулдаунов */
+  playerHistory: Record<string, PlayerHistoryStats>;
 }
 
 /**
  * Роли исполнителей действий для понятного отображения в логах
  */
 export const LOG_ACTOR_ROLE = {
-    STREAMER: 'стример',
-    MODERATOR: 'модератор',
-    SYSTEM: 'система',
-    APPLICATION: 'приложение',
-} as const;
+  STREAMER: 'стример',
+  MODERATOR: 'модератор',
+  SYSTEM: 'система',
+  APPLICATION: 'приложение',
+} as const
 
-export type LogActorRole = typeof LOG_ACTOR_ROLE[keyof typeof LOG_ACTOR_ROLE];
+export type LogActorRole = typeof LOG_ACTOR_ROLE[keyof typeof LOG_ACTOR_ROLE]

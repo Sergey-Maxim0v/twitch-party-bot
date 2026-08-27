@@ -1,36 +1,36 @@
-import {useEffect} from 'react';
-import {useLocalStorage} from "./useLocalStorage.ts";
-import {THEME_OPTIONS} from "../constants/theme.constants.ts";
-import type {ThemeConfig, ThemeMode} from "./types/theme.types.ts";
+import {useEffect} from 'react'
+import {useLocalStorage} from './useLocalStorage.ts'
+import {THEME_OPTIONS} from '../constants/theme.constants.ts'
+import type {ThemeConfig, ThemeMode} from './types/theme.types.ts'
 
 export const useTheme = () => {
-    const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find((el) => el.id === 'system') || THEME_OPTIONS[0]
-    const [themeMode, setThemeMode] = useLocalStorage<ThemeMode>('twitch_party_theme', DEFAULT_THEME.id);
+  const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find((el) => el.id === 'system') || THEME_OPTIONS[0]
+  const [themeMode, setThemeMode] = useLocalStorage<ThemeMode>('twitch_party_theme', DEFAULT_THEME.id)
 
-    useEffect(() => {
-        const root = document.documentElement;
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  useEffect(() => {
+    const root = document.documentElement
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
-        const applyTheme = () => {
-            if (themeMode === 'system') {
-                const isDark = mediaQuery.matches;
-                root.setAttribute('data-theme', isDark ? 'dim' : 'nord');
-            } else {
-                root.setAttribute('data-theme', themeMode);
-            }
-        };
+    const applyTheme = () => {
+      if (themeMode === 'system') {
+        const isDark = mediaQuery.matches
+        root.setAttribute('data-theme', isDark ? 'dim' : 'nord')
+      } else {
+        root.setAttribute('data-theme', themeMode)
+      }
+    }
 
-        applyTheme();
+    applyTheme()
 
-        if (themeMode === 'system') {
-            mediaQuery.addEventListener('change', applyTheme);
+    if (themeMode === 'system') {
+      mediaQuery.addEventListener('change', applyTheme)
 
-            return () => {
-                mediaQuery.removeEventListener('change', applyTheme);
-            };
-        }
+      return () => {
+        mediaQuery.removeEventListener('change', applyTheme)
+      }
+    }
 
-    }, [themeMode]);
+  }, [themeMode])
 
-    return {themeMode, setThemeMode};
-};
+  return {themeMode, setThemeMode}
+}

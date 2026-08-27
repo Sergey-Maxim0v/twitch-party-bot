@@ -1,121 +1,121 @@
-import {type RefObject, useCallback, useEffect, useRef, useState} from "react";
-import type {TwitchIrcClient} from "../twitchIrcClient.ts";
-import type {ParsedIrcMessage} from "../utils/parseIrcMessage.ts";
-import {MAX_MESSAGES, TwitchIrcCommand} from "../config.ts";
-import {markDeletedMessages} from "../utils/markDeletedMessages.ts";
-import {createSystemMessage} from "../utils/createSystemMessage.ts";
+import {type RefObject, useCallback, useEffect, useRef, useState} from 'react'
+import type {TwitchIrcClient} from '../twitchIrcClient.ts'
+import type {ParsedIrcMessage} from '../utils/parseIrcMessage.ts'
+import {MAX_MESSAGES, TwitchIrcCommand} from '../config.ts'
+import {markDeletedMessages} from '../utils/markDeletedMessages.ts'
+import {createSystemMessage} from '../utils/createSystemMessage.ts'
 
 interface UseTwitchChatHistoryProps {
-    client: TwitchIrcClient | null;
-    pendingTextsRef: RefObject<string[]>;
+  client: TwitchIrcClient | null;
+  pendingTextsRef: RefObject<string[]>;
 }
 
 /**
  * Хук для управления историей сообщений чата Twitch и модерацией.
  */
 export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHistoryProps) => {
-    const [messages, setMessages] = useState<ParsedIrcMessage[]>([]);
+  const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
-    const lastChannelRef = useRef<string | null>(null);
+  const lastChannelRef = useRef<string | null>(null)
 
-    // Очистка чата при смене канала
-    useEffect(() => {
-        if (!client || !client.onChannelChange) return;
+  // Очистка чата при смене канала
+  useEffect(() => {
+    if (!client || !client.onChannelChange) return
 
-        if (client.currentChannel) {
-            lastChannelRef.current = client.currentChannel;
-        }
+    if (client.currentChannel) {
+      lastChannelRef.current = client.currentChannel
+    }
 
-        client.onChannelChange(() => {
-            const nextChannel = client.currentChannel;
+    client.onChannelChange(() => {
+      const nextChannel = client.currentChannel
 
-            if (nextChannel !== lastChannelRef.current) {
-                setMessages([]);
-            }
+      if (nextChannel !== lastChannelRef.current) {
+        setMessages([])
+      }
 
-            lastChannelRef.current = nextChannel;
-        });
-    }, [client]);
+      lastChannelRef.current = nextChannel
+    })
+  }, [client])
 
-    /**
+  /**
      * Обрабатывает модераторские действия (удаление сообщений, баны) и системные логи
      */
-    const handleModerationAndEvents = useCallback((message: ParsedIrcMessage): boolean => {
-        const isModAction =
-            message.command === TwitchIrcCommand.CLEAR_CHAT ||
-            message.command === TwitchIrcCommand.CLEAR_MSG;
+  const handleModerationAndEvents = useCallback((message: ParsedIrcMessage): boolean => {
+    const isModAction =
+      message.command === TwitchIrcCommand.CLEAR_CHAT ||
+            message.command === TwitchIrcCommand.CLEAR_MSG
 
-        const isChannelEvent =
-            message.command === TwitchIrcCommand.USER_NOTICE ||
-            message.command === TwitchIrcCommand.ROOM_STATE;
+    const isChannelEvent =
+      message.command === TwitchIrcCommand.USER_NOTICE ||
+            message.command === TwitchIrcCommand.ROOM_STATE
 
-        if (!isModAction && !isChannelEvent) {
-            return false;
-        }
+    if (!isModAction && !isChannelEvent) {
+      return false
+    }
 
-        setMessages((prev) => {
-            const updatedHistory = isModAction
-                ? markDeletedMessages({modMessage: message, currentMessages: prev})
-                : prev;
+    setMessages((prev) => {
+      const updatedHistory = isModAction
+        ? markDeletedMessages({modMessage: message, currentMessages: prev})
+        : prev
 
-            const systemLog = createSystemMessage(message);
+      const systemLog = createSystemMessage(message)
 
-            if (!systemLog) return updatedHistory;
+      if (!systemLog) return updatedHistory
 
-            const finalMessages = [...updatedHistory, systemLog];
+      const finalMessages = [...updatedHistory, systemLog]
 
-            if (finalMessages.length > MAX_MESSAGES) {
-                return finalMessages.slice(finalMessages.length - MAX_MESSAGES);
-            }
+      if (finalMessages.length > MAX_MESSAGES) {
+        return finalMessages.slice(finalMessages.length - MAX_MESSAGES)
+      }
 
-            return finalMessages;
-        });
+      return finalMessages
+    })
 
-        return true;
-    }, []);
+    return true
+  }, [])
 
-    /**
+  /**
      * Добавляет стандартные текстовые сообщения в общую историю чата
      */
-    const handleStandardMessage = useCallback((message: ParsedIrcMessage): void => {
-        const isUserstate = message.command === TwitchIrcCommand.USER_STATE;
+  const handleStandardMessage = useCallback((message: ParsedIrcMessage): void => {
+    const isUserstate = message.command === TwitchIrcCommand.USER_STATE
 
-        if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return;
+    if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return
 
-        setMessages((prev) => {
-            let messageToPush = message;
+    setMessages((prev) => {
+      let messageToPush = message
 
-            if (isUserstate) {
-                const pendingTexts = pendingTextsRef.current;
-                const savedText = pendingTexts ? pendingTexts.shift() : null;
+      if (isUserstate) {
+        const pendingTexts = pendingTextsRef.current
+        const savedText = pendingTexts ? pendingTexts.shift() : null
 
-                if (!savedText) return prev;
+        if (!savedText) return prev
 
-                messageToPush = {
-                    ...message,
-                    command: TwitchIrcCommand.PRIV_MSG,
-                    text: savedText,
-                    user: message.tags["display-name"] || ""
-                };
-            }
+        messageToPush = {
+          ...message,
+          command: TwitchIrcCommand.PRIV_MSG,
+          text: savedText,
+          user: message.tags['display-name'] || ''
+        }
+      }
 
-            if (prev.some((m) => m.id === messageToPush.id)) {
-                return prev;
-            }
+      if (prev.some((m) => m.id === messageToPush.id)) {
+        return prev
+      }
 
-            const updated = [...prev, messageToPush];
+      const updated = [...prev, messageToPush]
 
-            if (updated.length > MAX_MESSAGES) {
-                return updated.slice(updated.length - MAX_MESSAGES);
-            }
+      if (updated.length > MAX_MESSAGES) {
+        return updated.slice(updated.length - MAX_MESSAGES)
+      }
 
-            return updated;
-        });
-    }, [pendingTextsRef]);
+      return updated
+    })
+  }, [pendingTextsRef])
 
-    return {
-        messages,
-        handleModerationAndEvents,
-        handleStandardMessage
-    };
-};
+  return {
+    messages,
+    handleModerationAndEvents,
+    handleStandardMessage
+  }
+}

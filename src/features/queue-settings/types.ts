@@ -8,152 +8,152 @@ export type QueueGameKey =
     | 'FORTNITE'
     | 'NARAKA'
     | 'GOOSE_GOOSE'
-    | 'AMONG_US';
+    | 'AMONG_US'
 
 export const QUEUE_GAMES: Record<QueueGameKey, string> = {
-    RIOT: "Riot Games",
-    STEAM: "Steam",
-    UBISOFT: "Ubisoft Connect",
-    BATTLE_NET: "Battle.net",
-    APEX: "Apex Legends",
-    PUBG: "PUBG: Battlegrounds",
-    FORTNITE: "Fortnite",
-    NARAKA: "Naraka: Bladepoint",
-    GOOSE_GOOSE: "Goose Goose Duck",
-    AMONG_US: "Among Us"
-};
+  RIOT: 'Riot Games',
+  STEAM: 'Steam',
+  UBISOFT: 'Ubisoft Connect',
+  BATTLE_NET: 'Battle.net',
+  APEX: 'Apex Legends',
+  PUBG: 'PUBG: Battlegrounds',
+  FORTNITE: 'Fortnite',
+  NARAKA: 'Naraka: Bladepoint',
+  GOOSE_GOOSE: 'Goose Goose Duck',
+  AMONG_US: 'Among Us'
+}
 
 export const GAME_PATTERNS: Record<QueueGameKey, string> = {
-    RIOT: '^.{3,16}#[a-zA-Z0-9]{3,5}$',
-    STEAM: '^.{2,32}$',
-    UBISOFT: '^[a-zA-Z0-9._-]{3,15}$',
-    BATTLE_NET: '^(?![0-9]).{3,12}#[0-9]+$',
-    APEX: '^[a-zA-Z0-9_-]{4,16}$',
-    PUBG: '^[a-zA-Z0-9]{4,16}$',
-    FORTNITE: '^[a-zA-Z0-9а-яА-ЯёЁ_\\s-]{3,16}$',
-    NARAKA: '^.{1,14}$',
-    GOOSE_GOOSE: '^[a-zA-Z0-9а-яА-ЯёЁ]{1,16}$',
-    AMONG_US: '^.{1,10}$'
-};
+  RIOT: '^.{3,16}#[a-zA-Z0-9]{3,5}$',
+  STEAM: '^.{2,32}$',
+  UBISOFT: '^[a-zA-Z0-9._-]{3,15}$',
+  BATTLE_NET: '^(?![0-9]).{3,12}#[0-9]+$',
+  APEX: '^[a-zA-Z0-9_-]{4,16}$',
+  PUBG: '^[a-zA-Z0-9]{4,16}$',
+  FORTNITE: '^[a-zA-Z0-9а-яА-ЯёЁ_\\s-]{3,16}$',
+  NARAKA: '^.{1,14}$',
+  GOOSE_GOOSE: '^[a-zA-Z0-9а-яА-ЯёЁ]{1,16}$',
+  AMONG_US: '^.{1,10}$'
+}
 
 export interface QueueCommandConfig {
-    name: string;
-    isModeratorOnly: boolean;
+  name: string;
+  isModeratorOnly: boolean;
 }
 
 export interface QueueGameConfig {
-    key: QueueGameKey;
-    validationPattern: string;
+  key: QueueGameKey;
+  validationPattern: string;
 }
 
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
-    isQueueOpen: false,
-    maxQueueSize: 4,
-    allowPreJoin: false,
-    allowMultipleEntries: false,
-    botMessageCooldown: 5,
-    sessionHistoryCooldown: 0,
-    gamesPlayedCooldown: 0,
-    commands: {
-        join: {name: '!join', isModeratorOnly: false},
-        leave: {name: '!leave', isModeratorOnly: false},
-        show: {name: '!show', isModeratorOnly: false},
-        clear: {name: '!clear', isModeratorOnly: true},
-        add: {name: '!add', isModeratorOnly: true},
-        delete: {name: '!delete', isModeratorOnly: true},
-        start: {name: '!start', isModeratorOnly: true},
-        stop: {name: '!stop', isModeratorOnly: true}
-    },
-    chatNotificationPermissions: {
-        allowSending: true,
-        onQueueOpen: true,
-        onQueueClose: true,
-        onMemberAdd: false,
-        onMemberMove: false,
-        onMemberRemove: false,
-        onQueueFull: false,
-    },
-    banList: [],
-};
+  isQueueOpen: false,
+  maxQueueSize: 4,
+  allowPreJoin: false,
+  allowMultipleEntries: false,
+  botMessageCooldown: 5,
+  sessionHistoryCooldown: 0,
+  gamesPlayedCooldown: 0,
+  commands: {
+    join: {name: '!join', isModeratorOnly: false},
+    leave: {name: '!leave', isModeratorOnly: false},
+    show: {name: '!show', isModeratorOnly: false},
+    clear: {name: '!clear', isModeratorOnly: true},
+    add: {name: '!add', isModeratorOnly: true},
+    delete: {name: '!delete', isModeratorOnly: true},
+    start: {name: '!start', isModeratorOnly: true},
+    stop: {name: '!stop', isModeratorOnly: true}
+  },
+  chatNotificationPermissions: {
+    allowSending: true,
+    onQueueOpen: true,
+    onQueueClose: true,
+    onMemberAdd: false,
+    onMemberMove: false,
+    onMemberRemove: false,
+    onQueueFull: false,
+  },
+  banList: [],
+}
 
 export interface QueueSettings {
-    /** Управление статусом очереди. */
-    isQueueOpen: boolean;
+  /** Управление статусом очереди. */
+  isQueueOpen: boolean;
 
-    /** Лимит участников в очереди. */
-    maxQueueSize: number;
+  /** Лимит участников в очереди. */
+  maxQueueSize: number;
 
-    /** Разрешить заходить заранее (будущие очереди). */
-    allowPreJoin: boolean;
+  /** Разрешить заходить заранее (будущие очереди). */
+  allowPreJoin: boolean;
 
-    /** Разрешить несколько записей (будущие очереди). */
-    allowMultipleEntries: boolean;
+  /** Разрешить несколько записей (будущие очереди). */
+  allowMultipleEntries: boolean;
 
-    /** Минимальное время ответа бота. */
-    botMessageCooldown: number;
+  /** Минимальное время ответа бота. */
+  botMessageCooldown: number;
 
-    /** Через сколько минут игрок может повторно участвовать. */
-    sessionHistoryCooldown: number;
+  /** Через сколько минут игрок может повторно участвовать. */
+  sessionHistoryCooldown: number;
 
-    /** Через сколько игр игрок может повторно участвовать. */
-    gamesPlayedCooldown: number;
+  /** Через сколько игр игрок может повторно участвовать. */
+  gamesPlayedCooldown: number;
 
-    /** Настройки команд: строки, сообщения с которыми бот будет обрабатывать. */
-    commands: {
-        /** Игрок присоединяется к очереди. */
-        join: QueueCommandConfig;
+  /** Настройки команд: строки, сообщения с которыми бот будет обрабатывать. */
+  commands: {
+    /** Игрок присоединяется к очереди. */
+    join: QueueCommandConfig;
 
-        /** Игрок выходит из очереди. */
-        leave: QueueCommandConfig;
+    /** Игрок выходит из очереди. */
+    leave: QueueCommandConfig;
 
-        /** Бот пишет текущую очередь в чат. */
-        show: QueueCommandConfig;
+    /** Бот пишет текущую очередь в чат. */
+    show: QueueCommandConfig;
 
-        /** Очистить текущую очередь. */
-        clear: QueueCommandConfig;
+    /** Очистить текущую очередь. */
+    clear: QueueCommandConfig;
 
-        /** Добавить игрока в очередь. */
-        add: QueueCommandConfig;
+    /** Добавить игрока в очередь. */
+    add: QueueCommandConfig;
 
-        /** Удалить игрока из очереди. */
-        delete: QueueCommandConfig;
+    /** Удалить игрока из очереди. */
+    delete: QueueCommandConfig;
 
-        /** Открыть очередь. */
-        start: QueueCommandConfig;
+    /** Открыть очередь. */
+    start: QueueCommandConfig;
 
-        /** Закрыть очередь. */
-        stop: QueueCommandConfig;
-    };
-    /** Настройки разрешений для отправки ботом уведомлений в чат. */
-    chatNotificationPermissions: {
-        /** Общее разрешение на отправку любых сообщений ботом */
-        allowSending: boolean;
-        /** Отправка сообщений об открытии очереди */
-        onQueueOpen: boolean;
-        /** Отправка сообщений о закрытии очереди */
-        onQueueClose: boolean;
-        /** Отправка сообщений о добавлении нового участника в очередь */
-        onMemberAdd: boolean;
-        /** Отправка сообщений об удалении участника из очереди */
-        onMemberRemove: boolean;
-        /** Отправка сообщений о перемещении участника внутри очереди */
-        onMemberMove: boolean;
-        /** Отправка сообщений о полном заполнении очереди */
-        onQueueFull: boolean;
-    };
+    /** Закрыть очередь. */
+    stop: QueueCommandConfig;
+  };
+  /** Настройки разрешений для отправки ботом уведомлений в чат. */
+  chatNotificationPermissions: {
+    /** Общее разрешение на отправку любых сообщений ботом */
+    allowSending: boolean;
+    /** Отправка сообщений об открытии очереди */
+    onQueueOpen: boolean;
+    /** Отправка сообщений о закрытии очереди */
+    onQueueClose: boolean;
+    /** Отправка сообщений о добавлении нового участника в очередь */
+    onMemberAdd: boolean;
+    /** Отправка сообщений об удалении участника из очереди */
+    onMemberRemove: boolean;
+    /** Отправка сообщений о перемещении участника внутри очереди */
+    onMemberMove: boolean;
+    /** Отправка сообщений о полном заполнении очереди */
+    onQueueFull: boolean;
+  };
 
-    /** Выбор регулярного выражения для проверки игрового никнейма. */
-    currentGame?: QueueGameConfig;
+  /** Выбор регулярного выражения для проверки игрового никнейма. */
+  currentGame?: QueueGameConfig;
 
-    /** Список никнеймов, сообщения которых бот не будет учитывать при построении очереди. */
-    banList: string[];
+  /** Список никнеймов, сообщения которых бот не будет учитывать при построении очереди. */
+  banList: string[];
 
-    /** Доступ к очереди только для подписчиков. */
-    subscribersOnly?: boolean;
+  /** Доступ к очереди только для подписчиков. */
+  subscribersOnly?: boolean;
 
-    /** Автоматически ставить подписчиков в начало очереди. */
-    prioritizeSubscribers?: boolean;
+  /** Автоматически ставить подписчиков в начало очереди. */
+  prioritizeSubscribers?: boolean;
 
-    /** Максимально возможное количество игр для одного участника. */
-    maxGamesPerUser?: number;
+  /** Максимально возможное количество игр для одного участника. */
+  maxGamesPerUser?: number;
 }

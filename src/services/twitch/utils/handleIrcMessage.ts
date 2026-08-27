@@ -1,10 +1,10 @@
-import {handleIrcPingPong} from "./handleIrcPingPong.ts";
-import {type ParsedIrcMessage, parseIrcMessage} from "./parseIrcMessage.ts";
+import {handleIrcPingPong} from './handleIrcPingPong.ts'
+import {type ParsedIrcMessage, parseIrcMessage} from './parseIrcMessage.ts'
 
 interface HandleIrcMessageProps {
-    event: MessageEvent;
-    socket: WebSocket;
-    emitMessage: (message: ParsedIrcMessage) => void;
+  event: MessageEvent;
+  socket: WebSocket;
+  emitMessage: (message: ParsedIrcMessage) => void;
 }
 
 /**
@@ -12,24 +12,24 @@ interface HandleIrcMessageProps {
  * Маршрутизирует сырые данные по специализированным обработчикам.
  */
 export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageProps): void => {
-    const rawMessage = event.data as string;
+  const rawMessage = event.data as string
 
-    const lines = rawMessage.split(/\r?\n/);
+  const lines = rawMessage.split(/\r?\n/)
 
-    for (const line of lines) {
-        const trimmedLine = line.trim();
+  for (const line of lines) {
+    const trimmedLine = line.trim()
 
-        if (!trimmedLine) continue;
+    if (!trimmedLine) continue
 
-        // 1. Проверка и автоматический ответ на системный PING
-        const isPing = handleIrcPingPong({rawMessage: trimmedLine, socket});
-        if (isPing) continue;
+    // 1. Проверка и автоматический ответ на системный PING
+    const isPing = handleIrcPingPong({rawMessage: trimmedLine, socket})
+    if (isPing) continue
 
-        // 2. Парсим сообщение
-        const parsed = parseIrcMessage(trimmedLine);
-        if (!parsed) continue;
+    // 2. Парсим сообщение
+    const parsed = parseIrcMessage(trimmedLine)
+    if (!parsed) continue
 
-        // 3. Отправляем панелям через систему подписок
-        emitMessage(parsed);
-    }
-};
+    // 3. Отправляем панелям через систему подписок
+    emitMessage(parsed)
+  }
+}

@@ -1,17 +1,17 @@
-import {type FC, type ReactNode} from 'react';
-import {useTwitchAuth} from '../hooks/useTwitchAuth';
-import {AuthContext} from "./AuthContextInstance";
+import {type FC, type ReactNode} from 'react'
+import {useTwitchAuth} from '../hooks/useTwitchAuth'
+import {AuthContext} from './AuthContextInstance'
 
 interface AuthProviderProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 export const AuthProvider: FC<AuthProviderProps> = ({children}) => {
-    const auth = useTwitchAuth();
+  const auth = useTwitchAuth()
 
-    return (
-        <AuthContext.Provider value={auth}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+  return (
+    <AuthContext.Provider value={auth}>
+      {children}
+    </AuthContext.Provider>
+  )
+}

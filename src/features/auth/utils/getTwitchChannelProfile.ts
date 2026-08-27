@@ -1,12 +1,12 @@
-import {TWITCH_HELIX_BASE_URL} from "../../../constants/url.constants.ts";
-import {TWITCH_CLIENT_ID} from "../config.ts";
-import {validateChannelName} from "./validateChannelName.ts";
+import {TWITCH_HELIX_BASE_URL} from '../../../constants/url.constants.ts'
+import {TWITCH_CLIENT_ID} from '../config.ts'
+import {validateChannelName} from './validateChannelName.ts'
 
 export interface TwitchChannelData {
-    id: string;
-    login: string;
-    displayName: string;
-    profileImageUrl: string;
+  id: string;
+  login: string;
+  displayName: string;
+  profileImageUrl: string;
 }
 
 /**
@@ -17,42 +17,42 @@ export interface TwitchChannelData {
  * @returns {Promise<boolean>} - true, если канал существует; false, если не найден или произошла ошибка.
  */
 export const getTwitchChannelProfile = async (channelName: string, token: string): Promise<TwitchChannelData | null> => {
-    const trimmed = channelName.trim().toLowerCase();
+  const trimmed = channelName.trim().toLowerCase()
 
-    if (!trimmed || !validateChannelName(trimmed)) {
-        return null;
+  if (!trimmed || !validateChannelName(trimmed)) {
+    return null
+  }
+
+  try {
+    const response = await fetch(`${TWITCH_HELIX_BASE_URL}/users?login=${trimmed}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Client-Id': TWITCH_CLIENT_ID
+      }
+    })
+
+    if (!response.ok) {
+      return null
     }
 
-    try {
-        const response = await fetch(`${TWITCH_HELIX_BASE_URL}/users?login=${trimmed}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Client-Id': TWITCH_CLIENT_ID
-            }
-        });
+    const result = await response.json()
 
-        if (!response.ok) {
-            return null;
-        }
+    if (Array.isArray(result.data) && result.data.length > 0) {
+      const twitchUser = result.data[0]
 
-        const result = await response.json();
-
-        if (Array.isArray(result.data) && result.data.length > 0) {
-            const twitchUser = result.data[0];
-
-            return {
-                id: twitchUser.id,
-                login: twitchUser.login,
-                displayName: twitchUser.display_name,
-                profileImageUrl: twitchUser.profile_image_url
-            };
-        }
-
-        return null;
-    } catch (error) {
-        console.error('Ошибка сети при получении профиля канала:', error);
-        return null;
+      return {
+        id: twitchUser.id,
+        login: twitchUser.login,
+        displayName: twitchUser.display_name,
+        profileImageUrl: twitchUser.profile_image_url
+      }
     }
-};
+
+    return null
+  } catch (error) {
+    console.error('Ошибка сети при получении профиля канала:', error)
+    return null
+  }
+}
 

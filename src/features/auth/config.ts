@@ -1,25 +1,25 @@
-export const TWITCH_AUTH_BASE_URL = 'https://id.twitch.tv/oauth2';
+export const TWITCH_AUTH_BASE_URL = 'https://id.twitch.tv/oauth2'
 
 /**
  * @see {@link  https://dev.twitch.tv/docs/authentication/register-app}
  */
-export const TWITCH_CLIENT_ID = '13wnz7xzae0v5q4ohlh4kbv5dwh08i';
+export const TWITCH_CLIENT_ID = '13wnz7xzae0v5q4ohlh4kbv5dwh08i'
 
-export const TWITCH_REDIRECT_URI = window.location.origin + window.location.pathname;
+export const TWITCH_REDIRECT_URI = window.location.origin + window.location.pathname
 
 /**
  * @see{@link https://dev.twitch.tv/docs/authentication/scopes/#irc-chat-scopes}
  */
 export const TWITCH_SCOPES = {
-    READ_CHAT: 'chat:read',
-    WRITE_CHAT: 'chat:edit'
+  READ_CHAT: 'chat:read',
+  WRITE_CHAT: 'chat:edit'
 }
 
 export const TWITCH_AUTH_ERRORS = {
-    CSRF_FAILED: 'CSRF_VALIDATION_FAILED',
-} as const;
+  CSRF_FAILED: 'CSRF_VALIDATION_FAILED',
+} as const
 
 export const TWITCH_STORAGE_KEYS = {
-    SESSION: 'tqp_twitch_session',
-    ACTIVE_CHANNEL: 'tqp_active_channel',
-};
+  SESSION: 'tqp_twitch_session',
+  ACTIVE_CHANNEL: 'tqp_active_channel',
+}
