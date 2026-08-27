@@ -10,10 +10,14 @@ export interface QueueMessageSectionProps {
 const QueueMessageSection: FC<QueueMessageSectionProps> = ({titleClassName = ""}) => {
     const {settings, updateSettings} = useQueueSettings();
 
-    // TODO:
-    //  - поправить types.ts
-    //  - написать хендлеры
-    //  - общее разрешение, открытие, закрытие, добавление, удаление, перемещение, заполнение
+    const handlePermissionsChange = (key: keyof typeof settings.chatNotificationPermissions, val: boolean) => {
+        updateSettings({
+            chatNotificationPermissions: {
+                ...settings.chatNotificationPermissions,
+                [key]: val
+            }
+        });
+    };
 
     return (
         <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
@@ -22,10 +26,8 @@ const QueueMessageSection: FC<QueueMessageSectionProps> = ({titleClassName = ""}
             {/* Общее разрешение на отправку сообщений в чат */}
             <SettingsCheckbox
                 label="Разрешить боту отправку сообщений в чат"
-                checked={false}
-                onChange={(checked) => {
-                    console.log(checked)
-                }}
+                checked={settings.chatNotificationPermissions.allowSending}
+                onChange={(checked) => handlePermissionsChange('allowSending', checked)}
             />
 
             {/* Минимальное время ответа бота */}
@@ -33,56 +35,51 @@ const QueueMessageSection: FC<QueueMessageSectionProps> = ({titleClassName = ""}
                 label="Задержка ответов бота (сек)"
                 min={0}
                 max={99}
+                disabled={!settings.chatNotificationPermissions.allowSending}
                 value={settings.botMessageCooldown}
                 onChange={(val) => updateSettings({botMessageCooldown: Number(val)})}
             />
 
             <SettingsCheckbox
                 label="Сообщение об открытии очереди"
-                checked={false}
-                onChange={(checked) => {
-                    console.log(checked)
-                }}
+                disabled={!settings.chatNotificationPermissions.allowSending}
+                checked={settings.chatNotificationPermissions.onQueueOpen}
+                onChange={(checked) => handlePermissionsChange('onQueueOpen', checked)}
             />
 
             <SettingsCheckbox
                 label="Сообщение об заполнении текущей очереди"
-                checked={false}
-                onChange={(checked) => {
-                    console.log(checked)
-                }}
+                disabled={!settings.chatNotificationPermissions.allowSending}
+                checked={settings.chatNotificationPermissions.onQueueFull}
+                onChange={(checked) => handlePermissionsChange('onQueueFull', checked)}
             />
 
             <SettingsCheckbox
                 label="Сообщение об закрытии очереди"
-                checked={false}
-                onChange={(checked) => {
-                    console.log(checked)
-                }}
+                disabled={!settings.chatNotificationPermissions.allowSending}
+                checked={settings.chatNotificationPermissions.onQueueClose}
+                onChange={(checked) => handlePermissionsChange('onQueueClose', checked)}
             />
 
             <SettingsCheckbox
                 label="Сообщение о добавлении игрока в очередь"
-                checked={false}
-                onChange={(checked) => {
-                    console.log(checked)
-                }}
+                disabled={!settings.chatNotificationPermissions.allowSending}
+                checked={settings.chatNotificationPermissions.onMemberAdd}
+                onChange={(checked) => handlePermissionsChange('onMemberAdd', checked)}
             />
 
             <SettingsCheckbox
                 label="Сообщение о удалении игрока из очереди"
-                checked={false}
-                onChange={(checked) => {
-                    console.log(checked)
-                }}
+                disabled={!settings.chatNotificationPermissions.allowSending}
+                checked={settings.chatNotificationPermissions.onMemberRemove}
+                onChange={(checked) => handlePermissionsChange('onMemberRemove', checked)}
             />
 
             <SettingsCheckbox
                 label="Сообщение о перемещении игрока между очередями"
-                checked={false}
-                onChange={(checked) => {
-                    console.log(checked)
-                }}
+                disabled={!settings.chatNotificationPermissions.allowSending}
+                checked={settings.chatNotificationPermissions.onMemberMove}
+                onChange={(checked) => handlePermissionsChange('onMemberMove', checked)}
             />
         </div>
     )

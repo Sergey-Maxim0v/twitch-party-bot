@@ -64,6 +64,15 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
         start: {name: '!start', isModeratorOnly: true},
         stop: {name: '!stop', isModeratorOnly: true}
     },
+    chatNotificationPermissions: {
+        allowSending: true,
+        onQueueOpen: true,
+        onQueueClose: true,
+        onMemberAdd: false,
+        onMemberMove: false,
+        onMemberRemove: false,
+        onQueueFull: false,
+    },
     banList: [],
 };
 
@@ -114,6 +123,23 @@ export interface QueueSettings {
 
         /** Закрыть очередь. */
         stop: QueueCommandConfig;
+    };
+    /** Настройки разрешений для отправки ботом уведомлений в чат. */
+    chatNotificationPermissions: {
+        /** Общее разрешение на отправку любых сообщений ботом */
+        allowSending: boolean;
+        /** Отправка сообщений об открытии очереди */
+        onQueueOpen: boolean;
+        /** Отправка сообщений о закрытии очереди */
+        onQueueClose: boolean;
+        /** Отправка сообщений о добавлении нового участника в очередь */
+        onMemberAdd: boolean;
+        /** Отправка сообщений об удалении участника из очереди */
+        onMemberRemove: boolean;
+        /** Отправка сообщений о перемещении участника внутри очереди */
+        onMemberMove: boolean;
+        /** Отправка сообщений о полном заполнении очереди */
+        onQueueFull: boolean;
     };
 
     /** Выбор регулярного выражения для проверки игрового никнейма. */
