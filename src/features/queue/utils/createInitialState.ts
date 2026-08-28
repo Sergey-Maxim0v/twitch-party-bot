@@ -13,6 +13,5 @@ export const createInitialState = (): QueueState => {
     queueHistory: [],
     globalSessionCounter: 0,
     playerHistory: {},
-    queueLogs: [],
   }
 }

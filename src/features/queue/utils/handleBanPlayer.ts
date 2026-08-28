@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueueState, LogInitiator } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
 
 export interface HandleBanPlayerArgs {
   /** Уникальный ID пользователя на Twitch (если известен, для фильтрации) */
