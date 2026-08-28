@@ -1,6 +1,6 @@
-import {useEffect} from 'react'
-import {useSocketContext} from '../../socket/hooks/useSocketContext.ts'
-import type {ParsedIrcMessage} from '../utils/parseIrcMessage.ts'
+import { useEffect } from 'react'
+import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
+import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
 
 /**
  * Базовый хук для подписки на события Twitch IRC.
@@ -10,7 +10,7 @@ export const useTwitchSubscription = (callback: (message: ParsedIrcMessage) => v
   const socketContext = useSocketContext()
 
   useEffect(() => {
-    if (!socketContext || !socketContext.subscribe) return
+    if (!socketContext?.subscribe) return
 
     // Подписываемся на поток сообщений
     const unsubscribe = socketContext.subscribe(callback)

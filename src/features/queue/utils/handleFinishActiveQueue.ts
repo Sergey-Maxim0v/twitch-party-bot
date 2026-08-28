@@ -1,7 +1,7 @@
-import type {Dispatch, SetStateAction} from 'react'
-import type {LogInitiator, QueueSession, QueueState} from '../types'
-import type {QueueSettings} from '../../queue-settings/types.ts'
-import {APP_LOG_STATUSES, type AppLogStatus} from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { LogInitiator, QueueSession, QueueState } from '../types'
+import type { QueueSettings } from '../../queue-settings/types.ts'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
 
 export interface HandleFinishActiveQueueArgs {
   /** Источник вызова команды (обычно интерфейс стримера) */
@@ -17,7 +17,7 @@ export interface HandleFinishActiveQueueArgs {
     message: string,
     status: AppLogStatus,
     initiator: LogInitiator,
-    actorUsername: string
+    actorUsername: string,
   ) => void;
 }
 
@@ -30,7 +30,7 @@ export const handleFinishActiveQueue = ({
   actorUsername,
   settings,
   setState,
-  pushLog
+  pushLog,
 }: HandleFinishActiveQueueArgs): void => {
   let playedPlayersCount = 0
   let promotedPlayersCount = 0
@@ -46,13 +46,13 @@ export const handleFinishActiveQueue = ({
     const currentTimestamp = Date.now()
     nextSessionNumber = prev.globalSessionCounter + 1
 
-    const updatedPlayerHistory = {...prev.playerHistory}
+    const updatedPlayerHistory = { ...prev.playerHistory }
 
     // 1. Фиксируем кулдауны для всех игроков, которые отыграли текущую сессию
     prev.activeQueue.forEach(player => {
       updatedPlayerHistory[player.userId] = {
         lastPlayedTimestamp: currentTimestamp,
-        lastPlayedSessionNumber: nextSessionNumber
+        lastPlayedSessionNumber: nextSessionNumber,
       }
     })
 
@@ -62,7 +62,7 @@ export const handleFinishActiveQueue = ({
       name: `Состав №${nextSessionNumber}`,
       createdAt: prev.activeQueue[0]?.timestamp || currentTimestamp,
       playedAt: currentTimestamp,
-      players: prev.activeQueue
+      players: prev.activeQueue,
     }
 
     // 3. Вычисляем свободные места для ротации из будущей очереди
@@ -79,7 +79,7 @@ export const handleFinishActiveQueue = ({
       futureQueue: updatedFuture,
       queueHistory: [finishedSession, ...prev.queueHistory],
       globalSessionCounter: nextSessionNumber,
-      playerHistory: updatedPlayerHistory
+      playerHistory: updatedPlayerHistory,
     }
   })
 

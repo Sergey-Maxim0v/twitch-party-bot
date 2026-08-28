@@ -1,9 +1,9 @@
-import {type RefObject, useCallback, useEffect, useRef, useState} from 'react'
-import type {TwitchIrcClient} from '../twitchIrcClient.ts'
-import type {ParsedIrcMessage} from '../utils/parseIrcMessage.ts'
-import {MAX_MESSAGES, TwitchIrcCommand} from '../config.ts'
-import {markDeletedMessages} from '../utils/markDeletedMessages.ts'
-import {createSystemMessage} from '../utils/createSystemMessage.ts'
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import type { TwitchIrcClient } from '../twitchIrcClient.ts'
+import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
+import { MAX_MESSAGES, TwitchIrcCommand } from '../config.ts'
+import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
+import { createSystemMessage } from '../utils/createSystemMessage.ts'
 
 interface UseTwitchChatHistoryProps {
   client: TwitchIrcClient | null;
@@ -13,14 +13,14 @@ interface UseTwitchChatHistoryProps {
 /**
  * Хук для управления историей сообщений чата Twitch и модерацией.
  */
-export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHistoryProps) => {
+export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatHistoryProps) => {
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
   const lastChannelRef = useRef<string | null>(null)
 
   // Очистка чата при смене канала
   useEffect(() => {
-    if (!client || !client.onChannelChange) return
+    if (!client?.onChannelChange) return
 
     if (client.currentChannel) {
       lastChannelRef.current = client.currentChannel
@@ -53,9 +53,9 @@ export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHis
       return false
     }
 
-    setMessages((prev) => {
+    setMessages(prev => {
       const updatedHistory = isModAction
-        ? markDeletedMessages({modMessage: message, currentMessages: prev})
+        ? markDeletedMessages({ modMessage: message, currentMessages: prev })
         : prev
 
       const systemLog = createSystemMessage(message)
@@ -82,7 +82,7 @@ export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHis
 
     if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return
 
-    setMessages((prev) => {
+    setMessages(prev => {
       let messageToPush = message
 
       if (isUserstate) {
@@ -95,11 +95,11 @@ export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHis
           ...message,
           command: TwitchIrcCommand.PRIV_MSG,
           text: savedText,
-          user: message.tags['display-name'] || ''
+          user: message.tags['display-name'] || '',
         }
       }
 
-      if (prev.some((m) => m.id === messageToPush.id)) {
+      if (prev.some(m => m.id === messageToPush.id)) {
         return prev
       }
 
@@ -116,6 +116,6 @@ export const useTwitchChatHistory = ({client, pendingTextsRef}: UseTwitchChatHis
   return {
     messages,
     handleModerationAndEvents,
-    handleStandardMessage
+    handleStandardMessage,
   }
 }

@@ -1,8 +1,8 @@
-import type {RefObject} from 'react' // Импортируем утилиту проверки
-import {TwitchIrcCommand} from '../config'
-import type {ParsedIrcMessage} from './parseIrcMessage'
-import {CHAT_ACCESS_STATUSES, type ChatAccessStatus} from '../../socket/types.ts'
-import {checkIsRoomRestricted} from './checkIsRoomRestricted'
+import type { RefObject } from 'react' // Импортируем утилиту проверки
+import { TwitchIrcCommand } from '../config'
+import type { ParsedIrcMessage } from './parseIrcMessage'
+import { CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../../socket/types.ts'
+import { checkIsRoomRestricted } from './checkIsRoomRestricted'
 
 interface UpdateChatAccessProps {
   message: ParsedIrcMessage;
@@ -21,7 +21,7 @@ export const updateChatAccess = ({
   currentUserLogin,
   pendingTextsRef,
   timeoutTimerRef,
-  updateChatAccessStatus
+  updateChatAccessStatus,
 }: UpdateChatAccessProps): void => {
   // 1. Обработка глобальных настроек комнаты
   if (message.command === TwitchIrcCommand.ROOM_STATE) {
@@ -48,7 +48,7 @@ export const updateChatAccess = ({
   if (message.command === TwitchIrcCommand.CLEAR_CHAT) {
     const targetUser = message.text?.trim()?.toLowerCase()
 
-    // Если модератор забанил или выдал таймаут именно нашему боту
+    // Если модератор забанил или выдал тайм-аут именно нашему боту
     if (targetUser && targetUser === currentUserLogin) {
       const durationStr = message.tags?.['ban-duration']
 

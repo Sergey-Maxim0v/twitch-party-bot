@@ -1,6 +1,6 @@
-import type {Dispatch, SetStateAction} from 'react'
-import type {QueueState, LogInitiator} from '../types'
-import {APP_LOG_STATUSES, type AppLogStatus} from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { QueueState, LogInitiator } from '../types'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
 
 export interface HandleRemovePlayerArgs {
   /** Уникальный ID пользователя на Twitch для удаления */
@@ -21,7 +21,7 @@ export interface HandleRemovePlayerArgs {
     status: AppLogStatus,
     initiator: LogInitiator,
     actorUsername: string,
-    rawCommand?: string
+    rawCommand?: string,
   ) => void;
 }
 
@@ -35,7 +35,7 @@ export const handleRemovePlayer = ({
   actorUsername,
   rawCommand,
   setState,
-  pushLog
+  pushLog,
 }: HandleRemovePlayerArgs): void => {
   let targetPlayerName = ''
   let isRemoved = false
@@ -54,11 +54,11 @@ export const handleRemovePlayer = ({
     if (isTargetActive) {
       const updatedActive = [...prev.activeQueue]
       updatedActive.splice(index, 1)
-      return {...prev, activeQueue: updatedActive}
+      return { ...prev, activeQueue: updatedActive }
     } else {
       const updatedFuture = [...prev.futureQueue]
       updatedFuture.splice(index, 1)
-      return {...prev, futureQueue: updatedFuture}
+      return { ...prev, futureQueue: updatedFuture }
     }
   })
 

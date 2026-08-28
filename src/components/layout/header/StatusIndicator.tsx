@@ -1,4 +1,4 @@
-import {type FC} from 'react'
+import { type FC } from 'react'
 
 interface StatusIndicatorProps {
   label: string;
@@ -17,14 +17,14 @@ const StatusIndicator: FC<StatusIndicatorProps> = ({
   label,
   statusText,
   badgeType,
-  tooltipText
+  tooltipText,
 }) => {
   const badgeColors: Record<StatusIndicatorProps['badgeType'], string> = {
     success: 'bg-success',
     warning: 'bg-warning',
     error: 'bg-error',
     info: 'bg-info',
-    neutral: 'bg-neutral-content'
+    neutral: 'bg-neutral-content',
   }
 
   return (
@@ -33,7 +33,8 @@ const StatusIndicator: FC<StatusIndicatorProps> = ({
       data-tip={tooltipText}
     >
       <div className="flex items-center gap-1.5 px-3 h-8 bg-base-300 rounded-lg border border-base-100
-            hover:bg-base-200 transition-colors select-none">
+            hover:bg-base-200 transition-colors select-none"
+      >
         <span className="text-xs opacity-60 font-medium">
           {label}:
         </span>
@@ -42,7 +43,8 @@ const StatusIndicator: FC<StatusIndicatorProps> = ({
           <span className="relative flex h-2 w-2">
             {badgeType !== 'error' && badgeType !== 'neutral' && (
               <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 
-                            ${badgeColors[badgeType]}`}></span>
+                            ${badgeColors[badgeType]}`}
+              ></span>
             )}
             <span className={`relative inline-flex rounded-full h-2 w-2 ${badgeColors[badgeType]}`}></span>
           </span>

@@ -1,4 +1,4 @@
-import type {ParsedIrcMessage} from './parseIrcMessage.ts'
+import type { ParsedIrcMessage } from './parseIrcMessage.ts'
 
 export type MessageCallback = (message: ParsedIrcMessage) => void
 
@@ -25,7 +25,7 @@ export const createMessageEmitter = () => {
          * Оповещает всех подписчиков о новом сообщении.
          */
     emit: (message: ParsedIrcMessage): void => {
-      listeners.forEach((callback) => {
+      listeners.forEach(callback => {
         try {
           callback(message)
         } catch (error) {
@@ -39,7 +39,7 @@ export const createMessageEmitter = () => {
          */
     clear: (): void => {
       listeners.clear()
-    }
+    },
   }
 }
 

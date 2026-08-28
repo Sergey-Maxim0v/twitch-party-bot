@@ -1,5 +1,5 @@
-import type {QueueState, LogActorRole} from '../types'
-import type {QueueSettings} from '../../queue-settings/types.ts'
+import type { QueueState, LogActorRole } from '../types'
+import type { QueueSettings } from '../../queue-settings/types.ts'
 
 interface ValidateQueueEntryArgs {
   userId: string;
@@ -20,7 +20,7 @@ export const validateQueueEntry = ({
   isSubscriber,
   actorRole,
   state,
-  settings
+  settings,
 }: ValidateQueueEntryArgs): string | null => {
   // Стример, модераторы и система обходят базовые правила ограничений чата
   const isStaff = actorRole === 'стример' || actorRole === 'модератор' || actorRole === 'система'

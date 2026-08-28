@@ -1,6 +1,6 @@
-import type {Dispatch, SetStateAction} from 'react'
-import type {QueueState, LogInitiator} from '../types'
-import {APP_LOG_STATUSES, type AppLogStatus} from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { QueueState, LogInitiator } from '../types'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
 
 export interface HandleRemovePlayerFromAllArgs {
   /** Уникальный ID пользователя на Twitch для полного удаления отовсюду */
@@ -19,7 +19,7 @@ export interface HandleRemovePlayerFromAllArgs {
     status: AppLogStatus,
     initiator: LogInitiator,
     actorUsername: string,
-    rawCommand?: string
+    rawCommand?: string,
   ) => void;
 }
 
@@ -32,7 +32,7 @@ export const handleRemovePlayerFromAll = ({
   actorUsername,
   rawCommand,
   setState,
-  pushLog
+  pushLog,
 }: HandleRemovePlayerFromAllArgs): void => {
   let targetPlayerName = ''
   let removedFromActiveCount = 0
@@ -58,7 +58,7 @@ export const handleRemovePlayerFromAll = ({
     return {
       ...prev,
       activeQueue: prev.activeQueue.filter(p => p.userId !== userId),
-      futureQueue: prev.futureQueue.filter(p => p.userId !== userId)
+      futureQueue: prev.futureQueue.filter(p => p.userId !== userId),
     }
   })
 

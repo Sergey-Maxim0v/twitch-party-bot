@@ -1,15 +1,15 @@
-import {type FC} from 'react'
-import {LuTwitch} from 'react-icons/lu'
-import {useAuth} from '../../features/auth/hooks/useAuth.ts'
+import { type FC } from 'react'
+import { LuTwitch } from 'react-icons/lu'
+import { useAuth } from '../../features/auth/hooks/useAuth.ts'
 
 const WelcomeScreen: FC = () => {
-  const {login} = useAuth()
+  const { login } = useAuth()
 
   return (
     <div className="flex h-full items-center justify-center p-6 bg-base-100">
       <div className="max-w-md text-center flex flex-col items-center gap-4">
         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-2">
-          <LuTwitch className="text-4xl animate-pulse"/>
+          <LuTwitch className="text-4xl animate-pulse" />
         </div>
 
         <h2 className="text-3xl font-black tracking-tight text-base-content">
@@ -22,10 +22,10 @@ const WelcomeScreen: FC = () => {
         </p>
 
         <button
-          onClick={login}
           className="btn btn-primary mt-2 flex items-center gap-2"
+          onClick={login}
         >
-          <LuTwitch className="text-lg"/>
+          <LuTwitch className="text-lg" />
           Авторизоваться через Twitch
         </button>
       </div>

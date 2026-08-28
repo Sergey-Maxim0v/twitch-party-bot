@@ -1,31 +1,31 @@
-import {type ReactNode, type FC, useMemo, useCallback} from 'react'
-import {QueueContext} from './QueueInstance'
-import type {QueueContextValue} from './QueueInstance'
-import type {QueueState, QueuePlayer, LogInitiator, LogActorRole} from '../types'
-import {useQueueSettings} from '../../queue-settings/hooks/useQueueSettings'
-import {createInitialState} from '../utils/createInitialState'
-import {STORAGE_KEY} from '../constants.ts'
-import {useLocalStorage} from '../../../hooks/useLocalStorage.ts'
-import {handleClearActiveQueue} from '../utils/handleClearActiveQueue.ts'
-import {handleClearFutureQueue} from '../utils/handleClearFutureQueue.ts'
-import {handleClearQueueHistory} from '../utils/handleClearQueueHistory.ts'
-import {handleRemovePlayer} from '../utils/handleRemovePlayer.ts'
-import {handleRemovePlayerFromAll} from '../utils/handleRemovePlayerFromAll.ts'
-import {handleBanPlayer} from '../utils/handleBanPlayer.ts'
-import {handleMovePlayer} from '../utils/handleMovePlayer.ts'
-import {handleFinishActiveQueue} from '../utils/handleFinishActiveQueue.ts'
-import {handleJoinPlayer} from '../utils/handleJoinPlayer.ts'
-import {useAppLogs} from '../../app-logs/hooks/useAppLogs.ts'
-import type {AppLogStatus} from '../../app-logs/types.ts'
+import { type ReactNode, type FC, useMemo, useCallback } from 'react'
+import { QueueContext } from './QueueInstance'
+import type { QueueContextValue } from './QueueInstance'
+import type { QueueState, QueuePlayer, LogInitiator, LogActorRole } from '../types'
+import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings'
+import { createInitialState } from '../utils/createInitialState'
+import { STORAGE_KEY } from '../constants.ts'
+import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
+import { handleClearActiveQueue } from '../utils/handleClearActiveQueue.ts'
+import { handleClearFutureQueue } from '../utils/handleClearFutureQueue.ts'
+import { handleClearQueueHistory } from '../utils/handleClearQueueHistory.ts'
+import { handleRemovePlayer } from '../utils/handleRemovePlayer.ts'
+import { handleRemovePlayerFromAll } from '../utils/handleRemovePlayerFromAll.ts'
+import { handleBanPlayer } from '../utils/handleBanPlayer.ts'
+import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
+import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
+import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
+import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
+import type { AppLogStatus } from '../../app-logs/types.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
 }
 
-export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
-  const {settings, updateSettings} = useQueueSettings()
+export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
+  const { settings, updateSettings } = useQueueSettings()
   const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState())
-  const {pushLog: pushAppLog} = useAppLogs()
+  const { pushLog: pushAppLog } = useAppLogs()
 
   const pushLog = useCallback((
     message: string,
@@ -33,7 +33,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     initiator: LogInitiator,
     actorUsername: string,
     rawCommand?: string,
-    extractedNickname?: string | null
+    extractedNickname?: string | null,
   ) => {
     pushAppLog({
       message,
@@ -41,7 +41,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
       initiator,
       actorUsername,
       rawCommand,
-      extractedGameNickname: extractedNickname
+      extractedGameNickname: extractedNickname,
     })
   }, [pushAppLog])
 
@@ -52,7 +52,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     actorUsername: string;
     actorRole: LogActorRole
   }) => {
-    handleClearActiveQueue({...args, setState, pushLog})
+    handleClearActiveQueue({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   const clearFutureQueue = useCallback((args: {
@@ -60,7 +60,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     actorUsername: string;
     actorRole: LogActorRole
   }) => {
-    handleClearFutureQueue({...args, setState, pushLog})
+    handleClearFutureQueue({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   const clearQueueHistory = useCallback((args: {
@@ -68,7 +68,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     actorUsername: string;
     actorRole: LogActorRole
   }) => {
-    handleClearQueueHistory({...args, setState, pushLog})
+    handleClearQueueHistory({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   // === УПРАВЛЕНИЕ ИГРОКАМИ (CRUD) ===
@@ -81,7 +81,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     rawCommand?: string;
     customTimestamp?: number;
   }) => {
-    handleJoinPlayer({...args, state, settings, setState, pushLog})
+    handleJoinPlayer({ ...args, state, settings, setState, pushLog })
   }, [state, settings, setState, pushLog])
 
   const removePlayerFromQueue = useCallback((args: {
@@ -91,7 +91,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayer({...args, setState, pushLog})
+    handleRemovePlayer({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   const removePlayerFromAllQueues = useCallback((args: {
@@ -100,7 +100,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayerFromAll({...args, setState, pushLog})
+    handleRemovePlayerFromAll({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   const banPlayerFromQueue = useCallback((args: {
@@ -110,7 +110,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     initiator: LogInitiator;
     actorUsername: string;
   }) => {
-    handleBanPlayer({...args, settings, updateSettings, setState, pushLog})
+    handleBanPlayer({ ...args, settings, updateSettings, setState, pushLog })
   }, [settings, updateSettings, setState, pushLog])
 
   const movePlayer = useCallback((args: {
@@ -120,13 +120,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     initiator: LogInitiator;
     actorUsername: string;
   }) => {
-    handleMovePlayer({...args, setState, pushLog})
+    handleMovePlayer({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   // === ЖИЗНЕННЫЙ ЦИКЛ ОЧЕРЕДИ ===
 
   const finishActiveQueue = useCallback((args: { initiator: LogInitiator; actorUsername: string }) => {
-    handleFinishActiveQueue({...args, settings, setState, pushLog})
+    handleFinishActiveQueue({ ...args, settings, setState, pushLog })
   }, [settings, setState, pushLog])
 
   const contextValue = useMemo<QueueContextValue>(() => ({
@@ -142,7 +142,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({children}) => {
     removePlayerFromAllQueues,
     banPlayerFromQueue,
     movePlayer,
-    finishActiveQueue
+    finishActiveQueue,
   }), [state, clearActiveQueue, clearFutureQueue, clearQueueHistory, addPlayerToQueue, removePlayerFromQueue, removePlayerFromAllQueues, banPlayerFromQueue, movePlayer, finishActiveQueue])
 
   return <QueueContext.Provider value={contextValue}>{children}</QueueContext.Provider>

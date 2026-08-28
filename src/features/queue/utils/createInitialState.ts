@@ -1,4 +1,4 @@
-import type {QueueState} from '../types'
+import type { QueueState } from '../types'
 
 /**
  * Генерирует дефолтное пустое состояние для очереди игроков и логов сессий.
@@ -13,6 +13,6 @@ export const createInitialState = (): QueueState => {
     queueHistory: [],
     globalSessionCounter: 0,
     playerHistory: {},
-    queueLogs: []
+    queueLogs: [],
   }
 }

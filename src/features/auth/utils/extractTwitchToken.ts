@@ -1,6 +1,6 @@
-import {isValidState} from './crypto.ts'
-import type {TwitchAuthMessageData} from '../types/messages.types.ts'
-import {TWITCH_AUTH_ERRORS} from '../config.ts'
+import { isValidState } from './crypto.ts'
+import type { TwitchAuthMessageData } from '../types/messages.types.ts'
+import { TWITCH_AUTH_ERRORS } from '../config.ts'
 
 export interface TwitchHashData {
   token: string | null;
@@ -59,7 +59,7 @@ export const extractTwitchToken = (): TwitchHashData => {
     // Передача результатов авторизации в родительское окно приложения
     window.opener.postMessage(
       messagePayload,
-      window.location.origin
+      window.location.origin,
     )
 
     // Закрытие контекста всплывающего окна
@@ -71,5 +71,5 @@ export const extractTwitchToken = (): TwitchHashData => {
     window.history.replaceState(null, '', window.location.pathname)
   }
 
-  return {token, error}
+  return { token, error }
 }

@@ -1,6 +1,6 @@
-import type {Dispatch, SetStateAction} from 'react'
-import type {QueueState, LogInitiator} from '../types'
-import {APP_LOG_STATUSES, type AppLogStatus} from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { QueueState, LogInitiator } from '../types'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
 
 export interface HandleMovePlayerArgs {
   /** Уникальный ID пользователя на Twitch для перемещения */
@@ -20,7 +20,7 @@ export interface HandleMovePlayerArgs {
     message: string,
     status: AppLogStatus,
     initiator: LogInitiator,
-    actorUsername: string
+    actorUsername: string,
   ) => void;
 }
 
@@ -34,7 +34,7 @@ export const handleMovePlayer = ({
   initiator,
   actorUsername,
   setState,
-  pushLog
+  pushLog,
 }: HandleMovePlayerArgs): void => {
   let targetPlayerName = ''
   let sourceQueueType: 'active' | 'future' | null = null
@@ -77,7 +77,7 @@ export const handleMovePlayer = ({
     return {
       ...prev,
       activeQueue: updatedActive,
-      futureQueue: updatedFuture
+      futureQueue: updatedFuture,
     }
   })
 

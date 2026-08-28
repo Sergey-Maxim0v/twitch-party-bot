@@ -1,7 +1,7 @@
-import {useEffect, useRef, type RefObject} from 'react'
-import {CHAT_ACCESS_STATUSES, CONNECTION_STATUSES} from '../types.ts'
-import type {ChatAccessStatus, ConnectionStatus} from '../types.ts'
-import type {TwitchIrcClient} from '../../twitch/twitchIrcClient.ts'
+import { useEffect, useRef, type RefObject } from 'react'
+import { CHAT_ACCESS_STATUSES, CONNECTION_STATUSES } from '../types.ts'
+import type { ChatAccessStatus, ConnectionStatus } from '../types.ts'
+import type { TwitchIrcClient } from '../../twitch/twitchIrcClient.ts'
 
 interface UseSocketNetworkSyncProps {
   client: TwitchIrcClient;
@@ -17,7 +17,7 @@ export const useSocketNetworkSync = ({
   client,
   lastActiveChatStatusRef,
   setConnectionStatus,
-  setChatAccessStatus
+  setChatAccessStatus,
 }: UseSocketNetworkSyncProps): void => {
   const setConnectionStatusRef = useRef(setConnectionStatus)
   const setChatAccessStatusRef = useRef(setChatAccessStatus)

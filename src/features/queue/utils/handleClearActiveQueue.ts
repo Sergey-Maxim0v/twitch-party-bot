@@ -1,6 +1,6 @@
-import type {Dispatch, SetStateAction} from 'react'
-import type {QueueState, LogInitiator, LogActorRole} from '../types'
-import {APP_LOG_STATUSES, type AppLogStatus} from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { QueueState, LogInitiator, LogActorRole } from '../types'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
 
 export interface HandleClearActiveQueueArgs {
   /** Функция обновления состояния */
@@ -16,7 +16,7 @@ export interface HandleClearActiveQueueArgs {
     message: string,
     status: AppLogStatus,
     initiator: LogInitiator,
-    actorUsername: string
+    actorUsername: string,
   ) => void;
 }
 
@@ -28,11 +28,11 @@ export const handleClearActiveQueue = ({
   initiator,
   actorUsername,
   actorRole,
-  pushLog
+  pushLog,
 }: HandleClearActiveQueueArgs): void => {
   setState(prev => ({
     ...prev,
-    activeQueue: []
+    activeQueue: [],
   }))
 
   const logMessage = `Текущая очередь очищена. Исполнитель: [${actorRole}] ${actorUsername}`
@@ -41,6 +41,6 @@ export const handleClearActiveQueue = ({
     logMessage,
     APP_LOG_STATUSES.INFO,
     initiator,
-    actorUsername
+    actorUsername,
   )
 }

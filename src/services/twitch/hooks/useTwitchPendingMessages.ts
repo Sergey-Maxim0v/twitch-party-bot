@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef} from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 /**
  * Хук для управления очередью отправленных сообщений, ожидающих USER_STATE,
@@ -29,6 +29,6 @@ export const useTwitchPendingMessages = () => {
   return {
     pendingTextsRef,
     timeoutTimerRef,
-    registerPendingMessage
+    registerPendingMessage,
   }
 }

@@ -1,9 +1,9 @@
-import {type FC} from 'react'
-import {useAuth} from '../hooks/useAuth.ts'
-import {AUTH_STAGES} from '../types'
+import { type FC } from 'react'
+import { useAuth } from '../hooks/useAuth.ts'
+import { AUTH_STAGES } from '../types'
 
 export const AuthModal: FC = () => {
-  const {isModalOpen, authStage, error, login, closeModal} = useAuth()
+  const { isModalOpen, authStage, error, login, closeModal } = useAuth()
 
   if (!isModalOpen) return null
 
@@ -20,7 +20,7 @@ export const AuthModal: FC = () => {
               Пожалуйста, завершите вход в открывшемся всплывающем окне.
             </p>
             <div className="modal-action w-full mt-2">
-              <button onClick={closeModal} className="btn btn-ghost btn-sm w-full">
+              <button className="btn btn-ghost btn-sm w-full" onClick={closeModal}>
                 Отмена
               </button>
             </div>
@@ -42,9 +42,10 @@ export const AuthModal: FC = () => {
         {authStage === AUTH_STAGES.SUCCESS && (
           <>
             <div
-              className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success">
+              className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success"
+            >
               <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </div>
             <h3 className="font-bold text-lg text-success">Успешный вход!</h3>
@@ -59,8 +60,11 @@ export const AuthModal: FC = () => {
           <>
             <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center text-error">
               <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"/>
+                <path d="M6 18L18 6M6 6l12 12"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                />
               </svg>
             </div>
             <h3 className="font-bold text-lg text-error">Ошибка входа</h3>
@@ -68,10 +72,10 @@ export const AuthModal: FC = () => {
               {error || 'Неизвестная ошибка при авторизации.'}
             </p>
             <div className="modal-action grid grid-cols-2 gap-2 w-full mt-2">
-              <button onClick={login} className="btn btn-primary btn-sm">
+              <button className="btn btn-primary btn-sm" onClick={login}>
                 Повторить
               </button>
-              <button onClick={closeModal} className="btn btn-ghost btn-sm">
+              <button className="btn btn-ghost btn-sm" onClick={closeModal}>
                 Закрыть
               </button>
             </div>

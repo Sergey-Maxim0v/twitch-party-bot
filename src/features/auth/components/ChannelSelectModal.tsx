@@ -1,11 +1,11 @@
-import {useState, type FC, type ChangeEvent, type SyntheticEvent, useEffect} from 'react'
-import {useAuth} from '../hooks/useAuth.ts'
-import {useSocketContext} from '../../../services/socket/hooks/useSocketContext.ts'
-import {validateChannelName} from '../utils/validateChannelName.ts'
-import {LuX} from 'react-icons/lu'
-import {getChannelSelectCurrentError} from '../utils/getChannelSelectCurrentError.ts'
-import {TWITCH_STORAGE_KEYS} from '../config.ts'
-import {getTwitchChannelProfile} from '../utils/getTwitchChannelProfile.ts'
+import { useState, type FC, type ChangeEvent, type SyntheticEvent, useEffect } from 'react'
+import { useAuth } from '../hooks/useAuth.ts'
+import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
+import { validateChannelName } from '../utils/validateChannelName.ts'
+import { LuX } from 'react-icons/lu'
+import { getChannelSelectCurrentError } from '../utils/getChannelSelectCurrentError.ts'
+import { TWITCH_STORAGE_KEYS } from '../config.ts'
+import { getTwitchChannelProfile } from '../utils/getTwitchChannelProfile.ts'
 
 export const ChannelSelectModal: FC = () => {
   const {
@@ -16,10 +16,10 @@ export const ChannelSelectModal: FC = () => {
     closeChannelModal,
     channelError,
     selectOwnChannel,
-    selectCustomChannel
+    selectCustomChannel,
   } = useAuth()
 
-  const {connect} = useSocketContext()
+  const { connect } = useSocketContext()
 
   const [inputValue, setInputValue] = useState('')
   const [isChecking, setIsChecking] = useState(false)
@@ -50,7 +50,7 @@ export const ChannelSelectModal: FC = () => {
     channelError,
     isValidationTriggered,
     value: inputValue,
-    isNotFound
+    isNotFound,
   })
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -116,11 +116,11 @@ export const ChannelSelectModal: FC = () => {
         {/* Кнопка закрытия */}
         {isChannelSelectedInSystem && !isChecking && (
           <button
-            onClick={closeChannelModal}
-            className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/70 hover:text-base-content"
             aria-label="Закрыть модальное окно"
+            className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/70 hover:text-base-content"
+            onClick={closeChannelModal}
           >
-            <LuX className="text-base"/>
+            <LuX className="text-base" />
           </button>
         )}
 
@@ -133,9 +133,9 @@ export const ChannelSelectModal: FC = () => {
 
         {/* Способ 1: Быстрый вход на свой канал */}
         <button
-          onClick={handleOwnChannelClick}
-          disabled={isChecking}
           className="btn btn-primary w-full flex flex-col h-auto py-2.5 gap-0.5"
+          disabled={isChecking}
+          onClick={handleOwnChannelClick}
         >
           <span className="text-xs">Подключить канал</span>
           {session?.login && (
@@ -144,24 +144,25 @@ export const ChannelSelectModal: FC = () => {
         </button>
 
         {/* Способ 2: Ручной ввод канала */}
-        <form onSubmit={handleCustomSubmit} className="flex flex-col gap-3 w-full">
+        <form className="flex flex-col gap-3 w-full" onSubmit={handleCustomSubmit}>
           <div className="form-control w-full">
             <input
-              type="text"
-              name="Channel-name"
-              placeholder="Название канала"
-              value={inputValue}
-              onChange={handleInputChange}
-              className={inputClassName}
               autoComplete="off"
-              spellCheck="false"
+              className={inputClassName}
               disabled={isChecking}
+              name="Channel-name"
+              onChange={handleInputChange}
+              placeholder="Название канала"
+              spellCheck="false"
+              type="text"
+              value={inputValue}
             />
             {currentError && (
               <label className="label py-1">
                 <span
                   className="label-text-alt text-error font-medium wrap-break-word
-                                    whitespace-normal w-full">
+                                    whitespace-normal w-full"
+                >
                   {currentError}
                 </span>
               </label>
@@ -170,13 +171,13 @@ export const ChannelSelectModal: FC = () => {
 
           {/* Главная кнопка сабмита */}
           <button
-            type="submit"
             className="btn btn-primary btn-outline w-full btn-sm flex flex-col h-14
                         justify-center items-center py-2 gap-0.5 overflow-hidden"
             disabled={!inputValue.trim() || isChecking}
+            type="submit"
           >
             {isChecking ? (
-              <span className="loading loading-spinner loading-md"/>
+              <span className="loading loading-spinner loading-md" />
             ) : inputValue.trim() ? (
               <>
                 <span className="text-xs">
@@ -197,8 +198,8 @@ export const ChannelSelectModal: FC = () => {
 
       {/* Бэкдроп */}
       <div
-        onClick={(isChannelSelectedInSystem && !isChecking) ? closeChannelModal : undefined}
         className={`modal-backdrop bg-black/40 backdrop-blur-xs ${hasSelectedChannel && !isChecking ? 'cursor-pointer' : ''}`}
+        onClick={(isChannelSelectedInSystem && !isChecking) ? closeChannelModal : undefined}
       />
     </div>
   )

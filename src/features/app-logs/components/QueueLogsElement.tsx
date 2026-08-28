@@ -1,5 +1,5 @@
-import {type FC} from 'react'
-import {APP_LOG_STATUSES, type AppLogItem} from '../types.ts'
+import { type FC } from 'react'
+import { APP_LOG_STATUSES, type AppLogItem } from '../types.ts'
 
 interface QueueLogsElementProps {
   log: AppLogItem;
@@ -8,7 +8,7 @@ interface QueueLogsElementProps {
 /**
  * Атомарный компонент для отображения одного элемента лога.
  */
-export const QueueLogsElement: FC<QueueLogsElementProps> = ({log}) => {
+export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
   const timeString = new Date(log.timestamp).toLocaleTimeString()
 
   let statusClassName = 'text-base-content'

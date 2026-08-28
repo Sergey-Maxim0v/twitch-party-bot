@@ -12,7 +12,7 @@ export const TWITCH_REDIRECT_URI = window.location.origin + window.location.path
  */
 export const TWITCH_SCOPES = {
   READ_CHAT: 'chat:read',
-  WRITE_CHAT: 'chat:edit'
+  WRITE_CHAT: 'chat:edit',
 }
 
 export const TWITCH_AUTH_ERRORS = {

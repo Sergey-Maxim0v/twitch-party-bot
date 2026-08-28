@@ -1,21 +1,21 @@
-import {type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CHAT_ACCESS_STATUSES,
   type ChatAccessStatus,
   CONNECTION_STATUSES,
   type ConnectionStatus,
-  type SocketStorage
+  type SocketStorage,
 } from '../types.ts'
-import {SocketInstance} from './SocketInstance.ts'
-import {TwitchIrcClient} from '../../twitch/twitchIrcClient.ts'
-import {useSocketNetworkSync} from '../hooks/useSocketNetworkSync.ts'
-import type {MessageCallback} from '../../twitch/utils/createMessageEmitter.ts'
+import { SocketInstance } from './SocketInstance.ts'
+import { TwitchIrcClient } from '../../twitch/twitchIrcClient.ts'
+import { useSocketNetworkSync } from '../hooks/useSocketNetworkSync.ts'
+import type { MessageCallback } from '../../twitch/utils/createMessageEmitter.ts'
 
 interface SocketProviderProps {
   children: ReactNode;
 }
 
-const SocketProvider: FC<SocketProviderProps> = ({children}) => {
+const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   const [client] = useState<TwitchIrcClient>(() => new TwitchIrcClient())
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED)
   const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE)
@@ -45,7 +45,7 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
   }, [client])
 
   // Подключаем изолированный модуль синхронизации сети ОС
-  useSocketNetworkSync({client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus})
+  useSocketNetworkSync({ client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus })
 
   const connect = useCallback((channel: string, token: string, userLogin: string): void => {
     lastActiveChatStatusRef.current = CHAT_ACCESS_STATUSES.OFFLINE
@@ -85,7 +85,7 @@ const SocketProvider: FC<SocketProviderProps> = ({children}) => {
     getClient,
     connectionStatus,
     chatAccessStatus,
-    updateChatAccessStatus
+    updateChatAccessStatus,
   }), [connect, disconnect, subscribe, sendMessage, getClient, connectionStatus, chatAccessStatus, updateChatAccessStatus])
 
   return (

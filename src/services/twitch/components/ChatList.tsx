@@ -1,5 +1,5 @@
 import ChatMessage from './ChatMessage.tsx'
-import type {ParsedIrcMessage} from '../utils/parseIrcMessage.ts'
+import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
 
 interface ChatListProps {
   messages: ParsedIrcMessage[];
@@ -16,7 +16,7 @@ const ChatList = ({
   IsShowDeletedMessages,
   highlightRoles,
   showSystemNotifications,
-  highlightPointsMessages
+  highlightPointsMessages,
 }: ChatListProps) => {
 
   const reversedMessages = [...messages].reverse()
@@ -30,15 +30,15 @@ const ChatList = ({
           </span>
         </div>
       ) : (
-        reversedMessages.map((msg) => (
+        reversedMessages.map(msg => (
           <ChatMessage
-            key={msg.id}
-            msg={msg}
-            useColoredNames={useColoredNames}
+            highlightPointsMessages={highlightPointsMessages}
             highlightRoles={highlightRoles}
             isShowDeletedMessages={IsShowDeletedMessages}
+            key={msg.id}
+            msg={msg}
             showSystemNotifications={showSystemNotifications}
-            highlightPointsMessages={highlightPointsMessages}
+            useColoredNames={useColoredNames}
           />
         ))
       )}

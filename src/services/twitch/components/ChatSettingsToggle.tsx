@@ -1,4 +1,4 @@
-import type {FC} from 'react'
+import type { FC } from 'react'
 
 interface ChatSettingsToggleProps {
   label: string;
@@ -18,10 +18,10 @@ const ChatSettingsToggle: FC<ChatSettingsToggleProps> = ({
         {label}
       </span>
       <input
-        type="checkbox"
-        className="toggle toggle-primary toggle-sm shrink-0"
         checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
+        className="toggle toggle-primary toggle-sm shrink-0"
+        onChange={e => { onChange(e.target.checked) }}
+        type="checkbox"
       />
     </label>
   )

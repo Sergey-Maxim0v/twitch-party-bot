@@ -1,4 +1,4 @@
-import {getReconnectDelay} from './getReconnectDelay.ts'
+import { getReconnectDelay } from './getReconnectDelay.ts'
 
 interface ReconnectConfig {
   maxAttempts?: number;

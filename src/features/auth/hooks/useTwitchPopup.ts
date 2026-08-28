@@ -1,8 +1,8 @@
-import {useCallback, useEffect, useRef, useState} from 'react'
-import type {TwitchAuthMessageData} from '../types/messages.types.ts'
-import {TWITCH_AUTH_ERRORS} from '../config.ts'
-import {AUTH_STAGES, type AuthStage} from '../types'
-import {getTwitchAuthUrl} from '../utils/getTwitchAuthUrl.ts'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { TwitchAuthMessageData } from '../types/messages.types.ts'
+import { TWITCH_AUTH_ERRORS } from '../config.ts'
+import { AUTH_STAGES, type AuthStage } from '../types'
+import { getTwitchAuthUrl } from '../utils/getTwitchAuthUrl.ts'
 
 interface UseTwitchPopupProps {
   onSuccess: (token: string) => Promise<void>;
@@ -12,7 +12,7 @@ interface UseTwitchPopupProps {
 /**
  * Хук для управления всплывающим окном (popup) авторизации Twitch.
  */
-export const useTwitchPopup = ({onSuccess, setError}: UseTwitchPopupProps) => {
+export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [authStage, setAuthStage] = useState<AuthStage>(AUTH_STAGES.IDLE)
 
@@ -35,7 +35,7 @@ export const useTwitchPopup = ({onSuccess, setError}: UseTwitchPopupProps) => {
     popupRef.current = window.open(
       url,
       'TwitchAuthPopup',
-      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`,
     )
   }, [setError])
 
@@ -62,7 +62,7 @@ export const useTwitchPopup = ({onSuccess, setError}: UseTwitchPopupProps) => {
         setError(
           data.error === TWITCH_AUTH_ERRORS.CSRF_FAILED
             ? 'Ошибка безопасности (CSRF): верификация контекста не пройдена.'
-            : `Авторизация отклонена Twitch: ${data.error}`
+            : `Авторизация отклонена Twitch: ${data.error}`,
         )
         return
       }

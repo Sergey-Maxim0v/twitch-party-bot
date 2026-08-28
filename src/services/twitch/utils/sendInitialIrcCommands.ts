@@ -1,4 +1,4 @@
-import {TwitchIrcCapability} from '../config.ts'
+import { TwitchIrcCapability } from '../config.ts'
 
 export interface sendInitialIrcCommandsProps {
   socket: WebSocket,
@@ -15,8 +15,8 @@ export const sendInitialIrcCommands = (
     socket,
     token,
     userLogin,
-    channel
-  }: sendInitialIrcCommandsProps
+    channel,
+  }: sendInitialIrcCommandsProps,
 ): void => {
   const lowerLogin = userLogin.toLowerCase()
   const lowerChannel = channel.toLowerCase()
@@ -24,7 +24,7 @@ export const sendInitialIrcCommands = (
   const capabilities = [
     TwitchIrcCapability.MEMBERSHIP,
     TwitchIrcCapability.TAGS,
-    TwitchIrcCapability.COMMANDS
+    TwitchIrcCapability.COMMANDS,
   ].join(' ')
 
   socket.send(`PASS oauth:${token}`)

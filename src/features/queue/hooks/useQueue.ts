@@ -1,6 +1,6 @@
-import {useContext} from 'react'
-import {QueueContext} from '../context/QueueInstance'
-import type {QueueContextValue} from '../context/QueueInstance'
+import { useContext } from 'react'
+import { QueueContext } from '../context/QueueInstance'
+import type { QueueContextValue } from '../context/QueueInstance'
 
 /**
  * Хук для доступа к состоянию и методам управления очередью.

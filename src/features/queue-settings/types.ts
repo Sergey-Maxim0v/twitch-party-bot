@@ -20,7 +20,7 @@ export const QUEUE_GAMES: Record<QueueGameKey, string> = {
   FORTNITE: 'Fortnite',
   NARAKA: 'Naraka: Bladepoint',
   GOOSE_GOOSE: 'Goose Goose Duck',
-  AMONG_US: 'Among Us'
+  AMONG_US: 'Among Us',
 }
 
 export const GAME_PATTERNS: Record<QueueGameKey, string> = {
@@ -33,7 +33,7 @@ export const GAME_PATTERNS: Record<QueueGameKey, string> = {
   FORTNITE: '^[a-zA-Z0-9а-яА-ЯёЁ_\\s-]{3,16}$',
   NARAKA: '^.{1,14}$',
   GOOSE_GOOSE: '^[a-zA-Z0-9а-яА-ЯёЁ]{1,16}$',
-  AMONG_US: '^.{1,10}$'
+  AMONG_US: '^.{1,10}$',
 }
 
 export interface QueueCommandConfig {
@@ -55,14 +55,14 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   sessionHistoryCooldown: 0,
   gamesPlayedCooldown: 0,
   commands: {
-    join: {name: '!join', isModeratorOnly: false},
-    leave: {name: '!leave', isModeratorOnly: false},
-    show: {name: '!show', isModeratorOnly: false},
-    clear: {name: '!clear', isModeratorOnly: true},
-    add: {name: '!add', isModeratorOnly: true},
-    delete: {name: '!delete', isModeratorOnly: true},
-    start: {name: '!start', isModeratorOnly: true},
-    stop: {name: '!stop', isModeratorOnly: true}
+    join: { name: '!join', isModeratorOnly: false },
+    leave: { name: '!leave', isModeratorOnly: false },
+    show: { name: '!show', isModeratorOnly: false },
+    clear: { name: '!clear', isModeratorOnly: true },
+    add: { name: '!add', isModeratorOnly: true },
+    delete: { name: '!delete', isModeratorOnly: true },
+    start: { name: '!start', isModeratorOnly: true },
+    stop: { name: '!stop', isModeratorOnly: true },
   },
   chatNotificationPermissions: {
     allowSending: true,

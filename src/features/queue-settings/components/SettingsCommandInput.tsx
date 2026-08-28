@@ -1,4 +1,4 @@
-import type {FC} from 'react'
+import type { FC } from 'react'
 
 interface SettingsCommandInputProps {
   label: string;
@@ -22,18 +22,19 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
   return (
     <div className={`flex flex-col gap-1 w-full min-w-0 ${className}`}>
       <span className={`text-xs font-semibold tracking-wide 
-                ${disabled ? 'text-base-content/30' : 'text-base-content/60'}`}>
+                ${disabled ? 'text-base-content/30' : 'text-base-content/60'}`}
+      >
         {label}
       </span>
 
       <div className="flex items-center gap-2 w-full min-w-0">
         <input
-          type="text"
-          disabled={disabled}
-          placeholder="!команда"
           className="input input-bordered input-sm flex-1 min-w-0 text-sm focus:input-primary focus:outline-none"
+          disabled={disabled}
+          onChange={e => { onCommandChange(e.target.value) }}
+          placeholder="!команда"
+          type="text"
           value={commandValue}
-          onChange={(e) => onCommandChange(e.target.value)}
         />
 
         <label
@@ -43,15 +44,16 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
         >
           <span
             className={`label-text text-xs font-medium select-none 
-                        ${disabled ? 'text-base-content/30' : 'text-base-content/50'}`}>
+                        ${disabled ? 'text-base-content/30' : 'text-base-content/50'}`}
+          >
             Мод
           </span>
           <input
-            type="checkbox"
-            disabled={disabled}
-            className="checkbox checkbox-primary checkbox-xs shrink-0 focus:input-primary focus:outline-none"
             checked={isModeratorValue}
-            onChange={(e) => onModeratorChange(e.target.checked)}
+            className="checkbox checkbox-primary checkbox-xs shrink-0 focus:input-primary focus:outline-none"
+            disabled={disabled}
+            onChange={e => { onModeratorChange(e.target.checked) }}
+            type="checkbox"
           />
         </label>
       </div>

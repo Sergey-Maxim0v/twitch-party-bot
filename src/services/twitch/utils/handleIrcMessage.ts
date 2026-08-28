@@ -1,5 +1,5 @@
-import {handleIrcPingPong} from './handleIrcPingPong.ts'
-import {type ParsedIrcMessage, parseIrcMessage} from './parseIrcMessage.ts'
+import { handleIrcPingPong } from './handleIrcPingPong.ts'
+import { type ParsedIrcMessage, parseIrcMessage } from './parseIrcMessage.ts'
 
 interface HandleIrcMessageProps {
   event: MessageEvent;
@@ -11,7 +11,7 @@ interface HandleIrcMessageProps {
  * Главный диспетчер входящих сообщений.
  * Маршрутизирует сырые данные по специализированным обработчикам.
  */
-export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageProps): void => {
+export const handleIrcMessage = ({ event, socket, emitMessage }: HandleIrcMessageProps): void => {
   const rawMessage = event.data as string
 
   const lines = rawMessage.split(/\r?\n/)
@@ -22,7 +22,7 @@ export const handleIrcMessage = ({event, socket, emitMessage}: HandleIrcMessageP
     if (!trimmedLine) continue
 
     // 1. Проверка и автоматический ответ на системный PING
-    const isPing = handleIrcPingPong({rawMessage: trimmedLine, socket})
+    const isPing = handleIrcPingPong({ rawMessage: trimmedLine, socket })
     if (isPing) continue
 
     // 2. Парсим сообщение

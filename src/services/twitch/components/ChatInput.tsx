@@ -1,9 +1,9 @@
-import {useState, useRef, useEffect, type ReactNode} from 'react'
-import {LuSend} from 'react-icons/lu'
-import {useSocketContext} from '../../socket/hooks/useSocketContext.ts'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { LuSend } from 'react-icons/lu'
+import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import * as React from 'react'
-import {TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH} from '../../../constants/twitch.constants.ts'
-import {CHAT_ACCESS_STATUSES} from '../../socket/types.ts'
+import { TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH } from '../../../constants/twitch.constants.ts'
+import { CHAT_ACCESS_STATUSES } from '../../socket/types.ts'
 
 interface ChatInputProps {
   onSendMessage: (text: string) => void;
@@ -14,10 +14,10 @@ const STATUS_BUTTON_CLASSES: Record<string, string> = {
   [CHAT_ACCESS_STATUSES.CONNECTED]: 'btn-primary',
   [CHAT_ACCESS_STATUSES.RESTRICTED]: 'btn-warning text-black',
   [CHAT_ACCESS_STATUSES.OFFLINE]: 'btn-error text-white',
-  [CHAT_ACCESS_STATUSES.BANNED]: 'btn-neutral'
+  [CHAT_ACCESS_STATUSES.BANNED]: 'btn-neutral',
 }
 
-const ChatInput = ({onSendMessage, actions}: ChatInputProps) => {
+const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isOverflowed, setIsOverflowed] = useState(false)
@@ -78,33 +78,33 @@ const ChatInput = ({onSendMessage, actions}: ChatInputProps) => {
 
   return (
     <div className="p-3 border-t border-base-300 bg-base-200 shrink-0">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full">
+      <form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
         <textarea
-          ref={textareaRef}
-          name="chat-message"
-          value={value}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Отправить сообщение"
-          maxLength={TWITCH_CHAT_MAX_LENGTH}
-          minLength={TWITCH_CHAT_MIN_LENGTH}
-          rows={1}
           className={`textarea textarea-bordered textarea-sm w-full bg-base-100 text-sm 
                     focus:outline-none placeholder-base-content/40 resize-none 
                     min-h-8 max-h-32 py-1.5 leading-relaxed custom-scrollbar 
                     ${isOverflowed ? 'overflow-y-auto' : 'overflow-hidden'}`}
+          maxLength={TWITCH_CHAT_MAX_LENGTH}
+          minLength={TWITCH_CHAT_MIN_LENGTH}
+          name="chat-message"
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="Отправить сообщение"
+          ref={textareaRef}
+          rows={1}
+          value={value}
         />
 
         <div className="flex justify-between items-center w-full">
           {actions}
 
           <button
-            type="submit"
-            disabled={!value.trim()}
             className={`btn btn-sm btn-square transition-colors duration-200 ${buttonStatusClass}`}
+            disabled={!value.trim()}
             title="Отправить"
+            type="submit"
           >
-            <LuSend className="w-4 h-4"/>
+            <LuSend className="w-4 h-4" />
           </button>
         </div>
 

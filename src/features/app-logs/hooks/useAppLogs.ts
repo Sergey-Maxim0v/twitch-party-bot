@@ -1,5 +1,5 @@
-import {useContext} from 'react'
-import {AppLogsContext, type AppLogsContextValue} from '../context/AppLogsInstance.ts'
+import { useContext } from 'react'
+import { AppLogsContext, type AppLogsContextValue } from '../context/AppLogsInstance.ts'
 
 /**
  * Хук для безопасного доступа к контексту логов приложения (чтение, запись, очистка).

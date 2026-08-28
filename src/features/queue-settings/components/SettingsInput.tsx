@@ -1,4 +1,4 @@
-import type {FC} from 'react'
+import type { FC } from 'react'
 
 interface SettingsInputProps {
   label: string;
@@ -25,11 +25,11 @@ export const SettingsInput: FC<SettingsInputProps> = ({
         </span>
       </label>
       <input
-        type={type}
-        min={min}
         className="input input-bordered w-full input-sm focus:input-primary text-sm min-w-0"
+        min={min}
+        onChange={e => { onChange(e.target.value) }}
+        type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
       />
     </div>
   )

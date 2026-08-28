@@ -1,5 +1,5 @@
-import type {FC} from 'react'
-import {LuSettings} from 'react-icons/lu'
+import type { FC } from 'react'
+import { LuSettings } from 'react-icons/lu'
 import ChatSettingsToggle from './ChatSettingsToggle.tsx'
 
 interface ChatSettingsProps {
@@ -25,23 +25,23 @@ const ChatSettings: FC<ChatSettingsProps> = ({
   showSystemNotifications,
   setShowSystemNotifications,
   highlightPointsMessages,
-  setHighlightPointsMessages
+  setHighlightPointsMessages,
 }) => {
 
   return (
     <div className="dropdown dropdown-top group">
       <button
-        tabIndex={0}
-        className="btn btn-ghost btn-sm btn-square"
         aria-label="Настройки чата"
+        className="btn btn-ghost btn-sm btn-square"
+        tabIndex={0}
       >
-        <LuSettings className="w-5 h-5 text-base-content/70"/>
+        <LuSettings className="w-5 h-5 text-base-content/70" />
       </button>
       <div
-        tabIndex={0}
         className="dropdown-content pointer-events-none group-focus-within:pointer-events-auto
                 z-50 p-4 shadow-2xl bg-base-100 border border-base-300 rounded-box w-72 mb-2
                 flex flex-col gap-3 overflow-hidden box-border"
+        tabIndex={0}
       >
         <div className="text-xs font-bold uppercase tracking-wider
                     text-base-content/50 w-full select-none"
@@ -51,32 +51,32 @@ const ChatSettings: FC<ChatSettingsProps> = ({
 
         <div className="w-full flex flex-col gap-3">
           <ChatSettingsToggle
-            label="Цветные ники"
             checked={useColoredNames}
+            label="Цветные ники"
             onChange={setUseColoredNames}
           />
 
           <ChatSettingsToggle
-            label="Стили модеров, випов"
             checked={highlightRoles}
+            label="Стили модеров, випов"
             onChange={setHighlightRoles}
           />
 
           <ChatSettingsToggle
-            label="Выделенные сообщения"
             checked={highlightPointsMessages}
+            label="Выделенные сообщения"
             onChange={setHighlightPointsMessages}
           />
 
           <ChatSettingsToggle
-            label="Показать удаленные сообщения"
             checked={IsShowDeletedMessages}
+            label="Показать удаленные сообщения"
             onChange={setIsShowDeletedMessages}
           />
 
           <ChatSettingsToggle
-            label="Показать системные сообщения"
             checked={showSystemNotifications}
+            label="Показать системные сообщения"
             onChange={setShowSystemNotifications}
           />
         </div>

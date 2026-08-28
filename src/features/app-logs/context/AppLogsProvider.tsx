@@ -1,14 +1,14 @@
-import {type FC, type ReactNode, useState, useCallback, useMemo} from 'react'
-import {AppLogsContext} from './AppLogsInstance.ts'
-import {APP_LOG_STATUSES, type AppLogItem, type AppLogStatus} from '../types.ts'
-import type {LogInitiator} from '../../queue/types.ts'
-import {AppLogsConsumerWrapper} from '../components/AppLogsConsumerWrapper.tsx'
+import { type FC, type ReactNode, useState, useCallback, useMemo } from 'react'
+import { AppLogsContext } from './AppLogsInstance.ts'
+import { APP_LOG_STATUSES, type AppLogItem, type AppLogStatus } from '../types.ts'
+import type { LogInitiator } from '../../queue/types.ts'
+import { AppLogsConsumerWrapper } from '../components/AppLogsConsumerWrapper.tsx'
 
 interface AppLogsProviderProps {
   children: ReactNode;
 }
 
-export const AppLogsProvider: FC<AppLogsProviderProps> = ({children}) => {
+export const AppLogsProvider: FC<AppLogsProviderProps> = ({ children }) => {
   const [logs, setLogs] = useState<AppLogItem[]>([])
 
   const pushLog = useCallback(({
@@ -17,7 +17,7 @@ export const AppLogsProvider: FC<AppLogsProviderProps> = ({children}) => {
     initiator,
     actorUsername,
     rawCommand,
-    extractedGameNickname = null
+    extractedGameNickname = null,
   }: {
     message: string;
     status?: AppLogStatus;
@@ -34,7 +34,7 @@ export const AppLogsProvider: FC<AppLogsProviderProps> = ({children}) => {
       rawCommand,
       message,
       status,
-      extractedGameNickname
+      extractedGameNickname,
     }
     setLogs(prev => [newLog, ...prev].slice(0, 200))
   }, [])
@@ -43,7 +43,7 @@ export const AppLogsProvider: FC<AppLogsProviderProps> = ({children}) => {
     setLogs([])
   }, [])
 
-  const value = useMemo(() => ({logs, pushLog, clearLogs}), [logs, pushLog, clearLogs])
+  const value = useMemo(() => ({ logs, pushLog, clearLogs }), [logs, pushLog, clearLogs])
 
   return (
     <AppLogsContext.Provider value={value}>

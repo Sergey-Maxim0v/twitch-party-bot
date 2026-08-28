@@ -1,18 +1,18 @@
-import type {FC} from 'react'
-import {useAuth} from '../../../features/auth/hooks/useAuth.ts'
+import type { FC } from 'react'
+import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 
 export interface ActiveProfileInfo {
   className?: string;
 }
 
-const ActiveProfileInfo: FC<ActiveProfileInfo> = ({className = ''}) => {
+const ActiveProfileInfo: FC<ActiveProfileInfo> = ({ className = '' }) => {
   const {
     session,
     activeChannel,
     activeChannelDisplayName,
     activeChannelAvatar,
     userDisplayName,
-    userAvatar
+    userAvatar,
   } = useAuth()
 
   return (
@@ -26,10 +26,10 @@ const ActiveProfileInfo: FC<ActiveProfileInfo> = ({className = ''}) => {
             <div className="avatar shrink-0">
               <div className="w-4 h-4 rounded-full ring-1 ring-primary/20 overflow-hidden">
                 <img
-                  src={activeChannelAvatar}
                   alt={activeChannelDisplayName || 'Аватар канала'}
-                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  src={activeChannelAvatar}
                 />
               </div>
             </div>
@@ -49,10 +49,10 @@ const ActiveProfileInfo: FC<ActiveProfileInfo> = ({className = ''}) => {
             <div className="avatar shrink-0">
               <div className="w-4 h-4 rounded-full ring-1 ring-base-content/20 overflow-hidden">
                 <img
-                  src={userAvatar}
                   alt={userDisplayName || session?.login || 'Аватар пользователя'}
-                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  src={userAvatar}
                 />
               </div>
             </div>

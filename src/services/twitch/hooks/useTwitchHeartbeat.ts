@@ -1,7 +1,7 @@
-import {useEffect, useRef, useCallback} from 'react'
-import {useSocketContext} from '../../socket/hooks/useSocketContext.ts'
-import {CONNECTION_STATUSES} from '../../socket/types.ts'
-import {HeartbeatWorkerCommand, HeartbeatWorkerEvent, TwitchIrcCommand} from '../config.ts'
+import { useEffect, useRef, useCallback } from 'react'
+import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
+import { CONNECTION_STATUSES } from '../../socket/types.ts'
+import { HeartbeatWorkerCommand, HeartbeatWorkerEvent, TwitchIrcCommand } from '../config.ts'
 
 import HeartbeatWorker from '../workers/heartbeat.worker.ts?worker'
 
@@ -26,7 +26,7 @@ export const useTwitchHeartbeat = () => {
   const handleConnectionFailure = useCallback(() => {
     if (!socketContext) return
 
-    workerRef.current?.postMessage({type: HeartbeatWorkerCommand.CLEAR_ALL})
+    workerRef.current?.postMessage({ type: HeartbeatWorkerCommand.CLEAR_ALL })
 
     const client = socketContext.getClient()
     client.forceCloseAndReconnect()
@@ -42,7 +42,7 @@ export const useTwitchHeartbeat = () => {
 
     workerRef.current?.postMessage({
       type: HeartbeatWorkerCommand.START_PONG_TIMER,
-      payload: PONG_TIMEOUT
+      payload: PONG_TIMEOUT,
     })
   }, [socketContext])
 
@@ -53,12 +53,12 @@ export const useTwitchHeartbeat = () => {
     if (connectionStatusRef.current !== CONNECTION_STATUSES.CONNECTED || !workerRef.current) return
 
     if (command === TwitchIrcCommand.PONG) {
-      workerRef.current.postMessage({type: HeartbeatWorkerCommand.CLEAR_PONG_TIMER})
+      workerRef.current.postMessage({ type: HeartbeatWorkerCommand.CLEAR_PONG_TIMER })
     }
 
     workerRef.current.postMessage({
       type: HeartbeatWorkerCommand.START_PING_TIMER,
-      payload: HEARTBEAT_INTERVAL
+      payload: HEARTBEAT_INTERVAL,
     })
   }, [])
 
@@ -75,7 +75,7 @@ export const useTwitchHeartbeat = () => {
     workerRef.current = worker
 
     worker.onmessage = (event: MessageEvent) => {
-      const {type} = event.data
+      const { type } = event.data
 
       if (type === HeartbeatWorkerEvent.PING_TICK) {
         sendPingRef.current()
@@ -98,14 +98,14 @@ export const useTwitchHeartbeat = () => {
     if (connectionStatus === CONNECTION_STATUSES.CONNECTED) {
       currentWorker.postMessage({
         type: HeartbeatWorkerCommand.START_PING_TIMER,
-        payload: HEARTBEAT_INTERVAL
+        payload: HEARTBEAT_INTERVAL,
       })
     } else if (connectionStatus === CONNECTION_STATUSES.DISCONNECTED) {
-      currentWorker.postMessage({type: HeartbeatWorkerCommand.CLEAR_ALL})
+      currentWorker.postMessage({ type: HeartbeatWorkerCommand.CLEAR_ALL })
     }
   }, [connectionStatus, workerRef])
 
   return {
-    handleSocketActivity
+    handleSocketActivity,
   }
 }

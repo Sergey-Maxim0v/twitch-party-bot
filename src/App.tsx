@@ -3,20 +3,20 @@ import SocketProvider from './services/socket/context/SocketProvider.tsx'
 import SocketInitializer from './services/socket/components/SocketInitializer.tsx'
 import WelcomeScreen from './components/layout/WelcomeScreen.tsx'
 import StreamerWorkspace from './components/layout/StreamerWorkspace.tsx'
-import {AuthProvider} from './features/auth/context/AuthProvider.tsx'
-import {ProtectedView} from './features/auth/components/ProtectedView.tsx'
-import {AppLogsProvider} from './features/app-logs/context/AppLogsProvider.tsx'
+import { AuthProvider } from './features/auth/context/AuthProvider.tsx'
+import { ProtectedView } from './features/auth/components/ProtectedView.tsx'
+import { AppLogsProvider } from './features/app-logs/context/AppLogsProvider.tsx'
 
 function App() {
   return (
     <SocketProvider>
       <AuthProvider>
-        <SocketInitializer/>
+        <SocketInitializer />
 
         <PageLayout>
-          <ProtectedView fallback={<WelcomeScreen/>}>
+          <ProtectedView fallback={<WelcomeScreen />}>
             <AppLogsProvider>
-              <StreamerWorkspace/>
+              <StreamerWorkspace />
             </AppLogsProvider>
           </ProtectedView>
         </PageLayout>

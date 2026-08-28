@@ -1,16 +1,16 @@
-import {type RefObject, useEffect, useRef} from 'react'
-import {useAuth} from '../../auth/hooks/useAuth.ts'
-import {useAppLogs} from '../../app-logs/hooks/useAppLogs.ts'
-import {useQueueSettings} from './useQueueSettings.ts'
-import {LOG_INITIATOR} from '../../queue/types.ts'
+import { type RefObject, useEffect, useRef } from 'react'
+import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
+import { useQueueSettings } from './useQueueSettings.ts'
+import { LOG_INITIATOR } from '../../queue/types.ts'
 
 /**
  * Хук для автоматического закрытия очереди при разлогине, смене канала, перезагрузке страницы.
  */
 export const useQueueAutoClose = () => {
-  const {session, activeChannel} = useAuth()
-  const {pushLog} = useAppLogs()
-  const {settings, updateSettings} = useQueueSettings()
+  const { session, activeChannel } = useAuth()
+  const { pushLog } = useAppLogs()
+  const { settings, updateSettings } = useQueueSettings()
 
   const isClosingRef: RefObject<boolean> = useRef(false)
 
@@ -19,12 +19,12 @@ export const useQueueAutoClose = () => {
 
     isClosingRef.current = true
 
-    updateSettings({isQueueOpen: false})
+    updateSettings({ isQueueOpen: false })
 
     pushLog({
       message: 'Очередь закрыта',
       initiator: LOG_INITIATOR.STREAMER_UI,
-      actorUsername: session?.login ?? ''
+      actorUsername: session?.login ?? '',
     })
         
     // eslint-disable-next-line

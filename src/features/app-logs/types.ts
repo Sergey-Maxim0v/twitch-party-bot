@@ -1,4 +1,4 @@
-import type {LogInitiator} from '../queue/types.ts'
+import type { LogInitiator } from '../queue/types.ts'
 
 export const APP_LOG_STATUSES = {
   INFO: 'info',

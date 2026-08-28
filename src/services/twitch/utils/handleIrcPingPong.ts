@@ -1,4 +1,4 @@
-import {TwitchIrcCommand} from '../config.ts'
+import { TwitchIrcCommand } from '../config.ts'
 
 interface HandleIrcPingProps {
   rawMessage: string;
@@ -11,7 +11,7 @@ export const PONG_MESSAGE = 'PONG :tmi.twitch.tv'
  * Проверяет сообщение на PING от сервера Twitch и отправляет PONG для поддержания сессии.
  * Возвращает true, если сообщение было PING-запросом.
  */
-export const handleIrcPingPong = ({rawMessage, socket}: HandleIrcPingProps): boolean => {
+export const handleIrcPingPong = ({ rawMessage, socket }: HandleIrcPingProps): boolean => {
   if (rawMessage.startsWith(TwitchIrcCommand.PING)) {
     socket.send(PONG_MESSAGE)
     return true

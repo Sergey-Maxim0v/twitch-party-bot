@@ -1,5 +1,5 @@
-import {TWITCH_AUTH_BASE_URL, TWITCH_CLIENT_ID, TWITCH_REDIRECT_URI, TWITCH_SCOPES} from '../config'
-import {generateRandomState, saveAuthState} from './crypto.ts'
+import { TWITCH_AUTH_BASE_URL, TWITCH_CLIENT_ID, TWITCH_REDIRECT_URI, TWITCH_SCOPES } from '../config'
+import { generateRandomState, saveAuthState } from './crypto.ts'
 
 /**
  * Генерирует URL-адрес для авторизации пользователя на стороне клиента.

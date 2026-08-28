@@ -1,5 +1,5 @@
-import {type FC, type ReactNode} from 'react'
-import {useAuth} from '../hooks/useAuth.ts'
+import { type FC, type ReactNode } from 'react'
+import { useAuth } from '../hooks/useAuth.ts'
 
 interface ProtectedViewProps {
   children: ReactNode;
@@ -7,8 +7,8 @@ interface ProtectedViewProps {
   fallback?: ReactNode;
 }
 
-export const ProtectedView: FC<ProtectedViewProps> = ({children, fallback = null}) => {
-  const {isAuthenticated, isLoading} = useAuth()
+export const ProtectedView: FC<ProtectedViewProps> = ({ children, fallback = null }) => {
+  const { isAuthenticated, isLoading } = useAuth()
 
   if (isLoading) {
     return (

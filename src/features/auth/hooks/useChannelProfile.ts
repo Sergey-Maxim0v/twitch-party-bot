@@ -1,5 +1,5 @@
-import {useEffect, useState} from 'react'
-import {getTwitchChannelProfile, type TwitchChannelData} from '../utils/getTwitchChannelProfile.ts'
+import { useEffect, useState } from 'react'
+import { getTwitchChannelProfile, type TwitchChannelData } from '../utils/getTwitchChannelProfile.ts'
 
 export interface useChannelProfileParams {
   channel: string | null;
@@ -9,7 +9,7 @@ export interface useChannelProfileParams {
 /**
  * Хук для фонового получения актуального аватара и отображаемого имени стримера.
  */
-export const useChannelProfile = ({channel, accessToken}: useChannelProfileParams) => {
+export const useChannelProfile = ({ channel, accessToken }: useChannelProfileParams) => {
   const [profile, setProfile] = useState<TwitchChannelData | null>(null)
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export const useChannelProfile = ({channel, accessToken}: useChannelProfileParam
       }
     }
 
-    fetchProfileData().catch((err) => console.error('useChannelProfile error:', err))
+    fetchProfileData().catch(err => { console.error('useChannelProfile error:', err) })
 
     return () => {
       isMounted = false
@@ -38,6 +38,6 @@ export const useChannelProfile = ({channel, accessToken}: useChannelProfileParam
 
   return {
     displayName: isProfileValid ? profile.displayName : null,
-    avatarUrl: isProfileValid ? profile.profileImageUrl : null
+    avatarUrl: isProfileValid ? profile.profileImageUrl : null,
   }
 }

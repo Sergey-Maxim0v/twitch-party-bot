@@ -1,4 +1,4 @@
-import type {ConnectionStatus} from '../../socket/types.ts'
+import type { ConnectionStatus } from '../../socket/types.ts'
 
 /**
  * Менеджер управления подписками на сетевой статус соединения.
@@ -21,7 +21,7 @@ export class ConnectionStateManager {
      * Безопасно уведомляет всех подписчиков о новом статусе.
      */
   public emit(status: ConnectionStatus): void {
-    this.callbacks.forEach((callback) => {
+    this.callbacks.forEach(callback => {
       try {
         callback(status)
       } catch (error) {

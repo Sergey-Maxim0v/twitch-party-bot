@@ -1,6 +1,6 @@
-import type {FC} from 'react'
-import {useQueueSettings} from '../hooks/useQueueSettings'
-import {LuPlus, LuTrash2} from 'react-icons/lu'
+import type { FC } from 'react'
+import { useQueueSettings } from '../hooks/useQueueSettings'
+import { LuPlus, LuTrash2 } from 'react-icons/lu'
 
 interface QueueBanListSectionProps {
   titleClassName?: string;
@@ -11,30 +11,31 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
   titleClassName = '',
   className = '',
 }) => {
-  const {settings, updateSettings} = useQueueSettings()
+  const { settings, updateSettings } = useQueueSettings()
   const banList = settings.banList || []
 
   // Добавление новой пустой строки в конец списка
   const handleAddRow = () => {
-    updateSettings({banList: [...banList, ''],})
+    updateSettings({ banList: [...banList, ''] })
   }
 
   // Изменение конкретного индекса в массиве
   const handleInputChange = (index: number, value: string) => {
     const updatedList = [...banList]
     updatedList[index] = value.trim()
-    updateSettings({banList: updatedList})
+    updateSettings({ banList: updatedList })
   }
 
   // Удаление строки по её индексу
   const handleRemoveRow = (index: number) => {
     const updatedList = banList.filter((_, i) => i !== index)
-    updateSettings({banList: updatedList})
+    updateSettings({ banList: updatedList })
   }
 
   return (
     <div
-      className={`w-full min-w-0 space-y-3 p-3 rounded-xl bg-base-200/50 border border-base-300/60 ${className}`}>
+      className={`w-full min-w-0 space-y-3 p-3 rounded-xl bg-base-200/50 border border-base-300/60 ${className}`}
+    >
       <h3 className={titleClassName}>Банлист очереди</h3>
 
       <div className="p-3 rounded-xl bg-base-200/40 border border-base-300 space-y-2 w-full min-w-0">
@@ -45,21 +46,21 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
         ) : (
           <div className="space-y-2">
             {banList.map((username, index) => (
-              <div key={index} className="flex items-center gap-2 w-full min-w-0">
+              <div className="flex items-center gap-2 w-full min-w-0" key={index}>
                 <input
-                  type="text"
-                  placeholder="Никнейм на Twitch"
                   className="input input-bordered input-sm flex-1 min-w-0 text-sm focus:input-primary focus:outline-none"
+                  onChange={e => { handleInputChange(index, e.target.value) }}
+                  placeholder="Никнейм на Twitch"
+                  type="text"
                   value={username}
-                  onChange={(e) => handleInputChange(index, e.target.value)}
                 />
                 <button
-                  type="button"
                   className="btn btn-square btn-sm btn-error btn-outline shrink-0"
+                  onClick={() => { handleRemoveRow(index) }}
                   title="Удалить из списка"
-                  onClick={() => handleRemoveRow(index)}
+                  type="button"
                 >
-                  <LuTrash2 className="w-4 h-4"/>
+                  <LuTrash2 className="w-4 h-4" />
                 </button>
               </div>
             ))}
@@ -68,11 +69,11 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
 
         {/* Кнопка добавления нового поля */}
         <button
-          type="button"
           className="btn btn-block btn-sm btn-dashed border-base-300 hover:border-primary gap-1 font-medium mt-2"
           onClick={handleAddRow}
+          type="button"
         >
-          <LuPlus className="w-4 h-4"/>
+          <LuPlus className="w-4 h-4" />
           Добавить никнейм
         </button>
       </div>

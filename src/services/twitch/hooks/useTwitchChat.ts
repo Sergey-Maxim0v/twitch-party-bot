@@ -1,12 +1,12 @@
-import {useCallback} from 'react'
-import type {ParsedIrcMessage} from '../utils/parseIrcMessage.ts'
-import {useSocketContext} from '../../socket/hooks/useSocketContext.ts'
-import {useTwitchPendingMessages} from './useTwitchPendingMessages.ts'
-import {useTwitchChatHistory} from './useTwitchChatHistory.ts'
-import {updateChatAccess} from '../utils/updateChatAccess.ts'
-import {useTwitchSubscription} from './useTwitchSubscription.ts'
-import {useAuth} from '../../../features/auth/hooks/useAuth.ts'
-import {useTwitchHeartbeat} from './useTwitchHeartbeat.ts'
+import { useCallback } from 'react'
+import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
+import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
+import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
+import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
+import { updateChatAccess } from '../utils/updateChatAccess.ts'
+import { useTwitchSubscription } from './useTwitchSubscription.ts'
+import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
+import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -14,17 +14,17 @@ import {useTwitchHeartbeat} from './useTwitchHeartbeat.ts'
  */
 export const useTwitchChat = () => {
   const socketContext = useSocketContext()
-  const {session} = useAuth()
+  const { session } = useAuth()
 
   // Подключаем контроль активности сокета (Heartbeat)
-  const {handleSocketActivity} = useTwitchHeartbeat()
+  const { handleSocketActivity } = useTwitchHeartbeat()
 
-  const {pendingTextsRef, timeoutTimerRef, registerPendingMessage} = useTwitchPendingMessages()
+  const { pendingTextsRef, timeoutTimerRef, registerPendingMessage } = useTwitchPendingMessages()
 
   const client = socketContext?.getClient?.() ?? null
-  const {messages, handleModerationAndEvents, handleStandardMessage} = useTwitchChatHistory({
+  const { messages, handleModerationAndEvents, handleStandardMessage } = useTwitchChatHistory({
     client,
-    pendingTextsRef
+    pendingTextsRef,
   })
 
   const currentUserLogin = session?.login?.toLowerCase()
@@ -43,7 +43,7 @@ export const useTwitchChat = () => {
         currentUserLogin,
         pendingTextsRef,
         timeoutTimerRef,
-        updateChatAccessStatus: socketContext.updateChatAccessStatus
+        updateChatAccessStatus: socketContext.updateChatAccessStatus,
       })
     }
 
@@ -62,7 +62,7 @@ export const useTwitchChat = () => {
     handleStandardMessage,
     pendingTextsRef,
     timeoutTimerRef,
-    handleSocketActivity
+    handleSocketActivity,
   ])
 
   // Автоматически подписываемся на сырой IRC-поток
@@ -70,6 +70,6 @@ export const useTwitchChat = () => {
 
   return {
     messages,
-    registerPendingMessage
+    registerPendingMessage,
   }
 }

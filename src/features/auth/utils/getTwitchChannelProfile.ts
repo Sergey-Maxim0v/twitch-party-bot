@@ -1,6 +1,6 @@
-import {TWITCH_HELIX_BASE_URL} from '../../../constants/url.constants.ts'
-import {TWITCH_CLIENT_ID} from '../config.ts'
-import {validateChannelName} from './validateChannelName.ts'
+import { TWITCH_HELIX_BASE_URL } from '../../../constants/url.constants.ts'
+import { TWITCH_CLIENT_ID } from '../config.ts'
+import { validateChannelName } from './validateChannelName.ts'
 
 export interface TwitchChannelData {
   id: string;
@@ -28,8 +28,8 @@ export const getTwitchChannelProfile = async (channelName: string, token: string
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Client-Id': TWITCH_CLIENT_ID
-      }
+        'Client-Id': TWITCH_CLIENT_ID,
+      },
     })
 
     if (!response.ok) {
@@ -45,7 +45,7 @@ export const getTwitchChannelProfile = async (channelName: string, token: string
         id: twitchUser.id,
         login: twitchUser.login,
         displayName: twitchUser.display_name,
-        profileImageUrl: twitchUser.profile_image_url
+        profileImageUrl: twitchUser.profile_image_url,
       }
     }
 
@@ -55,4 +55,3 @@ export const getTwitchChannelProfile = async (channelName: string, token: string
     return null
   }
 }
-

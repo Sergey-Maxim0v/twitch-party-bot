@@ -1,10 +1,10 @@
-import {useEffect} from 'react'
-import {useLocalStorage} from './useLocalStorage.ts'
-import {THEME_OPTIONS} from '../constants/theme.constants.ts'
-import type {ThemeConfig, ThemeMode} from './types/theme.types.ts'
+import { useEffect } from 'react'
+import { useLocalStorage } from './useLocalStorage.ts'
+import { THEME_OPTIONS } from '../constants/theme.constants.ts'
+import type { ThemeConfig, ThemeMode } from './types/theme.types.ts'
 
 export const useTheme = () => {
-  const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find((el) => el.id === 'system') || THEME_OPTIONS[0]
+  const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find(el => el.id === 'system') || THEME_OPTIONS[0]
   const [themeMode, setThemeMode] = useLocalStorage<ThemeMode>('twitch_party_theme', DEFAULT_THEME.id)
 
   useEffect(() => {
@@ -32,5 +32,5 @@ export const useTheme = () => {
 
   }, [themeMode])
 
-  return {themeMode, setThemeMode}
+  return { themeMode, setThemeMode }
 }

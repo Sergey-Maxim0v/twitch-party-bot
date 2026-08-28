@@ -1,5 +1,5 @@
-import {createContext} from 'react'
-import type {QueueState, QueuePlayer, QueueSession, LogInitiator, LogActorRole} from '../types'
+import { createContext } from 'react'
+import type { QueueState, QueuePlayer, QueueSession, LogInitiator, LogActorRole } from '../types'
 
 export interface QueueContextValue {
   // === Реактивные состояния (Стейты) ===

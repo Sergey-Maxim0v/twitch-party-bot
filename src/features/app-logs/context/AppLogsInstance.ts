@@ -1,6 +1,6 @@
-import {createContext} from 'react'
-import type {AppLogItem, AppLogStatus} from '../types.ts'
-import type {LogInitiator} from '../../queue/types.ts'
+import { createContext } from 'react'
+import type { AppLogItem, AppLogStatus } from '../types.ts'
+import type { LogInitiator } from '../../queue/types.ts'
 
 export interface AppLogsContextValue {
   logs: AppLogItem[];

@@ -1,5 +1,5 @@
-import {useContext} from 'react'
-import {QueueSettingsContext} from '../context/QueueSettingsInstance.ts'
+import { useContext } from 'react'
+import { QueueSettingsContext } from '../context/QueueSettingsInstance.ts'
 
 export const useQueueSettings = () => {
   const context = useContext(QueueSettingsContext)

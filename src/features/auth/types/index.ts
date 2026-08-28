@@ -1,4 +1,4 @@
-import type {TwitchUserData} from '../utils/validateTwitchToken.ts'
+import type { TwitchUserData } from '../utils/validateTwitchToken.ts'
 
 export interface TwitchUserSession extends TwitchUserData {
   accessToken: string;
@@ -9,7 +9,7 @@ export const AUTH_STAGES = {
   WAITING: 'waiting',
   VALIDATING: 'validating',
   SUCCESS: 'success',
-  ERROR: 'error'
+  ERROR: 'error',
 } as const
 
 export type AuthStage = typeof AUTH_STAGES[keyof typeof AUTH_STAGES]

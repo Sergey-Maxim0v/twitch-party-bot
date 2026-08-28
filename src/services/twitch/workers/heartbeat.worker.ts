@@ -2,12 +2,12 @@
  * @file heartbeat.worker.ts
  * @description Изолированный Web Worker для ведения точных фоновых таймеров.
  */
-import {HeartbeatWorkerCommand, HeartbeatWorkerEvent} from '../config.ts'
+import { HeartbeatWorkerCommand, HeartbeatWorkerEvent } from '../config.ts'
 
 let pingTimeoutId: ReturnType<typeof setTimeout> | null = null
 let pongTimeoutId: ReturnType<typeof setTimeout> | null = null
 
-//  Сброс всех активных таймаутов в памяти воркера.
+//  Сброс всех активных тайм-аутов в памяти воркера.
 const clearAllTimers = (): void => {
   if (pingTimeoutId) {
     clearTimeout(pingTimeoutId)
@@ -20,7 +20,7 @@ const clearAllTimers = (): void => {
 }
 
 self.onmessage = (event: MessageEvent) => {
-  const {type, payload} = event.data
+  const { type, payload } = event.data
 
   switch (type) {
     // Инициализация или сброс таймера контроля тишины чата
@@ -30,7 +30,7 @@ self.onmessage = (event: MessageEvent) => {
       const interval = payload || 60000
 
       pingTimeoutId = setTimeout(() => {
-        self.postMessage({type: HeartbeatWorkerEvent.PING_TICK})
+        self.postMessage({ type: HeartbeatWorkerEvent.PING_TICK })
       }, interval)
       break
     }
@@ -42,7 +42,7 @@ self.onmessage = (event: MessageEvent) => {
       const timeout = payload || 10000
 
       pongTimeoutId = setTimeout(() => {
-        self.postMessage({type: HeartbeatWorkerEvent.PONG_TIMEOUT})
+        self.postMessage({ type: HeartbeatWorkerEvent.PONG_TIMEOUT })
       }, timeout)
       break
     }

@@ -1,5 +1,5 @@
-import {type FC} from 'react'
-import {LuArrowLeftFromLine} from 'react-icons/lu'
+import { type FC } from 'react'
+import { LuArrowLeftFromLine } from 'react-icons/lu'
 
 interface PanelToggleProps {
   isOpen: boolean;
@@ -12,12 +12,12 @@ const PanelToggle: FC<PanelToggleProps> = ({
   isOpen,
   onOpen,
   title,
-  className = ''
+  className = '',
 }: PanelToggleProps) => {
   return (
     <button
-      onClick={onOpen}
       className={`btn btn-sm btn-ghost btn-square transition-colors ${className}`}
+      onClick={onOpen}
       title={isOpen ? `Скрыть ${title.toLowerCase()}` : `Открыть ${title.toLowerCase()}`}
       type="button"
     >

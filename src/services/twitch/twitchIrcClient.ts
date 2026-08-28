@@ -1,11 +1,11 @@
-import {sendInitialIrcCommands} from './utils/sendInitialIrcCommands.ts'
-import {handleIrcMessage} from './utils/handleIrcMessage.ts'
-import {createMessageEmitter, type MessageCallback} from './utils/createMessageEmitter.ts'
-import type {ParsedIrcMessage} from './utils/parseIrcMessage.ts'
-import {CONNECTION_STATUSES, type ConnectionStatus} from '../socket/types.ts'
-import {ConnectionStateManager} from './utils/ConnectionStateManager.ts'
-import {TwitchReconnectManager} from './utils/TwitchReconnectManager.ts'
-import {SocketLifecycleManager} from './utils/SocketLifecycleManager.ts'
+import { sendInitialIrcCommands } from './utils/sendInitialIrcCommands.ts'
+import { handleIrcMessage } from './utils/handleIrcMessage.ts'
+import { createMessageEmitter, type MessageCallback } from './utils/createMessageEmitter.ts'
+import type { ParsedIrcMessage } from './utils/parseIrcMessage.ts'
+import { CONNECTION_STATUSES, type ConnectionStatus } from '../socket/types.ts'
+import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
+import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
+import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
 
 /**
  * Класс управления WebSocket-соединением с Twitch IRC.
@@ -19,7 +19,7 @@ export class TwitchIrcClient {
   private socketManager = new SocketLifecycleManager()
   private reconnectManager = new TwitchReconnectManager({
     maxAttempts: 5,
-    onReconnectTriggered: () => this.retryConnection()
+    onReconnectTriggered: () => { this.retryConnection() },
   })
 
   // Кэш учетных данных для выполнения повторных попыток подключения
@@ -95,10 +95,10 @@ export class TwitchIrcClient {
 
     this.connectTimeoutId = setTimeout(() => {
       this.socketManager.create({
-        onOpen: () => this.handleSocketOpen(),
-        onMessage: (event) => this.handleSocketMessage(event),
-        onClose: () => this.handleSocketClose(),
-        onError: (error) => console.error('[TwitchIRC Client] Ошибка сокета:', error)
+        onOpen: () => { this.handleSocketOpen() },
+        onMessage: event => { this.handleSocketMessage(event) },
+        onClose: () => { this.handleSocketClose() },
+        onError: error => { console.error('[TwitchIRC Client] Ошибка сокета:', error) },
       })
       this.connectTimeoutId = null
     }, 16)
@@ -116,7 +116,7 @@ export class TwitchIrcClient {
         socket,
         token: this.lastToken,
         userLogin: this.lastUserLogin,
-        channel: this.channel
+        channel: this.channel,
       })
     }
   }
@@ -128,7 +128,7 @@ export class TwitchIrcClient {
     handleIrcMessage({
       event,
       socket,
-      emitMessage: (message: ParsedIrcMessage) => this.emitter.emit(message)
+      emitMessage: (message: ParsedIrcMessage) => { this.emitter.emit(message) },
     })
   }
 

@@ -1,12 +1,12 @@
-import {useState, useEffect, useCallback, useRef} from 'react'
-import {AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession} from '../types'
-import {useTwitchPopup} from './useTwitchPopup.ts'
-import {useTwitchChannelState} from './useTwitchChannelState.ts'
-import {TWITCH_STORAGE_KEYS} from '../config.ts'
-import {useChannelProfile} from './useChannelProfile.ts'
-import {useLocalStorage} from '../../../hooks/useLocalStorage.ts'
-import {validateTwitchToken} from '../utils/validateTwitchToken.ts'
-import {extractTwitchToken} from '../utils/extractTwitchToken.ts'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession } from '../types'
+import { useTwitchPopup } from './useTwitchPopup.ts'
+import { useTwitchChannelState } from './useTwitchChannelState.ts'
+import { TWITCH_STORAGE_KEYS } from '../config.ts'
+import { useChannelProfile } from './useChannelProfile.ts'
+import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
+import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
+import { extractTwitchToken } from '../utils/extractTwitchToken.ts'
 
 const VALIDATION_INTERVAL = 45 * 60 * 1000
 
@@ -44,22 +44,22 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
   const popupManager = useTwitchPopup({
     onSuccess: handlePopupSuccess,
-    setError
+    setError,
   })
 
   const channelManager = useTwitchChannelState(session?.login)
 
-  const {displayName: activeChannelDisplayName, avatarUrl: activeChannelAvatar} = useChannelProfile({
+  const { displayName: activeChannelDisplayName, avatarUrl: activeChannelAvatar } = useChannelProfile({
     channel: channelManager.activeChannel,
-    accessToken: session?.accessToken
+    accessToken: session?.accessToken,
   })
 
   const {
     displayName: userDisplayName,
-    avatarUrl: userAvatar
+    avatarUrl: userAvatar,
   } = useChannelProfile({
     channel: session?.login ?? null,
-    accessToken: session?.accessToken
+    accessToken: session?.accessToken,
   })
 
   // Синхронный полный сброс стейтов при разлогине
@@ -91,7 +91,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
       setIsLoading(false)
     }
 
-    handleAuthInit().catch((err) => {
+    handleAuthInit().catch(err => {
       console.error('useTwitchAuth / handleAuthInit error:', err)
     })
   }, [validateSession, setSession, session?.accessToken, logout])

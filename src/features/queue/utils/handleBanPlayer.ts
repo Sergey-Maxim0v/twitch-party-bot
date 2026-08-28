@@ -1,7 +1,7 @@
-import type {Dispatch, SetStateAction} from 'react'
-import type {QueueState, LogInitiator} from '../types'
-import type {QueueSettings} from '../../queue-settings/types.ts'
-import {APP_LOG_STATUSES} from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { QueueState, LogInitiator } from '../types'
+import type { QueueSettings } from '../../queue-settings/types.ts'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 
 export interface HandleBanPlayerArgs {
   /** Уникальный ID пользователя на Twitch (если известен, для фильтрации) */
@@ -25,7 +25,7 @@ export interface HandleBanPlayerArgs {
     message: string,
     status: AppLogStatus,
     initiator: LogInitiator,
-    actorUsername: string
+    actorUsername: string,
   ) => void;
 }
 
@@ -42,7 +42,7 @@ export const handleBanPlayer = ({
   settings,
   updateSettings,
   setState,
-  pushLog
+  pushLog,
 }: HandleBanPlayerArgs): void => {
   const targetLogin = username.toLowerCase()
   const displayName = displayedUsername || username
@@ -55,14 +55,14 @@ export const handleBanPlayer = ({
       `Ошибка бана: пользователь ${displayName} уже находится в бан-листе очереди.`,
       APP_LOG_STATUSES.ERROR,
       initiator,
-      actorUsername
+      actorUsername,
     )
     return
   }
 
   // 2. Обновляем бан-лист в настройках очереди (добавляем оригинальный никнейм)
   const updatedBanList = [...settings.banList, username]
-  updateSettings({banList: updatedBanList})
+  updateSettings({ banList: updatedBanList })
 
   // 3. Вычищаем игрока из активной и будущей очередей по userId или по логину
   let removedCount = 0
@@ -80,7 +80,7 @@ export const handleBanPlayer = ({
     return {
       ...prev,
       activeQueue: prev.activeQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin),
-      futureQueue: prev.futureQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin)
+      futureQueue: prev.futureQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin),
     }
   })
 

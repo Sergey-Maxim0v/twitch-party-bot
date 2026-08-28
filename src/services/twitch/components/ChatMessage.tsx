@@ -1,7 +1,7 @@
-import type {FC} from 'react'
-import {LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench} from 'react-icons/lu'
-import type {ParsedIrcMessage} from '../utils/parseIrcMessage.ts'
-import {TwitchIrcCommand} from '../config.ts'
+import type { FC } from 'react'
+import { LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench } from 'react-icons/lu'
+import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
+import { TwitchIrcCommand } from '../config.ts'
 
 interface ChatMessageProps {
   msg: ParsedIrcMessage;
@@ -18,7 +18,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
   highlightRoles,
   isShowDeletedMessages,
   showSystemNotifications,
-  highlightPointsMessages
+  highlightPointsMessages,
 }) => {
   const isDeleted = msg.tags['is-deleted'] === '1'
   const isHighlightedMessage = msg.tags['msg-id'] === 'highlighted-message'
@@ -34,9 +34,9 @@ const ChatMessage: FC<ChatMessageProps> = ({
   }
 
   // Фоновые стили для ролей
-  const badges = msg.tags['badges'] || ''
+  const badges = msg.tags.badges || ''
   const isBroadcaster = badges.includes('broadcaster/')
-  const isMod = badges.includes('moderator/') || msg.tags['mod'] === '1'
+  const isMod = badges.includes('moderator/') || msg.tags.mod === '1'
   const isVip = badges.includes('vip/')
 
   let containerClassName = 'text-sm break-words leading-relaxed animate-fadeIn p-1 rounded transition-all block w-full'
@@ -58,7 +58,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
 
   // Стили никнеймов
   const twitchColor = msg.tags.color
-  const nameStyle = useColoredNames && twitchColor ? {color: twitchColor} : undefined
+  const nameStyle = useColoredNames && twitchColor ? { color: twitchColor } : undefined
   const nameClassName = !nameStyle ? 'font-bold text-primary mr-2 break-words' : 'font-bold mr-2 break-words'
 
   // Никнейм для отображения
@@ -84,9 +84,9 @@ const ChatMessage: FC<ChatMessageProps> = ({
         </span>
         <span className="mr-2">
           {isAlert || isAnnouncement ?
-            <LuSparkles className="w-4 h-4 inline align-middle"/>
+            <LuSparkles className="w-4 h-4 inline align-middle" />
             :
-            <LuWrench className="w-4 h-4 inline align-middle"/>
+            <LuWrench className="w-4 h-4 inline align-middle" />
           }
         </span>
         {isAnnouncement && <span className="mr-2">{displaySenderName}:</span>}
@@ -105,10 +105,10 @@ const ChatMessage: FC<ChatMessageProps> = ({
           {msg.timestamp}
         </span>
 
-        {isDeleted && <LuCircleAlert className={iconClassName}/>}
-        {isBroadcaster && <LuTwitch className={iconClassName}/>}
-        {isMod && <LuSword className={iconClassName}/>}
-        {isVip && <LuGem className={iconClassName}/>}
+        {isDeleted && <LuCircleAlert className={iconClassName} />}
+        {isBroadcaster && <LuTwitch className={iconClassName} />}
+        {isMod && <LuSword className={iconClassName} />}
+        {isVip && <LuGem className={iconClassName} />}
       </span>
 
       <span className={`${nameClassName} break-all inline align-middle`} style={nameStyle}>

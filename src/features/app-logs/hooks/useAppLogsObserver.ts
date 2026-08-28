@@ -1,19 +1,19 @@
-import {useEffect, useRef} from 'react'
-import {useSocketContext} from '../../../services/socket/hooks/useSocketContext.ts'
-import {useAppLogs} from './useAppLogs.ts'
-import {APP_LOG_STATUSES, type AppLogStatus} from '../types.ts'
-import {CONNECTION_STATUSES, CHAT_ACCESS_STATUSES} from '../../../services/socket/types.ts'
-import {LOG_INITIATOR, LOG_ACTOR_ROLE} from '../../queue/types.ts'
-import {useAuth} from '../../auth/hooks/useAuth.ts'
+import { useEffect, useRef } from 'react'
+import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
+import { useAppLogs } from './useAppLogs.ts'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../types.ts'
+import { CONNECTION_STATUSES, CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
+import { LOG_INITIATOR, LOG_ACTOR_ROLE } from '../../queue/types.ts'
+import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 /**
  * Изолированный хук-наблюдатель для автоматического логирования
  * глобальных системных событий (авторизация, сеть, права чата).
  */
 export const useAppLogsObserver = (): void => {
-  const {connectionStatus, chatAccessStatus, getClient} = useSocketContext()
-  const {session} = useAuth()
-  const {pushLog} = useAppLogs()
+  const { connectionStatus, chatAccessStatus, getClient } = useSocketContext()
+  const { session } = useAuth()
+  const { pushLog } = useAppLogs()
 
   const lastStatusRef = useRef(connectionStatus)
   const lastChatAccessRef = useRef(chatAccessStatus)
@@ -27,7 +27,7 @@ export const useAppLogsObserver = (): void => {
         message: `Вы вошли в аккаунт: ${session.login}`,
         status: APP_LOG_STATUSES.WARNING,
         initiator: LOG_INITIATOR.STREAMER_UI,
-        actorUsername: LOG_ACTOR_ROLE.SYSTEM
+        actorUsername: LOG_ACTOR_ROLE.SYSTEM,
       })
     }
   }, [session, pushLog])
@@ -68,7 +68,7 @@ export const useAppLogsObserver = (): void => {
         message,
         status,
         initiator: LOG_INITIATOR.STREAMER_UI,
-        actorUsername: LOG_ACTOR_ROLE.SYSTEM
+        actorUsername: LOG_ACTOR_ROLE.SYSTEM,
       })
     }
   }, [connectionStatus, pushLog, getClient])
@@ -101,7 +101,7 @@ export const useAppLogsObserver = (): void => {
         message,
         status,
         initiator: LOG_INITIATOR.STREAMER_UI,
-        actorUsername: LOG_ACTOR_ROLE.SYSTEM
+        actorUsername: LOG_ACTOR_ROLE.SYSTEM,
       })
     }
   }, [chatAccessStatus, getClient, pushLog])

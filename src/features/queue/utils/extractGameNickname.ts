@@ -1,4 +1,4 @@
-import type {QueueGameConfig} from '../../queue-settings/types.ts'
+import type { QueueGameConfig } from '../../queue-settings/types.ts'
 
 interface ExtractGameNicknameArgs {
   /** Полный текст сообщения из чата */
@@ -15,7 +15,7 @@ interface ExtractGameNicknameArgs {
  */
 export const extractGameNickname = ({
   rawMessage,
-  gameConfig
+  gameConfig,
 }: ExtractGameNicknameArgs): string | null => {
   if (!gameConfig?.validationPattern) {
     return null

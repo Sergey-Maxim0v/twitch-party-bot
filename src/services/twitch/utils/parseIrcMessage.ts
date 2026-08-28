@@ -1,14 +1,14 @@
-import {TwitchIrcCommand, type TwitchIrcCommandType} from '../config.ts'
+import { TwitchIrcCommand, type TwitchIrcCommandType } from '../config.ts'
 
 export interface ParsedIrcMessage {
-  id: string;       // Уникальный ID сообщения (msg-id из тегов Twitch)
-  user: string;     // Никнейм отправителя
-  displayName?: string;     // Никнейм отправителя для отображения, с учетом регистра
-  text: string;     // Текст сообщения
-  command: TwitchIrcCommandType;  // Команда (например, 'PRIVMSG', 'JOIN', 'USERSTATE')
+  id: string; // Уникальный ID сообщения (msg-id из тегов Twitch)
+  user: string; // Никнейм отправителя
+  displayName?: string; // Никнейм отправителя для отображения, с учетом регистра
+  text: string; // Текст сообщения
+  command: TwitchIrcCommandType; // Команда (например, 'PRIVMSG', 'JOIN', 'USERSTATE')
   timestamp: string;// Время сообщения HH:MM
   tags: Record<string, string>;
-  isSystem: boolean;       // Системное сообщение
+  isSystem: boolean; // Системное сообщение
   isChannelEvent: boolean; // Событиям канала/модерации
 }
 
@@ -90,12 +90,12 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
   }
 
   // Генерируем запасной id, если Twitch не прислал его в тегах для этой команды
-  const id = tags['id'] || tags['msg-id'] || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+  const id = tags.id || tags['msg-id'] || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
   // Извлекаем временную метку Twitch (tmi-sent-ts) или берем текущее время
   const rawTimestamp = tags['tmi-sent-ts'] ? parseInt(tags['tmi-sent-ts'], 10) : Date.now()
   const date = new Date(rawTimestamp)
-  const timestamp = date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', second: '2-digit'})
+  const timestamp = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
   // Вычисляем флаги на основе прочитанной команды
   const isSystem =
@@ -112,5 +112,5 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
 
   const displayName = tags['display-name'] || undefined
 
-  return {id, user, displayName, text, command, timestamp, isSystem, isChannelEvent, tags}
+  return { id, user, displayName, text, command, timestamp, isSystem, isChannelEvent, tags }
 }

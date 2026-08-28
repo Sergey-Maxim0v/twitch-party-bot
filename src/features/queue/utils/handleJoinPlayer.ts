@@ -1,9 +1,9 @@
-import type {Dispatch, SetStateAction} from 'react'
-import type {QueueState, QueuePlayer, LogInitiator, LogActorRole} from '../types'
-import {validateQueueEntry} from './validateQueueEntry'
-import {extractGameNickname} from './extractGameNickname'
-import type {QueueSettings} from '../../queue-settings/types.ts'
-import {APP_LOG_STATUSES, type AppLogStatus} from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { QueueState, QueuePlayer, LogInitiator, LogActorRole } from '../types'
+import { validateQueueEntry } from './validateQueueEntry'
+import { extractGameNickname } from './extractGameNickname'
+import type { QueueSettings } from '../../queue-settings/types.ts'
+import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
 
 export interface HandleJoinPlayerArgs {
   playerData: Omit<QueuePlayer, 'timestamp'>;
@@ -21,7 +21,7 @@ export interface HandleJoinPlayerArgs {
     initiator: LogInitiator,
     actorUsername: string,
     rawCommand?: string,
-    extractedNickname?: string | null
+    extractedNickname?: string | null,
   ) => void;
 }
 
@@ -38,7 +38,7 @@ export const handleJoinPlayer = ({
   state,
   settings,
   setState,
-  pushLog
+  pushLog,
 }: HandleJoinPlayerArgs): void => {
   const timestamp = customTimestamp || Date.now()
   const userId = playerData.userId
@@ -47,7 +47,7 @@ export const handleJoinPlayer = ({
   const displayName = playerData.displayedUsername || username
 
   // 1. Запуск валидации ограничений (кулдауны, бан-листы, открыта ли очередь)
-  const validationError = validateQueueEntry({userId, username, isSubscriber, actorRole, state, settings})
+  const validationError = validateQueueEntry({ userId, username, isSubscriber, actorRole, state, settings })
   if (validationError) {
     pushLog(validationError, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand)
     return
@@ -56,10 +56,10 @@ export const handleJoinPlayer = ({
   // 2. Извлечение игрового никнейма с помощью внешней утилиты
   const extractedNickname = playerData.gameNickname || extractGameNickname({
     rawMessage: playerData.rawMessage,
-    gameConfig: settings.currentGame
+    gameConfig: settings.currentGame,
   })
 
-  const fullPlayer: QueuePlayer = {...playerData, timestamp, gameNickname: extractedNickname}
+  const fullPlayer: QueuePlayer = { ...playerData, timestamp, gameNickname: extractedNickname }
   let finalLogMessage = ''
   let isSuccess = false
 
@@ -93,7 +93,7 @@ export const handleJoinPlayer = ({
       }
       finalLogMessage = `Игрок ${displayName} добавлен в активную очередь.`
       isSuccess = true
-      return {...prev, activeQueue: updatedActive}
+      return { ...prev, activeQueue: updatedActive }
     }
 
     // Б) Вставка в БУДУЩУЮ очередь
@@ -122,7 +122,7 @@ export const handleJoinPlayer = ({
 
     finalLogMessage = `Игрок ${displayName} добавлен в лист ожидания (будущую очередь).`
     isSuccess = true
-    return {...prev, futureQueue: updatedFuture}
+    return { ...prev, futureQueue: updatedFuture }
   })
 
   if (isSuccess) {

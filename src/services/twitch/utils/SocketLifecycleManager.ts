@@ -1,4 +1,4 @@
-import {TWITCH_SOCKET_BASE_URL} from '../config.ts'
+import { TWITCH_SOCKET_BASE_URL } from '../config.ts'
 
 interface SocketListeners {
   onOpen: () => void;
