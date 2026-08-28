@@ -6,7 +6,6 @@ import QueueFutureList from './QueueFutureList.tsx'
 import QueueHistoryList from './QueueHistoryList.tsx'
 import QueueControls from './QueueControls.tsx'
 import QueueForm from './QueueForm.tsx'
-import QueueAddForm from './QueueAddForm.tsx'
 
 export interface QueuePanelProps {
   className?: string;
@@ -29,7 +28,6 @@ const QueuePanel: FC<QueuePanelProps> = ({ className = '', collapsedClassName = 
         <QueueControls className="shrink-0 p-4 pb-2 bg-transparent relative z-10" />
 
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-4">
-          <QueueAddForm className="w-full" />
           <QueueActiveList className="w-full" />
           <QueueFutureList className="w-full" />
           <QueueHistoryList className="w-full" />
