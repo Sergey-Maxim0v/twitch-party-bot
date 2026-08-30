@@ -30,6 +30,7 @@ const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChang
       onOpenChange={onOpenChange}
       open={isOpen}
       title="Будущая очередь"
+      tooltipText={disabled ? 'Будущие очереди отключены в настройках' : undefined}
     >
       <div className="flex flex-col gap-2">
         TODO: Список участников будущей очереди

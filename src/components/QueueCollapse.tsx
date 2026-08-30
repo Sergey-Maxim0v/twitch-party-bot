@@ -8,6 +8,7 @@ export interface QueueCollapseProps {
   children: ReactNode;
   badge?: ReactNode;
   disabled?: boolean;
+  tooltipText?: string;
 }
 
 const QueueCollapse: FC<QueueCollapseProps> = ({
@@ -18,21 +19,27 @@ const QueueCollapse: FC<QueueCollapseProps> = ({
   children,
   badge,
   disabled = false,
+  tooltipText,
 }) => {
   const collapseStatusClass =
     disabled ? 'collapse-close' : (open ? 'collapse-open' : 'collapse-close')
 
   const arrowClass = disabled ? '' : 'collapse-arrow'
 
+  const tooltipClasses = tooltipText
+    ? 'tooltip tooltip-top tooltip-neutral z-50 delay-1000'
+    : ''
+
   return (
     <div
-      className={`collapse border border-base-300 bg-base-200 rounded-lg transition-all overflow-hidden 
-      ${ disabled ? 'opacity-70 pointer-events-none select-none bg-base-300/30' : '' }
-      ${arrowClass} ${collapseStatusClass} ${className}`}
+      className={`collapse border border-base-300 bg-base-200 rounded-lg transition-all
+      ${ disabled ? 'opacity-70 bg-base-300/30' : '' }
+      ${arrowClass} ${collapseStatusClass} ${tooltipClasses} ${className}`}
+      data-tip={ tooltipText }
     >
       <div
-        className={'collapse-title text-sm font-medium flex items-center justify-between cursor-pointer ' +
-            'select-none min-h-0 py-3 px-4'}
+        className={`collapse-title text-sm font-medium flex items-center justify-between cursor-pointer 
+        select-none min-h-0 py-3 px-4 ${disabled ? 'pointer-events-none' : ''}`}
         onClick={() => {
           if (!disabled) {
             onOpenChange(!open)
