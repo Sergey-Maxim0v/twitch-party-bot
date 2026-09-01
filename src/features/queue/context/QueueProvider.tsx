@@ -16,7 +16,7 @@ import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import type { AppLogStatus, LogSource } from '../../app-logs/types.ts'
+import type { LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 interface QueueProviderProps {
@@ -28,13 +28,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState())
   const { pushLog: pushAppLog } = useAppLogs()
 
-  const pushLog: AppLogsContextValue['pushLog'] = useCallback((
-    message: string,
-    status: AppLogStatus,
-    source: LogSource,
-    actorUsername: string,
-    rawCommand?: string,
-  ) => {
+  const pushLog: AppLogsContextValue['pushLog'] = useCallback(({
+    message,
+    status,
+    source,
+    actorUsername,
+    rawCommand,
+  }) => {
     pushAppLog({
       message,
       status,
