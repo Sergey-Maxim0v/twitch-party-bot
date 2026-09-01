@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { LOG_ACTOR_ROLE, LOG_INITIATOR } from '../../queue/types.ts'
+import { LOG_SOURCE } from '../../app-logs/types.ts'
 
 export interface QueueClearSectionProps {
   titleClassName?: string;
@@ -13,9 +13,9 @@ const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleCl
   const { session } = useAuth()
 
   const argsClearFnc = {
-    initiator: LOG_INITIATOR.STREAMER_UI,
+    source: LOG_SOURCE.STREAMER_UI,
     actorUsername: session?.login ?? '',
-    actorRole: LOG_ACTOR_ROLE.APPLICATION,
+    actorRole: session?.login ?? 'Application',
   }
 
   return (

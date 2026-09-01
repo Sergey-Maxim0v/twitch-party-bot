@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
 import { useAppLogs } from './useAppLogs.ts'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../types.ts'
+import { APP_LOG_STATUSES, type AppLogStatus, LOG_SOURCE } from '../types.ts'
 import { CONNECTION_STATUSES, CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
-import { LOG_INITIATOR, LOG_ACTOR_ROLE } from '../../queue/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 /**
@@ -26,8 +25,8 @@ export const useAppLogsObserver = (): void => {
       pushLog({
         message: `Вы вошли в аккаунт: ${session.login}`,
         status: APP_LOG_STATUSES.WARNING,
-        initiator: LOG_INITIATOR.STREAMER_UI,
-        actorUsername: LOG_ACTOR_ROLE.SYSTEM,
+        source: LOG_SOURCE.APPLICATION,
+        actorUsername: session.login,
       })
     }
   }, [session, pushLog])
@@ -67,11 +66,11 @@ export const useAppLogsObserver = (): void => {
       pushLog({
         message,
         status,
-        initiator: LOG_INITIATOR.STREAMER_UI,
-        actorUsername: LOG_ACTOR_ROLE.SYSTEM,
+        source: LOG_SOURCE.APPLICATION,
+        actorUsername: session?.login ? session?.login : 'Application',
       })
     }
-  }, [connectionStatus, pushLog, getClient])
+  }, [connectionStatus, pushLog, getClient, session?.login])
 
   // 3. Логирование доступности чата и правил комнаты (Room State)
   useEffect(() => {
@@ -100,9 +99,9 @@ export const useAppLogsObserver = (): void => {
       pushLog({
         message,
         status,
-        initiator: LOG_INITIATOR.STREAMER_UI,
-        actorUsername: LOG_ACTOR_ROLE.SYSTEM,
+        source: LOG_SOURCE.APPLICATION,
+        actorUsername: session?.login ? session.login : 'Application',
       })
     }
-  }, [chatAccessStatus, getClient, pushLog])
+  }, [chatAccessStatus, getClient, pushLog, session?.login])
 }

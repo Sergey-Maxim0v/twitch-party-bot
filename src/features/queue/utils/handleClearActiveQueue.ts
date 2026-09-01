@@ -1,23 +1,17 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, LogInitiator, LogActorRole } from '../types'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import type { QueueState } from '../types'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleClearActiveQueueArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Источник вызова команды (чат/интерфейс) */
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   /** Никнейм того, кто очистил очередь */
   actorUsername: string;
-  /** Роль исполнителя для понятного отображения в логах (Стример, Модератор, Система) */
-  actorRole: LogActorRole;
   /** Хелпер провайдера для записи логов */
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -25,9 +19,8 @@ export interface HandleClearActiveQueueArgs {
  */
 export const handleClearActiveQueue = ({
   setState,
-  initiator,
+  source,
   actorUsername,
-  actorRole,
   pushLog,
 }: HandleClearActiveQueueArgs): void => {
   setState(prev => ({
@@ -35,12 +28,10 @@ export const handleClearActiveQueue = ({
     activeQueue: [],
   }))
 
-  const logMessage = `Текущая очередь очищена. Исполнитель: [${actorRole}] ${actorUsername}`
-
-  pushLog(
-    logMessage,
-    APP_LOG_STATUSES.INFO,
-    initiator,
+  pushLog({
+    message: 'Текущая очередь очищена.',
+    status: APP_LOG_STATUSES.INFO,
+    source,
     actorUsername,
-  )
+  })
 }

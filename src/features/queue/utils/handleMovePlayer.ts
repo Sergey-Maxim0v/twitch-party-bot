@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, LogInitiator } from '../types'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import type { QueueState } from '../types'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleMovePlayerArgs {
   /** Уникальный ID пользователя на Twitch для перемещения */
@@ -10,18 +11,13 @@ export interface HandleMovePlayerArgs {
   /** Индекс (позиция), куда нужно вставить игрока (если не передан — падает в конец) */
   targetIndex: number | undefined;
   /** Источник вызова команды (чат/интерфейс) */
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   /** Никнейм того, кто выполнил перемещение */
   actorUsername: string;
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -31,7 +27,7 @@ export const handleMovePlayer = ({
   userId,
   targetQueueType,
   targetIndex,
-  initiator,
+  source,
   actorUsername,
   setState,
   pushLog,
@@ -91,9 +87,9 @@ export const handleMovePlayer = ({
       ? `Перемещен игрок ${targetPlayerName} внутри ${fromLabel} очереди${positionLabel}.`
       : `Игрок ${targetPlayerName} перенесен из ${fromLabel} очереди в ${toLabel}${positionLabel}.`
 
-    pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername)
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
   } else {
     const logMessage = `Ошибка перемещения: игрок с ID ${userId} не найден в очередях.`
-    pushLog(logMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername)
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername })
   }
 }

@@ -1,5 +1,6 @@
 import { type FC } from 'react'
-import { APP_LOG_STATUSES, type AppLogItem } from '../types.ts'
+import { LuCrown, LuShield, LuMessageSquare, LuCpu } from 'react-icons/lu'
+import { APP_LOG_STATUSES, LOG_SOURCE, type AppLogItem } from '../types.ts'
 
 interface QueueLogsElementProps {
   log: AppLogItem;
@@ -21,16 +22,45 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
     statusClassName = 'text-error'
   }
 
+  // Определение иконки и текста всплывающей подсказки
+  let InitiatorIcon = LuCpu
+  let tooltipText = 'Системное действие'
+
+  if (log.source === LOG_SOURCE.STREAMER_UI) {
+    InitiatorIcon = LuCrown
+    tooltipText = 'Действие стримера в интерфейсе'
+  } else if (log.source === LOG_SOURCE.CHAT_MODERATOR) {
+    InitiatorIcon = LuShield
+    tooltipText = 'Команда модератора из чата'
+  } else if (log.source === LOG_SOURCE.CHAT_USER) {
+    InitiatorIcon = LuMessageSquare
+    tooltipText = 'Запрос зрителя из чата'
+  }
+
   return (
-    <div className="py-0.5 border-b border-base-content/5 wrap-break-word">
-      <span className="text-base-content/40 select-none">
+    <div className="py-0.5 border-b border-base-content/5 wrap-break-word text-sm leading-relaxed">
+      <span className="text-base-content/40 select-none mr-1.5">
         [{timeString}]
-      </span>{' '}
-      <span className="font-bold text-primary">
+      </span>
+
+      <span
+        className="tooltip tooltip-right tooltip-sm text-base-content/50 inline-flex items-center align-middle mr-1.5"
+        data-tip={tooltipText}
+      >
+        <InitiatorIcon className="w-3.5 h-3.5" />
+      </span>
+
+      <span className="font-bold text-primary mr-1.5">
         {log.actorUsername}:
-      </span>{' '}
+      </span>
+
       <span className={statusClassName}>
         {log.message}
+        {log.rawCommand && (
+          <span className="text-base-content/30 italic text-xs ml-1.5 select-all">
+            ({log.rawCommand})
+          </span>
+        )}
       </span>
     </div>
   )

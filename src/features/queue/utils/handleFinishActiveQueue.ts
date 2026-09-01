@@ -1,11 +1,12 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { LogInitiator, QueueSession, QueueState } from '../types'
+import type { QueueSession, QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleFinishActiveQueueArgs {
   /** Источник вызова команды (обычно интерфейс стримера) */
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   /** Никнейм того, кто инициировал завершение */
   actorUsername: string;
   /** Текущие настройки очереди для лимита maxQueueSize */
@@ -13,12 +14,7 @@ export interface HandleFinishActiveQueueArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -26,7 +22,7 @@ export interface HandleFinishActiveQueueArgs {
  * фиксации кулдаунов участников и автоматического продвижения будущей очереди.
  */
 export const handleFinishActiveQueue = ({
-  initiator,
+  source,
   actorUsername,
   settings,
   setState,
@@ -83,13 +79,16 @@ export const handleFinishActiveQueue = ({
     }
   })
 
-  // 4. Формируем красивый информативный лог
+  // 4. Формируем лог
   if (playedPlayersCount > 0 || promotedPlayersCount > 0) {
     const logMessage = `Состав №${nextSessionNumber} завершен (игроков: ${playedPlayersCount}). ` +
             `В активную очередь переведено игроков из ожидания: ${promotedPlayersCount}.`
 
-    pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername)
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
   } else {
-    pushLog('Не удалось завершить сессию: очереди пусты.', APP_LOG_STATUSES.ERROR, initiator, actorUsername)
+    pushLog({ message: 'Не удалось завершить сессию: очереди пусты.',
+      status: APP_LOG_STATUSES.ERROR,
+      source,
+      actorUsername })
   }
 }

@@ -1,12 +1,13 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, LogInitiator } from '../types'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import type { QueueState } from '../types'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleRemovePlayerFromAllArgs {
   /** Уникальный ID пользователя на Twitch для полного удаления отовсюду */
   userId: string;
   /** Источник вызова команды (чат/интерфейс) */
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   /** Никнейм того, кто выполнил удаление */
   actorUsername: string;
   /** Исходный текст команды (если вызвано из чата) */
@@ -14,13 +15,7 @@ export interface HandleRemovePlayerFromAllArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-    rawCommand?: string,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -28,7 +23,7 @@ export interface HandleRemovePlayerFromAllArgs {
  */
 export const handleRemovePlayerFromAll = ({
   userId,
-  initiator,
+  source,
   actorUsername,
   rawCommand,
   setState,
@@ -70,9 +65,9 @@ export const handleRemovePlayerFromAll = ({
     if (removedFromFutureCount > 0) locations.push(`будущей (${removedFromFutureCount})`)
 
     const logMessage = `Игрок ${targetPlayerName || `с ID ${userId}`} удален из всех очередей: ${locations.join(' и ')}.`
-    pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername, rawCommand)
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
   } else {
     const logMessage = `Ошибка отмены записи: игрок с ID ${userId} не найден ни в одном из списков.`
-    pushLog(logMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand)
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
   }
 }

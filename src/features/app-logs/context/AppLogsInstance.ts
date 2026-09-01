@@ -1,16 +1,14 @@
 import { createContext } from 'react'
-import type { AppLogItem, AppLogStatus } from '../types.ts'
-import type { LogInitiator } from '../../queue/types.ts'
+import type { AppLogItem, AppLogStatus, LogSource } from '../types.ts'
 
 export interface AppLogsContextValue {
   logs: AppLogItem[];
   pushLog: (args: {
     message: string;
     status?: AppLogStatus;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
     rawCommand?: string;
-    extractedGameNickname?: string | null;
   }) => void;
   clearLogs: () => void;
 }

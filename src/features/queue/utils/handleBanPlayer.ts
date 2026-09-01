@@ -1,7 +1,8 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, LogInitiator } from '../types'
+import type { QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleBanPlayerArgs {
   /** Уникальный ID пользователя на Twitch (если известен, для фильтрации) */
@@ -11,7 +12,7 @@ export interface HandleBanPlayerArgs {
   /** Красивое отображаемое имя (для логов) */
   displayedUsername?: string;
   /** Источник вызова команды (чат/интерфейс) */
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   /** Никнейм того, кто выдал бан */
   actorUsername: string;
   /** Текущие настройки очереди */
@@ -21,12 +22,7 @@ export interface HandleBanPlayerArgs {
   /** Функция обновления состояния игроков */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog']
 }
 
 /**
@@ -37,7 +33,7 @@ export const handleBanPlayer = ({
   userId,
   username,
   displayedUsername,
-  initiator,
+  source,
   actorUsername,
   settings,
   updateSettings,
@@ -52,10 +48,11 @@ export const handleBanPlayer = ({
 
   if (alreadyBanned) {
     pushLog(
-      `Ошибка бана: пользователь ${displayName} уже находится в бан-листе очереди.`,
-      APP_LOG_STATUSES.ERROR,
-      initiator,
-      actorUsername,
+      { message: `Ошибка бана: пользователь ${displayName} уже находится в бан-листе очереди.`,
+        status: APP_LOG_STATUSES.ERROR,
+        source,
+        actorUsername,
+      },
     )
     return
   }
@@ -88,5 +85,5 @@ export const handleBanPlayer = ({
   const cleanDetails = removedCount > 0 ? ` (удален из ${removedCount} очередей)` : ''
   const logMessage = `Пользователь ${displayName} добавлен во внутренний бан-лист очереди${cleanDetails}.`
 
-  pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername)
+  pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
 }

@@ -1,13 +1,14 @@
-import type { QueueState, LogActorRole } from '../types'
+import type { QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
+import { LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
 
 interface ValidateQueueEntryArgs {
   userId: string;
   username: string;
   isSubscriber: boolean;
-  actorRole: LogActorRole;
   state: QueueState;
   settings: QueueSettings;
+  source: LogSource;
 }
 
 /**
@@ -18,12 +19,14 @@ export const validateQueueEntry = ({
   userId,
   username,
   isSubscriber,
-  actorRole,
   state,
   settings,
+  source,
 }: ValidateQueueEntryArgs): string | null => {
   // Стример, модераторы и система обходят базовые правила ограничений чата
-  const isStaff = actorRole === 'стример' || actorRole === 'модератор' || actorRole === 'система'
+  const isStaff = source === LOG_SOURCE.APPLICATION
+      || source === LOG_SOURCE.CHAT_MODERATOR
+      || source === LOG_SOURCE.STREAMER_UI
 
   if (isStaff) return null
 

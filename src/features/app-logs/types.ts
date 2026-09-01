@@ -1,5 +1,3 @@
-import type { LogInitiator } from '../queue/types.ts'
-
 export const APP_LOG_STATUSES = {
   INFO: 'info',
   SUCCESS: 'success',
@@ -15,8 +13,8 @@ export type AppLogStatus = typeof APP_LOG_STATUSES[keyof typeof APP_LOG_STATUSES
 export interface AppLogItem {
   id: string;
   timestamp: number;
-  /** Кто вызвал действие */
-  initiator: LogInitiator;
+  /** Источник инициации действия */
+  source: LogSource;
   /** Никнейм того, кто инициировал */
   actorUsername: string;
   /** Исходный текст команды */
@@ -25,6 +23,16 @@ export interface AppLogItem {
   message: string;
   /** Статус для подсветки в интерфейсе */
   status: AppLogStatus;
-  /** Извлеченный никнейм по регулярке, если он был */
-  extractedGameNickname?: string | null;
 }
+
+/**
+ * Источник инициации действий для логирования
+ */
+export const LOG_SOURCE = {
+  STREAMER_UI: 'streamer_ui',
+  CHAT_MODERATOR: 'chat_moderator',
+  CHAT_USER: 'chat_user',
+  APPLICATION: 'application',
+} as const
+
+export type LogSource = typeof LOG_SOURCE[keyof typeof LOG_SOURCE]

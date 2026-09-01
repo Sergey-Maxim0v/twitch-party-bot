@@ -1,15 +1,4 @@
 /**
- * Источники инициации действий в очереди
- */
-export const LOG_INITIATOR = {
-  CHAT_USER: 'chat_user',
-  CHAT_MODERATOR: 'chat_moderator',
-  STREAMER_UI: 'streamer_ui',
-} as const
-
-export type LogInitiator = typeof LOG_INITIATOR[keyof typeof LOG_INITIATOR]
-
-/**
  * Данные игрока в очереди (слепок сообщения из чата)
  */
 export interface QueuePlayer {
@@ -70,15 +59,3 @@ export interface QueueState {
   /** Быстрый индекс истории игроков для проверки временных и сессионных кулдаунов */
   playerHistory: Record<string, PlayerHistoryStats>;
 }
-
-/**
- * Роли исполнителей действий для понятного отображения в логах
- */
-export const LOG_ACTOR_ROLE = {
-  STREAMER: 'стример',
-  MODERATOR: 'модератор',
-  SYSTEM: 'система',
-  APPLICATION: 'приложение',
-} as const
-
-export type LogActorRole = typeof LOG_ACTOR_ROLE[keyof typeof LOG_ACTOR_ROLE]

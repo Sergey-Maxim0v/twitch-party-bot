@@ -1,23 +1,17 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, LogInitiator, LogActorRole } from '../types'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import type { QueueState } from '../types'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleClearQueueHistoryArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Источник вызова команды (чат/интерфейс) */
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   /** Никнейм того, кто очистил историю */
   actorUsername: string;
-  /** Роль исполнителя для понятного отображения в логах (стример, модератор, система, приложение) */
-  actorRole: LogActorRole;
   /** Хелпер провайдера для записи логов */
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -25,9 +19,8 @@ export interface HandleClearQueueHistoryArgs {
  */
 export const handleClearQueueHistory = ({
   setState,
-  initiator,
+  source,
   actorUsername,
-  actorRole,
   pushLog,
 }: HandleClearQueueHistoryArgs): void => {
   setState(prev => ({
@@ -35,12 +28,11 @@ export const handleClearQueueHistory = ({
     queueHistory: [],
   }))
 
-  const logMessage = `История сыгранных сессий очищена. Исполнитель: [${actorRole}] ${actorUsername}`
-
-  pushLog(
-    logMessage,
-    APP_LOG_STATUSES.INFO,
-    initiator,
+  pushLog({
+    message: 'История сыгранных сессий очищена.',
+    status: APP_LOG_STATUSES.INFO,
+    source,
     actorUsername,
+  },
   )
 }

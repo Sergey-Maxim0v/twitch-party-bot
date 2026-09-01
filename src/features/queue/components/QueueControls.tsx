@@ -1,9 +1,10 @@
 import { type FC, useCallback } from 'react'
-import { LOG_INITIATOR } from '../types.ts'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
+import { LOG_SOURCE } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface QueueControlsProps {
   className?: string;
@@ -16,7 +17,7 @@ const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
   const { pushLog } = useAppLogs()
 
   const handleFinishActiveQueue = useCallback(() => {
-    finishActiveQueue({ initiator: LOG_INITIATOR.STREAMER_UI, actorUsername: session?.login ?? '' })
+    finishActiveQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: session?.login ?? '' })
 
     if (!settings.allowPreJoin) {
       updateSettings({ isQueueOpen: false })
@@ -24,9 +25,9 @@ const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
   }, [session?.login, finishActiveQueue, settings.allowPreJoin, updateSettings])
 
   const handleQueueToggle = useCallback(() => {
-    const argsPushLogFnc = {
+    const argsPushLogFnc: Parameters<AppLogsContextValue['pushLog']>[0] = {
       message: settings.isQueueOpen ? 'Очередь закрыта' : 'Очередь открыта',
-      initiator: LOG_INITIATOR.STREAMER_UI,
+      source: LOG_SOURCE.STREAMER_UI,
       actorUsername: session?.login ?? '',
     }
 

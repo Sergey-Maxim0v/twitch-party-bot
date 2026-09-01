@@ -1,5 +1,6 @@
 import { createContext } from 'react'
-import type { QueueState, QueuePlayer, QueueSession, LogInitiator, LogActorRole } from '../types'
+import type { QueueState, QueuePlayer, QueueSession } from '../types'
+import type { LogSource } from '../../app-logs/types.ts'
 
 export interface QueueContextValue {
   // === Реактивные состояния (Стейты) ===
@@ -14,19 +15,18 @@ export interface QueueContextValue {
 
   // === Методы очистки (Clear) ===
   /** Очистить текущую активную очередь */
-  clearActiveQueue: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
+  clearActiveQueue: (args: { source: LogSource; actorUsername: string; actorRole: string }) => void;
   /** Очистить будущие очереди */
-  clearFutureQueue: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
+  clearFutureQueue: (args: { source: LogSource; actorUsername: string; actorRole: string }) => void;
   /** Очистить историю сыгранных сессий */
-  clearQueueHistory: (args: { initiator: LogInitiator; actorUsername: string; actorRole: LogActorRole }) => void;
+  clearQueueHistory: (args: { source: LogSource; actorUsername: string; actorRole: string }) => void;
 
   // === Управление игроками (CRUD) ===
   /** Добавить игрока в очередь (в активную или будущую на основе правил) */
   addPlayerToQueue: (args: {
     playerData: Omit<QueuePlayer, 'timestamp'>;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
-    actorRole: LogActorRole;
     rawCommand?: string;
     customTimestamp?: number;
   }) => void;
@@ -35,7 +35,7 @@ export interface QueueContextValue {
   removePlayerFromQueue: (args: {
     userId: string;
     targetQueueType: 'active' | 'future';
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
     rawCommand?: string;
   }) => void;
@@ -43,7 +43,7 @@ export interface QueueContextValue {
   /** Полностью удалить игрока из всех существующих очередей (например, при команде !leave) */
   removePlayerFromAllQueues: (args: {
     userId: string;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
     rawCommand?: string;
   }) => void;
@@ -53,7 +53,7 @@ export interface QueueContextValue {
     userId?: string;
     username: string;
     displayedUsername?: string;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
   }) => void;
 
@@ -62,13 +62,13 @@ export interface QueueContextValue {
     userId: string;
     targetQueueType: 'active' | 'future';
     targetIndex: number | undefined;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
   }) => void;
 
   // === Жизненный цикл очереди ===
   /** Завершить текущую очередь (активная улетает в историю, будущая ротируется) */
-  finishActiveQueue: (args: { initiator: LogInitiator; actorUsername: string }) => void;
+  finishActiveQueue: (args: { source: LogSource; actorUsername: string }) => void;
 }
 
 export const QueueContext = createContext<QueueContextValue | undefined>(undefined)

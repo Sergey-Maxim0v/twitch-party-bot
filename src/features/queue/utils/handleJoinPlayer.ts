@@ -1,28 +1,21 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, QueuePlayer, LogInitiator, LogActorRole } from '../types'
+import type { QueueState, QueuePlayer } from '../types'
 import { validateQueueEntry } from './validateQueueEntry'
 import { extractGameNickname } from './extractGameNickname'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleJoinPlayerArgs {
   playerData: Omit<QueuePlayer, 'timestamp'>;
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   actorUsername: string;
-  actorRole: LogActorRole;
   rawCommand?: string;
   customTimestamp?: number;
   state: QueueState;
   settings: QueueSettings;
   setState: Dispatch<SetStateAction<QueueState>>;
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-    rawCommand?: string,
-    extractedNickname?: string | null,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog']
 }
 
 /**
@@ -30,9 +23,8 @@ export interface HandleJoinPlayerArgs {
  */
 export const handleJoinPlayer = ({
   playerData,
-  initiator,
+  source,
   actorUsername,
-  actorRole,
   rawCommand,
   customTimestamp,
   state,
@@ -47,9 +39,9 @@ export const handleJoinPlayer = ({
   const displayName = playerData.displayedUsername || username
 
   // 1. Запуск валидации ограничений (кулдауны, бан-листы, открыта ли очередь)
-  const validationError = validateQueueEntry({ userId, username, isSubscriber, actorRole, state, settings })
+  const validationError = validateQueueEntry({ userId, username, isSubscriber, state, settings, source })
   if (validationError) {
-    pushLog(validationError, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand)
+    pushLog({ message: validationError, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
     return
   }
 
@@ -126,8 +118,8 @@ export const handleJoinPlayer = ({
   })
 
   if (isSuccess) {
-    pushLog(finalLogMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername, rawCommand, extractedNickname)
+    pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
   } else if (finalLogMessage) {
-    pushLog(finalLogMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand)
+    pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
   }
 }

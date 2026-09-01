@@ -1,7 +1,7 @@
 import { type ReactNode, type FC, useMemo, useCallback } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
-import type { QueueState, QueuePlayer, LogInitiator, LogActorRole } from '../types'
+import type { QueueState, QueuePlayer } from '../types'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings'
 import { createInitialState } from '../utils/createInitialState'
 import { STORAGE_KEY } from '../constants.ts'
@@ -16,7 +16,8 @@ import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import type { AppLogStatus } from '../../app-logs/types.ts'
+import type { AppLogStatus, LogSource } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
@@ -27,46 +28,41 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState())
   const { pushLog: pushAppLog } = useAppLogs()
 
-  const pushLog = useCallback((
+  const pushLog: AppLogsContextValue['pushLog'] = useCallback((
     message: string,
     status: AppLogStatus,
-    initiator: LogInitiator,
+    source: LogSource,
     actorUsername: string,
     rawCommand?: string,
-    extractedNickname?: string | null,
   ) => {
     pushAppLog({
       message,
       status,
-      initiator,
+      source,
       actorUsername,
       rawCommand,
-      extractedGameNickname: extractedNickname,
     })
   }, [pushAppLog])
 
   // === МЕТОДЫ ОЧИСТКИ (Clear) ===
 
   const clearActiveQueue = useCallback((args: {
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
-    actorRole: LogActorRole
   }) => {
     handleClearActiveQueue({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   const clearFutureQueue = useCallback((args: {
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
-    actorRole: LogActorRole
   }) => {
     handleClearFutureQueue({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   const clearQueueHistory = useCallback((args: {
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
-    actorRole: LogActorRole
   }) => {
     handleClearQueueHistory({ ...args, setState, pushLog })
   }, [setState, pushLog])
@@ -75,9 +71,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const addPlayerToQueue = useCallback((args: {
     playerData: Omit<QueuePlayer, 'timestamp'>;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
-    actorRole: LogActorRole;
     rawCommand?: string;
     customTimestamp?: number;
   }) => {
@@ -87,7 +82,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const removePlayerFromQueue = useCallback((args: {
     userId: string;
     targetQueueType: 'active' | 'future';
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
     rawCommand?: string;
   }) => {
@@ -96,7 +91,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const removePlayerFromAllQueues = useCallback((args: {
     userId: string;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
     rawCommand?: string;
   }) => {
@@ -107,7 +102,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     userId?: string;
     username: string;
     displayedUsername?: string;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
   }) => {
     handleBanPlayer({ ...args, settings, updateSettings, setState, pushLog })
@@ -117,7 +112,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     userId: string;
     targetQueueType: 'active' | 'future';
     targetIndex: number | undefined;
-    initiator: LogInitiator;
+    source: LogSource;
     actorUsername: string;
   }) => {
     handleMovePlayer({ ...args, setState, pushLog })
@@ -125,7 +120,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   // === ЖИЗНЕННЫЙ ЦИКЛ ОЧЕРЕДИ ===
 
-  const finishActiveQueue = useCallback((args: { initiator: LogInitiator; actorUsername: string }) => {
+  const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleFinishActiveQueue({ ...args, settings, setState, pushLog })
   }, [settings, setState, pushLog])
 

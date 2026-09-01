@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, LogInitiator } from '../types'
-import { APP_LOG_STATUSES, type AppLogStatus } from '../../app-logs/types.ts'
+import type { QueueState } from '../types'
+import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleRemovePlayerArgs {
   /** Уникальный ID пользователя на Twitch для удаления */
@@ -8,7 +9,7 @@ export interface HandleRemovePlayerArgs {
   /** Из какой именно очереди нужно удалить игрока */
   targetQueueType: 'active' | 'future';
   /** Источник вызова команды (чат/интерфейс) */
-  initiator: LogInitiator;
+  source: AppLogItem['source'];
   /** Никнейм того, кто выполнил удаление */
   actorUsername: string;
   /** Исходный текст команды (если вызвано из чата) */
@@ -16,13 +17,7 @@ export interface HandleRemovePlayerArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
-  pushLog: (
-    message: string,
-    status: AppLogStatus,
-    initiator: LogInitiator,
-    actorUsername: string,
-    rawCommand?: string,
-  ) => void;
+  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -31,7 +26,7 @@ export interface HandleRemovePlayerArgs {
 export const handleRemovePlayer = ({
   userId,
   targetQueueType,
-  initiator,
+  source,
   actorUsername,
   rawCommand,
   setState,
@@ -66,9 +61,9 @@ export const handleRemovePlayer = ({
 
   if (isRemoved) {
     const logMessage = `Игрок ${targetPlayerName} удален из ${queueLabel}.`
-    pushLog(logMessage, APP_LOG_STATUSES.SUCCESS, initiator, actorUsername, rawCommand)
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
   } else {
     const logMessage = `Ошибка удаления: игрок с ID ${userId} не найден в ${queueLabel}.`
-    pushLog(logMessage, APP_LOG_STATUSES.ERROR, initiator, actorUsername, rawCommand)
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
   }
 }
