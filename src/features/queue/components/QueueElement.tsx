@@ -14,9 +14,11 @@ const QueueElement:FC<QueueElementProps> = ({ className, player }) => {
   //  - с кнопками:
   //  удалить, открыть модалку с подробностями, скопировать ник, забанить
 
+  console.log(player)
+
   return (
     <div className={className} >
-      TODO: {JSON.stringify(player)}
+      {JSON.stringify(player)}
     </div>
   )
 }

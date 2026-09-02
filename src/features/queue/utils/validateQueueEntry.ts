@@ -5,7 +5,7 @@ import { LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
 interface ValidateQueueEntryArgs {
   userId: string;
   username: string;
-  isSubscriber: boolean;
+  isPrivileged: boolean;
   state: QueueState;
   settings: QueueSettings;
   source: LogSource;
@@ -18,7 +18,7 @@ interface ValidateQueueEntryArgs {
 export const validateQueueEntry = ({
   userId,
   username,
-  isSubscriber,
+  isPrivileged,
   state,
   settings,
   source,
@@ -32,18 +32,18 @@ export const validateQueueEntry = ({
 
   // 1. Проверка: Открыта ли очередь
   if (!settings.isQueueOpen) {
-    return 'отклонено: очередь закрыта'
+    return 'Отклонено: очередь закрыта'
   }
 
   // 2. Проверка: Локальный бан-лист фичи
   const isBanned = settings.banList.some(b => b.toLowerCase() === username.toLowerCase())
   if (isBanned) {
-    return 'отклонено: пользователь находится в бан-листе очереди'
+    return 'Отклонено: пользователь находится в бан-листе очереди'
   }
 
   // 3. Проверка: Только для подписчиков (subscribersOnly)
-  if (settings.subscribersOnly && !isSubscriber) {
-    return 'отклонено: доступ к очереди только для подписчиков Twitch'
+  if (settings.subscribersOnly && !isPrivileged) {
+    return 'Отклонено: доступ к очереди только для подписчиков Twitch, VIP и модераторов '
   }
 
   // 4. Проверка кулдаунов (из playerHistory)
@@ -56,7 +56,7 @@ export const validateQueueEntry = ({
       const minutesPassed = (currentTimestamp - playerStats.lastPlayedTimestamp) / 60000
       if (minutesPassed < settings.sessionHistoryCooldown) {
         const remaining = Math.ceil(settings.sessionHistoryCooldown - minutesPassed)
-        return `отклонено: кулдаун времени (осталось ${remaining} мин.)`
+        return `Отклонено: кулдаун времени (осталось ${remaining} мин.)`
       }
     }
 
@@ -65,7 +65,7 @@ export const validateQueueEntry = ({
       const sessionsPassed = state.globalSessionCounter - playerStats.lastPlayedSessionNumber
       if (sessionsPassed < settings.gamesPlayedCooldown) {
         const remaining = settings.gamesPlayedCooldown - sessionsPassed
-        return `отклонено: кулдаун сыгранных игр (пропустите еще сессий: ${remaining})`
+        return `Отклонено: кулдаун сыгранных игр (пропустите еще сессий: ${remaining})`
       }
     }
   }

@@ -24,17 +24,17 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
 
   // Определение иконки и текста всплывающей подсказки
   let InitiatorIcon = LuCpu
-  let tooltipText = 'Системное действие'
+  let tooltipText = 'Система'
 
   if (log.source === LOG_SOURCE.STREAMER_UI) {
     InitiatorIcon = LuCrown
-    tooltipText = 'Действие стримера в интерфейсе'
+    tooltipText = 'Пользователь приложения'
   } else if (log.source === LOG_SOURCE.CHAT_MODERATOR) {
     InitiatorIcon = LuShield
-    tooltipText = 'Команда модератора из чата'
+    tooltipText = 'Модератор в чате'
   } else if (log.source === LOG_SOURCE.CHAT_USER) {
     InitiatorIcon = LuMessageSquare
-    tooltipText = 'Запрос зрителя из чата'
+    tooltipText = 'Участник чата'
   }
 
   return (
@@ -44,7 +44,7 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
       </span>
 
       <span
-        className="tooltip tooltip-right tooltip-sm text-base-content/50 inline-flex items-center align-middle mr-1.5"
+        className="tooltip tooltip-top tooltip-sm text-base-content/50 inline-flex items-center align-middle mr-1.5 z-100"
         data-tip={tooltipText}
       >
         <InitiatorIcon className="w-3.5 h-3.5" />
@@ -56,11 +56,6 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
 
       <span className={statusClassName}>
         {log.message}
-        {log.rawCommand && (
-          <span className="text-base-content/30 italic text-xs ml-1.5 select-all">
-            ({log.rawCommand})
-          </span>
-        )}
       </span>
     </div>
   )

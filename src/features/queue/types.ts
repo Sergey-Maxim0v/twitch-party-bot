@@ -1,21 +1,33 @@
 /**
- * Данные игрока в очереди (слепок сообщения из чата)
+ * Общие данные игрока
  */
-export interface QueuePlayer {
-  /** Уникальный ID пользователя на Twitch */
+export interface BaseQueuePlayer {
   userId: string;
-  /** Никнейм пользователя в чате для системных проверок (обычно в нижнем регистре) */
   username: string;
-  /** Красивый никнейм пользователя с сохранением регистра (Display Name из Twitch) */
   displayedUsername?: string;
-  /** Статус подписки на момент входа в очередь */
-  isSubscriber: boolean;
-  /** Полный текст сообщения из чата */
   rawMessage: string;
-  /** Время сообщения (из тегов Twitch или Date.now()) */
+
+}
+
+/**
+ * Данные игрока в очереди
+ */
+export interface QueuePlayer extends BaseQueuePlayer {
   timestamp: number;
-  /** Извлеченный и валидированный игровой никнейм */
+  isSubscriber: boolean;
+  isModerator: boolean;
+  isVip: boolean;
   gameNickname?: string | null;
+}
+
+/**
+ * Данные игрока для постановки в очередь
+ */
+export interface QueuePlayerFormData extends BaseQueuePlayer {
+  timestamp?: number;
+  isSubscriber?: boolean;
+  isModerator?: boolean;
+  isVip?: boolean;
 }
 
 /**

@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState, QueuePlayer } from '../types'
+import type { QueueState, QueuePlayer, QueuePlayerFormData } from '../types'
 import { validateQueueEntry } from './validateQueueEntry'
 import { extractGameNickname } from './extractGameNickname'
 import type { QueueSettings } from '../../queue-settings/types.ts'
@@ -7,7 +7,7 @@ import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleJoinPlayerArgs {
-  playerData: Omit<QueuePlayer, 'timestamp'>;
+  playerData: QueuePlayerFormData;
   source: AppLogItem['source'];
   actorUsername: string;
   rawCommand?: string;
@@ -35,23 +35,31 @@ export const handleJoinPlayer = ({
   const timestamp = customTimestamp || Date.now()
   const userId = playerData.userId
   const username = playerData.username
-  const isSubscriber = playerData.isSubscriber
+  const isPrivileged = Boolean(playerData.isSubscriber || playerData.isVip || playerData.isModerator)
   const displayName = playerData.displayedUsername || username
 
   // 1. Запуск валидации ограничений (кулдауны, бан-листы, открыта ли очередь)
-  const validationError = validateQueueEntry({ userId, username, isSubscriber, state, settings, source })
+  const validationError = validateQueueEntry({ userId, username, isPrivileged, state, settings, source })
   if (validationError) {
     pushLog({ message: validationError, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
     return
   }
 
-  // 2. Извлечение игрового никнейма с помощью внешней утилиты
-  const extractedNickname = playerData.gameNickname || extractGameNickname({
+  // 2. Извлечение игрового никнейма
+  const extractedNickname = extractGameNickname({
     rawMessage: playerData.rawMessage,
     gameConfig: settings.currentGame,
   })
 
-  const fullPlayer: QueuePlayer = { ...playerData, timestamp, gameNickname: extractedNickname }
+  const fullPlayer: QueuePlayer = {
+    ...playerData,
+    timestamp,
+    gameNickname: extractedNickname,
+    isVip: playerData.isVip ?? false,
+    isModerator: playerData.isModerator ?? false,
+    isSubscriber: playerData.isSubscriber ?? false,
+  }
+
   let finalLogMessage = ''
   let isSuccess = false
 
@@ -63,11 +71,11 @@ export const handleJoinPlayer = ({
     // Проверка на дубликаты
     if (!settings.allowMultipleEntries) {
       if (existsInActive || existsInFuture) {
-        finalLogMessage = `отклонено: игрок ${displayName} уже находится в очереди`
+        finalLogMessage = `Отклонено: игрок ${displayName} уже находится в очереди`
         return prev
       }
     } else if (existsInActive && !settings.allowPreJoin) {
-      finalLogMessage = `отклонено: игрок ${displayName} уже в активной очереди, предзапись закрыта`
+      finalLogMessage = `Отклонено: игрок ${displayName} уже в активной очереди, предзапись закрыта`
       return prev
     }
 
@@ -76,7 +84,7 @@ export const handleJoinPlayer = ({
 
     // А) Вставка в АКТИВНУЮ очередь
     if (updatedActive.length < maxActiveSize && !existsInActive) {
-      if (settings.prioritizeSubscribers && isSubscriber) {
+      if (settings.prioritizeSubscribers && isPrivileged) {
         const firstNonSubIdx = updatedActive.findIndex(p => !p.isSubscriber)
         const insertIdx = firstNonSubIdx === -1 ? updatedActive.length : firstNonSubIdx
         updatedActive.splice(insertIdx, 0, fullPlayer)
@@ -90,21 +98,21 @@ export const handleJoinPlayer = ({
 
     // Б) Вставка в БУДУЩУЮ очередь
     if (!settings.allowPreJoin) {
-      finalLogMessage = 'отклонено: активная очередь заполнена, а будущие очереди отключены'
+      finalLogMessage = 'Отклонено: активная очередь заполнена, а будущие очереди отключены'
       return prev
     }
 
     if (!settings.allowMultipleEntries && existsInFuture) {
-      finalLogMessage = `отклонено: игрок ${displayName} уже ожидает в будущей очереди`
+      finalLogMessage = `Отклонено: игрок ${displayName} уже ожидает в будущей очереди`
       return prev
     }
 
     if (settings.allowMultipleEntries && prev.futureQueue.some((p, idx) => p.userId === userId && idx >= prev.futureQueue.length - maxActiveSize)) {
-      finalLogMessage = 'отклонено: нельзя записаться несколько раз подряд в один состав'
+      finalLogMessage = 'Отклонено: нельзя записаться несколько раз подряд в один состав'
       return prev
     }
 
-    if (settings.prioritizeSubscribers && isSubscriber) {
+    if (settings.prioritizeSubscribers && isPrivileged) {
       const firstNonSubIdx = updatedFuture.findIndex(p => !p.isSubscriber)
       const insertIdx = firstNonSubIdx === -1 ? updatedFuture.length : firstNonSubIdx
       updatedFuture.splice(insertIdx, 0, fullPlayer)

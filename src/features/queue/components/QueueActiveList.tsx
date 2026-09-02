@@ -2,6 +2,7 @@ import type { FC } from 'react'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import QueueCollapse from '../../../components/QueueCollapse.tsx'
+import QueueElement from './QueueElement.tsx'
 
 export interface QueueActiveListProps {
   className?: string;
@@ -29,7 +30,9 @@ const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOpenChang
       title="Текущая очередь"
     >
       <div className="flex flex-col gap-2">
-        TODO: Список участников активной очереди
+        {activeQueue.map(player => (
+          <QueueElement key={player.userId + player.timestamp} player={player} />
+        ))}
       </div>
     </QueueCollapse>
   )
