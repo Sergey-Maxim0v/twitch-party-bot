@@ -1,22 +1,19 @@
 import { type FC, useRef } from 'react'
 import { LuTrash2, LuUserX, LuCopy, LuInfo, LuClock, LuGamepad } from 'react-icons/lu'
 import type { QueuePlayer } from '../types.ts'
-import { QUEUE_SOURCE_META } from '../constants.ts'
 import QueueElementModal from './QueueElementModal.tsx'
+import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
 export interface QueueElementProps {
   className?: string;
   player: QueuePlayer;
-  onDelete?: (userId: string) => void;
-  onBan?: (userId: string) => void;
 }
 
 const QueueElement: FC<QueueElementProps> = ({
   className = '',
   player,
-  onDelete,
-  onBan,
 }) => {
+  const { settings } = useQueueSettings()
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   const {
@@ -24,7 +21,6 @@ const QueueElement: FC<QueueElementProps> = ({
     username,
     displayedUsername,
     rawMessage,
-    playerSource,
     timestamp,
     isSubscriber,
     isModerator,
@@ -45,87 +41,126 @@ const QueueElement: FC<QueueElementProps> = ({
     })
   }
 
+  const handleBan = () => {
+    //  TODO
+    console.log(userId)
+  }
+
+  const handleDelete = () => {
+    //  TODO
+    console.log(userId)
+  }
+
   const openModal = (): void => dialogRef.current?.showModal()
   const closeModal = (): void => dialogRef.current?.close()
 
-  const sourceMeta = QUEUE_SOURCE_META[playerSource] || { label: playerSource, badgeClass: 'badge-ghost' }
-
   return (
-    <div className={`p-2 rounded-lg border border-base-content/10 bg-base-100 shadow-sm hover:border-base-content/20 transition-all ${className}`}>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div className={'py-1.5 px-2.5 rounded-lg border border-base-content/5 bg-base-200/30'
+        + ' hover:bg-base-200/60 transition-all flex flex-col gap-0.5 shadow-xs '
+        + className}
+    >
 
-        {/* Инфо об игроке */}
-        <div className="flex-1 min-w-0 flex flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-base-content/50 font-mono flex items-center gap-0.5">
-              <LuClock className="w-3 h-3" />
-              {formattedTime}
+      {/* СТРОКА 1: Время, Роли, Никнеймы */}
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0 w-full">
+        {/* Время */}
+        <span className="text-[11px] text-base-content/40 font-mono flex items-center gap-0.5 shrink-0 select-none">
+          <LuClock className="w-2.5 h-2.5 opacity-70" />
+          {formattedTime}
+        </span>
+
+        {/* Роли и статус */}
+        <div className="flex items-center gap-0.5 h-3.5 shrink-0">
+          {isModerator && (
+            <span className="badge badge-success text-[9px] font-bold h-3.5 px-1 text-success-content border-none">
+              Модер
             </span>
+          )}
 
-            {isModerator && <span className="badge badge-success badge-xs font-semibold text-success-content">Модер</span>}
-            {isVip && <span className="badge badge-warning badge-xs font-semibold text-warning-content">VIP</span>}
-            {isSubscriber && <span className="badge badge-primary badge-xs font-semibold text-primary-content">Саб</span>}
-
-            <span className={`badge badge-xs font-medium ${sourceMeta.badgeClass}`}>
-              {sourceMeta.label}
+          {isVip && (
+            <span className="badge badge-warning text-[9px] font-bold h-3.5 px-1 text-warning-content border-none">
+              VIP
             </span>
-          </div>
+          )}
 
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="font-bold text-base-content">{displayedUsername || username}</span>
-            {gameNickname && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-base-200 border border-base-content/5 text-base-content/70 font-mono inline-flex items-center gap-1">
-                <LuGamepad className="w-3 h-3" />
-                {gameNickname}
-              </span>
-            )}
-          </div>
-
-          {rawMessage && (
-            <p className="text-xs text-base-content/60 truncate max-w-full italic" title={rawMessage}>
-              &ldquo;{rawMessage}&rdquo;
-            </p>
+          {isSubscriber && (
+            <span className="badge badge-primary text-[9px] font-bold h-3.5 px-1 text-primary-content border-none">
+              Саб
+            </span>
           )}
         </div>
 
-        {/* Быстрые действия */}
-        <div className="flex items-center gap-1 self-end sm:self-center shrink-0">
-          <button
-            className="btn btn-ghost btn-xs btn-square text-base-content/70 hover:text-info"
-            onClick={openModal}
-            title="Подробнее"
+        {/* Никнейм */}
+        <span className="font-semibold text-xs text-base-content tracking-wide wrap-break-word">
+          {displayedUsername || username}
+        </span>
+
+        {/* Игровой ник */}
+        {gameNickname && (
+          <span className={'text-[10px] h-3.5 px-1 rounded bg-base-300 text-success font-mono font-bold'
+              + ' inline-flex items-center gap-0.5 border border-base-content/5 shrink-0'}
           >
-            <LuInfo className="w-3.5 h-3.5" />
-          </button>
-          <button
-            className="btn btn-ghost btn-xs btn-square text-base-content/70 hover:text-success"
-            onClick={handleCopyNickname}
-            title="Скопировать ник"
-          >
-            <LuCopy className="w-3.5 h-3.5" />
-          </button>
-          <button
-            className="btn btn-ghost btn-xs btn-square text-base-content/40 hover:text-error hover:bg-error/10"
-            onClick={() => onBan?.(userId)}
-            title="Забанить"
-          >
-            <LuUserX className="w-3.5 h-3.5" />
-          </button>
-          <button
-            className="btn btn-ghost btn-xs btn-square text-base-content/40 hover:text-error hover:bg-error/10"
-            onClick={() => onDelete?.(userId)}
-            title="Удалить из очереди"
-          >
-            <LuTrash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
+            <LuGamepad className="w-2.5 h-2.5" />
+            {gameNickname}
+          </span>
+        )}
       </div>
 
+      {/* СТРОКА 2: Сообщение */}
+      {rawMessage && (
+        <p
+          className="text-[11px] text-base-content/40 truncate w-full italic mt-0.5 leading-tight"
+          title={rawMessage}
+        >
+          {rawMessage}
+        </p>
+      )}
+
+      {/* СТРОКА 3: Панель управления кнопками */}
+      <div className="flex items-center justify-end gap-0.5 h-4 mt-0.5">
+        <button
+          className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/40 hover:text-info hover:bg-base-300/50"
+          onClick={openModal}
+          title="Подробнее"
+        >
+          <LuInfo className="w-3 h-3" />
+        </button>
+
+        {settings?.currentGame && (
+          <button
+            className={'btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/40'
+                + ' hover:text-success hover:bg-base-300/50'
+                + ' disabled:text-base-content/20 disabled:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed'}
+            disabled={!gameNickname}
+            onClick={handleCopyNickname}
+            title={gameNickname ? 'Скопировать ник' : 'Игровой никнейм не определен'}
+          >
+            <LuCopy className="w-3 h-3" />
+          </button>
+        )}
+
+        <button
+          className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/20 hover:text-error hover:bg-error/10"
+          onClick={() => handleBan()}
+          title="Забанить"
+        >
+          <LuUserX className="w-3 h-3" />
+        </button>
+
+        <button
+          className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/20 hover:text-error hover:bg-error/10"
+          onClick={() => handleDelete()}
+          title="Удалить из очереди"
+        >
+          <LuTrash2 className="w-3 h-3" />
+        </button>
+      </div>
+
+      {/* Модалка деталей */}
       <QueueElementModal
-        onBan={onBan}
+        onBan={handleBan}
         onClose={closeModal}
         onCopy={handleCopyNickname}
-        onDelete={onDelete}
+        onDelete={handleDelete}
         player={player}
         ref={dialogRef}
       />

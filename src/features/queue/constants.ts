@@ -7,7 +7,7 @@ export const QUEUE_SOURCE_META: Record<
   { label: string; badgeClass: string }
 > = {
   app: {
-    label: 'Интерфейс',
+    label: 'Приложение',
     badgeClass: 'badge-info text-info-content',
   },
   mod_cmd: {
