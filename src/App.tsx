@@ -7,6 +7,9 @@ import { AuthProvider } from './features/auth/context/AuthProvider.tsx'
 import { ProtectedView } from './features/auth/components/ProtectedView.tsx'
 import { AppLogsProvider } from './features/app-logs/context/AppLogsProvider.tsx'
 
+//  TODO:
+//   - при нажатии кнопки завершить текущую очередь, очереди сработали корректно, но в логах "не удалось"
+
 function App() {
   return (
     <SocketProvider>

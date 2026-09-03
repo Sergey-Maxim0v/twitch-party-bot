@@ -36,6 +36,7 @@ const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
       isModerator: isMod,
       isSubscriber: isSub,
       isVip,
+      playerSource: 'app',
     }
 
     addPlayerToQueue({

@@ -1,3 +1,5 @@
+export type QueuePlayerSource = 'app' | 'mod_cmd' | 'user_cmd'
+
 /**
  * Общие данные игрока
  */
@@ -6,7 +8,7 @@ export interface BaseQueuePlayer {
   username: string;
   displayedUsername?: string;
   rawMessage: string;
-
+  playerSource: QueuePlayerSource;
 }
 
 /**
