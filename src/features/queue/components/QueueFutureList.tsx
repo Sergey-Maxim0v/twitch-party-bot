@@ -2,6 +2,8 @@ import type { FC } from 'react'
 import { useQueue } from '../hooks/useQueue.ts'
 import QueueCollapse from '../../../components/QueueCollapse.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
+import QueueElement from './QueueElement.tsx'
+import { QUEUE_TYPES } from '../types.ts'
 
 export interface QueueFutureListProps {
   className?: string;
@@ -33,7 +35,9 @@ const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChang
       tooltipText={disabled ? 'Будущие очереди отключены в настройках' : undefined}
     >
       <div className="flex flex-col gap-2">
-        TODO: Список участников будущей очереди
+        {futureQueue.map(player => (
+          <QueueElement key={player.userId + player.timestamp} player={player} queueType={QUEUE_TYPES.FUTURE} />
+        ))}
       </div>
     </QueueCollapse>
   )
