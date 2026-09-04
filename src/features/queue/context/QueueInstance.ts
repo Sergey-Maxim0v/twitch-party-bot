@@ -48,7 +48,7 @@ export interface QueueContextValue {
     rawCommand?: string;
   }) => void;
 
-  /** Добавить игрока во внутренний бан-лист очереди и выдворить его из текущих списков */
+  /** Добавить игрока во внутренний бан-лист очереди и удалить его из текущих списков */
   banPlayerFromQueue: (args: {
     userId?: string;
     username: string;

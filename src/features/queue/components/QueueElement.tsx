@@ -20,7 +20,7 @@ const QueueElement: FC<QueueElementProps> = ({
 }) => {
   const { settings } = useQueueSettings()
   const { userDisplayName } = useAuth()
-  const { removePlayerFromQueue } = useQueue()
+  const { removePlayerFromQueue, banPlayerFromQueue } = useQueue()
 
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -50,13 +50,18 @@ const QueueElement: FC<QueueElementProps> = ({
   }
 
   const handleBan = () => {
-    //  TODO
-    console.log(userId)
+    banPlayerFromQueue({
+      userId: userId,
+      username: username,
+      displayedUsername: displayedUsername,
+      actorUsername: userDisplayName ?? 'Application',
+      source: LOG_SOURCE.STREAMER_UI,
+    })
   }
 
   const handleDelete = () => {
     removePlayerFromQueue({
-      userId: player.userId,
+      userId: userId,
       source: LOG_SOURCE.STREAMER_UI,
       actorUsername: userDisplayName ?? 'Application',
       targetQueueType: queueType,
