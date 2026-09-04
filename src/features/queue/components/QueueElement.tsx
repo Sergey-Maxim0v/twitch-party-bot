@@ -163,14 +163,16 @@ const QueueElement: FC<QueueElementProps> = ({
           <LuUserX className="w-3 h-3" />
         </button>
 
-        <button
-          className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/20 hover:text-error hover:bg-error/10"
-          disabled={queueType === QUEUE_TYPES.HISTORY}
-          onClick={() => handleDelete()}
-          title="Удалить из очереди"
-        >
-          <LuTrash2 className="w-3 h-3" />
-        </button>
+        {queueType !== QUEUE_TYPES.HISTORY && (
+          <button
+            className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/20 hover:text-error hover:bg-error/10"
+            onClick={() => handleDelete()}
+            title="Удалить из очереди"
+          >
+
+            <LuTrash2 className="w-3 h-3" />
+          </button>
+        ) }
       </div>
 
       {/* Модалка деталей */}

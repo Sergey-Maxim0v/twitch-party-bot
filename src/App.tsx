@@ -7,8 +7,18 @@ import { AuthProvider } from './features/auth/context/AuthProvider.tsx'
 import { ProtectedView } from './features/auth/components/ProtectedView.tsx'
 import { AppLogsProvider } from './features/app-logs/context/AppLogsProvider.tsx'
 
+//  TODO: проверить:
+//   -  добавление в очередь
+//   -  удаление из очереди
+//   -  удаление из всех очередей
+//   -  бан
+//   -  лимиты игр
+//   -  приоритет подписчиков
+//   -
+
 //  TODO:
-//   - при нажатии кнопки завершить текущую очередь, очереди сработали корректно, но в логах "не удалось"
+//   - добавить кнопку удаления из всех очередей
+//   - реализовать перемещение игрока в очереди и между ними
 //   - хук логики обработки команд из чата
 //   - хук отправки сообщений в чат по изменениям в очереди
 
