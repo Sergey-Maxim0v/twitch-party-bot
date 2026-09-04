@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import type { QueuePlayer } from '../types.ts'
+import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
 import { QUEUE_SOURCE_META } from '../constants'
 import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX } from 'react-icons/lu'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
@@ -11,6 +11,7 @@ export interface QueueElementModalProps {
   onDelete?: (userId: string) => void;
   onBan?: (userId: string) => void;
   onCopy: () => void;
+  queueType: QueueType;
 }
 
 const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(({
@@ -20,6 +21,7 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
   onDelete,
   onBan,
   onCopy,
+  queueType,
 }, ref) => {
   const { settings } = useQueueSettings()
 
@@ -121,11 +123,13 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
             </button>
             <button
               className="btn btn-error btn-sm gap-1"
+              disabled={queueType === QUEUE_TYPES.HISTORY}
               onClick={() => { onDelete?.(userId); onClose() }}
             >
               <LuTrash2 className="w-4 h-4" /> Удалить
             </button>
           </div>
+
           <div className="flex gap-2">
             <button className="btn btn-neutral btn-sm gap-1" disabled={!settings.currentGame} onClick={onCopy}>
               <LuCopy className="w-4 h-4" /> Копировать ник

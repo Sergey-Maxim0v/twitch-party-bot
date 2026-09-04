@@ -33,6 +33,17 @@ export interface QueuePlayerFormData extends BaseQueuePlayer {
 }
 
 /**
+ * Типы очередей в приложении
+ */
+export const QUEUE_TYPES = {
+  ACTIVE: 'active',
+  FUTURE: 'future',
+  HISTORY: 'history',
+} as const
+
+export type QueueType = typeof QUEUE_TYPES[keyof typeof QUEUE_TYPES]
+
+/**
  * Структура одной игровой сессии (состава) в истории
  */
 export interface QueueSession {

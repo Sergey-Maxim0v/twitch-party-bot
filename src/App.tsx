@@ -9,6 +9,8 @@ import { AppLogsProvider } from './features/app-logs/context/AppLogsProvider.tsx
 
 //  TODO:
 //   - при нажатии кнопки завершить текущую очередь, очереди сработали корректно, но в логах "не удалось"
+//   - хук логики обработки команд из чата
+//   - хук отправки сообщений в чат по изменениям в очереди
 
 function App() {
   return (

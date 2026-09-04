@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { QueueState, QueuePlayer, QueueSession, QueuePlayerFormData } from '../types'
+import type { QueueState, QueuePlayer, QueueSession, QueuePlayerFormData, QueueType } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 
 export interface QueueContextValue {
@@ -34,7 +34,7 @@ export interface QueueContextValue {
   /** Удалить первую найденную запись игрока из конкретной очереди (активной или будущей) */
   removePlayerFromQueue: (args: {
     userId: string;
-    targetQueueType: 'active' | 'future';
+    targetQueueType: QueueType;
     source: LogSource;
     actorUsername: string;
     rawCommand?: string;

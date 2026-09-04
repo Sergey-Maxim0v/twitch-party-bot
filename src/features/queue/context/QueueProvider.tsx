@@ -1,7 +1,7 @@
 import { type ReactNode, type FC, useMemo, useCallback } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
-import type { QueueState, QueuePlayerFormData } from '../types'
+import type { QueueState, QueuePlayerFormData, QueueType } from '../types'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings'
 import { createInitialState } from '../utils/createInitialState'
 import { STORAGE_KEY } from '../constants.ts'
@@ -79,9 +79,9 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     handleJoinPlayer({ ...args, state, settings, setState, pushLog })
   }, [state, settings, setState, pushLog])
 
-  const removePlayerFromQueue = useCallback((args: {
+  const removePlayerFromQueue: QueueContextValue['removePlayerFromQueue'] = useCallback((args: {
     userId: string;
-    targetQueueType: 'active' | 'future';
+    targetQueueType: QueueType;
     source: LogSource;
     actorUsername: string;
     rawCommand?: string;

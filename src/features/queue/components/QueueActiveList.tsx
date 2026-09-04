@@ -3,6 +3,7 @@ import { useQueue } from '../hooks/useQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import QueueCollapse from '../../../components/QueueCollapse.tsx'
 import QueueElement from './QueueElement.tsx'
+import { QUEUE_TYPES } from '../types.ts'
 
 export interface QueueActiveListProps {
   className?: string;
@@ -31,7 +32,7 @@ const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOpenChang
     >
       <div className="flex flex-col gap-2">
         {activeQueue.map(player => (
-          <QueueElement key={player.userId + player.timestamp} player={player} />
+          <QueueElement key={player.userId + player.timestamp} player={player} queueType={QUEUE_TYPES.ACTIVE} />
         ))}
       </div>
     </QueueCollapse>

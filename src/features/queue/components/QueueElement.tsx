@@ -1,19 +1,27 @@
 import { type FC, useRef } from 'react'
 import { LuTrash2, LuUserX, LuCopy, LuInfo, LuClock, LuGamepad } from 'react-icons/lu'
-import type { QueuePlayer } from '../types.ts'
+import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
 import QueueElementModal from './QueueElementModal.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
+import { useQueue } from '../hooks/useQueue.ts'
+import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 export interface QueueElementProps {
   className?: string;
   player: QueuePlayer;
+  queueType: QueueType;
 }
 
 const QueueElement: FC<QueueElementProps> = ({
   className = '',
   player,
+  queueType,
 }) => {
   const { settings } = useQueueSettings()
+  const { userDisplayName } = useAuth()
+  const { removePlayerFromQueue } = useQueue()
+
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   const {
@@ -47,8 +55,12 @@ const QueueElement: FC<QueueElementProps> = ({
   }
 
   const handleDelete = () => {
-    //  TODO
-    console.log(userId)
+    removePlayerFromQueue({
+      userId: player.userId,
+      source: LOG_SOURCE.STREAMER_UI,
+      actorUsername: userDisplayName ?? 'Application',
+      targetQueueType: queueType,
+    })
   }
 
   const openModal = (): void => dialogRef.current?.showModal()
@@ -148,6 +160,7 @@ const QueueElement: FC<QueueElementProps> = ({
 
         <button
           className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/20 hover:text-error hover:bg-error/10"
+          disabled={queueType === QUEUE_TYPES.HISTORY}
           onClick={() => handleDelete()}
           title="Удалить из очереди"
         >
@@ -162,6 +175,7 @@ const QueueElement: FC<QueueElementProps> = ({
         onCopy={handleCopyNickname}
         onDelete={handleDelete}
         player={player}
+        queueType={queueType}
         ref={dialogRef}
       />
     </div>

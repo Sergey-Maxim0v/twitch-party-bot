@@ -29,10 +29,10 @@ export interface AppLogItem {
  * Источник инициации действий для логирования
  */
 export const LOG_SOURCE = {
-  STREAMER_UI: 'streamer_ui',
-  CHAT_MODERATOR: 'chat_moderator',
-  CHAT_USER: 'chat_user',
-  APPLICATION: 'application',
+  STREAMER_UI: 'streamer_ui', //  пользователь приложения
+  CHAT_MODERATOR: 'chat_moderator', //  модератор командой в чате
+  CHAT_USER: 'chat_user', //  участник чата
+  APPLICATION: 'application', //  система
 } as const
 
 export type LogSource = typeof LOG_SOURCE[keyof typeof LOG_SOURCE]
