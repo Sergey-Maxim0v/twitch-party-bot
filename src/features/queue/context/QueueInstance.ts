@@ -43,6 +43,7 @@ export interface QueueContextValue {
   /** Полностью удалить игрока из всех существующих очередей (например, при команде !leave) */
   removePlayerFromAllQueues: (args: {
     userId: string;
+    username: string;
     source: LogSource;
     actorUsername: string;
     rawCommand?: string;

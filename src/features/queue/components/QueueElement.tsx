@@ -71,6 +71,7 @@ const QueueElement: FC<QueueElementProps> = ({
   const handleDeleteEverywhere = () => {
     removePlayerFromAllQueues({
       userId: userId,
+      username: username,
       source: LOG_SOURCE.STREAMER_UI,
       actorUsername: userDisplayName ?? 'Application',
     })

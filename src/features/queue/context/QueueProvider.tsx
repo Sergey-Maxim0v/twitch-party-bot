@@ -91,6 +91,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const removePlayerFromAllQueues = useCallback((args: {
     userId: string;
+    username: string;
     source: LogSource;
     actorUsername: string;
     rawCommand?: string;
