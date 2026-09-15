@@ -7,68 +7,125 @@ import QueueLogsPanel from '../../features/app-logs/components/QueueLogsPanel.ts
 import TwitchChat from '../../services/twitch/components/TwitchChat.tsx'
 import { useLocalStorage } from '../../hooks/useLocalStorage.ts'
 import CollapsiblePanel from './panel/CollapsiblePanel.tsx'
+import { useBreakpoint } from '../../hooks/useBreakpoint.ts'
+import { getPanelDirections } from './panel/utils/getPanelDirections.ts'
+import { BREAKPOINTS } from '../../hooks/types/breakpoint.types.ts'
 
 const StreamerWorkspace: FC = () => {
-  const [isOpenSettings, setIsOpenSettings] = useLocalStorage<boolean>('queue_logs_open', true)
-  const [isOpenQueue, setIsOpenQueue] = useLocalStorage<boolean>('queue_logs_open', true)
-  const [isOpenLogs, setIsOpenLogs] = useLocalStorage<boolean>('queue_logs_open', true)
-  const [isOpenChat, setIsOpenChat] = useLocalStorage<boolean>('queue_logs_open', true)
+  const [isOpenSettings, setIsOpenSettings] = useLocalStorage<boolean>('panel_settings_open', true)
+  const [isOpenQueue, setIsOpenQueue] = useLocalStorage<boolean>('panel_queue_open', true)
+  const [isOpenLogs, setIsOpenLogs] = useLocalStorage<boolean>('panel_logs_open', true)
+  const [isOpenChat, setIsOpenChat] = useLocalStorage<boolean>('panel_chat_open', true)
 
-  const PANEL_CLASSNAME = 'h-full flex-1 w-83'
-  const PANEL_CLASSNAME_COLLAPSED = 'w-12'
+  const currentBreakpoint = useBreakpoint()
+  const directions = getPanelDirections(currentBreakpoint)
+
+  const panelStyle = 'flex-1 min-w-0 min-h-0'
+
+  const settingsPanel = (
+    <CollapsiblePanel
+      className={panelStyle}
+      direction={directions.settings}
+      isOpen={isOpenSettings}
+      onToggle={() => setIsOpenSettings(!isOpenSettings)}
+      title="Настройки очереди"
+    >
+      <QueueSettingsPanel />
+    </CollapsiblePanel>
+  )
+
+  const queuePanel = (
+    <CollapsiblePanel
+      className={panelStyle}
+      direction={directions.queue}
+      isOpen={isOpenQueue}
+      onToggle={() => setIsOpenQueue(!isOpenQueue)}
+      title="Очередь"
+    >
+      <QueuePanel />
+    </CollapsiblePanel>
+  )
+
+  const logsPanel = (
+    <CollapsiblePanel
+      className={panelStyle}
+      direction={directions.logs}
+      isOpen={isOpenLogs}
+      onToggle={() => setIsOpenLogs(!isOpenLogs)}
+      title="Логи очереди"
+    >
+      <QueueLogsPanel />
+    </CollapsiblePanel>
+  )
+
+  const chatPanel = (
+    <CollapsiblePanel
+      className={panelStyle}
+      direction={directions.chat}
+      isOpen={isOpenChat}
+      onToggle={() => setIsOpenChat(!isOpenChat)}
+      title="Чат трансляции"
+    >
+      <TwitchChat />
+    </CollapsiblePanel>
+  )
 
   return (
-    <div className="w-screen h-full flex justify-center
-        bg-base-300 overflow-hidden"
-    >
-      <div className="w-full h-full flex flex-row bg-base-100
-            overflow-hidden"
-      >
-        <QueueSettingsProvider>
-          <QueueProvider>
-            <CollapsiblePanel
-              className={PANEL_CLASSNAME}
-              collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
-              isOpen={isOpenSettings}
-              onToggle={() => { setIsOpenSettings(!isOpenSettings) }}
-              title="Настройки очереди"
-            >
-              <QueueSettingsPanel />
-            </CollapsiblePanel>
+    <QueueSettingsProvider>
+      <QueueProvider>
+        <div className="w-screen h-full flex justify-center bg-base-300 overflow-hidden">
+          {/* Главный контейнер переключается в flex-row со средних экранов */}
+          <div className="w-full h-full flex bg-base-100 overflow-hidden flex-col md:flex-row">
 
-            <CollapsiblePanel
-              className={PANEL_CLASSNAME}
-              collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
-              isOpen={isOpenQueue}
-              onToggle={() => { setIsOpenQueue(!isOpenQueue) }}
-              title="Очередь"
-            >
-              <QueuePanel />
-            </CollapsiblePanel>
-          </QueueProvider>
+            {/* --- 1. МОБИЛЬНЫЙ РЕЖИМ (SM: <768px) --- */}
+            {currentBreakpoint === BREAKPOINTS.SM && (
+              <>
+                {settingsPanel}
+                {queuePanel}
+                {logsPanel}
+                {chatPanel}
+              </>
+            )}
 
-          <CollapsiblePanel
-            className={PANEL_CLASSNAME}
-            collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
-            isOpen={isOpenLogs}
-            onToggle={() => { setIsOpenLogs(!isOpenLogs) }}
-            title="Логи очереди"
-          >
-            <QueueLogsPanel />
-          </CollapsiblePanel>
-        </QueueSettingsProvider>
+            {/* --- 2. ПЛАНШЕТНЫЙ РЕЖИМ (MD / LG: 768px - 1279px) --- */}
+            {(currentBreakpoint === BREAKPOINTS.MD || currentBreakpoint === BREAKPOINTS.LG) && (
+              <>
+                <div className="flex-1 h-full flex flex-col min-h-0">
+                  {settingsPanel}
+                  {queuePanel}
+                </div>
+                <div className="flex-1 h-full flex flex-col min-h-0">
+                  {logsPanel}
+                  {chatPanel}
+                </div>
+              </>
+            )}
 
-        <CollapsiblePanel
-          className={PANEL_CLASSNAME}
-          collapsedClassName={PANEL_CLASSNAME_COLLAPSED}
-          isOpen={isOpenChat}
-          onToggle={() => { setIsOpenChat(!isOpenChat) }}
-          title="Чат трансляции"
-        >
-          <TwitchChat />
-        </CollapsiblePanel>
-      </div>
-    </div>
+            {/* --- 3. НОУТБУК РЕЖИМ (XL: 1280px - 1535px) --- */}
+            {currentBreakpoint === BREAKPOINTS.XL && (
+              <>
+                <div className="flex-1 h-full flex flex-col min-h-0">
+                  {settingsPanel}
+                  {logsPanel}
+                </div>
+                {queuePanel}
+                {chatPanel}
+              </>
+            )}
+
+            {/* --- 4. ДЕСКТОП РЕЖИМ (XXL: >=1536px) --- */}
+            {currentBreakpoint === BREAKPOINTS.XXL && (
+              <>
+                {settingsPanel}
+                {queuePanel}
+                {logsPanel}
+                {chatPanel}
+              </>
+            )}
+          </div>
+        </div>
+      </QueueProvider>
+    </QueueSettingsProvider>
   )
 }
 

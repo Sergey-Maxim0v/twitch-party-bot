@@ -1,6 +1,6 @@
 import { type FC, type ReactNode, useState } from 'react'
 import PanelToggle from './PanelToggle.tsx'
-import { PANEL_DIRECTIONS, type PanelDirection } from '../../../constants/panel.constants.ts'
+import { PANEL_DIRECTIONS, type PanelDirection } from './types'
 
 export interface CollapsiblePanelProps {
   isOpen: boolean;
@@ -64,8 +64,7 @@ const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
       className={`
         flex flex-col bg-base-200 relative border-r border-base-300 
         transition-all duration-300 ease-in-out
-        shadow-[inset_0_4px_4px_-4px]
-        not-last:shadow-[inset_-4px_0_4px_-4px,inset_0_4px_4px_-4px]
+        shadow-[inset_-4px_0_4px_-4px,inset_0_4px_4px_-4px]
         ${sizeClasses}
       `}
       onTransitionEnd={handleTransitionEnd}
@@ -84,7 +83,7 @@ const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
         )}
 
         <PanelToggle
-          className={isOpen ? 'absolute right-2 top-2' : ''}
+          className="absolute right-2 top-2"
           direction={direction}
           isOpen={isOpen}
           onOpen={handleToggle}

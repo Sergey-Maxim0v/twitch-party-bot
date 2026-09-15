@@ -1,6 +1,6 @@
 import { type FC } from 'react'
 import { LuArrowLeftFromLine, LuArrowUpFromLine } from 'react-icons/lu'
-import { PANEL_DIRECTIONS, type PanelDirection } from '../../../constants/panel.constants.ts'
+import { PANEL_DIRECTIONS, type PanelDirection } from './types'
 
 interface PanelToggleProps {
   isOpen: boolean;
