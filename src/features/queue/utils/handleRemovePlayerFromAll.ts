@@ -29,26 +29,37 @@ export const handleRemovePlayerFromAll = ({
   setState,
   pushLog,
 }: HandleRemovePlayerFromAllArgs): void => {
-  let targetPlayerName = ''
-  let removedFromActiveCount = 0
-  let removedFromFutureCount = 0
-
   setState(prev => {
+    let targetPlayerName = ''
+
     const activeMatches = prev.activeQueue.filter(p => p.userId === userId)
-    if (activeMatches.length > 0) {
+    const removedFromActiveCount = activeMatches.length
+    if (removedFromActiveCount > 0) {
       targetPlayerName = activeMatches[0].displayedUsername || activeMatches[0].username
-      removedFromActiveCount = activeMatches.length
     }
 
     const futureMatches = prev.futureQueue.filter(p => p.userId === userId)
-    if (futureMatches.length > 0 && !targetPlayerName) {
+    const removedFromFutureCount = futureMatches.length
+    if (removedFromFutureCount > 0 && !targetPlayerName) {
       targetPlayerName = futureMatches[0].displayedUsername || futureMatches[0].username
     }
-    removedFromFutureCount = futureMatches.length
 
-    if (removedFromActiveCount === 0 && removedFromFutureCount === 0) {
+    const totalRemoved = removedFromActiveCount + removedFromFutureCount
+
+    // Игрок не найден ни в одном списке
+    if (totalRemoved === 0) {
+      const logMessage = `Ошибка отмены записи: игрок с ID ${userId} не найден ни в одном из списков.`
+      pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
       return prev
     }
+
+    // Игрок найден
+    const locations: string[] = []
+    if (removedFromActiveCount > 0) locations.push(`активной (${removedFromActiveCount})`)
+    if (removedFromFutureCount > 0) locations.push(`будущей (${removedFromFutureCount})`)
+
+    const logMessage = `Игрок ${targetPlayerName || `с ID ${userId}`} удален из всех очередей: ${locations.join(' и ')}.`
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
 
     return {
       ...prev,
@@ -56,18 +67,4 @@ export const handleRemovePlayerFromAll = ({
       futureQueue: prev.futureQueue.filter(p => p.userId !== userId),
     }
   })
-
-  const totalRemoved = removedFromActiveCount + removedFromFutureCount
-
-  if (totalRemoved > 0) {
-    const locations: string[] = []
-    if (removedFromActiveCount > 0) locations.push(`активной (${removedFromActiveCount})`)
-    if (removedFromFutureCount > 0) locations.push(`будущей (${removedFromFutureCount})`)
-
-    const logMessage = `Игрок ${targetPlayerName || `с ID ${userId}`} удален из всех очередей: ${locations.join(' и ')}.`
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
-  } else {
-    const logMessage = `Ошибка отмены записи: игрок с ID ${userId} не найден ни в одном из списков.`
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
-  }
 }
