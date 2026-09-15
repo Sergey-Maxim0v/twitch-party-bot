@@ -20,7 +20,7 @@ const QueueElement: FC<QueueElementProps> = ({
 }) => {
   const { settings } = useQueueSettings()
   const { userDisplayName } = useAuth()
-  const { removePlayerFromQueue, banPlayerFromQueue } = useQueue()
+  const { removePlayerFromQueue, banPlayerFromQueue, removePlayerFromAllQueues } = useQueue()
 
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -65,6 +65,14 @@ const QueueElement: FC<QueueElementProps> = ({
       source: LOG_SOURCE.STREAMER_UI,
       actorUsername: userDisplayName ?? 'Application',
       targetQueueType: queueType,
+    })
+  }
+
+  const handleDeleteEverywhere = () => {
+    removePlayerFromAllQueues({
+      userId: userId,
+      source: LOG_SOURCE.STREAMER_UI,
+      actorUsername: userDisplayName ?? 'Application',
     })
   }
 
@@ -133,46 +141,49 @@ const QueueElement: FC<QueueElementProps> = ({
       )}
 
       {/* СТРОКА 3: Панель управления кнопками */}
-      <div className="flex items-center justify-end gap-0.5 h-4 mt-0.5">
+      <div className="flex items-center justify-end gap-1 h-5 mt-1">
         <button
-          className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/40 hover:text-info hover:bg-base-300/50"
+          className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/40 hover:text-info hover:bg-base-300/50 flex items-center gap-1"
           onClick={openModal}
           title="Подробнее"
         >
           <LuInfo className="w-3 h-3" />
+          <span>Подробно</span>
         </button>
 
         {settings?.currentGame && (
           <button
-            className={'btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/40'
-                + ' hover:text-success hover:bg-base-300/50'
-                + ' disabled:text-base-content/20 disabled:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed'}
+            className={'btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/40'
+                    + ' hover:text-success hover:bg-base-300/50 flex items-center gap-1'
+                    + ' disabled:text-base-content/20 disabled:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed'}
             disabled={!gameNickname}
             onClick={handleCopyNickname}
             title={gameNickname ? 'Скопировать ник' : 'Игровой никнейм не определен'}
           >
             <LuCopy className="w-3 h-3" />
+            <span>Ник</span>
           </button>
         )}
 
         <button
-          className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/20 hover:text-error hover:bg-error/10"
-          onClick={() => handleBan()}
+          className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/20 hover:text-error hover:bg-error/10 flex items-center gap-1"
+          onClick={handleBan}
           title="Забанить"
         >
           <LuUserX className="w-3 h-3" />
+          <span>Бан</span>
         </button>
 
         {queueType !== QUEUE_TYPES.HISTORY && (
           <button
-            className="btn btn-ghost btn-xs w-5 h-4 min-h-0 p-0 text-base-content/20 hover:text-error hover:bg-error/10"
-            onClick={() => handleDelete()}
+            className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/20 hover:text-error hover:bg-error/10 flex items-center gap-1"
+            onClick={handleDelete}
             title="Удалить из очереди"
           >
-
             <LuTrash2 className="w-3 h-3" />
+            <span>Удалить</span>
           </button>
-        ) }
+        )}
       </div>
 
       {/* Модалка деталей */}
@@ -181,6 +192,7 @@ const QueueElement: FC<QueueElementProps> = ({
         onClose={closeModal}
         onCopy={handleCopyNickname}
         onDelete={handleDelete}
+        onDeleteEverywhere={handleDeleteEverywhere}
         player={player}
         queueType={queueType}
         ref={dialogRef}

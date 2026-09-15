@@ -8,8 +8,9 @@ export interface QueueElementModalProps {
   className?: string;
   player: QueuePlayer;
   onClose: () => void;
-  onDelete?: (userId: string) => void;
-  onBan?: (userId: string) => void;
+  onDelete?: () => void;
+  onDeleteEverywhere?: () => void;
+  onBan?: () => void;
   onCopy: () => void;
   queueType: QueueType;
 }
@@ -19,6 +20,7 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
   player,
   onClose,
   onDelete,
+  onDeleteEverywhere,
   onBan,
   onCopy,
   queueType,
@@ -26,7 +28,6 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
   const { settings } = useQueueSettings()
 
   const {
-    userId,
     username,
     displayedUsername,
     rawMessage,
@@ -117,16 +118,23 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
           <div className="flex gap-2">
             <button
               className="btn btn-error btn-outline btn-sm gap-1"
-              onClick={() => { onBan?.(userId); onClose() }}
+              onClick={() => { onBan?.(); onClose() }}
             >
               <LuUserX className="w-4 h-4" /> Забанить
             </button>
             <button
               className="btn btn-error btn-sm gap-1"
               disabled={queueType === QUEUE_TYPES.HISTORY}
-              onClick={() => { onDelete?.(userId); onClose() }}
+              onClick={() => { onDelete?.(); onClose() }}
             >
               <LuTrash2 className="w-4 h-4" /> Удалить
+            </button>
+            <button
+              className="btn btn-error btn-sm gap-1"
+              disabled={queueType === QUEUE_TYPES.HISTORY}
+              onClick={() => { onDeleteEverywhere?.(); onClose() }}
+            >
+              <LuTrash2 className="w-4 h-4" /> Удалить из всех очередей
             </button>
           </div>
 
