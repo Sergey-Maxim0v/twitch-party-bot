@@ -77,7 +77,7 @@ const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
   const buttonStatusClass = STATUS_BUTTON_CLASSES[currentStatus] || 'btn-primary'
 
   return (
-    <div className="p-3 border-t border-base-300 bg-base-200 shrink-0">
+    <div className="p-3 shrink-0">
       <form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
         <textarea
           className={`textarea textarea-bordered textarea-sm w-full bg-base-100 text-sm 

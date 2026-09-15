@@ -29,14 +29,14 @@ const Header: FC = () => {
             <span className="loading loading-spinner loading-xs"></span>
           </button>
         ) : isAuthenticated && session ? (
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col lg:flex-row items-end lg:items-center gap-2 lg:gap-4">
             <ConnectionStatusPanel />
 
             <div className="dropdown dropdown-end">
               <div
-                className="btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
-                                hover:bg-base-100 bg-base-300 transition-colors text-sm font-medium
-                                text-base-content border border-base-100"
+                className={'btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3'
+                        + ' hover:bg-base-100 bg-base-300 transition-colors text-sm font-medium'
+                        + ' text-base-content border border-base-100'}
                 role="button"
                 tabIndex={0}
               >
@@ -44,8 +44,8 @@ const Header: FC = () => {
               </div>
 
               <ul
-                className="dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box
-                            w-88 gap-0.5 z-50 mt-2 border border-base-100"
+                className={'dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box'
+                        + ' w-88 gap-0.5 z-50 mt-2 border border-base-100 right-0'}
                 tabIndex={0}
               >
                 <li className="p-0">

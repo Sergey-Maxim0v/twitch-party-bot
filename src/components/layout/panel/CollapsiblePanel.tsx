@@ -93,7 +93,8 @@ const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
         {/* Вертикальный текст только в свернутом горизонтальном состоянии */}
         {!isOpen && isHorizontal && (
           <span
-            className="p-2 text-xs font-bold text-base-content/40 tracking-widest uppercase [writing-mode:vertical-lr] mt-4 select-none max-h-[calc(100vh-8rem)] overflow-hidden text-ellipsis whitespace-nowrap"
+            className={'p-2 text-xs font-bold text-base-content/40 tracking-widest uppercase [writing-mode:vertical-lr]' +
+          ' mt-8 select-none max-h-[calc(100vh-8rem)] overflow-hidden text-ellipsis whitespace-nowrap'}
           >
             {title}
           </span>
