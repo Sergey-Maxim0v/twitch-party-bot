@@ -3,16 +3,9 @@ import ChatInput from './ChatInput.tsx'
 import ChatList from './ChatList.tsx'
 import { useTwitchChat } from '../hooks/useTwitchChat.ts'
 import ChatSettings from './ChatSettings.tsx'
-import CollapsiblePanel from '../../../components/layout/panel/CollapsiblePanel.tsx'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
-export interface TwitchChatProps {
-  className?: string;
-  collapsedClassName?: string;
-}
-
-const TwitchChat: FC<TwitchChatProps> = ({ className = '', collapsedClassName }) => {
-  const [isOpen, setIsOpen] = useLocalStorage<boolean>('twitch_chat_open', true)
+const TwitchChat: FC = () => {
   const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>('twitch_chat_colored_names', true)
   const [highlightRoles, setHighlightRoles] = useLocalStorage<boolean>('twitch_chat_highlight_roles', true)
   const [IsShowDeletedMessages, setIsShowDeletedMessages] = useLocalStorage<boolean>('twitch_chat_show_moderation_logs', true)
@@ -22,13 +15,7 @@ const TwitchChat: FC<TwitchChatProps> = ({ className = '', collapsedClassName })
   const { messages, registerPendingMessage } = useTwitchChat()
 
   return (
-    <CollapsiblePanel
-      className={className}
-      collapsedClassName={collapsedClassName}
-      isOpen={isOpen}
-      onToggle={() => { setIsOpen(!isOpen) }}
-      title="Чат трансляции"
-    >
+    <>
       <ChatList
         highlightPointsMessages={highlightPointsMessages}
         highlightRoles={highlightRoles}
@@ -55,7 +42,7 @@ const TwitchChat: FC<TwitchChatProps> = ({ className = '', collapsedClassName })
         }
         onSendMessage={registerPendingMessage}
       />
-    </CollapsiblePanel>
+    </>
   )
 }
 

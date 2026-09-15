@@ -1,11 +1,13 @@
 import { type FC } from 'react'
-import { LuArrowLeftFromLine } from 'react-icons/lu'
+import { LuArrowLeftFromLine, LuArrowUpFromLine } from 'react-icons/lu'
+import { PANEL_DIRECTIONS, type PanelDirection } from '../../../constants/panel.constants.ts'
 
 interface PanelToggleProps {
   isOpen: boolean;
   onOpen: () => void;
   title: string;
   className?: string;
+  direction?: PanelDirection;
 }
 
 const PanelToggle: FC<PanelToggleProps> = ({
@@ -13,7 +15,15 @@ const PanelToggle: FC<PanelToggleProps> = ({
   onOpen,
   title,
   className = '',
+  direction = PANEL_DIRECTIONS.HORIZONTAL,
 }: PanelToggleProps) => {
+  const isHorizontal = direction === PANEL_DIRECTIONS.HORIZONTAL
+  const Icon = isHorizontal ? LuArrowLeftFromLine : LuArrowUpFromLine
+
+  const iconClasses = isHorizontal
+    ? `${isOpen ? '-scale-x-100' : ''}`
+    : `${isOpen ? '' : 'rotate-180'}`
+
   return (
     <button
       className={`btn btn-sm btn-ghost btn-square transition-colors ${className}`}
@@ -21,8 +31,8 @@ const PanelToggle: FC<PanelToggleProps> = ({
       title={isOpen ? `Скрыть ${title.toLowerCase()}` : `Открыть ${title.toLowerCase()}`}
       type="button"
     >
-      <LuArrowLeftFromLine
-        className={`w-5 h-5 transition-transform duration-300 ${isOpen ? '-scale-x-100' : ''}`}
+      <Icon
+        className={`w-5 h-5 transition-transform duration-300 ${iconClasses}`}
       />
     </button>
   )
