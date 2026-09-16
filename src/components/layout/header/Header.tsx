@@ -17,7 +17,7 @@ const Header: FC = () => {
       {/* Логотип */}
       <div className="flex items-center gap-2">
         <LuTwitch className="text-2xl font-black text-primary" />
-        <span className="text-xl font-black tracking-tight text-primary">
+        <span className="hidden sm:inline text-xl font-black tracking-tight text-primary">
           Twitch Party Bot
         </span>
       </div>
