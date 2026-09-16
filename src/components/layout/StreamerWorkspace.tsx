@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { type FC, useEffect } from 'react'
 import QueueSettingsPanel from '../../features/queue-settings/components/QueueSettingsPanel.tsx'
 import { QueueSettingsProvider } from '../../features/queue-settings/context/QueueSettingsProvider.tsx'
 import { QueueProvider } from '../../features/queue/context/QueueProvider.tsx'
@@ -20,21 +20,31 @@ const StreamerWorkspace: FC = () => {
   const currentBreakpoint = useBreakpoint()
   const directions = getPanelDirections(currentBreakpoint)
 
-  const panelStyle = 'flex-1 min-w-0 min-h-0'
+  useEffect(() => {
+    if(currentBreakpoint === BREAKPOINTS.SM) {
+      setIsOpenSettings(false)
+      setIsOpenQueue(true)
+      setIsOpenLogs(false)
+      setIsOpenChat(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Нужно реагировать только на изменение брейкпоинта
+  }, [currentBreakpoint])
 
-  // TODO: стили для мобилки вместо + ''
-  //  - скроллится только вся страница, панели внутри не скроллятся
-  //  - панель настройки на полную высоту
-  //  - панель очередь на полную высоту
-  //  - панель логи на +-10 сообщений, фиксированная высота
-  //  - панель чат на +-10 сообщений, фиксированная высота
+  const panelStyle = 'flex-1 min-w-0 min-h-0'
 
   const settingsPanel = (
     <CollapsiblePanel
       className={panelStyle + ''}
       direction={directions.settings}
       isOpen={isOpenSettings}
-      onToggle={() => setIsOpenSettings(!isOpenSettings)}
+      onToggle={() => {
+        if(currentBreakpoint === BREAKPOINTS.SM) {
+          setIsOpenQueue(false)
+          setIsOpenLogs(false)
+          setIsOpenChat(false)
+        }
+        setIsOpenSettings(!isOpenSettings)
+      }}
       title="Настройки очереди"
     >
       <QueueSettingsPanel />
@@ -46,7 +56,14 @@ const StreamerWorkspace: FC = () => {
       className={panelStyle + ''}
       direction={directions.queue}
       isOpen={isOpenQueue}
-      onToggle={() => setIsOpenQueue(!isOpenQueue)}
+      onToggle={() => {
+        if(currentBreakpoint === BREAKPOINTS.SM) {
+          setIsOpenSettings(false)
+          setIsOpenLogs(false)
+          setIsOpenChat(false)
+        } 
+        setIsOpenQueue(!isOpenQueue)
+      }}
       title="Очередь"
     >
       <QueuePanel />
@@ -58,7 +75,14 @@ const StreamerWorkspace: FC = () => {
       className={panelStyle + ''}
       direction={directions.logs}
       isOpen={isOpenLogs}
-      onToggle={() => setIsOpenLogs(!isOpenLogs)}
+      onToggle={() => {
+        if(currentBreakpoint === BREAKPOINTS.SM) {
+          setIsOpenSettings(false)
+          setIsOpenQueue(false)
+          setIsOpenChat(false)
+        } 
+        setIsOpenLogs(!isOpenLogs)
+      }}
       title="Логи очереди"
     >
       <QueueLogsPanel />
@@ -70,7 +94,14 @@ const StreamerWorkspace: FC = () => {
       className={panelStyle + ''}
       direction={directions.chat}
       isOpen={isOpenChat}
-      onToggle={() => setIsOpenChat(!isOpenChat)}
+      onToggle={() => {
+        if(currentBreakpoint === BREAKPOINTS.SM) {
+          setIsOpenSettings(false)
+          setIsOpenQueue(false)
+          setIsOpenLogs(false)
+        }
+        setIsOpenChat(!isOpenChat)
+      }}
       title="Чат трансляции"
     >
       <TwitchChat />
