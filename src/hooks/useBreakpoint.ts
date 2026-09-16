@@ -5,7 +5,7 @@ import { type Breakpoint, BREAKPOINTS } from './types/breakpoint.types.ts'
  * Хук для отслеживания текущего брейкпоинта экрана.
  */
 export const useBreakpoint = (): Breakpoint => {
-  const [breakpoint, setBreakpoint] = useState<Breakpoint>(BREAKPOINTS.SM)
+  const [breakpoint, setBreakpoint] = useState<Breakpoint>(BREAKPOINTS.XXL)
 
   useEffect(() => {
     // Определяем медиа-запросы в соответствии с Tailwind CSS
