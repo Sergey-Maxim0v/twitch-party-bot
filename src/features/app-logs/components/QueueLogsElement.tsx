@@ -44,7 +44,8 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
       </span>
 
       <span
-        className="tooltip tooltip-top tooltip-sm text-base-content/50 inline-flex items-center align-middle mr-1.5 z-100"
+        className={'md:tooltip md:tooltip-top md:tooltip-sm'
+            + ' text-base-content/50 inline-flex items-center align-middle mr-1.5 z-100'}
         data-tip={tooltipText}
       >
         <InitiatorIcon className="w-3.5 h-3.5" />

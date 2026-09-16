@@ -27,7 +27,7 @@ const QueueCollapse: FC<QueueCollapseProps> = ({
   const arrowClass = disabled ? '' : 'collapse-arrow'
 
   const tooltipClasses = tooltipText
-    ? 'tooltip tooltip-top tooltip-neutral z-50 delay-1000'
+    ? 'md:tooltip md:tooltip-top md:tooltip-neutral z-50 delay-1000'
     : ''
 
   return (

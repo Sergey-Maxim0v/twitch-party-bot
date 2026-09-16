@@ -29,7 +29,7 @@ const StatusIndicator: FC<StatusIndicatorProps> = ({
 
   return (
     <div
-      className="tooltip tooltip-left lg:tooltip-bottom tooltip-neutral text-left z-100"
+      className="lg:tooltip lg:tooltip-bottom lg:tooltip-neutral text-left z-100"
       data-tip={tooltipText}
     >
       <div className="flex items-center gap-1.5 px-3 h-8 bg-base-300 rounded-lg border border-base-100

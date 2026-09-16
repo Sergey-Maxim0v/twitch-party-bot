@@ -22,9 +22,16 @@ const StreamerWorkspace: FC = () => {
 
   const panelStyle = 'flex-1 min-w-0 min-h-0'
 
+  // TODO: стили для мобилки вместо + ''
+  //  - скроллится только вся страница, панели внутри не скроллятся
+  //  - панель настройки на полную высоту
+  //  - панель очередь на полную высоту
+  //  - панель логи на +-10 сообщений, фиксированная высота
+  //  - панель чат на +-10 сообщений, фиксированная высота
+
   const settingsPanel = (
     <CollapsiblePanel
-      className={panelStyle}
+      className={panelStyle + ''}
       direction={directions.settings}
       isOpen={isOpenSettings}
       onToggle={() => setIsOpenSettings(!isOpenSettings)}
@@ -36,7 +43,7 @@ const StreamerWorkspace: FC = () => {
 
   const queuePanel = (
     <CollapsiblePanel
-      className={panelStyle}
+      className={panelStyle + ''}
       direction={directions.queue}
       isOpen={isOpenQueue}
       onToggle={() => setIsOpenQueue(!isOpenQueue)}
@@ -48,7 +55,7 @@ const StreamerWorkspace: FC = () => {
 
   const logsPanel = (
     <CollapsiblePanel
-      className={panelStyle}
+      className={panelStyle + ''}
       direction={directions.logs}
       isOpen={isOpenLogs}
       onToggle={() => setIsOpenLogs(!isOpenLogs)}
@@ -60,7 +67,7 @@ const StreamerWorkspace: FC = () => {
 
   const chatPanel = (
     <CollapsiblePanel
-      className={panelStyle}
+      className={panelStyle + ''}
       direction={directions.chat}
       isOpen={isOpenChat}
       onToggle={() => setIsOpenChat(!isOpenChat)}
@@ -74,7 +81,7 @@ const StreamerWorkspace: FC = () => {
     <QueueSettingsProvider>
       <QueueProvider>
         <div className="w-screen h-full flex justify-center bg-base-300 overflow-hidden">
-          {/* Главный контейнер переключается в flex-row со средних экранов */}
+          {/* Главный контейнер */}
           <div className="w-full h-full flex bg-base-100 overflow-hidden flex-col md:flex-row">
 
             {/* --- 1. МОБИЛЬНЫЙ РЕЖИМ (SM: <768px) --- */}
