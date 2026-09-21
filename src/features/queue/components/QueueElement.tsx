@@ -106,7 +106,7 @@ const QueueElement: FC<QueueElementProps> = ({
     <div
       className={`py-1.5 px-2.5 rounded-lg border border-base-content/5 bg-base-200/30
         hover:bg-base-200/60 transition-all flex items-start gap-2 shadow-xs 
-        ${isDragging ? 'opacity-40 border-primary/30 bg-base-300' : ''} 
+        ${isDragging ? 'opacity-0 border-primary/30 bg-base-300' : ''} 
         ${className}`}
       ref={setNodeRef}
       style={style}
