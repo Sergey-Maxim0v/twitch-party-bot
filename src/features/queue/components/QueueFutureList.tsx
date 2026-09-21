@@ -1,4 +1,6 @@
 import { type FC, useEffect } from 'react'
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useQueue } from '../hooks/useQueue.ts'
 import QueueCollapse from '../../../components/QueueCollapse.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
@@ -22,11 +24,15 @@ const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChang
     }
   }, [settings.allowPreJoin, onOpenChange])
 
+  const { setNodeRef } = useDroppable({ id: QUEUE_TYPES.FUTURE, disabled: !!disabled })
+
   const queueLength = futureQueue?.length ?? 0
   const maxPlayers = settings?.maxQueueSize ?? 0
 
   const badgeText = maxPlayers > 0 ? `${queueLength} / ${maxPlayers}` : `${queueLength}`
   const isOpen = open && !disabled
+
+  const playerIds = futureQueue.map(p => p.userId)
 
   return (
     <QueueCollapse
@@ -40,11 +46,13 @@ const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChang
       title="Будущая очередь"
       tooltipText={disabled ? 'Будущие очереди отключены в настройках' : undefined}
     >
-      <div className="flex flex-col gap-2">
-        {futureQueue.map(player => (
-          <QueueElement key={player.userId + player.timestamp} player={player} queueType={QUEUE_TYPES.FUTURE} />
-        ))}
-      </div>
+      <SortableContext items={playerIds} strategy={verticalListSortingStrategy}>
+        <div className="flex flex-col gap-2 min-h-10" ref={setNodeRef}>
+          {futureQueue.map(player => (
+            <QueueElement key={player.userId + player.timestamp} player={player} queueType={QUEUE_TYPES.FUTURE} />
+          ))}
+        </div>
+      </SortableContext>
     </QueueCollapse>
   )
 }
