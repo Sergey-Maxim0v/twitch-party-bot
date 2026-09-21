@@ -51,6 +51,7 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   maxQueueSize: 4,
   allowPreJoin: false,
   allowMultipleEntries: false,
+  moveOnSizeChange: true,
   botMessageCooldown: 5,
   sessionHistoryCooldown: 0,
   gamesPlayedCooldown: 0,
@@ -88,6 +89,9 @@ export interface QueueSettings {
 
   /** Разрешить несколько записей (будущие очереди). */
   allowMultipleEntries: boolean;
+
+  /** Разрешить автоматически переносить игроков между будущей и текущей очередью при изменении размера очереди (будущие очереди). */
+  moveOnSizeChange: boolean;
 
   /** Минимальное время ответа бота. */
   botMessageCooldown: number;

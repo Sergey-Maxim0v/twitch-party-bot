@@ -9,8 +9,8 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 const QueuePanel: FC = () => {
   const { settings } = useQueueSettings()
   const [isActiveListOpen, setIsActiveListOpen] = useState<boolean>(true)
-  const [isFutureListOpen, setIsFutureListOpen] = useState<boolean>(false)
-  const [isHistoryListOpen, setIsHistoryListOpen] = useState<boolean>(false)
+  const [isFutureListOpen, setIsFutureListOpen] = useState<boolean>(settings?.allowPreJoin)
+  const [isHistoryListOpen, setIsHistoryListOpen] = useState<boolean>(true)
 
   const disabledFuture = !settings?.allowPreJoin
 

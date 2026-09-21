@@ -46,6 +46,14 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         onChange={checked => { updateSettings({ allowMultipleEntries: checked }) }}
       />
 
+      {/* Автобалансировка игроков между активной и будущей очередью при изменении размера очереди. */}
+      <SettingsCheckbox
+        checked={settings.moveOnSizeChange}
+        disabled={!settings.allowPreJoin}
+        label="Разрешить автоматически переносить игроков между очередями при изменении размера очереди"
+        onChange={checked => { updateSettings({ moveOnSizeChange: checked }) }}
+      />
+
       {/* Через сколько игр игрок может повторно участвовать */}
       <SettingsNumberInput
         label="Пропуск сыгравших (на X игр)"

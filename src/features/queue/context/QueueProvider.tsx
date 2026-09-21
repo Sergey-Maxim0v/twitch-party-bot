@@ -1,4 +1,4 @@
-import { type ReactNode, type FC, useMemo, useCallback } from 'react'
+import { type ReactNode, type FC, useMemo, useCallback, useEffect } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
 import type { QueueState, QueuePlayerFormData, QueueType } from '../types'
@@ -16,8 +16,9 @@ import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import type { LogSource } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
@@ -43,6 +44,46 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
       rawCommand,
     })
   }, [pushAppLog])
+
+  // === СИНХРОНИЗАЦИЯ И БАЛАНСИРОВКА ОЧЕРЕДИ ===
+  useEffect(() => {
+    handleBalanceQueues({
+      maxQueueSize: settings.maxQueueSize,
+      moveOnSizeChange: settings.moveOnSizeChange,
+      allowPreJoin: settings.allowPreJoin,
+      activeLength: state.activeQueue.length,
+      futureLength: state.futureQueue.length,
+      setState,
+      pushLog,
+    })
+  }, [
+    settings.maxQueueSize,
+    settings.moveOnSizeChange,
+    settings.allowPreJoin,
+    state.activeQueue.length,
+    state.futureQueue.length,
+    setState,
+    pushLog,
+  ])
+
+  // === АВТОМАТИЧЕСКАЯ ОЧИСТКА БУДУЩЕЙ ОЧЕРЕДИ ПРИ ОТКЛЮЧЕНИИ ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ ===
+  useEffect(() => {
+    if (!settings.allowPreJoin && state.futureQueue.length > 0) {
+      const count = state.futureQueue.length
+
+      pushLog({
+        message: `Будущая очередь отключена в настройках. Список ожидания автоматически очищен (удалено игроков: ${count}).`,
+        status: APP_LOG_STATUSES.SUCCESS,
+        source: LOG_SOURCE.APPLICATION,
+        actorUsername: 'System',
+      })
+
+      setState(prev => ({
+        ...prev,
+        futureQueue: [],
+      }))
+    }
+  }, [settings.allowPreJoin, state.futureQueue.length, setState, pushLog])
 
   // === МЕТОДЫ ОЧИСТКИ (Clear) ===
 

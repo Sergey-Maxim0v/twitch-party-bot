@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { type FC, useEffect } from 'react'
 import { useQueue } from '../hooks/useQueue.ts'
 import QueueCollapse from '../../../components/QueueCollapse.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
@@ -15,6 +15,12 @@ export interface QueueFutureListProps {
 const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChange, open, disabled }) => {
   const { futureQueue } = useQueue()
   const { settings } = useQueueSettings()
+
+  useEffect(() => {
+    if(settings.allowPreJoin) {
+      onOpenChange(settings.allowPreJoin)
+    }
+  }, [settings.allowPreJoin, onOpenChange])
 
   const queueLength = futureQueue?.length ?? 0
   const maxPlayers = settings?.maxQueueSize ?? 0
