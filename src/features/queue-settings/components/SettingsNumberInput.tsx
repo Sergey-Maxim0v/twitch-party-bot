@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FC, useState } from 'react'
+import { type ChangeEvent, type FC, type KeyboardEvent, useState } from 'react'
 
 interface SettingsNumberInputProps {
   label: string;
@@ -27,12 +27,10 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
     setInputValue(String(value))
   }
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const stringValue = e.target.value
-    setInputValue(stringValue)
-
+  const commitValue = (stringValue: string) => {
     if (stringValue === '') {
       onChange(min)
+      setInputValue(String(min))
       return
     }
 
@@ -40,18 +38,25 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
 
     if (!isNaN(parsedValue)) {
       const clampedValue = Math.max(min, Math.min(max, parsedValue))
-
       onChange(clampedValue)
-
-      if (parsedValue !== clampedValue) {
-        setInputValue(String(clampedValue))
-      }
+      setInputValue(String(clampedValue))
+    } else {
+      setInputValue(String(value))
     }
   }
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value)
+  }
+
   const handleBlur = () => {
-    if (inputValue === '') {
-      setInputValue(String(min))
+    commitValue(inputValue)
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      commitValue(inputValue)
+      e.currentTarget.blur()
     }
   }
 
@@ -75,6 +80,7 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
           min={min}
           onBlur={handleBlur}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           type="number"
           value={inputValue}
         />
