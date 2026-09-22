@@ -26,6 +26,8 @@ export const handleClearQueueHistory = ({
   setState(prev => ({
     ...prev,
     queueHistory: [],
+    globalSessionCounter: 0,
+    playerHistory: {},
   }))
 
   pushLog({
