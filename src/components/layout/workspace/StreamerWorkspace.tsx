@@ -1,6 +1,4 @@
 import { type FC } from 'react'
-import { QueueSettingsProvider } from '../../../features/queue-settings/context/QueueSettingsProvider.tsx'
-import { QueueProvider } from '../../../features/queue/context/QueueProvider.tsx'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { useBreakpoint } from '../../../hooks/useBreakpoint.ts'
 import { getPanelDirections } from '../panel/utils/getPanelDirections.ts'
@@ -46,61 +44,57 @@ const StreamerWorkspace: FC = () => {
   })
 
   return (
-    <QueueSettingsProvider>
-      <QueueProvider>
-        <div className="w-screen h-full flex justify-center bg-base-300 overflow-hidden">
-          {/* Главный контейнер */}
-          <div className="w-full h-full flex bg-base-100 overflow-hidden flex-col md:flex-row">
+    <div className="w-screen h-full flex justify-center bg-base-300 overflow-hidden">
+      {/* Главный контейнер */}
+      <div className="w-full h-full flex bg-base-100 overflow-hidden flex-col md:flex-row">
 
-            {/* --- 1. МОБИЛЬНЫЙ РЕЖИМ (SM: <768px) --- */}
-            {currentBreakpoint === BREAKPOINTS.SM && (
-              <>
-                {settingsPanel}
-                {queuePanel}
-                {logsPanel}
-                {chatPanel}
-              </>
-            )}
+        {/* --- 1. МОБИЛЬНЫЙ РЕЖИМ (SM: <768px) --- */}
+        {currentBreakpoint === BREAKPOINTS.SM && (
+          <>
+            {settingsPanel}
+            {queuePanel}
+            {logsPanel}
+            {chatPanel}
+          </>
+        )}
 
-            {/* --- 2. ПЛАНШЕТНЫЙ РЕЖИМ (MD / LG: 768px - 1279px) --- */}
-            {(currentBreakpoint === BREAKPOINTS.MD || currentBreakpoint === BREAKPOINTS.LG) && (
-              <>
-                <div className="flex-1 h-full flex flex-col min-h-0">
-                  {settingsPanel}
-                  {queuePanel}
-                </div>
-                <div className="flex-1 h-full flex flex-col min-h-0">
-                  {logsPanel}
-                  {chatPanel}
-                </div>
-              </>
-            )}
+        {/* --- 2. ПЛАНШЕТНЫЙ РЕЖИМ (MD / LG: 768px - 1279px) --- */}
+        {(currentBreakpoint === BREAKPOINTS.MD || currentBreakpoint === BREAKPOINTS.LG) && (
+          <>
+            <div className="flex-1 h-full flex flex-col min-h-0">
+              {settingsPanel}
+              {queuePanel}
+            </div>
+            <div className="flex-1 h-full flex flex-col min-h-0">
+              {logsPanel}
+              {chatPanel}
+            </div>
+          </>
+        )}
 
-            {/* --- 3. НОУТБУК РЕЖИМ (XL: 1280px - 1535px) --- */}
-            {currentBreakpoint === BREAKPOINTS.XL && (
-              <>
-                <div className="flex-1 h-full flex flex-col min-h-0">
-                  {settingsPanel}
-                  {logsPanel}
-                </div>
-                {queuePanel}
-                {chatPanel}
-              </>
-            )}
+        {/* --- 3. НОУТБУК РЕЖИМ (XL: 1280px - 1535px) --- */}
+        {currentBreakpoint === BREAKPOINTS.XL && (
+          <>
+            <div className="flex-1 h-full flex flex-col min-h-0">
+              {settingsPanel}
+              {logsPanel}
+            </div>
+            {queuePanel}
+            {chatPanel}
+          </>
+        )}
 
-            {/* --- 4. ДЕСКТОП РЕЖИМ (XXL: >=1536px) --- */}
-            {currentBreakpoint === BREAKPOINTS.XXL && (
-              <>
-                {settingsPanel}
-                {queuePanel}
-                {logsPanel}
-                {chatPanel}
-              </>
-            )}
-          </div>
-        </div>
-      </QueueProvider>
-    </QueueSettingsProvider>
+        {/* --- 4. ДЕСКТОП РЕЖИМ (XXL: >=1536px) --- */}
+        {currentBreakpoint === BREAKPOINTS.XXL && (
+          <>
+            {settingsPanel}
+            {queuePanel}
+            {logsPanel}
+            {chatPanel}
+          </>
+        )}
+      </div>
+    </div>
   )
 }
 

@@ -6,6 +6,8 @@ import StreamerWorkspace from './components/layout/workspace/StreamerWorkspace.t
 import { AuthProvider } from './features/auth/context/AuthProvider.tsx'
 import { ProtectedView } from './features/auth/components/ProtectedView.tsx'
 import { AppLogsProvider } from './features/app-logs/context/AppLogsProvider.tsx'
+import { QueueSettingsProvider } from './features/queue-settings/context/QueueSettingsProvider.tsx'
+import { QueueProvider } from './features/queue/context/QueueProvider.tsx'
 
 //  TODO:
 //   проверить:
@@ -30,7 +32,11 @@ function App() {
         <PageLayout>
           <ProtectedView fallback={<WelcomeScreen />}>
             <AppLogsProvider>
-              <StreamerWorkspace />
+              <QueueSettingsProvider>
+                <QueueProvider>
+                  <StreamerWorkspace />
+                </QueueProvider>
+              </QueueSettingsProvider>
             </AppLogsProvider>
           </ProtectedView>
         </PageLayout>
