@@ -9,7 +9,7 @@ export interface ParsedIrcMessage {
   timestamp: string;// Время сообщения HH:MM
   tags: Record<string, string>;
   isSystem: boolean; // Системное сообщение
-  isChannelEvent: boolean; // Событиям канала/модерации
+  isChannelEvent: boolean; // События канала/модерации
 }
 
 /**
