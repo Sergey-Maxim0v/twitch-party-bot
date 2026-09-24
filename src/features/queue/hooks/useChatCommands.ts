@@ -6,6 +6,9 @@ import { QUEUE_PLAYER_SOURCE } from '../types.ts'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 
+/**
+ * Хук обработки чат-команд Twitch.
+ */
 export const useChatCommands = () => {
   const { sendMessage } = useSocketContext()
   const { settings, updateSettings } = useQueueSettings()
@@ -145,7 +148,7 @@ export const useChatCommands = () => {
       return
     }
 
-    // 5. Команда DELETE (Модератор принудительно удаляет игрока из активной очереди)
+    // 5. Команда DELETE (Модератор принудительно удаляет игрока из всех очередей)
     if (commandName === commands.delete.name) {
       if (!hasAccess(commands.delete.isModeratorOnly)) return
       if (!commandArg) return
@@ -155,7 +158,7 @@ export const useChatCommands = () => {
 
       removePlayerFromAllQueues({
         userId: targetUsername,
-        username: msg.displayName ?? msg.user,
+        username: targetUsername,
         source: LOG_SOURCE.CHAT_MODERATOR,
         actorUsername,
         rawCommand: trimmedText,
