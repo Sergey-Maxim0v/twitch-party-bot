@@ -15,11 +15,11 @@ export interface QueueContextValue {
 
   // === Методы очистки (Clear) ===
   /** Очистить текущую активную очередь */
-  clearActiveQueue: (args: { source: LogSource; actorUsername: string; actorRole: string }) => void;
+  clearActiveQueue: (args: { source: LogSource; actorUsername: string; }) => void;
   /** Очистить будущие очереди */
-  clearFutureQueue: (args: { source: LogSource; actorUsername: string; actorRole: string }) => void;
+  clearFutureQueue: (args: { source: LogSource; actorUsername: string; }) => void;
   /** Очистить историю сыгранных сессий */
-  clearQueueHistory: (args: { source: LogSource; actorUsername: string; actorRole: string }) => void;
+  clearQueueHistory: (args: { source: LogSource; actorUsername: string; }) => void;
 
   // === Управление игроками (CRUD) ===
   /** Добавить игрока в очередь (в активную или будущую на основе правил) */

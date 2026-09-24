@@ -1,0 +1,85 @@
+import { useCallback } from 'react'
+import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
+import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
+import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
+import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
+import { updateChatAccess } from '../utils/updateChatAccess.ts'
+import { useTwitchSubscription } from './useTwitchSubscription.ts'
+import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
+import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
+
+/**
+ * Единый хук управления состоянием чата Twitch.
+ * Выступает диспетчером между историей сообщений и очередью отправки.
+ */
+export const useTwitchChatManager = () => {
+  const socketContext = useSocketContext()
+  const { session } = useAuth()
+
+  // Подключаем контроль активности сокета (Heartbeat)
+  const { handleSocketActivity } = useTwitchHeartbeat()
+
+  const { pendingTextsRef, timeoutTimerRef, registerPendingMessage } = useTwitchPendingMessages()
+
+  const client = socketContext?.getClient?.() ?? null
+  const { messages, handleModerationAndEvents, handleStandardMessage } = useTwitchChatHistory({
+    client,
+    pendingTextsRef,
+  })
+
+  const currentUserLogin = session?.login?.toLowerCase()
+
+  /**
+   *  Функция отправки сообщения в Twitch чат
+   */
+  const sendChatMessage = useCallback((message: string) => {
+    if(socketContext && socketContext.sendMessage && registerPendingMessage) {
+      registerPendingMessage(message)
+      socketContext.sendMessage(message)
+    }
+  }, [registerPendingMessage, socketContext])
+
+  /**
+     * Главный диспетчер обработки каждого входящего IRC-сообщения
+     */
+  const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
+    // 0. Регистрируем сетевую активность для сброса таймеров Heartbeat
+    handleSocketActivity(message.command)
+
+    // 1. Вычисляем права доступа и управляем состоянием блокировок
+    if (socketContext && socketContext.updateChatAccessStatus) {
+      updateChatAccess({
+        message,
+        currentUserLogin,
+        pendingTextsRef,
+        timeoutTimerRef,
+        updateChatAccessStatus: socketContext.updateChatAccessStatus,
+      })
+    }
+
+    // 2. Обрабатываем модераторские действия и системные логи
+    const isEventOrMod = handleModerationAndEvents(message)
+    if (isEventOrMod) {
+      return
+    }
+
+    // 3. Обрабатываем стандартные и подтвержденные текстовые сообщения
+    handleStandardMessage(message)
+  }, [
+    currentUserLogin,
+    socketContext,
+    handleModerationAndEvents,
+    handleStandardMessage,
+    pendingTextsRef,
+    timeoutTimerRef,
+    handleSocketActivity,
+  ])
+
+  // Автоматически подписываемся на сырой IRC-поток
+  useTwitchSubscription(handleIncomingMessage)
+
+  return {
+    messages,
+    sendChatMessage,
+  }
+}

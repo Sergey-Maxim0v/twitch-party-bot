@@ -5,12 +5,15 @@ import { getPanelDirections } from '../panel/utils/getPanelDirections.ts'
 import { BREAKPOINTS } from '../../../hooks/types/breakpoint.types.ts'
 import { useWorkspacePanels } from './hooks/useWorkspacePanels.ts'
 import { createWorkspacePanels } from './utils/createWorkspacePanels.tsx'
+import { useChatCommands } from '../../../features/queue/hooks/useChatCommands.ts'
 
 const StreamerWorkspace: FC = () => {
   const [isOpenSettings, setIsOpenSettings] = useLocalStorage<boolean>('panel_settings_open', true)
   const [isOpenQueue, setIsOpenQueue] = useLocalStorage<boolean>('panel_queue_open', true)
   const [isOpenLogs, setIsOpenLogs] = useLocalStorage<boolean>('panel_logs_open', true)
   const [isOpenChat, setIsOpenChat] = useLocalStorage<boolean>('panel_chat_open', true)
+
+  useChatCommands()
 
   const currentBreakpoint = useBreakpoint()
   const directions = getPanelDirections(currentBreakpoint)

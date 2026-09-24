@@ -15,7 +15,6 @@ const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleCl
   const argsClearFnc = {
     source: LOG_SOURCE.STREAMER_UI,
     actorUsername: session?.login ?? '',
-    actorRole: session?.login ?? 'Application',
   }
 
   return (

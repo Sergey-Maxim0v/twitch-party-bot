@@ -1,9 +1,9 @@
 import { type FC } from 'react'
 import ChatInput from './ChatInput.tsx'
 import ChatList from './ChatList.tsx'
-import { useTwitchChat } from '../hooks/useTwitchChat.ts'
 import ChatSettings from './ChatSettings.tsx'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
+import { useTwitchChat } from '../hooks/useTwitchChat.ts'
 
 const TwitchChat: FC = () => {
   const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>('twitch_chat_colored_names', true)
@@ -12,8 +12,8 @@ const TwitchChat: FC = () => {
   const [showSystemNotifications, setShowSystemNotifications] = useLocalStorage<boolean>('twitch_chat_show_system_notifications', true)
   const [highlightPointsMessages, setHighlightPointsMessages] = useLocalStorage<boolean>('twitch_chat_highlight_messages', true)
 
-  const { messages, registerPendingMessage } = useTwitchChat()
-
+  const { messages, sendChatMessage } = useTwitchChat()
+  
   return (
     <>
       <ChatList
@@ -40,7 +40,7 @@ const TwitchChat: FC = () => {
             useColoredNames={useColoredNames}
           />
         }
-        onSendMessage={registerPendingMessage}
+        onSendMessage={sendChatMessage}
       />
     </>
   )

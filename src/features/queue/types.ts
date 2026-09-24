@@ -1,4 +1,10 @@
-export type QueuePlayerSource = 'app' | 'mod_cmd' | 'user_cmd'
+export const QUEUE_PLAYER_SOURCE = {
+  APP: 'app',
+  MOD_CMD: 'mod_cmd',
+  USER_CMD: 'user_cmd',
+} as const
+
+export type QueuePlayerSource = typeof QUEUE_PLAYER_SOURCE[keyof typeof QUEUE_PLAYER_SOURCE]
 
 /**
  * Общие данные игрока

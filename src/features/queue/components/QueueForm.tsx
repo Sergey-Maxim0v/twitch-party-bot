@@ -3,7 +3,7 @@ import { LuUserRoundPlus } from 'react-icons/lu'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
-import type { QueuePlayerFormData } from '../types.ts'
+import { QUEUE_PLAYER_SOURCE, type QueuePlayerFormData } from '../types.ts'
 
 export interface QueueFormProps {
   className?: string;
@@ -36,7 +36,7 @@ const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
       isModerator: isMod,
       isSubscriber: isSub,
       isVip,
-      playerSource: 'app',
+      playerSource: QUEUE_PLAYER_SOURCE.APP,
     }
 
     addPlayerToQueue({

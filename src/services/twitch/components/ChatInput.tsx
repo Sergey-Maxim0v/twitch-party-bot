@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { LuSend } from 'react-icons/lu'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import * as React from 'react'
-import { TWITCH_CHAT_MAX_LENGTH, TWITCH_CHAT_MIN_LENGTH } from '../../../constants/twitch.constants.ts'
+import { TWITCH_CHAT_MESSAGE_MAX_LENGTH, TWITCH_CHAT_MESSAGE_MIN_LENGTH } from '../../../constants/twitch.constants.ts'
 import { CHAT_ACCESS_STATUSES } from '../../socket/types.ts'
 
 interface ChatInputProps {
@@ -57,10 +57,7 @@ const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
     const trimmedValue = value.trim()
     if (!trimmedValue) return
 
-    if (socketContext && socketContext.sendMessage) {
-      onSendMessage(trimmedValue)
-      socketContext.sendMessage(trimmedValue)
-    }
+    onSendMessage(trimmedValue)
 
     setValue('')
     setIsOverflowed(false)
@@ -84,8 +81,8 @@ const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
                     focus:outline-none placeholder-base-content/40 resize-none 
                     min-h-8 max-h-32 py-1.5 leading-relaxed custom-scrollbar 
                     ${isOverflowed ? 'overflow-y-auto' : 'overflow-hidden'}`}
-          maxLength={TWITCH_CHAT_MAX_LENGTH}
-          minLength={TWITCH_CHAT_MIN_LENGTH}
+          maxLength={TWITCH_CHAT_MESSAGE_MAX_LENGTH}
+          minLength={TWITCH_CHAT_MESSAGE_MIN_LENGTH}
           name="chat-message"
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
