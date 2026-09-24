@@ -50,7 +50,7 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
 
   return (
     <dialog
-      className={`modal modal-bottom sm:modal-middle bg-black/40 backdrop-blur-xs ${className}`}
+      className={`modal modal-bottom sm:modal-middle bg-black/60 ${className}`}
       onClick={handleBackdropClick}
       ref={ref}
     >

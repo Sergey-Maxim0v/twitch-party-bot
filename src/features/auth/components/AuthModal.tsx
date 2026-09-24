@@ -83,7 +83,7 @@ export const AuthModal: FC = () => {
         )}
 
       </div>
-      <div className="modal-backdrop bg-black/40 backdrop-blur-xs"></div>
+      <div className="modal-backdrop bg-black/60"></div>
     </div>
   )
 }
