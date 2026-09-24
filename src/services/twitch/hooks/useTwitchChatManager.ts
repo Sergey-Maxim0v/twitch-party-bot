@@ -9,6 +9,7 @@ import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
 import { TwitchIrcCommand } from '../config.ts'
 import { useChatCommands } from './useChatCommands.ts'
+import { useQueueSettings } from '../../../features/queue-settings/hooks/useQueueSettings.ts'
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -17,6 +18,7 @@ import { useChatCommands } from './useChatCommands.ts'
 export const useTwitchChatManager = () => {
   const socketContext = useSocketContext()
   const { session } = useAuth()
+  const { settings } = useQueueSettings()
 
   // Подключаем функционал обработки чат-команд
   const { processCommand } = useChatCommands()
@@ -56,12 +58,12 @@ export const useTwitchChatManager = () => {
         })
 
         // Если команда подразумевала текстовый ответ (например, !show), отправляем его в чат
-        if (streamResponse && socketContext?.sendMessage) {
+        if (streamResponse && socketContext?.sendMessage && settings.chatNotificationPermissions.allowSending) {
           socketContext.sendMessage(streamResponse)
         }
       }
     }
-  }, [registerPendingMessage, socketContext, processCommand, currentUserLogin, session?.login])
+  }, [registerPendingMessage, socketContext, processCommand, currentUserLogin, session?.login, settings])
 
   /**
    * Главный диспетчер обработки каждого входящего IRC-сообщения
@@ -105,7 +107,7 @@ export const useTwitchChatManager = () => {
       })
 
       // Если команда вернула текстовый ответ (например, !show), отправляем его в чат через сокет
-      if (chatResponse && socketContext?.sendMessage) {
+      if (chatResponse && socketContext?.sendMessage && settings.chatNotificationPermissions.allowSending) {
         socketContext.sendMessage(chatResponse)
       }
     }
@@ -118,6 +120,7 @@ export const useTwitchChatManager = () => {
     timeoutTimerRef,
     handleSocketActivity,
     processCommand,
+    settings,
   ])
 
   // Автоматически подписываемся на сырой IRC-поток
