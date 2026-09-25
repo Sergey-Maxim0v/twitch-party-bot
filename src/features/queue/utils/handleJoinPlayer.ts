@@ -5,8 +5,10 @@ import { extractGameNickname } from './extractGameNickname'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 export interface HandleJoinPlayerArgs {
+  isQueueOpen: QueueContextValue['isQueueOpen'];
   playerData: QueuePlayerFormData;
   source: AppLogItem['source'];
   actorUsername: string;
@@ -22,6 +24,7 @@ export interface HandleJoinPlayerArgs {
  * Хендлер для добавления игрока в активную или будущую очередь со всеми бизнес-проверками.
  */
 export const handleJoinPlayer = ({
+  isQueueOpen,
   playerData,
   source,
   actorUsername,
@@ -39,7 +42,7 @@ export const handleJoinPlayer = ({
   const displayName = playerData.displayedUsername || username
 
   // 1. Запуск валидации ограничений (кулдауны, бан-листы, открыта ли очередь)
-  const validationError = validateQueueEntry({ userId, username, isPrivileged, state, settings, source })
+  const validationError = validateQueueEntry({ isQueueOpen, userId, username, isPrivileged, state, settings, source })
   if (validationError) {
     pushLog({ message: validationError, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
     return

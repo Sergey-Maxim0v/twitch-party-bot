@@ -18,8 +18,9 @@ interface CommandSenderContext {
  * Хук обработки чат-команд Twitch и внутренних команд приложения.
  */
 export const useChatCommands = () => {
-  const { settings, updateSettings } = useQueueSettings()
+  const { settings } = useQueueSettings()
   const {
+    setIsQueueOpen,
     activeQueue,
     addPlayerToQueue,
     removePlayerFromAllQueues,
@@ -168,7 +169,7 @@ export const useChatCommands = () => {
     if (commandName === commands.start.name) {
       if (!hasAccess(commands.start.isModeratorOnly)) return
 
-      updateSettings({ isQueueOpen: true })
+      setIsQueueOpen(true )
       return
     }
 
@@ -176,18 +177,18 @@ export const useChatCommands = () => {
     if (commandName === commands.stop.name) {
       if (!hasAccess(commands.stop.isModeratorOnly)) return
 
-      updateSettings({ isQueueOpen: false })
+      setIsQueueOpen(false )
       return
     }
 
   }, [
+    setIsQueueOpen,
     commands,
     activeQueue,
     addPlayerToQueue,
     removePlayerFromAllQueues,
     clearActiveQueue,
     clearFutureQueue,
-    updateSettings,
   ])
 
   return { processCommand }

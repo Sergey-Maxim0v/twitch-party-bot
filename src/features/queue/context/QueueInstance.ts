@@ -3,6 +3,10 @@ import type { QueueState, QueuePlayer, QueueSession, QueuePlayerFormData, QueueT
 import type { LogSource } from '../../app-logs/types.ts'
 
 export interface QueueContextValue {
+  /** Управление статусом очереди. */
+  isQueueOpen: boolean;
+  setIsQueueOpen: (val:boolean) => void;
+
   // === Реактивные состояния (Стейты) ===
   /** Игроки в текущей активной очереди */
   activeQueue: QueuePlayer[];

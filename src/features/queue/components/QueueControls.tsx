@@ -11,8 +11,8 @@ export interface QueueControlsProps {
 }
 
 const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
-  const { finishActiveQueue } = useQueue()
-  const { settings, updateSettings } = useQueueSettings()
+  const { isQueueOpen, setIsQueueOpen, finishActiveQueue } = useQueue()
+  const { settings } = useQueueSettings()
   const { session } = useAuth()
   const { pushLog } = useAppLogs()
 
@@ -20,31 +20,31 @@ const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
     finishActiveQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: session?.login ?? '' })
 
     if (!settings.allowPreJoin) {
-      updateSettings({ isQueueOpen: false })
+      setIsQueueOpen(false)
     }
-  }, [session?.login, finishActiveQueue, settings.allowPreJoin, updateSettings])
+  }, [finishActiveQueue, session?.login, settings.allowPreJoin, setIsQueueOpen])
 
   const handleQueueToggle = useCallback(() => {
     const argsPushLogFnc: Parameters<AppLogsContextValue['pushLog']>[0] = {
-      message: settings.isQueueOpen ? 'Очередь закрыта' : 'Очередь открыта',
+      message: isQueueOpen ? 'Очередь закрыта' : 'Очередь открыта',
       source: LOG_SOURCE.STREAMER_UI,
       actorUsername: session?.login ?? '',
     }
 
     pushLog(argsPushLogFnc)
-    updateSettings({ isQueueOpen: !settings.isQueueOpen })
-  }, [updateSettings, settings.isQueueOpen, session?.login, pushLog])
+    setIsQueueOpen(!isQueueOpen )
+  }, [isQueueOpen, session?.login, pushLog, setIsQueueOpen])
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
       <button
         className={`btn btn-block btn-sm shadow-sm font-semibold truncate ${
-          settings.isQueueOpen ? 'btn-error btn-outline' : 'btn-primary'
+          isQueueOpen ? 'btn-error btn-outline' : 'btn-primary'
         }`}
         onClick={handleQueueToggle}
         type="button"
       >
-        {settings.isQueueOpen ? 'Закрыть очередь' : 'Открыть очередь'}
+        {isQueueOpen ? 'Закрыть очередь' : 'Открыть очередь'}
       </button>
 
       <button

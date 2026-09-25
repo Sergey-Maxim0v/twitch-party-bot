@@ -28,6 +28,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const { settings, updateSettings } = useQueueSettings()
   const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState())
   const { pushLog: pushAppLog } = useAppLogs()
+  const [isQueueOpen, setIsQueueOpen] = useLocalStorage( 'twitch_queue_status', false)
 
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({
     message,
@@ -117,8 +118,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
     customTimestamp?: number;
   }) => {
-    handleJoinPlayer({ ...args, state, settings, setState, pushLog })
-  }, [state, settings, setState, pushLog])
+    handleJoinPlayer({ ...args, isQueueOpen, state, settings, setState, pushLog })
+  }, [isQueueOpen, state, settings, setState, pushLog])
 
   const removePlayerFromQueue: QueueContextValue['removePlayerFromQueue'] = useCallback((args: {
     userId: string;
@@ -167,6 +168,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   }, [settings, setState, pushLog])
 
   const contextValue = useMemo<QueueContextValue>(() => ({
+    isQueueOpen,
+    setIsQueueOpen,
     activeQueue: state.activeQueue || [],
     futureQueue: state.futureQueue || [],
     queueHistory: state.queueHistory || [],
@@ -180,7 +183,20 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     banPlayerFromQueue,
     movePlayer,
     finishActiveQueue,
-  }), [state, clearActiveQueue, clearFutureQueue, clearQueueHistory, addPlayerToQueue, removePlayerFromQueue, removePlayerFromAllQueues, banPlayerFromQueue, movePlayer, finishActiveQueue])
+  }), [
+    isQueueOpen,
+    setIsQueueOpen,
+    state,
+    clearActiveQueue,
+    clearFutureQueue,
+    clearQueueHistory,
+    addPlayerToQueue,
+    removePlayerFromQueue,
+    removePlayerFromAllQueues,
+    banPlayerFromQueue,
+    movePlayer,
+    finishActiveQueue,
+  ])
 
   return <QueueContext.Provider value={contextValue}>{children}</QueueContext.Provider>
 }

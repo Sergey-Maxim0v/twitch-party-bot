@@ -1,8 +1,10 @@
 import type { QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
+import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 interface ValidateQueueEntryArgs {
+  isQueueOpen: QueueContextValue['isQueueOpen'];
   userId: string;
   username: string;
   isPrivileged: boolean;
@@ -16,6 +18,7 @@ interface ValidateQueueEntryArgs {
  * @returns {string | null} Текст ошибки валидации или null, если проверка пройдена
  */
 export const validateQueueEntry = ({
+  isQueueOpen,
   userId,
   username,
   isPrivileged,
@@ -31,7 +34,7 @@ export const validateQueueEntry = ({
   if (isStaff) return null
 
   // 1. Проверка: Открыта ли очередь
-  if (!settings.isQueueOpen) {
+  if (!isQueueOpen) {
     return 'Отклонено: очередь закрыта'
   }
 

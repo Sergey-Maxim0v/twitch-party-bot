@@ -47,7 +47,6 @@ export interface QueueGameConfig {
 }
 
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
-  isQueueOpen: false,
   maxQueueSize: 4,
   allowPreJoin: false,
   allowMultipleEntries: false,
@@ -78,9 +77,6 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
 }
 
 export interface QueueSettings {
-  /** Управление статусом очереди. */
-  isQueueOpen: boolean;
-
   /** Лимит участников в очереди. */
   maxQueueSize: number;
 

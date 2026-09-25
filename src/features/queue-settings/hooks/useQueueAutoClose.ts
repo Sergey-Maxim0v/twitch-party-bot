@@ -1,8 +1,8 @@
 import { type RefObject, useEffect, useRef } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import { useQueueSettings } from './useQueueSettings.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { useQueue } from '../../queue/hooks/useQueue.ts'
 
 /**
  * Хук для автоматического закрытия очереди при разлогине, смене канала, перезагрузке страницы.
@@ -10,16 +10,16 @@ import { LOG_SOURCE } from '../../app-logs/types.ts'
 export const useQueueAutoClose = () => {
   const { activeChannel } = useAuth()
   const { pushLog } = useAppLogs()
-  const { settings, updateSettings } = useQueueSettings()
+  const { isQueueOpen, setIsQueueOpen } = useQueue()
 
   const isClosingRef: RefObject<boolean> = useRef(false)
 
   useEffect(() => {
-    if (!settings.isQueueOpen || isClosingRef.current) return
+    if (!isQueueOpen || isClosingRef.current) return
 
     isClosingRef.current = true
 
-    updateSettings({ isQueueOpen: false })
+    setIsQueueOpen(false )
 
     pushLog({
       message: 'Очередь закрыта',
