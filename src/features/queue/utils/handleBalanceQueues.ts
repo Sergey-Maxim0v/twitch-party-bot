@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
-import type { QueueState } from '../types.ts'
+import type { QueueState, QueuePlayer } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
 export interface HandleBalanceQueuesArgs {
@@ -71,28 +71,66 @@ export const handleBalanceQueues = ({
   // === СЦЕНАРИЙ 2: Очередь увеличилась (работает только при активном moveOnSizeChange) ===
   if (moveOnSizeChange && activeLength < maxQueueSize && futureLength > 0) {
     const freeSlots = maxQueueSize - activeLength
-    // Вычисляем, сколько реально игроков сможем забрать
-    const count = Math.min(freeSlots, futureLength)
 
-    // 1. Отправляем лог
-    pushLog({
-      message: `Размер очереди изменен. Автоматически перенесено игроков из будущей очереди в конец активной: ${count}.`,
-      status: APP_LOG_STATUSES.SUCCESS,
-      source: LOG_SOURCE.APPLICATION,
-      actorUsername: 'System',
-    })
-
-    // 2. Обновляем состояние
+    // 1. Сначала атомарно рассчитываем перенос вне setState (имитируем логику для лога)
+    let playersMovedCount = 0
     setState(prev => {
-      const updatedFuture = [...prev.futureQueue]
-      const playersToMove = updatedFuture.splice(0, freeSlots)
-      const updatedActive = [...prev.activeQueue, ...playersToMove]
+      const updatedActive = [...prev.activeQueue]
+      const sourceFuture = [...prev.futureQueue]
+
+      const playersToMove: QueuePlayer[] = []
+      const indicesToRemove: number[] = []
+
+      const activeUserIds = new Set(updatedActive.map(p => p.userId))
+      const activeUsernames = new Set(updatedActive.map(p => p.username.toLowerCase()))
+
+      for (let i = 0; i < sourceFuture.length; i++) {
+        if (playersToMove.length >= freeSlots) {
+          break
+        }
+
+        const player = sourceFuture[i]
+        const isDuplicate = activeUserIds.has(player.userId) || activeUsernames.has(player.username.toLowerCase())
+
+        if (isDuplicate) {
+          continue
+        }
+
+        playersToMove.push(player)
+        indicesToRemove.push(i)
+
+        activeUserIds.add(player.userId)
+        activeUsernames.add(player.username.toLowerCase())
+      }
+
+      if (playersToMove.length === 0) {
+        return prev
+      }
+
+      // Сохраняем точное количество перенесенных игроков
+      playersMovedCount = playersToMove.length
+
+      for (let i = indicesToRemove.length - 1; i >= 0; i--) {
+        sourceFuture.splice(indicesToRemove[i], 1)
+      }
+
+      updatedActive.push(...playersToMove)
 
       return {
         ...prev,
         activeQueue: updatedActive,
-        futureQueue: updatedFuture,
+        futureQueue: sourceFuture,
       }
     })
+
+    // 2. Отправляем лог 
+    if (playersMovedCount > 0) {
+      pushLog({
+        message: `Размер очереди изменен. Автоматически перенесено игроков из будущей очереди в конец активной: ${playersMovedCount}.`,
+        status: APP_LOG_STATUSES.SUCCESS,
+        source: LOG_SOURCE.APPLICATION,
+        actorUsername: 'System',
+      })
+    }
   }
 }
