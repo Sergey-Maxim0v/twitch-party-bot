@@ -3,6 +3,7 @@ import type { QueueSession, QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 export interface HandleFinishActiveQueueArgs {
   /** Источник вызова команды (обычно интерфейс стримера) */
@@ -15,6 +16,8 @@ export interface HandleFinishActiveQueueArgs {
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
   pushLog: AppLogsContextValue['pushLog'];
+  /** Хелпер провайдера для записи логов */
+  closeQueue: QueueContextValue['closeQueue'];
 }
 
 /**
@@ -27,6 +30,7 @@ export const handleFinishActiveQueue = ({
   settings,
   setState,
   pushLog,
+  closeQueue,
 }: HandleFinishActiveQueueArgs): void => {
   let playedPlayersCount = 0
   let promotedPlayersCount = 0
@@ -78,6 +82,10 @@ export const handleFinishActiveQueue = ({
       playerHistory: updatedPlayerHistory,
     }
   })
+
+  if (!settings.allowPreJoin) {
+    closeQueue({ source, actorUsername })
+  }
 
   // 4. Формируем лог
   if (playedPlayersCount > 0 || promotedPlayersCount > 0) {

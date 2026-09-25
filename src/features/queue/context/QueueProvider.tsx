@@ -19,6 +19,8 @@ import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { APP_LOG_STATUSES, LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
+import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
+import { handleOpenQueue } from '../utils/handleOpenQueue.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
@@ -28,7 +30,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const { settings, updateSettings } = useQueueSettings()
   const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState())
   const { pushLog: pushAppLog } = useAppLogs()
-  const [isQueueOpen, setIsQueueOpen] = useLocalStorage( 'twitch_queue_status', false)
+  const [isQueueOpen, setIsQueueOpen] = useLocalStorage('twitch_queue_status', false)
 
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({
     message,
@@ -85,6 +87,16 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
       }))
     }
   }, [settings.allowPreJoin, state.futureQueue.length, setState, pushLog])
+
+  // === СТАТУС ОЧЕРЕДИ (Управление) ===
+
+  const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
+    handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+  }, [isQueueOpen, setIsQueueOpen, pushLog])
+
+  const closeQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
+    handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+  }, [isQueueOpen, setIsQueueOpen, pushLog])
 
   // === МЕТОДЫ ОЧИСТКИ (Clear) ===
 
@@ -164,12 +176,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   // === ЖИЗНЕННЫЙ ЦИКЛ ОЧЕРЕДИ ===
 
   const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
-    handleFinishActiveQueue({ ...args, settings, setState, pushLog })
-  }, [settings, setState, pushLog])
+    handleFinishActiveQueue({ ...args, closeQueue, settings, setState, pushLog })
+  }, [closeQueue, settings, setState, pushLog])
 
   const contextValue = useMemo<QueueContextValue>(() => ({
     isQueueOpen,
-    setIsQueueOpen,
+    openQueue,
+    closeQueue,
     activeQueue: state.activeQueue || [],
     futureQueue: state.futureQueue || [],
     queueHistory: state.queueHistory || [],
@@ -185,7 +198,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     finishActiveQueue,
   }), [
     isQueueOpen,
-    setIsQueueOpen,
+    openQueue,
+    closeQueue,
     state,
     clearActiveQueue,
     clearFutureQueue,
