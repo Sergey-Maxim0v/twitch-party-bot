@@ -11,11 +11,15 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
 import QueueElement from './QueueElement.tsx'
 import { QUEUE_TYPES, type QueuePlayer } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
+import { useChatCommands } from '../hooks/useChatCommands.ts'
 
 const QueuePanel: FC = () => {
   const { settings } = useQueueSettings()
   const { movePlayer, activeQueue, futureQueue } = useQueue()
   const { userDisplayName } = useAuth()
+
+  // Вызов обработчика команд из сообщений чата
+  useChatCommands()
 
   const [isActiveListOpen, setIsActiveListOpen] = useState<boolean>(true)
   const [isFutureListOpen, setIsFutureListOpen] = useState<boolean>(settings?.allowPreJoin)

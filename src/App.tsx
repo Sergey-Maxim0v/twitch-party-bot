@@ -40,11 +40,11 @@ function App() {
           <ProtectedView fallback={<WelcomeScreen />}>
             <AppLogsProvider>
               <QueueSettingsProvider>
-                <QueueProvider>
-                  <TwitchChatProvider>
+                <TwitchChatProvider>
+                  <QueueProvider>
                     <StreamerWorkspace />
-                  </TwitchChatProvider>
-                </QueueProvider>
+                  </QueueProvider>
+                </TwitchChatProvider>
               </QueueSettingsProvider>
             </AppLogsProvider>
           </ProtectedView>

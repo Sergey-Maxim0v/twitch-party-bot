@@ -7,6 +7,7 @@ import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
 interface TwitchChatContextType {
   messages: ParsedIrcMessage[]
   sendChatMessage: (message: string) => void
+  lastMessage: ParsedIrcMessage | null
 }
 
 /**

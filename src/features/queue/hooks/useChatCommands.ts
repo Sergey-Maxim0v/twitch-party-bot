@@ -1,24 +1,13 @@
-import { useCallback } from 'react'
-import { useQueueSettings } from '../../../features/queue-settings/hooks/useQueueSettings.ts'
-import { useQueue } from '../../../features/queue/hooks/useQueue.ts'
-import { LOG_SOURCE } from '../../../features/app-logs/types.ts'
-import { QUEUE_PLAYER_SOURCE } from '../../../features/queue/types.ts'
+import { useEffect } from 'react'
+import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
+import { useQueue } from './useQueue.ts'
+import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { QUEUE_PLAYER_SOURCE } from '../types.ts'
+import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 
-interface CommandSenderContext {
-  userId: string
-  username: string
-  displayedUsername: string
-  isBroadcaster: boolean
-  isMod: boolean
-  isVip: boolean
-  isSubscriber: boolean
-}
-
-/**
- * Хук обработки чат-команд Twitch и внутренних команд приложения.
- */
 export const useChatCommands = () => {
   const { settings } = useQueueSettings()
+  const { lastMessage, sendChatMessage } = useTwitchChat()
   const {
     setIsQueueOpen,
     activeQueue,
@@ -30,41 +19,50 @@ export const useChatCommands = () => {
 
   const { commands } = settings
 
-  /**
-   * Функция обработки конкретной команды.
-   * Принимает сырой текст и контекст пользователя, выполнившего команду.
-   */
-  const processCommand = useCallback((text: string, senderContext: CommandSenderContext) => {
-    const trimmedText = text.trim()
+  useEffect(() => {
+    // 1. Быстрые проверки на валидность сообщения
+    if (!lastMessage?.text) return
+    const trimmedText = lastMessage.text.trim()
     if (!trimmedText.startsWith('!')) return
 
+    // 2. Формируем контекст пользователя из бейджей
+    const badges = lastMessage.tags.badges ? lastMessage.tags.badges.split(',') : []
+    const isBroadcaster = badges.some(b => b.startsWith('broadcaster/'))
+    const isMod = badges.some(b => b.startsWith('moderator/')) || lastMessage.tags.mod === '1'
+    const isModeratorOrStreamer = isBroadcaster || isMod
+
+    // 3. Парсим команду
     const parts = trimmedText.split(/\s+/)
     const commandName = parts[0]
     const commandArg = parts.slice(1).join(' ')
-
-    const isModeratorOrStreamer = senderContext.isBroadcaster || senderContext.isMod
 
     const hasAccess = (isModeratorOnly: boolean) => {
       if (!isModeratorOnly) return true
       return isModeratorOrStreamer
     }
 
-    const { userId, username, displayedUsername, isSubscriber, isVip } = senderContext
+    const userId = lastMessage.user
+    const displayedUsername = lastMessage.displayName ?? ''
+    const username = displayedUsername.toLowerCase()
 
-    // 1. Команда JOIN
+    const isSubscriber = lastMessage.tags.subscriber === '1' ||
+        badges.some(b => b.startsWith('subscriber/')) ||
+        badges.some(b => b.startsWith('founder/'))
+
+    const isVip = lastMessage.tags.vip === '1' ||
+        badges.some(b => b.startsWith('vip/'))
+
+    // 4. Обработка команд
+    // JOIN
     if (commandName === commands.join.name) {
       if (!hasAccess(commands.join.isModeratorOnly)) return
-
       addPlayerToQueue({
         playerData: {
-          userId,
-          username,
-          displayedUsername,
+          userId, username, displayedUsername,
           rawMessage: trimmedText,
           playerSource: QUEUE_PLAYER_SOURCE.USER_CMD,
           isModerator: isModeratorOrStreamer,
-          isSubscriber,
-          isVip,
+          isSubscriber, isVip,
         },
         source: LOG_SOURCE.CHAT_USER,
         actorUsername: displayedUsername,
@@ -73,13 +71,11 @@ export const useChatCommands = () => {
       return
     }
 
-    // 2. Команда LEAVE
+    // LEAVE
     if (commandName === commands.leave.name) {
       if (!hasAccess(commands.leave.isModeratorOnly)) return
-
       removePlayerFromAllQueues({
-        userId,
-        username,
+        userId, username,
         source: LOG_SOURCE.CHAT_USER,
         actorUsername: displayedUsername,
         rawCommand: trimmedText,
@@ -87,29 +83,19 @@ export const useChatCommands = () => {
       return
     }
 
-    // 3. Команда SHOW
+    // SHOW
     if (commandName === commands.show.name) {
       if (!hasAccess(commands.show.isModeratorOnly)) return
-
-      let messageText
-
-      if (activeQueue.length) {
-        messageText = 'Текущая очередь: ' +
-            activeQueue.map((player, index) =>
-              (index + 1) + '. @' + (player.displayedUsername ?? player.username)).join(', ')
-      } else {
-        messageText = 'Очередь пуста'
-      }
-
-      // Возвращаем текст ответа для отправки в чат внешним диспетчером
-      return messageText
+      const queueMessage = activeQueue.length
+        ? 'Текущая очередь: ' + activeQueue.map((player, index) => `${index + 1}. @${player.displayedUsername ?? player.username}`).join(', ')
+        : 'Очередь пуста'
+      sendChatMessage(queueMessage)
+      return
     }
 
-    // 4. Команда ADD
+    // ADD
     if (commandName === commands.add.name) {
-      if (!hasAccess(commands.add.isModeratorOnly)) return
-      if (!commandArg) return
-
+      if (!hasAccess(commands.add.isModeratorOnly) || !commandArg) return
       const targetUsername = commandArg.replace(/^@/, '').trim()
       if (!targetUsername) return
 
@@ -120,9 +106,7 @@ export const useChatCommands = () => {
           displayedUsername: targetUsername,
           rawMessage: trimmedText,
           playerSource: QUEUE_PLAYER_SOURCE.MOD_CMD,
-          isModerator: false,
-          isSubscriber: false,
-          isVip: false,
+          isModerator: false, isSubscriber: false, isVip: false,
         },
         source: LOG_SOURCE.CHAT_MODERATOR,
         actorUsername: displayedUsername,
@@ -131,11 +115,9 @@ export const useChatCommands = () => {
       return
     }
 
-    // 5. Команда DELETE
+    // DELETE
     if (commandName === commands.delete.name) {
-      if (!hasAccess(commands.delete.isModeratorOnly)) return
-      if (!commandArg) return
-
+      if (!hasAccess(commands.delete.isModeratorOnly) || !commandArg) return
       const targetUsername = commandArg.replace(/^@/, '').trim().toLowerCase()
       if (!targetUsername) return
 
@@ -149,47 +131,28 @@ export const useChatCommands = () => {
       return
     }
 
-    // 6. Команда CLEAR
+    // CLEAR
     if (commandName === commands.clear.name) {
       if (!hasAccess(commands.clear.isModeratorOnly)) return
-
-      clearActiveQueue({
-        source: LOG_SOURCE.CHAT_MODERATOR,
-        actorUsername: displayedUsername,
-      })
-
-      clearFutureQueue({
-        source: LOG_SOURCE.CHAT_MODERATOR,
-        actorUsername: displayedUsername,
-      })
+      clearActiveQueue({ source: LOG_SOURCE.CHAT_MODERATOR, actorUsername: displayedUsername })
+      clearFutureQueue({ source: LOG_SOURCE.CHAT_MODERATOR, actorUsername: displayedUsername })
       return
     }
 
-    // 7. Команда START
+    // START
     if (commandName === commands.start.name) {
       if (!hasAccess(commands.start.isModeratorOnly)) return
-
-      setIsQueueOpen(true )
+      setIsQueueOpen(true)
       return
     }
 
-    // 8. Команда STOP
+    // STOP
     if (commandName === commands.stop.name) {
       if (!hasAccess(commands.stop.isModeratorOnly)) return
-
-      setIsQueueOpen(false )
+      setIsQueueOpen(false)
       return
     }
 
-  }, [
-    setIsQueueOpen,
-    commands,
-    activeQueue,
-    addPlayerToQueue,
-    removePlayerFromAllQueues,
-    clearActiveQueue,
-    clearFutureQueue,
-  ])
-
-  return { processCommand }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastMessage]) // Реагируем ТОЛЬКО на приход нового сообщения
 }
