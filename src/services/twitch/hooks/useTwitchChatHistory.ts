@@ -75,12 +75,14 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
   }, [])
 
   /**
-     * Добавляет стандартные текстовые сообщения в общую историю чата
-     */
-  const handleStandardMessage = useCallback((message: ParsedIrcMessage): void => {
+   * Добавляет стандартные текстовые сообщения в общую историю чата
+   */
+  const handleStandardMessage = useCallback((message: ParsedIrcMessage): ParsedIrcMessage | undefined => {
     const isUserstate = message.command === TwitchIrcCommand.USER_STATE
 
     if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return
+
+    let resultingMessage: ParsedIrcMessage | undefined = undefined
 
     setMessages(prev => {
       let messageToPush = message
@@ -99,6 +101,8 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
         }
       }
 
+      resultingMessage = messageToPush
+
       if (prev.some(m => m.id === messageToPush.id)) {
         return prev
       }
@@ -111,6 +115,8 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
 
       return updated
     })
+
+    return resultingMessage
   }, [pendingTextsRef])
 
   return {

@@ -46,7 +46,7 @@ export const useTwitchChatManager = () => {
    * Главный диспетчер обработки каждого входящего IRC-сообщения
    */
   const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-    // 0. Обновляем стейт последнего полученного сообщения
+    // 0. Обновляем стейт последнего полученного сообщения (для стандартных входящих сообщений)
     if (message.command === TwitchIrcCommand.PRIV_MSG) {
       setLastMessage(prevMessage => {
         const currentId = message.tags?.id
@@ -81,7 +81,13 @@ export const useTwitchChatManager = () => {
     }
 
     // 4. Обрабатываем стандартные и подтвержденные текстовые сообщения
-    handleStandardMessage(message)
+    const processedMessage = handleStandardMessage(message)
+
+    // Если это было наше отправленное сообщение (USER_STATE трансформированный в PRIV_MSG),
+    // записываем его в lastMessage
+    if (processedMessage && processedMessage.command === TwitchIrcCommand.PRIV_MSG) {
+      setLastMessage(processedMessage)
+    }
   }, [
     currentUserLogin,
     socketContext,
