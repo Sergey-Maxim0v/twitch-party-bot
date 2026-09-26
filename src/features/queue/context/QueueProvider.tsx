@@ -140,8 +140,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayer({ ...args, setState, pushLog })
-  }, [setState, pushLog])
+    handleRemovePlayer({ ...args, state, setState, pushLog })
+  }, [state, setState, pushLog])
 
   const removePlayerFromAllQueues = useCallback((args: {
     userId: string;
@@ -150,8 +150,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayerFromAll({ ...args, setState, pushLog })
-  }, [setState, pushLog])
+    handleRemovePlayerFromAll({ ...args, state, setState, pushLog })
+  }, [state, setState, pushLog])
 
   const banPlayerFromQueue = useCallback((args: {
     userId?: string;

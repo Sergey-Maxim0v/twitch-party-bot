@@ -14,6 +14,8 @@ export interface HandleRemovePlayerFromAllArgs {
   actorUsername: string;
   /** Исходный текст команды (если вызвано из чата) */
   rawCommand?: string;
+  /** Текущее состояние очереди */
+  state: QueueState;
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
@@ -29,51 +31,50 @@ export const handleRemovePlayerFromAll = ({
   source,
   actorUsername,
   rawCommand,
+  state,
   setState,
   pushLog,
 }: HandleRemovePlayerFromAllArgs): void => {
   const targetUsernameLower = username.toLowerCase()
+  let targetPlayerName = ''
 
-  setState(prev => {
-    let targetPlayerName = ''
+  // Функция-предикат для поиска совпадений по ID или по логину
+  const isTargetPlayer = (p: { userId: string; username: string }) =>
+    p.userId === userId || p.username.toLowerCase() === targetUsernameLower
 
-    // Функция-предикат для поиска совпадений по ID или по логину
-    const isTargetPlayer = (p: { userId: string; username: string }) =>
-      p.userId === userId || p.username.toLowerCase() === targetUsernameLower
+  const activeMatches = state.activeQueue.filter(isTargetPlayer)
+  const removedFromActiveCount = activeMatches.length
+  if (removedFromActiveCount > 0) {
+    targetPlayerName = activeMatches[0].displayedUsername || activeMatches[0].username
+  }
 
-    const activeMatches = prev.activeQueue.filter(isTargetPlayer)
-    const removedFromActiveCount = activeMatches.length
-    if (removedFromActiveCount > 0) {
-      targetPlayerName = activeMatches[0].displayedUsername || activeMatches[0].username
-    }
+  const futureMatches = state.futureQueue.filter(isTargetPlayer)
+  const removedFromFutureCount = futureMatches.length
+  if (removedFromFutureCount > 0 && !targetPlayerName) {
+    targetPlayerName = futureMatches[0].displayedUsername || futureMatches[0].username
+  }
 
-    const futureMatches = prev.futureQueue.filter(isTargetPlayer)
-    const removedFromFutureCount = futureMatches.length
-    if (removedFromFutureCount > 0 && !targetPlayerName) {
-      targetPlayerName = futureMatches[0].displayedUsername || futureMatches[0].username
-    }
+  const totalRemoved = removedFromActiveCount + removedFromFutureCount
 
-    const totalRemoved = removedFromActiveCount + removedFromFutureCount
+  // Если игрок не найден ни по ID, ни по имени
+  if (totalRemoved === 0) {
+    const logMessage = `Ошибка отмены записи: игрок ${username} (ID: ${userId}) не найден ни в одном из списков.`
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
+    return
+  }
 
-    // Если игрок не найден ни по ID, ни по имени
-    if (totalRemoved === 0) {
-      const logMessage = `Ошибка отмены записи: игрок ${username} (ID: ${userId}) не найден ни в одном из списков.`
-      pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
-      return prev
-    }
+  // Игрок найден
+  const locations: string[] = []
+  if (removedFromActiveCount > 0) locations.push(`активной (${removedFromActiveCount})`)
+  if (removedFromFutureCount > 0) locations.push(`будущей (${removedFromFutureCount})`)
 
-    // Игрок найден
-    const locations: string[] = []
-    if (removedFromActiveCount > 0) locations.push(`активной (${removedFromActiveCount})`)
-    if (removedFromFutureCount > 0) locations.push(`будущей (${removedFromFutureCount})`)
+  const logMessage = `Игрок ${targetPlayerName || username} удален из всех очередей: ${locations.join(' и ')}.`
 
-    const logMessage = `Игрок ${targetPlayerName || username} удален из всех очередей: ${locations.join(' и ')}.`
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
-
-    return {
-      ...prev,
-      activeQueue: prev.activeQueue.filter(p => !isTargetPlayer(p)),
-      futureQueue: prev.futureQueue.filter(p => !isTargetPlayer(p)),
-    }
+  setState({
+    ...state,
+    activeQueue: state.activeQueue.filter(p => !isTargetPlayer(p)),
+    futureQueue: state.futureQueue.filter(p => !isTargetPlayer(p)),
   })
+
+  pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
 }
