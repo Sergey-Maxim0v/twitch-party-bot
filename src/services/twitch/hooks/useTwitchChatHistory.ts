@@ -38,85 +38,94 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
   }, [client])
 
   /**
-     * Обрабатывает модераторские действия (удаление сообщений, баны) и системные логи
-     */
+   * Обрабатывает модераторские действия (удаление сообщений, баны) и системные логи
+   */
   const handleModerationAndEvents = useCallback((message: ParsedIrcMessage): boolean => {
-    const isModAction =
-      message.command === TwitchIrcCommand.CLEAR_CHAT ||
-            message.command === TwitchIrcCommand.CLEAR_MSG
+    const isModAction = message.command === TwitchIrcCommand.CLEAR_CHAT || message.command === TwitchIrcCommand.CLEAR_MSG
+    const isChannelEvent = message.command === TwitchIrcCommand.USER_NOTICE || message.command === TwitchIrcCommand.ROOM_STATE
 
-    const isChannelEvent =
-      message.command === TwitchIrcCommand.USER_NOTICE ||
-            message.command === TwitchIrcCommand.ROOM_STATE
-
-    if (!isModAction && !isChannelEvent) {
-      return false
-    }
+    if (!isModAction && !isChannelEvent) return false
 
     setMessages(prev => {
-      const updatedHistory = isModAction
-        ? markDeletedMessages({ modMessage: message, currentMessages: prev })
-        : prev
-
+      const updatedHistory = isModAction ? markDeletedMessages({ modMessage: message, currentMessages: prev }) : prev
       const systemLog = createSystemMessage(message)
 
       if (!systemLog) return updatedHistory
 
       const finalMessages = [...updatedHistory, systemLog]
-
-      if (finalMessages.length > MAX_MESSAGES) {
-        return finalMessages.slice(finalMessages.length - MAX_MESSAGES)
-      }
-
-      return finalMessages
+      return finalMessages.length > MAX_MESSAGES ? finalMessages.slice(finalMessages.length - MAX_MESSAGES) : finalMessages
     })
 
     return true
   }, [])
 
   /**
-   * Добавляет стандартные текстовые сообщения в общую историю чата
+   * Добавляет стандартные текстовые сообщения в общую историю чата.
    */
-  const handleStandardMessage = useCallback((message: ParsedIrcMessage): ParsedIrcMessage | undefined => {
+  const handleStandardMessage = useCallback((
+    message: ParsedIrcMessage,
+    currentUserLogin: string,
+    currentChannel: string | null,
+  ): ParsedIrcMessage | undefined => {
     const isUserstate = message.command === TwitchIrcCommand.USER_STATE
+    const isPrivmsg = message.command === TwitchIrcCommand.PRIV_MSG
 
-    if (!isUserstate && message.command !== TwitchIrcCommand.PRIV_MSG) return
+    if (!isUserstate && !isPrivmsg) return undefined
 
-    let resultingMessage: ParsedIrcMessage | undefined = undefined
+    let savedText: string | null | undefined = null
+    const enrichedTags = { ...message.tags }
+
+    if (isUserstate) {
+      const pendingTexts = pendingTextsRef.current
+      savedText = pendingTexts ? pendingTexts.shift() : null
+
+      if (!savedText) return undefined
+
+      // Динамически вычисляем роли, если теги badges отсутствуют в USER_STATE быстрых ответов
+      if (!enrichedTags.badges) {
+        const cleanChannel = currentChannel?.toLowerCase().replace('#', '')
+        const isCurrentBroadcaster = cleanChannel && currentUserLogin.toLowerCase() === cleanChannel
+
+        if (isCurrentBroadcaster) {
+          // Если авторизован стример — даем роли стримера и модератора
+          enrichedTags.badges = 'broadcaster/1,moderator/1'
+        } else {
+          // Если авторизован модератор — даем только роль модератора
+          enrichedTags.badges = 'moderator/1'
+        }
+        enrichedTags.mod = '1'
+      }
+    }
+
+    const authorName = isUserstate
+      ? (message.tags['display-name'] || currentUserLogin || 'Broadcaster')
+      : (message.displayName || message.user)
+
+    const uniqueId = `msg-${message.id}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`
+
+    const messageToPush: ParsedIrcMessage = {
+      ...message,
+      id: uniqueId,
+      command: TwitchIrcCommand.PRIV_MSG,
+      text: isUserstate ? (savedText ?? '') : message.text,
+      user: authorName.toLowerCase(),
+      displayName: authorName,
+      tags: enrichedTags,
+    }
 
     setMessages(prev => {
-      let messageToPush = message
-
-      if (isUserstate) {
-        const pendingTexts = pendingTextsRef.current
-        const savedText = pendingTexts ? pendingTexts.shift() : null
-
-        if (!savedText) return prev
-
-        messageToPush = {
-          ...message,
-          command: TwitchIrcCommand.PRIV_MSG,
-          text: savedText,
-          user: message.tags['display-name'] || '',
-        }
-      }
-
-      resultingMessage = messageToPush
-
-      if (prev.some(m => m.id === messageToPush.id)) {
+      if (prev.some(m => m.text === messageToPush.text && m.timestamp === messageToPush.timestamp && m.user === messageToPush.user)) {
         return prev
       }
 
-      const updated = [...prev, messageToPush]
-
-      if (updated.length > MAX_MESSAGES) {
-        return updated.slice(updated.length - MAX_MESSAGES)
+      const nextHistory = [...prev, messageToPush]
+      if (nextHistory.length > MAX_MESSAGES) {
+        return nextHistory.slice(nextHistory.length - MAX_MESSAGES)
       }
-
-      return updated
+      return nextHistory
     })
 
-    return resultingMessage
+    return messageToPush
   }, [pendingTextsRef])
 
   return {

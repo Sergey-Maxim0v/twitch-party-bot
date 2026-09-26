@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
@@ -30,23 +30,23 @@ export const useTwitchChatManager = () => {
     pendingTextsRef,
   })
 
-  const currentUserLogin = session?.login?.toLowerCase()
+  const currentUserLogin = session?.login?.toLowerCase() ?? 'broadcaster'
 
   /**
    * Функция отправки сообщения в Twitch чат
    */
   const sendChatMessage = useCallback((message: string) => {
-    if (socketContext && socketContext.sendMessage && registerPendingMessage) {
+    if (socketContext && !!socketContext.sendMessage && registerPendingMessage && client) {
       registerPendingMessage(message)
-      socketContext.sendMessage(message)
+      client.sendMessage(message)
     }
-  }, [registerPendingMessage, socketContext])
+  }, [registerPendingMessage, socketContext, client])
 
   /**
    * Главный диспетчер обработки каждого входящего IRC-сообщения
    */
   const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-    // 0. Обновляем стейт последнего полученного сообщения (для стандартных входящих сообщений)
+    // 0. Обновляем стейт последнего полученного сообщения для входящих команд
     if (message.command === TwitchIrcCommand.PRIV_MSG) {
       setLastMessage(prevMessage => {
         const currentId = message.tags?.id
@@ -81,25 +81,41 @@ export const useTwitchChatManager = () => {
     }
 
     // 4. Обрабатываем стандартные и подтвержденные текстовые сообщения
-    const processedMessage = handleStandardMessage(message)
+    const processedMessage = handleStandardMessage(message, currentUserLogin, client?.currentChannel ?? null)
 
-    // Если это было наше отправленное сообщение (USER_STATE трансформированный в PRIV_MSG),
-    // записываем его в lastMessage
+    // Фильтруем запись в lastMessage, чтобы автоматические ответы приложения не ломали стейт команд
     if (processedMessage && processedMessage.command === TwitchIrcCommand.PRIV_MSG) {
-      setLastMessage(processedMessage)
+      const isCommand = processedMessage.text.trim().startsWith('!')
+      const isFromOtherUser = processedMessage.user !== currentUserLogin
+
+      if (isCommand || isFromOtherUser) {
+        setLastMessage(processedMessage)
+      }
     }
   }, [
-    currentUserLogin,
+    handleSocketActivity,
     socketContext,
     handleModerationAndEvents,
     handleStandardMessage,
+    currentUserLogin,
+    client?.currentChannel,
     pendingTextsRef,
     timeoutTimerRef,
-    handleSocketActivity,
   ])
 
-  // Автоматически подписываемся на сырой IRC-поток
-  useTwitchSubscription(handleIncomingMessage)
+  // Слой стабилизации подписки: защищает от переподписок при батчинге пачек сообщений
+  const incomingMessageRef = useRef(handleIncomingMessage)
+
+  useEffect(() => {
+    incomingMessageRef.current = handleIncomingMessage
+  }, [handleIncomingMessage])
+
+  const stableSubscriptionCallback = useCallback((message: ParsedIrcMessage) => {
+    incomingMessageRef.current(message)
+  }, [])
+
+  // Передаем стабильную ссылку в подписку сокета
+  useTwitchSubscription(stableSubscriptionCallback)
 
   return {
     messages,
