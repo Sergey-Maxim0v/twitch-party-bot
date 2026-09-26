@@ -68,8 +68,8 @@ export const handleJoinPlayer = ({
 
   setState(prev => {
     const maxActiveSize = settings.maxQueueSize || 4
-    const existsInActive = prev.activeQueue.some(p => p.userId === userId)
-    const existsInFuture = prev.futureQueue.some(p => p.userId === userId)
+    const existsInActive = prev.activeQueue.some(p => p.userId === userId || p.username === username)
+    const existsInFuture = prev.futureQueue.some(p => p.userId === userId || p.username === username)
 
     // Проверка на дубликаты
     if (!settings.allowMultipleEntries) {
@@ -110,7 +110,9 @@ export const handleJoinPlayer = ({
       return prev
     }
 
-    if (settings.allowMultipleEntries && prev.futureQueue.some((p, idx) => p.userId === userId && idx >= prev.futureQueue.length - maxActiveSize)) {
+    if (settings.allowMultipleEntries
+        && prev.futureQueue.some((p, idx) => (p.userId === userId || p.username === username)
+            && idx >= prev.futureQueue.length - maxActiveSize)) {
       finalLogMessage = 'Отклонено: нельзя записаться несколько раз подряд в один состав'
       return prev
     }
