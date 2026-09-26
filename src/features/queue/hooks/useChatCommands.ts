@@ -138,8 +138,8 @@ export const useChatCommands = () => {
       // CLEAR
       case commands.clear.name: {
         if (!hasAccess(commands.clear.isModeratorOnly)) return
-        clearActiveQueue({ source, actorUsername: displayedUsername })
         clearFutureQueue({ source, actorUsername: displayedUsername })
+        clearActiveQueue({ source, actorUsername: displayedUsername })
         break
       }
 

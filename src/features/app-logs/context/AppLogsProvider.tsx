@@ -32,7 +32,10 @@ export const AppLogsProvider: FC<AppLogsProviderProps> = ({ children }) => {
       message,
       status,
     }
-    setLogs(prev => [newLog, ...prev].slice(0, 200))
+
+    setTimeout(() => {
+      setLogs(prev => [newLog, ...prev].slice(0, 200))
+    }, 0)
   }, [])
 
   const clearLogs = useCallback(() => {
