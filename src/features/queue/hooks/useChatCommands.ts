@@ -90,9 +90,13 @@ export const useChatCommands = () => {
       // SHOW
       case commands.show.name: {
         if (!hasAccess(commands.show.isModeratorOnly)) return
-        const queueMessage = activeQueue.length
-          ? 'Текущая очередь: ' + activeQueue.map((player, index) => `${index + 1}. @${player.displayedUsername ?? player.username}`).join(', ')
-          : 'Очередь пуста'
+
+        const queueStatusText = `(${activeQueue.length}/${settings.maxQueueSize})`
+        const queueListText = activeQueue
+          .map((player, idx) => `${idx + 1}. @${player.displayedUsername ?? player.username}`)
+          .join(', ')
+        const queueMessage = activeQueue.length ? `Текущая очередь ${queueStatusText}: ${queueListText}` : 'Очередь пуста'
+
         sendChatMessage(queueMessage)
         break
       }
