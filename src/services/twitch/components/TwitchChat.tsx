@@ -13,7 +13,7 @@ const TwitchChat: FC = () => {
   const [highlightPointsMessages, setHighlightPointsMessages] = useLocalStorage<boolean>('twitch_chat_highlight_messages', true)
 
   const { messages, sendChatMessage } = useTwitchChat()
-  
+
   return (
     <>
       <ChatList

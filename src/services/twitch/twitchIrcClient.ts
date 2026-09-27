@@ -1,18 +1,18 @@
 import { sendInitialIrcCommands } from './utils/sendInitialIrcCommands.ts'
 import { handleIrcMessage } from './utils/handleIrcMessage.ts'
-import { createMessageEmitter, type MessageCallback } from './utils/createMessageEmitter.ts'
-import type { ParsedIrcMessage } from './utils/parseIrcMessage.ts'
+import { createMessageEmitter, type MessageCallback, type MessageEmitter } from './utils/createMessageEmitter.ts'
 import { CONNECTION_STATUSES, type ConnectionStatus } from '../socket/types.ts'
 import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
 import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
+import type { ParsedIrcMessage } from './types.ts'
 
 /**
  * Класс управления WebSocket-соединением с Twitch IRC.
  */
 export class TwitchIrcClient {
   private channel: string | null = null
-  private emitter = createMessageEmitter()
+  private emitter: MessageEmitter = createMessageEmitter()
   private onChannelChangeCallback: (() => void) | null = null
 
   private stateManager = new ConnectionStateManager()
@@ -51,7 +51,7 @@ export class TwitchIrcClient {
     return this.socketManager.readyState
   }
 
-  /** Возвращает текущее количество попыток реконнекта из менеджера переподключений. */
+  /** Возвращает текущее количество попыток переподключения из менеджера переподключений. */
   public get reconnectAttempts(): number {
     return this.reconnectManager.currentAttempts
   }

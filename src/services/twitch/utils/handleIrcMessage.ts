@@ -1,5 +1,6 @@
 import { handleIrcPingPong } from './handleIrcPingPong.ts'
-import { type ParsedIrcMessage, parseIrcMessage } from './parseIrcMessage.ts'
+import { parseIrcMessage } from './parseIrcMessage.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 interface HandleIrcMessageProps {
   event: MessageEvent;

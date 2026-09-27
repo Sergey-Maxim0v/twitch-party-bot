@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
 import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
@@ -8,6 +7,7 @@ import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
 import { TwitchIrcCommand } from '../config.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -86,7 +86,7 @@ export const useTwitchChatManager = () => {
     // Фильтруем запись в lastMessage, чтобы автоматические ответы приложения не ломали стейт команд
     if (processedMessage && processedMessage.command === TwitchIrcCommand.PRIV_MSG) {
       const isCommand = processedMessage.text.trim().startsWith('!')
-      const isFromOtherUser = processedMessage.user !== currentUserLogin
+      const isFromOtherUser = processedMessage.user.nick !== currentUserLogin
 
       if (isCommand || isFromOtherUser) {
         setLastMessage(processedMessage)

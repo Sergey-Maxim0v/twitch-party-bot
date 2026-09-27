@@ -1,4 +1,4 @@
-import type { ParsedIrcMessage } from './parseIrcMessage'
+import type { ParsedIrcMessage } from '../types.ts'
 
 /**
  * Проверяет теги сообщения ROOM_STATE на наличие активных ограничений чата

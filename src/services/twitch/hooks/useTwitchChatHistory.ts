@@ -1,9 +1,9 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import type { TwitchIrcClient } from '../twitchIrcClient.ts'
-import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
 import { MAX_MESSAGES, TwitchIrcCommand } from '../config.ts'
 import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 interface UseTwitchChatHistoryProps {
   client: TwitchIrcClient | null;
@@ -99,22 +99,36 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
 
     const authorName = isUserstate
       ? (message.tags['display-name'] || currentUserLogin || 'Broadcaster')
-      : (message.displayName || message.user)
+      : (message.user.displayName || message.user.nick)
 
     const uniqueId = `msg-${message.id}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`
+
+    const badgesStr = enrichedTags.badges || ''
+    const isBroadcaster = badgesStr.includes('broadcaster/')
+    const isModerator = badgesStr.includes('moderator/') || enrichedTags.mod === '1'
+    const isVip = badgesStr.includes('vip/')
 
     const messageToPush: ParsedIrcMessage = {
       ...message,
       id: uniqueId,
       command: TwitchIrcCommand.PRIV_MSG,
       text: isUserstate ? (savedText ?? '') : message.text,
-      user: authorName.toLowerCase(),
-      displayName: authorName,
+      user: isPrivmsg
+        ? message.user
+        : {
+          ...message.user,
+          nick: authorName.toLowerCase(),
+          displayName: authorName,
+          isBroadcaster,
+          isModerator,
+          isVip,
+          color: enrichedTags.color || message.user?.color || '',
+        },
       tags: enrichedTags,
     }
 
     setMessages(prev => {
-      if (prev.some(m => m.text === messageToPush.text && m.timestamp === messageToPush.timestamp && m.user === messageToPush.user)) {
+      if (prev.some(m => m.text === messageToPush.text && m.timestamp === messageToPush.timestamp && m.user.nick === messageToPush.user.nick)) {
         return prev
       }
 

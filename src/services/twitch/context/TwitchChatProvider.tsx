@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useTwitchChatManager } from '../hooks/useTwitchChatManager.ts' // <-- Вызов вашего хука
+import { useTwitchChatManager } from '../hooks/useTwitchChatManager.ts'
 import { TwitchChatContext } from './TwitchChatInstance.ts'
 
 interface TwitchChatProviderProps {

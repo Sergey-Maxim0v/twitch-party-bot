@@ -28,12 +28,7 @@ export const useChatCommands = () => {
     if (!trimmedText.startsWith('!')) return
 
     // 2. Формируем контекст пользователя из бейджей
-    const badges = lastMessage.tags.badges ? lastMessage.tags.badges.split(',') : []
-    const isBroadcaster = badges.some(b => b.startsWith('broadcaster/'))
-    const isMod = badges.some(b => b.startsWith('moderator/')) || lastMessage.tags.mod === '1'
-    const isModeratorOrStreamer = isBroadcaster || isMod
-
-    const source = isModeratorOrStreamer ? LOG_SOURCE.CHAT_MODERATOR : LOG_SOURCE.CHAT_USER
+    const isModeratorOrStreamer = lastMessage.user.isBroadcaster || lastMessage.user.isModerator
 
     // 3. Парсим команду
     const parts = trimmedText.split(/\s+/)
@@ -45,16 +40,16 @@ export const useChatCommands = () => {
       return isModeratorOrStreamer
     }
 
-    const userId = lastMessage.user
-    const displayedUsername = lastMessage.displayName ?? lastMessage.user ?? ''
-    const username = displayedUsername.toLowerCase()
-
-    const isSubscriber = lastMessage.tags.subscriber === '1' ||
-        badges.some(b => b.startsWith('subscriber/')) ||
-        badges.some(b => b.startsWith('founder/'))
-
-    const isVip = lastMessage.tags.vip === '1' ||
-        badges.some(b => b.startsWith('vip/'))
+    const userId = lastMessage.user.userId ?? ''
+    const username = lastMessage.user.nick
+    const displayedUsername = lastMessage.user.displayName ?? lastMessage.user.nick
+    const actorUsername = displayedUsername
+    const isModerator = isModeratorOrStreamer
+    const isSubscriber = lastMessage.user.isSubscriber
+    const isVip = lastMessage.user.isVip
+    const source = isModeratorOrStreamer ? LOG_SOURCE.CHAT_MODERATOR : LOG_SOURCE.CHAT_USER
+    const rawMessage = trimmedText
+    const rawCommand = trimmedText
 
     // 4. Обработка команд через оператор switch
     switch (commandName) {
@@ -63,15 +58,18 @@ export const useChatCommands = () => {
         if (!hasAccess(commands.join.isModeratorOnly)) return
         addPlayerToQueue({
           playerData: {
-            userId, username, displayedUsername,
-            rawMessage: trimmedText,
+            userId,
+            username,
+            displayedUsername,
+            rawMessage,
             playerSource: QUEUE_PLAYER_SOURCE.USER_CMD,
-            isModerator: isModeratorOrStreamer,
-            isSubscriber, isVip,
+            isModerator,
+            isSubscriber,
+            isVip,
           },
           source,
-          actorUsername: displayedUsername,
-          rawCommand: trimmedText,
+          actorUsername,
+          rawCommand,
         })
         break
       }
@@ -80,10 +78,11 @@ export const useChatCommands = () => {
       case commands.leave.name: {
         if (!hasAccess(commands.leave.isModeratorOnly)) return
         removePlayerFromAllQueues({
-          userId, username,
+          userId,
+          username,
           source,
-          actorUsername: displayedUsername,
-          rawCommand: trimmedText,
+          actorUsername,
+          rawCommand,
         })
         break
       }
@@ -110,16 +109,16 @@ export const useChatCommands = () => {
 
         addPlayerToQueue({
           playerData: {
-            userId: targetUsername.toLowerCase(),
+            userId: targetUsername,
             username: targetUsername.toLowerCase(),
             displayedUsername: targetUsername,
-            rawMessage: trimmedText,
+            rawMessage,
             playerSource: QUEUE_PLAYER_SOURCE.MOD_CMD,
             isModerator: false, isSubscriber: false, isVip: false,
           },
           source,
-          actorUsername: displayedUsername,
-          rawCommand: trimmedText,
+          actorUsername,
+          rawCommand,
         })
         break
       }
@@ -134,8 +133,8 @@ export const useChatCommands = () => {
           userId: targetUsername,
           username: targetUsername,
           source,
-          actorUsername: displayedUsername,
-          rawCommand: trimmedText,
+          actorUsername,
+          rawCommand,
         })
         break
       }
@@ -143,29 +142,29 @@ export const useChatCommands = () => {
       // CLEAR
       case commands.clear.name: {
         if (!hasAccess(commands.clear.isModeratorOnly)) return
-        clearFutureQueue({ source, actorUsername: displayedUsername })
-        clearActiveQueue({ source, actorUsername: displayedUsername })
+        clearFutureQueue({ source, actorUsername })
+        clearActiveQueue({ source, actorUsername })
         break
       }
 
       // START
       case commands.start.name: {
         if (!hasAccess(commands.start.isModeratorOnly)) return
-        openQueue({ source, actorUsername: displayedUsername })
+        openQueue({ source, actorUsername })
         break
       }
 
       // STOP
       case commands.stop.name: {
         if (!hasAccess(commands.stop.isModeratorOnly)) return
-        closeQueue({ source, actorUsername: displayedUsername })
+        closeQueue({ source, actorUsername })
         break
       }
 
       // PLAY
       case commands.play.name: {
         if (!hasAccess(commands.play.isModeratorOnly)) return
-        finishActiveQueue({ source, actorUsername: displayedUsername })
+        finishActiveQueue({ source, actorUsername })
         break
       }
 

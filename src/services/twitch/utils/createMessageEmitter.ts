@@ -1,4 +1,4 @@
-import type { ParsedIrcMessage } from './parseIrcMessage.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 export type MessageCallback = (message: ParsedIrcMessage) => void
 

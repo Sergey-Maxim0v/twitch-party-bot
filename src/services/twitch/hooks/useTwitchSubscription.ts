@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
-import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 /**
  * Базовый хук для подписки на события Twitch IRC.

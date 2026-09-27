@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 /**
  * Интерфейс контекста управления чатом Twitch.

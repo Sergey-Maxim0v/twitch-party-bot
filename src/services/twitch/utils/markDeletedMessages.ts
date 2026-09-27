@@ -1,5 +1,5 @@
-import type { ParsedIrcMessage } from './parseIrcMessage.ts'
 import { TwitchIrcCommand } from '../config.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 export interface markDeletedMessages {
   modMessage: ParsedIrcMessage,
@@ -14,16 +14,17 @@ export const markDeletedMessages = (
   if (command === TwitchIrcCommand.CLEAR_CHAT && !text?.trim()) {
     return currentMessages.map(msg => ({
       ...msg,
+      isDeleted: true,
       tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'clearchat' },
     }))
   }
 
-  //  Бан или таймаут конкретного пользователя (CLEARCHAT с ником в text)
+  //  Бан или тайм-аут конкретного пользователя (CLEARCHAT с ником в text)
   if (command === TwitchIrcCommand.CLEAR_CHAT && text?.trim()) {
     const bannedUser = text.trim().toLowerCase()
     return currentMessages.map(msg =>
-      msg.user.toLowerCase() === bannedUser
-        ? { ...msg, tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'ban' } }
+      msg.user.nick.toLowerCase() === bannedUser
+        ? { ...msg, isDeleted: true, tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'ban' } }
         : msg,
     )
   }
@@ -35,7 +36,7 @@ export const markDeletedMessages = (
 
     return currentMessages.map(msg =>
       msg.id === targetMsgId
-        ? { ...msg, tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'clearmsg' } }
+        ? { ...msg, isDeleted: true, tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'clearmsg' } }
         : msg,
     )
   }

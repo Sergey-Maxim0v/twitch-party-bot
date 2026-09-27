@@ -1,5 +1,5 @@
-import type { ParsedIrcMessage } from './parseIrcMessage.ts'
 import { TwitchIrcCommand } from '../config.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 /**
  * Создает структурированное системное сообщение на основе служебных команд Twitch.
@@ -11,7 +11,10 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   // Шаблон для генерации системного объекта
   const buildSystemPayload = (systemText: string): ParsedIrcMessage => ({
     id: `sys-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-    user: 'Система',
+    user: {
+      nick: 'система',
+      displayName: 'Система',
+    },
     text: systemText,
     command,
     timestamp,
@@ -29,7 +32,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
       return buildSystemPayload('Чат был очищен модератором.')
     }
 
-    // Если текст есть — это бан или таймаут
+    // Если текст есть — это бан или тайм-аут
     const duration = tags['ban-duration']
     const actionText = duration
       ? `Пользователь @${bannedUser} заблокирован на ${duration} сек.`
@@ -74,12 +77,16 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     if (msgId === 'announcement') {
       return {
         id: `sys-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        user: 'Объявление',
+        user: {
+          nick: 'объявление',
+          displayName: 'Объявление',
+        },
         text: `@${login}: ${text}`,
         command,
         timestamp,
         isSystem: true,
         isChannelEvent: true,
+        isAnnouncement: true,
         tags: { 'is-system': '1', 'system-type': 'announcement' },
       }
     }

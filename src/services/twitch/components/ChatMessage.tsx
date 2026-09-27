@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench } from 'react-icons/lu'
-import type { ParsedIrcMessage } from '../utils/parseIrcMessage.ts'
 import { TwitchIrcCommand } from '../config.ts'
+import type { ParsedIrcMessage } from '../types.ts'
 
 interface ChatMessageProps {
   msg: ParsedIrcMessage;
@@ -20,11 +20,9 @@ const ChatMessage: FC<ChatMessageProps> = ({
   showSystemNotifications,
   highlightPointsMessages,
 }) => {
-  const isDeleted = msg.tags['is-deleted'] === '1'
-  const isHighlightedMessage = msg.tags['msg-id'] === 'highlighted-message'
 
   // Скрытие удаленных сообщений
-  if (isDeleted && !isShowDeletedMessages) {
+  if (msg.isDeleted && !isShowDeletedMessages) {
     return null
   }
 
@@ -33,45 +31,38 @@ const ChatMessage: FC<ChatMessageProps> = ({
     return null
   }
 
-  // Фоновые стили для ролей
-  const badges = msg.tags.badges || ''
-  const isBroadcaster = badges.includes('broadcaster/')
-  const isMod = badges.includes('moderator/') || msg.tags.mod === '1'
-  const isVip = badges.includes('vip/')
-
   let containerClassName = 'text-sm break-words leading-relaxed animate-fadeIn p-1 rounded transition-all block w-full'
 
   // Применяем фоновые цвета ролей
   if (highlightRoles && !msg.isSystem) {
-    if (isBroadcaster) containerClassName += ' bg-error/10'
-    else if (isMod) containerClassName += ' bg-success/10'
-    else if (isVip) containerClassName += ' bg-info/10'
+    if (msg.user.isBroadcaster) containerClassName += ' bg-error/10'
+    else if (msg.user.isModerator) containerClassName += ' bg-success/10'
+    else if (msg.user.isVip) containerClassName += ' bg-info/10'
   }
 
   // Если сообщение выделено за баллы
-  if (isHighlightedMessage && highlightPointsMessages && !msg.isSystem) {
+  if (msg.isHighlightedMessage && highlightPointsMessages && !msg.isSystem) {
     containerClassName += ' outline outline-2 outline-primary -outline-offset-2'
   }
 
   // Стили для удаленных сообщений
-  const deletedClassName = isDeleted ? ' opacity-40 select-none' : ''
+  const deletedClassName = msg.isDeleted ? ' opacity-40 select-none' : ''
 
   // Стили никнеймов
-  const twitchColor = msg.tags.color
+  const twitchColor = msg.user.color
   const nameStyle = useColoredNames && twitchColor ? { color: twitchColor } : undefined
   const nameClassName = !nameStyle ? 'font-bold text-primary mr-2 break-words' : 'font-bold mr-2 break-words'
 
   // Никнейм для отображения
-  const displaySenderName = msg.displayName || msg.user
+  const displaySenderName = msg.user.displayName || msg.user.nick
 
   // Системные сообщения
   if (msg.isSystem) {
-    const isAnnouncement = msg.tags['system-type'] === 'announcement'
-    const isAlert = msg.command === TwitchIrcCommand.USER_NOTICE && !isAnnouncement
+    const isAlert = msg.command === TwitchIrcCommand.USER_NOTICE && !msg.isAnnouncement
 
     let systemColorClass = 'text-warning/80 font-medium italic'
 
-    if (isAnnouncement) {
+    if (msg.isAnnouncement) {
       systemColorClass = 'text-secondary font-semibold' // Красивый яркий цвет для анонса
     } else if (isAlert) {
       systemColorClass = 'text-info font-medium' // Цвет для подписок и рейдов
@@ -83,13 +74,13 @@ const ChatMessage: FC<ChatMessageProps> = ({
           {msg.timestamp}
         </span>
         <span className="mr-2">
-          {isAlert || isAnnouncement ?
+          {isAlert || msg.isAnnouncement ?
             <LuSparkles className="w-4 h-4 inline align-middle" />
             :
             <LuWrench className="w-4 h-4 inline align-middle" />
           }
         </span>
-        {isAnnouncement && <span className="mr-2">{displaySenderName}:</span>}
+        {msg.isAnnouncement && <span className="mr-2">{displaySenderName}:</span>}
         <span>{msg.text}</span>
       </div>
     )
@@ -105,17 +96,17 @@ const ChatMessage: FC<ChatMessageProps> = ({
           {msg.timestamp}
         </span>
 
-        {isDeleted && <LuCircleAlert className={iconClassName} />}
-        {isBroadcaster && <LuTwitch className={iconClassName} />}
-        {isMod && <LuSword className={iconClassName} />}
-        {isVip && <LuGem className={iconClassName} />}
+        {msg.isDeleted && <LuCircleAlert className={iconClassName} />}
+        {msg.user.isBroadcaster && <LuTwitch className={iconClassName} />}
+        {msg.user.isModerator && <LuSword className={iconClassName} />}
+        {msg.user.isVip && <LuGem className={iconClassName} />}
       </span>
 
       <span className={`${nameClassName} break-all inline align-middle`} style={nameStyle}>
         {displaySenderName}:
       </span>
 
-      <span className={`${isDeleted ? 'text-base-content/60' : 'text-base-content'} inline align-middle ml-1.5`}>
+      <span className={`${msg.isDeleted ? 'text-base-content/60' : 'text-base-content'} inline align-middle ml-1.5`}>
         {msg.text}
       </span>
     </div>

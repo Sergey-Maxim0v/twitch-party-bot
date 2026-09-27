@@ -1,33 +1,5 @@
 import { TwitchIrcCommand, type TwitchIrcCommandType } from '../config.ts'
-
-export interface ParsedIrcMessage {
-  /** Уникальный идентификатор сообщения (msg-id из тегов Twitch) */
-  id: string;
-
-  /** Никнейм отправителя */
-  user: string;
-
-  /** Никнейм отправителя для отображения (с учетом регистра) */
-  displayName?: string;
-
-  /** Текст сообщения */
-  text: string;
-
-  /** Команда IRC (например, 'PRIVMSG', 'JOIN', 'USERSTATE') */
-  command: TwitchIrcCommandType;
-
-  /** Время отправки сообщения в формате HH:MM */
-  timestamp: string;
-
-  /** Дополнительные теги сообщения */
-  tags: Record<string, string>;
-
-  /** Флаг, указывающий, является ли сообщение системным */
-  isSystem: boolean;
-
-  /** Флаг, указывающий, относится ли сообщение к событиям канала или модерации */
-  isChannelEvent: boolean;
-}
+import type { IrcUserData, ParsedIrcMessage } from '../types.ts'
 
 /**
  * Парсит сырую строку от Twitch IRC в структурированный объект.
@@ -69,7 +41,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
   }
 
   // 2. Ищем префикс источника (ник пользователя, начинается с ":")
-  let user = ''
+  let userNickName = ''
   if (remaining.startsWith(':')) {
     const spaceIndex = remaining.indexOf(' ')
     if (spaceIndex === -1) return null
@@ -79,7 +51,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
 
     // Извлекаем чистый никнейм из формата user!user@user.tmi.twitch.tv
     const exclamationIndex = prefix.indexOf('!')
-    user = exclamationIndex !== -1 ? prefix.slice(0, exclamationIndex) : prefix
+    userNickName = exclamationIndex !== -1 ? prefix.slice(0, exclamationIndex) : prefix
   }
 
   // 3. Выделяем команду и текст сообщения
@@ -127,7 +99,33 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
         command === TwitchIrcCommand.GLOBAL_USER_STATE ||
         command === TwitchIrcCommand.MOTD_START
 
-  const displayName = tags['display-name'] || undefined
+  const userId: IrcUserData['userId'] = tags['user-id'] || ''
 
-  return { id, user, displayName, text, command, timestamp, isSystem, isChannelEvent, tags }
+  const badgeList = (tags.badges || '').split(',')
+
+  const isBroadcaster: IrcUserData['isBroadcaster'] = badgeList.some(b => b.startsWith('broadcaster/'))
+  const isModerator: IrcUserData['isModerator'] = badgeList.some(b => b.startsWith('moderator/')) || tags.mod === '1'
+  const isVip: IrcUserData['isVip'] = tags.vip === '1' || badgeList.some(b => b.startsWith('vip/'))
+
+  const isSubscriber: IrcUserData['isSubscriber'] = tags.subscriber === '1' || badgeList.some(b => b.startsWith('subscriber/')) || badgeList.some(b => b.startsWith('founder/'))
+  const isTwitchStaff: IrcUserData['isTwitchStaff'] = badgeList.some(b => b.startsWith('staff/')) || badgeList.some(b => b.startsWith('admin/')) || tags['user-type'] === 'staff' || tags['user-type'] === 'admin'
+
+  const color: IrcUserData['color'] = tags.color || ''
+
+  const user: ParsedIrcMessage['user'] = {
+    userId,
+    nick: userNickName,
+    displayName: tags['display-name'] || undefined,
+    isBroadcaster,
+    isModerator,
+    isVip,
+    isSubscriber,
+    isTwitchStaff,
+    color,
+  }
+
+  const isDeleted = tags['is-deleted'] === '1'
+  const isHighlightedMessage = tags['msg-id'] === 'highlighted-message'
+
+  return { id, user, text, command, timestamp, isSystem, isChannelEvent, tags, isDeleted, isHighlightedMessage }
 }
