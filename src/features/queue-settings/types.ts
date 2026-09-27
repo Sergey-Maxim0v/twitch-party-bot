@@ -63,6 +63,7 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
     delete: { name: '!delete', isModeratorOnly: true },
     start: { name: '!start', isModeratorOnly: true },
     stop: { name: '!stop', isModeratorOnly: true },
+    play: { name: '!play', isModeratorOnly: true },
   },
   chatNotificationPermissions: {
     allowSending: true,
@@ -123,7 +124,11 @@ export interface QueueSettings {
 
     /** Закрыть очередь. */
     stop: QueueCommandConfig;
+
+    /** Завершить текущую очередь. */
+    play: QueueCommandConfig;
   };
+
   /** Настройки разрешений для отправки ботом уведомлений в чат. */
   chatNotificationPermissions: {
     /** Общее разрешение на отправку любых сообщений ботом */

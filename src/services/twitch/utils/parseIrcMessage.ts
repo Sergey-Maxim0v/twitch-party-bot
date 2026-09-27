@@ -1,15 +1,32 @@
 import { TwitchIrcCommand, type TwitchIrcCommandType } from '../config.ts'
 
 export interface ParsedIrcMessage {
-  id: string; // Уникальный ID сообщения (msg-id из тегов Twitch)
-  user: string; // Никнейм отправителя
-  displayName?: string; // Никнейм отправителя для отображения, с учетом регистра
-  text: string; // Текст сообщения
-  command: TwitchIrcCommandType; // Команда (например, 'PRIVMSG', 'JOIN', 'USERSTATE')
-  timestamp: string;// Время сообщения HH:MM
+  /** Уникальный идентификатор сообщения (msg-id из тегов Twitch) */
+  id: string;
+
+  /** Никнейм отправителя */
+  user: string;
+
+  /** Никнейм отправителя для отображения (с учетом регистра) */
+  displayName?: string;
+
+  /** Текст сообщения */
+  text: string;
+
+  /** Команда IRC (например, 'PRIVMSG', 'JOIN', 'USERSTATE') */
+  command: TwitchIrcCommandType;
+
+  /** Время отправки сообщения в формате HH:MM */
+  timestamp: string;
+
+  /** Дополнительные теги сообщения */
   tags: Record<string, string>;
-  isSystem: boolean; // Системное сообщение
-  isChannelEvent: boolean; // События канала/модерации
+
+  /** Флаг, указывающий, является ли сообщение системным */
+  isSystem: boolean;
+
+  /** Флаг, указывающий, относится ли сообщение к событиям канала или модерации */
+  isChannelEvent: boolean;
 }
 
 /**

@@ -16,6 +16,7 @@ export const useChatCommands = () => {
     removePlayerFromAllQueues,
     clearActiveQueue,
     clearFutureQueue,
+    finishActiveQueue,
   } = useQueue()
 
   const { commands } = settings
@@ -45,7 +46,7 @@ export const useChatCommands = () => {
     }
 
     const userId = lastMessage.user
-    const displayedUsername = lastMessage.displayName ?? ''
+    const displayedUsername = lastMessage.displayName ?? lastMessage.user ?? ''
     const username = displayedUsername.toLowerCase()
 
     const isSubscriber = lastMessage.tags.subscriber === '1' ||
@@ -158,6 +159,13 @@ export const useChatCommands = () => {
       case commands.stop.name: {
         if (!hasAccess(commands.stop.isModeratorOnly)) return
         closeQueue({ source, actorUsername: displayedUsername })
+        break
+      }
+
+      // PLAY
+      case commands.play.name: {
+        if (!hasAccess(commands.play.isModeratorOnly)) return
+        finishActiveQueue({ source, actorUsername: displayedUsername })
         break
       }
 

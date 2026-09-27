@@ -96,6 +96,14 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
         onCommandChange={val => { handleCommandChange('stop', val) }}
         onModeratorChange={chk => { handleModChange('stop', chk) }}
       />
+
+      <SettingsCommandInput
+        commandValue={settings.commands.play.name}
+        isModeratorValue={settings.commands.play.isModeratorOnly}
+        label="Завершить текущую очередь"
+        onCommandChange={val => { handleCommandChange('play', val) }}
+        onModeratorChange={chk => { handleModChange('play', chk) }}
+      />
     </div>
   )
 }
