@@ -22,7 +22,7 @@ export interface HandleFinishActiveQueueArgs {
 
 /**
  * Хендлер для завершения текущей сессии, её архивации в историю,
- * фиксации кулдаунов участников и автоматического продвижения будущей очереди.
+ * фиксации кулдаунов участников и автоматического продвижения ожидающих.
  */
 export const handleFinishActiveQueue = ({
   source,
@@ -37,8 +37,8 @@ export const handleFinishActiveQueue = ({
   let nextSessionNumber = 1
 
   setState(prev => {
-    // Если активная очередь пуста и будущая тоже пуста, делать нечего
-    if (prev.activeQueue.length === 0 && prev.futureQueue.length === 0) {
+    // Если активная очередь пуста и список ожидающих тоже пуст, делать нечего
+    if (prev.activeQueue.length === 0 && prev.waitingQueue.length === 0) {
       return prev
     }
 
@@ -65,18 +65,18 @@ export const handleFinishActiveQueue = ({
       players: prev.activeQueue,
     }
 
-    // 3. Вычисляем свободные места для ротации из будущей очереди
+    // 3. Вычисляем свободные места для ротации из ожидающих
     const maxActiveSize = settings.maxQueueSize || 4
-    const updatedFuture = [...prev.futureQueue]
+    const updatedWaiting = [...prev.waitingQueue]
 
-    // Забираем игроков из начала futureQueue и переносим в новую активную очередь
-    const newlyPromoted = updatedFuture.splice(0, maxActiveSize)
+    // Забираем игроков из начала waitingQueue и переносим в новую активную очередь
+    const newlyPromoted = updatedWaiting.splice(0, maxActiveSize)
     promotedPlayersCount = newlyPromoted.length
 
     return {
       ...prev,
       activeQueue: newlyPromoted,
-      futureQueue: updatedFuture,
+      waitingQueue: updatedWaiting,
       queueHistory: [finishedSession, ...prev.queueHistory],
       globalSessionCounter: nextSessionNumber,
       playerHistory: updatedPlayerHistory,

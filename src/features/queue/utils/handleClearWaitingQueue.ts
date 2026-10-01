@@ -3,7 +3,7 @@ import type { QueueState } from '../types'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
-export interface HandleClearFutureQueueArgs {
+export interface HandleClearWaitingQueueArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Источник вызова команды (чат/интерфейс) */
@@ -15,21 +15,21 @@ export interface HandleClearFutureQueueArgs {
 }
 
 /**
- * Хендлер для полной очистки списка игроков в будущих/ожидающих очередях.
+ * Хендлер для полной очистки списка игроков в списке ожидающих.
  */
-export const handleClearFutureQueue = ({
+export const handleClearWaitingQueue = ({
   setState,
   source,
   actorUsername,
   pushLog,
-}: HandleClearFutureQueueArgs): void => {
+}: HandleClearWaitingQueueArgs): void => {
   setState(prev => ({
     ...prev,
-    futureQueue: [],
+    waitingQueue: [],
   }))
 
   pushLog({
-    message: 'Будущие очереди очищены.',
+    message: 'Список ожидающих очищен.',
     status: APP_LOG_STATUSES.INFO,
     source,
     actorUsername,

@@ -23,7 +23,7 @@ const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', onOpenCha
       className={className}
       onOpenChange={onOpenChange}
       open={open}
-      title="История очереди"
+      title="История"
     >
       <div className="flex flex-col gap-3">
         {queueHistory.map(session => {

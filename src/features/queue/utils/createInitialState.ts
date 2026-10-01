@@ -9,7 +9,7 @@ import type { QueueState } from '../types'
 export const createInitialState = (): QueueState => {
   return {
     activeQueue: [],
-    futureQueue: [],
+    waitingQueue: [],
     queueHistory: [],
     globalSessionCounter: 0,
     playerHistory: {},

@@ -1,5 +1,11 @@
 import { createContext } from 'react'
-import type { QueueState, QueuePlayer, QueueSession, QueuePlayerFormData, QueueType } from '../types'
+import {
+  type QueueState,
+  type QueuePlayer,
+  type QueueSession,
+  type QueuePlayerFormData,
+  type QueueType,
+} from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 
 export interface QueueContextValue {
@@ -13,8 +19,8 @@ export interface QueueContextValue {
   // === Реактивные состояния (Стейты) ===
   /** Игроки в текущей активной очереди */
   activeQueue: QueuePlayer[];
-  /** Игроки в будущих/ожидающих очередях */
-  futureQueue: QueuePlayer[];
+  /** Игроки в списке ожидающих */
+  waitingQueue: QueuePlayer[];
   /** История завершенных игровых сессий (составов) */
   queueHistory: QueueSession[];
   /** Полный сырой объект состояния очереди (для отладки/сохранения) */
@@ -23,13 +29,13 @@ export interface QueueContextValue {
   // === Методы очистки (Clear) ===
   /** Очистить текущую активную очередь */
   clearActiveQueue: (args: { source: LogSource; actorUsername: string; }) => void;
-  /** Очистить будущие очереди */
-  clearFutureQueue: (args: { source: LogSource; actorUsername: string; }) => void;
+  /** Очистить список ожидающих */
+  clearWaitingQueue: (args: { source: LogSource; actorUsername: string; }) => void;
   /** Очистить историю сыгранных сессий */
   clearQueueHistory: (args: { source: LogSource; actorUsername: string; }) => void;
 
   // === Управление игроками (CRUD) ===
-  /** Добавить игрока в очередь (в активную или будущую на основе правил) */
+  /** Добавить игрока в очередь (в активную или список ожидающих на основе правил) */
   addPlayerToQueue: (args: {
     playerData: QueuePlayerFormData;
     source: LogSource;
@@ -38,7 +44,7 @@ export interface QueueContextValue {
     customTimestamp?: number;
   }) => void;
 
-  /** Удалить первую найденную запись игрока из конкретной очереди (активной или будущей) */
+  /** Удалить первую найденную запись игрока из конкретной очереди (активной или ожидающих) */
   removePlayerFromQueue: (args: {
     userId: string;
     targetQueueType: QueueType;
@@ -68,14 +74,14 @@ export interface QueueContextValue {
   /** Универсальное перемещение игрока внутри списков или между ними (Drag-and-Drop) */
   movePlayer: (args: {
     userId: string;
-    targetQueueType: 'active' | 'future';
+    targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;
     source: LogSource;
     actorUsername: string;
   }) => void;
 
   // === Жизненный цикл очереди ===
-  /** Завершить текущую очередь (активная улетает в историю, будущая ротируется) */
+  /** Завершить текущую очередь (активная улетает в историю, из ожидающих переносятся) */
   finishActiveQueue: (args: { source: LogSource; actorUsername: string }) => void;
 }
 

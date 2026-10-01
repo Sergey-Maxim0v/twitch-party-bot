@@ -16,7 +16,6 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         Основные настройки
       </h3>
 
-      {/* Лимит участников в очереди */}
       <SettingsNumberInput
         label="Лимит участников в очереди"
         max={99}
@@ -25,10 +24,9 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         value={settings.maxQueueSize}
       />
 
-      {/* Разрешить вставать заранее */}
       <SettingsCheckbox
         checked={settings.allowPreJoin}
-        label="Разрешить запись в будущие очереди"
+        label="Разрешить запись в список ожидающих"
         onChange={checked => {
           updateSettings({ allowPreJoin: checked })
 
@@ -38,41 +36,36 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         }}
       />
 
-      {/* Повторные записи */}
       <SettingsCheckbox
         checked={settings.allowMultipleEntries}
         disabled={!settings.allowPreJoin}
-        label="Разрешить повторную запись в будущие очереди"
+        label="Разрешить записть в список ожидающих участников текущей очереди"
         onChange={checked => { updateSettings({ allowMultipleEntries: checked }) }}
       />
 
-      {/* Автобалансировка игроков между активной и будущей очередью при изменении размера очереди. */}
       <SettingsCheckbox
         checked={settings.moveOnSizeChange}
         disabled={!settings.allowPreJoin}
-        label="Разрешить автоматически переносить игроков между очередями при изменении размера очереди"
+        label="Разрешить автоперенос игроков из списка ожидающих при изменении размера очереди"
         onChange={checked => { updateSettings({ moveOnSizeChange: checked }) }}
       />
 
-      {/* Через сколько игр игрок может повторно участвовать */}
       <SettingsNumberInput
-        label="Пропуск сыгравших (на X игр)"
+        label="Через сколько игр игрок может повторно участвовать"
         max={99}
         min={0}
         onChange={val => { updateSettings({ gamesPlayedCooldown: Number(val) || 0 }) }}
         value={settings.gamesPlayedCooldown}
       />
 
-      {/* Через сколько минут игрок может повторно участвовать */}
       <SettingsNumberInput
-        label="Кулдаун для игроков (в минутах)"
+        label="Через сколько минут игрок может повторно участвовать"
         max={1440}
         min={0}
         onChange={val => { updateSettings({ sessionHistoryCooldown: Number(val) || 0 }) }}
         value={settings.sessionHistoryCooldown}
       />
 
-      {/* Максимально количество игр для одного участника */}
       <SettingsNumberInput
         label="Лимит игр для одного игрока"
         max={99}
@@ -81,7 +74,6 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         value={settings.maxGamesPerUser || 99}
       />
 
-      {/* Ставить подписчиков в начало очереди */}
       <SettingsCheckbox
         checked={settings.prioritizeSubscribers || false}
         disabled={settings.subscribersOnly}
@@ -89,7 +81,6 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         onChange={checked => { updateSettings({ prioritizeSubscribers: checked }) }}
       />
 
-      {/* Только подписчики */}
       <SettingsCheckbox
         checked={settings.subscribersOnly || false}
         label="Вход только для подписчиков"

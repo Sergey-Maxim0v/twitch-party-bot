@@ -9,7 +9,7 @@ export interface QueueClearSectionProps {
 }
 
 const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleClassName = '' }) => {
-  const { clearActiveQueue, clearQueueHistory, clearFutureQueue } = useQueue()
+  const { clearActiveQueue, clearQueueHistory, clearWaitingQueue } = useQueue()
   const { session } = useAuth()
 
   const argsClearFnc = {
@@ -33,10 +33,10 @@ const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleCl
         </button>
         <button
           className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
-          onClick={() => { clearFutureQueue(argsClearFnc) }}
+          onClick={() => { clearWaitingQueue(argsClearFnc) }}
           type="button"
         >
-          Очистить будущие очереди
+          Очистить список ожидающих
         </button>
         <button
           className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"

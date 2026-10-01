@@ -43,7 +43,7 @@ export interface QueuePlayerFormData extends BaseQueuePlayer {
  */
 export const QUEUE_TYPES = {
   ACTIVE: 'active',
-  FUTURE: 'future',
+  WAITING: 'waiting',
   HISTORY: 'history',
 } as const
 
@@ -81,8 +81,8 @@ export interface PlayerHistoryStats {
 export interface QueueState {
   /** Игроки в текущей активной очереди */
   activeQueue: QueuePlayer[];
-  /** Игроки в будущих/ожидающих очередях */
-  futureQueue: QueuePlayer[];
+  /** Игроки в списке ожидающих */
+  waitingQueue: QueuePlayer[];
   /** История завершенных игровых сессий (составов) */
   queueHistory: QueueSession[];
   /** Общий счетчик созданных/сыгранных сессий для расчета кулдауна по играм */

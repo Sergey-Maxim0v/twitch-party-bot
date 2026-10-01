@@ -15,7 +15,7 @@ export const useChatCommands = () => {
     addPlayerToQueue,
     removePlayerFromAllQueues,
     clearActiveQueue,
-    clearFutureQueue,
+    clearWaitingQueue,
     finishActiveQueue,
   } = useQueue()
 
@@ -142,7 +142,7 @@ export const useChatCommands = () => {
       // CLEAR
       case commands.clear.name: {
         if (!hasAccess(commands.clear.isModeratorOnly)) return
-        clearFutureQueue({ source, actorUsername })
+        clearWaitingQueue({ source, actorUsername })
         clearActiveQueue({ source, actorUsername })
         break
       }

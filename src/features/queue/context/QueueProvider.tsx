@@ -7,7 +7,7 @@ import { createInitialState } from '../utils/createInitialState'
 import { STORAGE_KEY } from '../constants.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { handleClearActiveQueue } from '../utils/handleClearActiveQueue.ts'
-import { handleClearFutureQueue } from '../utils/handleClearFutureQueue.ts'
+import { handleClearWaitingQueue } from '../utils/handleClearWaitingQueue.ts'
 import { handleClearQueueHistory } from '../utils/handleClearQueueHistory.ts'
 import { handleRemovePlayer } from '../utils/handleRemovePlayer.ts'
 import { handleRemovePlayerFromAll } from '../utils/handleRemovePlayerFromAll.ts'
@@ -55,7 +55,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
       moveOnSizeChange: settings.moveOnSizeChange,
       allowPreJoin: settings.allowPreJoin,
       activeLength: state.activeQueue.length,
-      futureLength: state.futureQueue.length,
+      waitingLength: state.waitingQueue.length,
       setState,
       pushLog,
     })
@@ -64,18 +64,18 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     settings.moveOnSizeChange,
     settings.allowPreJoin,
     state.activeQueue.length,
-    state.futureQueue.length,
+    state.waitingQueue.length,
     setState,
     pushLog,
   ])
 
-  // === АВТОМАТИЧЕСКАЯ ОЧИСТКА БУДУЩЕЙ ОЧЕРЕДИ ПРИ ОТКЛЮЧЕНИИ ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ ===
+  // === АВТОМАТИЧЕСКАЯ ОЧИСТКА СПИСКА ОЖИДАЮЩИХ ПРИ ОТКЛЮЧЕНИИ ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ ===
   useEffect(() => {
-    if (!settings.allowPreJoin && state.futureQueue.length > 0) {
-      const count = state.futureQueue.length
+    if (!settings.allowPreJoin && state.waitingQueue.length > 0) {
+      const count = state.waitingQueue.length
 
       pushLog({
-        message: `Будущая очередь отключена в настройках. Список ожидания автоматически очищен (удалено игроков: ${count}).`,
+        message: `Список ожидающих отключен в настройках. Список ожидающих автоматически очищен (удалено игроков: ${count}).`,
         status: APP_LOG_STATUSES.SUCCESS,
         source: LOG_SOURCE.APPLICATION,
         actorUsername: 'System',
@@ -83,10 +83,10 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
       setState(prev => ({
         ...prev,
-        futureQueue: [],
+        waitingQueue: [],
       }))
     }
-  }, [settings.allowPreJoin, state.futureQueue.length, setState, pushLog])
+  }, [settings.allowPreJoin, state.waitingQueue.length, setState, pushLog])
 
   // === СТАТУС ОЧЕРЕДИ (Управление) ===
 
@@ -107,11 +107,11 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     handleClearActiveQueue({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
-  const clearFutureQueue = useCallback((args: {
+  const clearWaitingQueue = useCallback((args: {
     source: LogSource;
     actorUsername: string;
   }) => {
-    handleClearFutureQueue({ ...args, setState, pushLog })
+    handleClearWaitingQueue({ ...args, setState, pushLog })
   }, [setState, pushLog])
 
   const clearQueueHistory = useCallback((args: {
@@ -165,7 +165,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const movePlayer = useCallback((args: {
     userId: string;
-    targetQueueType: 'active' | 'future';
+    targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;
     source: LogSource;
     actorUsername: string;
@@ -184,11 +184,11 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     openQueue,
     closeQueue,
     activeQueue: state.activeQueue || [],
-    futureQueue: state.futureQueue || [],
+    waitingQueue: state.waitingQueue || [],
     queueHistory: state.queueHistory || [],
     rawState: state,
     clearActiveQueue,
-    clearFutureQueue,
+    clearWaitingQueue: clearWaitingQueue,
     clearQueueHistory,
     addPlayerToQueue,
     removePlayerFromQueue,
@@ -202,7 +202,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     closeQueue,
     state,
     clearActiveQueue,
-    clearFutureQueue,
+    clearWaitingQueue,
     clearQueueHistory,
     addPlayerToQueue,
     removePlayerFromQueue,

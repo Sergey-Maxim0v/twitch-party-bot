@@ -61,14 +61,14 @@ export const handleBanPlayer = ({
   const updatedBanList = [...settings.banList, username]
   updateSettings({ banList: updatedBanList })
 
-  // 3. Вычищаем игрока из активной и будущей очередей по userId или по логину
+  // 3. Вычищаем игрока из активной очереди и списка ожидающих по userId или по логину
   let removedCount = 0
 
   setState(prev => {
     const activeMatches = prev.activeQueue.filter(p => p.userId === userId || p.username.toLowerCase() === targetLogin)
-    const futureMatches = prev.futureQueue.filter(p => p.userId === userId || p.username.toLowerCase() === targetLogin)
+    const waitingMatches = prev.waitingQueue.filter(p => p.userId === userId || p.username.toLowerCase() === targetLogin)
 
-    removedCount = activeMatches.length + futureMatches.length
+    removedCount = activeMatches.length + waitingMatches.length
 
     if (removedCount === 0) {
       return prev
@@ -77,7 +77,7 @@ export const handleBanPlayer = ({
     return {
       ...prev,
       activeQueue: prev.activeQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin),
-      futureQueue: prev.futureQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin),
+      waitingQueue: prev.waitingQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin),
     }
   })
 

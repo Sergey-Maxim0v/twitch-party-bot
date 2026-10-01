@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState } from '../types'
+import { QUEUE_TYPES, type QueueState, type QueueType } from '../types'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
@@ -7,7 +7,7 @@ export interface HandleMovePlayerArgs {
   /** Уникальный ID пользователя на Twitch для перемещения */
   userId: string;
   /** Целевой тип очереди, куда перетаскивают игрока */
-  targetQueueType: 'active' | 'future';
+  targetQueueType: Exclude<QueueType, 'history'>;
   /** Индекс (позиция), куда нужно вставить игрока (если не передан — падает в конец) */
   targetIndex: number | undefined;
   /** Источник вызова команды (чат/интерфейс) */
@@ -33,26 +33,26 @@ export const handleMovePlayer = ({
   pushLog,
 }: HandleMovePlayerArgs): void => {
   let targetPlayerName = ''
-  let sourceQueueType: 'active' | 'future' | null = null
+  let sourceQueueType: Exclude<QueueType, 'history'> | null = null
   let isMoved = false
 
   setState(prev => {
     // 1. Ищем игрока в обеих очередях, чтобы понять откуда его забираем
     const activeIdx = prev.activeQueue.findIndex(p => p.userId === userId)
-    const futureIdx = prev.futureQueue.findIndex(p => p.userId === userId)
+    const waitingIdx = prev.waitingQueue.findIndex(p => p.userId === userId)
 
     let playerToMove = null
     const updatedActive = [...prev.activeQueue]
-    const updatedFuture = [...prev.futureQueue]
+    const updatedWaiting = [...prev.waitingQueue]
 
     if (activeIdx !== -1) {
       playerToMove = prev.activeQueue[activeIdx]
-      sourceQueueType = 'active'
+      sourceQueueType = QUEUE_TYPES.ACTIVE
       updatedActive.splice(activeIdx, 1)
-    } else if (futureIdx !== -1) {
-      playerToMove = prev.futureQueue[futureIdx]
-      sourceQueueType = 'future'
-      updatedFuture.splice(futureIdx, 1)
+    } else if (waitingIdx !== -1) {
+      playerToMove = prev.waitingQueue[waitingIdx]
+      sourceQueueType = QUEUE_TYPES.WAITING
+      updatedWaiting.splice(waitingIdx, 1)
     }
 
     // Если игрок вообще не найден в текущих списках, ничего не делаем
@@ -62,34 +62,48 @@ export const handleMovePlayer = ({
     isMoved = true
 
     // 2. Вставляем игрока в целевую очередь
-    if (targetQueueType === 'active') {
+    if (targetQueueType === QUEUE_TYPES.ACTIVE) {
       const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, updatedActive.length) : updatedActive.length
       updatedActive.splice(insertIndex, 0, playerToMove)
     } else {
-      const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, updatedFuture.length) : updatedFuture.length
-      updatedFuture.splice(insertIndex, 0, playerToMove)
+      const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, updatedWaiting.length) : updatedWaiting.length
+      updatedWaiting.splice(insertIndex, 0, playerToMove)
     }
 
     return {
       ...prev,
       activeQueue: updatedActive,
-      futureQueue: updatedFuture,
+      waitingQueue: updatedWaiting,
     }
   })
 
   // 3. Логируем результат перемещения
-  if (isMoved) {
-    const fromLabel = sourceQueueType === 'active' ? 'активной' : 'будущей'
-    const toLabel = targetQueueType === 'active' ? 'активную' : 'будущую'
+  if (isMoved && sourceQueueType) {
+    // 1. Формируем понятные названия для очередей
+    const queueLabels = {
+      [QUEUE_TYPES.ACTIVE]: 'активной очереди',
+      [QUEUE_TYPES.WAITING]: 'списка ожидающих',
+    }
+
+    const fromLabel = queueLabels[sourceQueueType]
+    const toLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активную очередь' : 'список ожидающих'
+
+    // 2. Формируем позицию (человеческий индекс с 1)
     const positionLabel = targetIndex !== undefined ? ` на позицию ${targetIndex + 1}` : ' в конец'
 
+    // 3. Собираем текст сообщения без лишних повторов
     const logMessage = sourceQueueType === targetQueueType
-      ? `Перемещен игрок ${targetPlayerName} внутри ${fromLabel} очереди${positionLabel}.`
-      : `Игрок ${targetPlayerName} перенесен из ${fromLabel} очереди в ${toLabel}${positionLabel}.`
+      ? `Игрок ${targetPlayerName} перемещен внутри ${fromLabel}${positionLabel}.`
+      : `Игрок ${targetPlayerName} перенесен из ${fromLabel} в ${toLabel}${positionLabel}.`
 
     pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
   } else {
-    const logMessage = `Ошибка перемещения: игрок с ID ${userId} не найден в очередях.`
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername })
+    pushLog({
+      message: 'Ошибка перемещения.',
+      status: APP_LOG_STATUSES.ERROR,
+      source,
+      actorUsername,
+    })
   }
+
 }

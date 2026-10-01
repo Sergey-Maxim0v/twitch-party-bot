@@ -7,15 +7,15 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import QueueElement from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
-export interface QueueFutureListProps {
+export interface QueueWaitingListProps {
   className?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   disabled?: boolean
 }
 
-const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChange, open, disabled }) => {
-  const { futureQueue } = useQueue()
+const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', onOpenChange, open, disabled }) => {
+  const { waitingQueue } = useQueue()
   const { settings } = useQueueSettings()
 
   useEffect(() => {
@@ -24,15 +24,15 @@ const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChang
     }
   }, [settings.allowPreJoin, onOpenChange])
 
-  const { setNodeRef } = useDroppable({ id: QUEUE_TYPES.FUTURE, disabled: !!disabled })
+  const { setNodeRef } = useDroppable({ id: QUEUE_TYPES.WAITING, disabled: !!disabled })
 
-  const queueLength = futureQueue?.length ?? 0
+  const queueLength = waitingQueue?.length ?? 0
   const maxPlayers = settings?.maxQueueSize ?? 0
 
   const badgeText = maxPlayers > 0 ? `${queueLength} / ${maxPlayers}` : `${queueLength}`
   const isOpen = open && !disabled
 
-  const playerIds = futureQueue.map(p => p.userId)
+  const playerIds = waitingQueue.map(p => p.userId)
 
   return (
     <QueueCollapse
@@ -43,13 +43,13 @@ const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChang
       disabled={disabled}
       onOpenChange={onOpenChange}
       open={isOpen}
-      title="Будущая очередь"
-      tooltipText={disabled ? 'Будущие очереди отключены в настройках' : undefined}
+      title="Список ожидающих"
+      tooltipText={disabled ? 'Список ожидающих отключен в настройках' : undefined}
     >
       <SortableContext items={playerIds} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-2 min-h-10" ref={setNodeRef}>
-          {futureQueue.map(player => (
-            <QueueElement key={player.userId + player.timestamp} player={player} queueType={QUEUE_TYPES.FUTURE} />
+          {waitingQueue.map(player => (
+            <QueueElement key={player.userId + player.timestamp} player={player} queueType={QUEUE_TYPES.WAITING} />
           ))}
         </div>
       </SortableContext>
@@ -57,4 +57,4 @@ const QueueFutureList: FC<QueueFutureListProps> = ({ className = '', onOpenChang
   )
 }
 
-export default QueueFutureList
+export default QueueWaitingList

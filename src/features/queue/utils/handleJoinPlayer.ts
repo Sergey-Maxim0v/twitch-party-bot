@@ -21,7 +21,7 @@ export interface HandleJoinPlayerArgs {
 }
 
 /**
- * Хендлер для добавления игрока в активную или будущую очередь со всеми бизнес-проверками.
+ * Хендлер для добавления игрока в активную очередь или список ожидающих со всеми бизнес-проверками.
  */
 export const handleJoinPlayer = ({
   isQueueOpen,
@@ -69,11 +69,11 @@ export const handleJoinPlayer = ({
   setState(prev => {
     const maxActiveSize = settings.maxQueueSize || 4
     const existsInActive = prev.activeQueue.some(p => p.userId === userId || p.username === username)
-    const existsInFuture = prev.futureQueue.some(p => p.userId === userId || p.username === username)
+    const existsInWaiting = prev.waitingQueue.some(p => p.userId === userId || p.username === username)
 
     // Проверка на дубликаты
     if (!settings.allowMultipleEntries) {
-      if (existsInActive || existsInFuture) {
+      if (existsInActive || existsInWaiting) {
         finalLogMessage = `Отклонено: игрок ${displayName} уже находится в очереди`
         return prev
       }
@@ -83,7 +83,7 @@ export const handleJoinPlayer = ({
     }
 
     const updatedActive = [...prev.activeQueue]
-    const updatedFuture = [...prev.futureQueue]
+    const updatedWaiting = [...prev.waitingQueue]
 
     // А) Вставка в АКТИВНУЮ очередь
     if (updatedActive.length < maxActiveSize && !existsInActive) {
@@ -99,35 +99,35 @@ export const handleJoinPlayer = ({
       return { ...prev, activeQueue: updatedActive }
     }
 
-    // Б) Вставка в БУДУЩУЮ очередь
+    // Б) Вставка в список ОЖИДАЮЩИХ
     if (!settings.allowPreJoin) {
-      finalLogMessage = 'Отклонено: активная очередь заполнена, а будущие очереди отключены'
+      finalLogMessage = 'Отклонено: активная очередь заполнена, а список ожидающих отключен'
       return prev
     }
 
-    if (!settings.allowMultipleEntries && existsInFuture) {
-      finalLogMessage = `Отклонено: игрок ${displayName} уже ожидает в будущей очереди`
+    if (!settings.allowMultipleEntries && existsInWaiting) {
+      finalLogMessage = `Отклонено: игрок ${displayName} уже в списке ожидающих`
       return prev
     }
 
     if (settings.allowMultipleEntries
-        && prev.futureQueue.some((p, idx) => (p.userId === userId || p.username === username)
-            && idx >= prev.futureQueue.length - maxActiveSize)) {
-      finalLogMessage = 'Отклонено: нельзя записаться несколько раз подряд в один состав'
+        && prev.waitingQueue.some((p, idx) => (p.userId === userId || p.username === username)
+            && idx >= prev.waitingQueue.length - maxActiveSize)) {
+      finalLogMessage = 'Отклонено: нельзя записаться несколько раз подряд в один список'
       return prev
     }
 
     if (settings.prioritizeSubscribers && isPrivileged) {
-      const firstNonSubIdx = updatedFuture.findIndex(p => !p.isSubscriber)
-      const insertIdx = firstNonSubIdx === -1 ? updatedFuture.length : firstNonSubIdx
-      updatedFuture.splice(insertIdx, 0, fullPlayer)
+      const firstNonSubIdx = updatedWaiting.findIndex(p => !p.isSubscriber)
+      const insertIdx = firstNonSubIdx === -1 ? updatedWaiting.length : firstNonSubIdx
+      updatedWaiting.splice(insertIdx, 0, fullPlayer)
     } else {
-      updatedFuture.push(fullPlayer)
+      updatedWaiting.push(fullPlayer)
     }
 
-    finalLogMessage = `Игрок ${displayName} добавлен в лист ожидания (будущую очередь).`
+    finalLogMessage = `Игрок ${displayName} добавлен в список ожидания.`
     isSuccess = true
-    return { ...prev, futureQueue: updatedFuture }
+    return { ...prev, waitingQueue: updatedWaiting }
   })
 
   if (isSuccess) {

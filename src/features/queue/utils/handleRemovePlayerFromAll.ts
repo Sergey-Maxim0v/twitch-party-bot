@@ -48,13 +48,13 @@ export const handleRemovePlayerFromAll = ({
     targetPlayerName = activeMatches[0].displayedUsername || activeMatches[0].username
   }
 
-  const futureMatches = state.futureQueue.filter(isTargetPlayer)
-  const removedFromFutureCount = futureMatches.length
-  if (removedFromFutureCount > 0 && !targetPlayerName) {
-    targetPlayerName = futureMatches[0].displayedUsername || futureMatches[0].username
+  const waitingMatches = state.waitingQueue.filter(isTargetPlayer)
+  const removedFromWaitingCount = waitingMatches.length
+  if (removedFromWaitingCount > 0 && !targetPlayerName) {
+    targetPlayerName = waitingMatches[0].displayedUsername || waitingMatches[0].username
   }
 
-  const totalRemoved = removedFromActiveCount + removedFromFutureCount
+  const totalRemoved = removedFromActiveCount + removedFromWaitingCount
 
   // Если игрок не найден ни по ID, ни по имени
   if (totalRemoved === 0) {
@@ -64,16 +64,23 @@ export const handleRemovePlayerFromAll = ({
   }
 
   // Игрок найден
-  const locations: string[] = []
-  if (removedFromActiveCount > 0) locations.push(`активной (${removedFromActiveCount})`)
-  if (removedFromFutureCount > 0) locations.push(`будущей (${removedFromFutureCount})`)
+  let logMessage: string
+  const displayName = targetPlayerName || username
 
-  const logMessage = `Игрок ${targetPlayerName || username} удален из всех очередей: ${locations.join(' и ')}.`
+  if (removedFromActiveCount > 0 && removedFromWaitingCount > 0) {
+    logMessage = `Игрок ${displayName} удален из активной очереди (${removedFromActiveCount}) и списка ожидающих (${removedFromWaitingCount}).`
+  } else if (removedFromActiveCount > 0) {
+    logMessage = `Игрок ${displayName} удален из активной очереди (${removedFromActiveCount}).`
+  } else if (removedFromWaitingCount > 0) {
+    logMessage = `Игрок ${displayName} удален из списка ожидающих (${removedFromWaitingCount}).`
+  } else {
+    logMessage = `Игрок ${displayName} не найден в очередях.`
+  }
 
   setState({
     ...state,
     activeQueue: state.activeQueue.filter(p => !isTargetPlayer(p)),
-    futureQueue: state.futureQueue.filter(p => !isTargetPlayer(p)),
+    waitingQueue: state.waitingQueue.filter(p => !isTargetPlayer(p)),
   })
 
   pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })

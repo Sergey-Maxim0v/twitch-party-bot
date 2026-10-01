@@ -45,9 +45,9 @@ export const handleRemovePlayer = ({
     return
   }
 
-  const queueLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активной очереди' : 'будущей очереди'
+  const queueLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активной очереди' : 'списке ожидающих'
   const isTargetActive = targetQueueType === QUEUE_TYPES.ACTIVE
-  const queueToSearch = isTargetActive ? state.activeQueue : state.futureQueue
+  const queueToSearch = isTargetActive ? state.activeQueue : state.waitingQueue
 
   const index = queueToSearch.findIndex(p => p.userId === userId)
 
@@ -66,9 +66,9 @@ export const handleRemovePlayer = ({
     updatedActive.splice(index, 1)
     setState({ ...state, activeQueue: updatedActive })
   } else {
-    const updatedFuture = [...state.futureQueue]
-    updatedFuture.splice(index, 1)
-    setState({ ...state, futureQueue: updatedFuture })
+    const updatedWaiting = [...state.waitingQueue]
+    updatedWaiting.splice(index, 1)
+    setState({ ...state, waitingQueue: updatedWaiting })
   }
 
   pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
