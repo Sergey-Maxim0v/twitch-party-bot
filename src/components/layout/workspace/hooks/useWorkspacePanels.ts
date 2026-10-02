@@ -13,6 +13,10 @@ export interface UseWorkspacePanelProps {
   setIsOpenChat: (isOpen: boolean) => void
 }
 
+/**
+ * Пользовательский хук для автоматического управления состоянием панелей интерфейса (открытие)
+ * в зависимости от текущего брейкпоинта (размера экрана).
+ */
 export const useWorkspacePanels = ({
   currentBreakpoint,
   isOpenSettings,

@@ -29,6 +29,8 @@ import { TwitchChatProvider } from './services/twitch/context/TwitchChatProvider
 //      (вынести логику из хука в функцию и вызывать где надо)
 //      сейчас логика в хуке и в функциях (завершить очередь)
 //   - хук или метод в провайдере twichChat сбора накопления и отправки комплексного сообщения в чат твича
+//   - README
+//   - привести в порядок код
 
 function App() {
   return (

@@ -6,6 +6,7 @@ import ConnectionStatusPanel from './ConnectionStatusPanel.tsx'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { ChannelSelectToggle } from '../../../features/auth/components/ChannelSelectToggle.tsx'
 import { LogoutToggle } from '../../../features/auth/components/LogoutToggle.tsx'
+import Version from './Version.tsx'
 
 const Header: FC = () => {
   const { session, isAuthenticated, isLoading, login } = useAuth()
@@ -15,11 +16,12 @@ const Header: FC = () => {
       className="navbar bg-base-200 border-b border-base-300 px-6 flex justify-between items-center select-none"
     >
       {/* Логотип */}
-      <div className="flex items-center gap-2">
-        <LuTwitch className="text-2xl font-black text-primary" />
-        <span className="hidden sm:inline text-xl font-black tracking-tight text-primary">
+      <div className="flex items-end gap-2 h-7">
+        <LuTwitch className="text-2xl font-black text-primary self-center" />
+        <span className="hidden sm:inline text-xl font-black tracking-tight text-primary leading-none">
           Twitch Party Bot
         </span>
+        <Version className="hidden md:inline-block ml-1" />
       </div>
 
       {/* Правая часть */}
