@@ -6,9 +6,7 @@ interface VersionProps {
 
 const Version: FC<VersionProps> = ({ className }) => {
   return (
-    <span className={'text-xs font-mono font-bold tracking-wider opacity-60 px-1.5'
-          + ` ${className ?? ''}`}
-    >
+    <span className={`text-xs font-mono font-bold tracking-wider opacity-60 px-1.5 ${className ?? ''}`}>
       v{import.meta.env.VITE_APP_VERSION}
     </span>
   )
