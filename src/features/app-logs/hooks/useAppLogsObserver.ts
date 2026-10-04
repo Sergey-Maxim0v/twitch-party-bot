@@ -80,7 +80,8 @@ export const useAppLogsObserver = (): void => {
 
     const channel = getClient()?.currentChannel || ''
 
-    const targetChannel = channel ? `@${channel}` : ''
+    const name = userDisplayName || channel
+    const targetChannel = name ? `@${name}` : 'Twitch'
 
     let message = ''
     let status: AppLogStatus = APP_LOG_STATUSES.INFO
