@@ -23,13 +23,23 @@ export const handleClearWaitingQueue = ({
   actorUsername,
   pushLog,
 }: HandleClearWaitingQueueArgs): void => {
-  setState(prev => ({
-    ...prev,
-    waitingQueue: [],
-  }))
+  let waitingCount:number = 0
+
+  setState(prev => {
+    waitingCount = prev.waitingQueue.length
+
+    return {
+      ...
+      prev,
+      waitingQueue:
+      [],
+    }
+  })
+
+  const logMessage = 'Список ожидающих очищен.' + (waitingCount ? ` Удалено ${waitingCount} игроков.` : '')
 
   pushLog({
-    message: 'Список ожидающих очищен.',
+    message: logMessage,
     status: APP_LOG_STATUSES.INFO,
     source,
     actorUsername,

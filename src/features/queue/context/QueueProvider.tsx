@@ -16,7 +16,7 @@ import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import { APP_LOG_STATUSES, LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
+import { type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
 import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
@@ -68,25 +68,6 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     setState,
     pushLog,
   ])
-
-  // === АВТОМАТИЧЕСКАЯ ОЧИСТКА СПИСКА ОЖИДАЮЩИХ ПРИ ОТКЛЮЧЕНИИ ПРЕДВАРИТЕЛЬНОЙ ЗАПИСИ ===
-  useEffect(() => {
-    if (!settings.allowPreJoin && state.waitingQueue.length > 0) {
-      const count = state.waitingQueue.length
-
-      pushLog({
-        message: `Список ожидающих отключен в настройках. Список ожидающих автоматически очищен (удалено игроков: ${count}).`,
-        status: APP_LOG_STATUSES.SUCCESS,
-        source: LOG_SOURCE.APPLICATION,
-        actorUsername: 'System',
-      })
-
-      setState(prev => ({
-        ...prev,
-        waitingQueue: [],
-      }))
-    }
-  }, [settings.allowPreJoin, state.waitingQueue.length, setState, pushLog])
 
   // === СТАТУС ОЧЕРЕДИ (Управление) ===
 
@@ -188,7 +169,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     queueHistory: state.queueHistory || [],
     rawState: state,
     clearActiveQueue,
-    clearWaitingQueue: clearWaitingQueue,
+    clearWaitingQueue,
     clearQueueHistory,
     addPlayerToQueue,
     removePlayerFromQueue,

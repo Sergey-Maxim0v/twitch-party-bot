@@ -2,6 +2,9 @@ import { type FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import { SettingsNumberInput } from './SettingsNumberInput.tsx'
 import { SettingsCheckbox } from './SettingsCheckbox.tsx'
+import { useQueue } from '../../queue/hooks/useQueue.ts'
+import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 export interface QueueGeneralSettingsProps {
   titleClassName?: string;
@@ -9,7 +12,9 @@ export interface QueueGeneralSettingsProps {
 
 const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName }) => {
   const { settings, updateSettings } = useQueueSettings()
-
+  const { clearWaitingQueue } = useQueue()
+  const { session, userDisplayName } = useAuth()
+  
   return (
     <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
       <h3 className={titleClassName}>
@@ -32,6 +37,7 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
 
           if (!checked) {
             updateSettings({ allowMultipleEntries: false })
+            clearWaitingQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
           }
         }}
       />
