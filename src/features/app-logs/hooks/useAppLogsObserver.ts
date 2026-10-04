@@ -11,7 +11,7 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
  */
 export const useAppLogsObserver = (): void => {
   const { connectionStatus, chatAccessStatus, getClient } = useSocketContext()
-  const { session } = useAuth()
+  const { session, userDisplayName } = useAuth()
   const { pushLog } = useAppLogs()
 
   const lastStatusRef = useRef(connectionStatus)
@@ -23,13 +23,13 @@ export const useAppLogsObserver = (): void => {
     if (session?.login && session.login !== lastUserRef.current) {
       lastUserRef.current = session.login
       pushLog({
-        message: `Вы вошли в аккаунт: ${session.login}`,
+        message: `Вы вошли в аккаунт: ${userDisplayName ?? session.login}`,
         status: APP_LOG_STATUSES.WARNING,
         source: LOG_SOURCE.APPLICATION,
-        actorUsername: session.login,
+        actorUsername: userDisplayName ?? session.login,
       })
     }
-  }, [session, pushLog])
+  }, [session, pushLog, userDisplayName])
 
   // 2. Логирование состояний сетевого соединения и попыток переподключения
   useEffect(() => {
@@ -67,10 +67,10 @@ export const useAppLogsObserver = (): void => {
         message,
         status,
         source: LOG_SOURCE.APPLICATION,
-        actorUsername: session?.login ? session?.login : 'Application',
+        actorUsername: userDisplayName ?? session?.login ?? 'Application',
       })
     }
-  }, [connectionStatus, pushLog, getClient, session?.login])
+  }, [connectionStatus, pushLog, getClient, session?.login, userDisplayName])
 
   // 3. Логирование доступности чата и правил комнаты (Room State)
   useEffect(() => {
@@ -100,8 +100,8 @@ export const useAppLogsObserver = (): void => {
         message,
         status,
         source: LOG_SOURCE.APPLICATION,
-        actorUsername: session?.login ? session.login : 'Application',
+        actorUsername: userDisplayName ?? session?.login ?? 'Application',
       })
     }
-  }, [chatAccessStatus, getClient, pushLog, session?.login])
+  }, [chatAccessStatus, getClient, pushLog, session?.login, userDisplayName])
 }

@@ -1,9 +1,5 @@
 import { TWITCH_AUTH_BASE_URL } from '../config.ts'
-
-export interface TwitchUserData {
-  userId: string;
-  login: string;
-}
+import type { TwitchUserData } from '../types'
 
 /**
  * Отправляет запрос на сервера Twitch для проверки активности токена.

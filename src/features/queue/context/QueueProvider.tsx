@@ -48,6 +48,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     })
   }, [pushAppLog])
 
+  //  TODO
   // === СИНХРОНИЗАЦИЯ И БАЛАНСИРОВКА ОЧЕРЕДИ ===
   useEffect(() => {
     handleBalanceQueues({

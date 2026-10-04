@@ -10,11 +10,11 @@ export interface QueueClearSectionProps {
 
 const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleClassName = '' }) => {
   const { clearActiveQueue, clearQueueHistory, clearWaitingQueue } = useQueue()
-  const { session } = useAuth()
+  const { session, userDisplayName } = useAuth()
 
   const argsClearFnc = {
     source: LOG_SOURCE.STREAMER_UI,
-    actorUsername: session?.login ?? '',
+    actorUsername: userDisplayName ?? session?.login ?? '',
   }
 
   return (

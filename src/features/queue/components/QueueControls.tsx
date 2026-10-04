@@ -9,19 +9,19 @@ export interface QueueControlsProps {
 
 const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
   const { isQueueOpen, openQueue, closeQueue, finishActiveQueue } = useQueue()
-  const { session } = useAuth()
+  const { session, userDisplayName } = useAuth()
 
   const handleFinishActiveQueue = useCallback(() => {
-    finishActiveQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: session?.login ?? '' })
-  }, [finishActiveQueue, session?.login])
+    finishActiveQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
+  }, [finishActiveQueue, session?.login, userDisplayName])
 
   const handleQueueToggle = useCallback(() => {
     if(isQueueOpen) {
-      closeQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: session?.login ?? '' } )
+      closeQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' } )
     } else {
-      openQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: session?.login ?? '' })
+      openQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
     }
-  }, [isQueueOpen, openQueue, session?.login, closeQueue])
+  }, [isQueueOpen, closeQueue, userDisplayName, session?.login, openQueue])
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>

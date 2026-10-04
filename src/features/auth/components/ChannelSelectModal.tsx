@@ -17,6 +17,7 @@ export const ChannelSelectModal: FC = () => {
     channelError,
     selectOwnChannel,
     selectCustomChannel,
+    userDisplayName,
   } = useAuth()
 
   const { connect } = useSocketContext()
@@ -139,7 +140,7 @@ export const ChannelSelectModal: FC = () => {
         >
           <span className="text-xs">Подключить канал</span>
           {session?.login && (
-            <span className="font-bold text-sm">{session.login}</span>
+            <span className="font-bold text-sm">{userDisplayName ?? session.login}</span>
           )}
         </button>
 

@@ -11,7 +11,7 @@ export interface QueueFormProps {
 
 const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
   const { addPlayerToQueue } = useQueue()
-  const { session } = useAuth()
+  const { session, userDisplayName } = useAuth()
 
   const [username, setUsername] = useState<string>('')
   const [messageText, setMessageText] = useState<string>('')
@@ -42,7 +42,7 @@ const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
     addPlayerToQueue({
       playerData,
       source: LOG_SOURCE.STREAMER_UI,
-      actorUsername: session?.login ?? '',
+      actorUsername: userDisplayName ?? session?.login ?? '',
       rawCommand: 'Ручное добавление в очередь',
       customTimestamp: timestamp,
     })
