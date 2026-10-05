@@ -173,8 +173,17 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   // === ЖИЗНЕННЫЙ ЦИКЛ ОЧЕРЕДИ ===
 
   const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
-    handleFinishActiveQueue({ ...args, closeQueue, settings, setState, pushLog })
-  }, [closeQueue, settings, setState, pushLog])
+    // 1. Архивируем текущую сессию в историю
+    handleFinishActiveQueue({ ...args, setState, pushLog })
+
+    // 2. Если pre-join выключен и очередь была открыта — закрываем её
+    if (!settings.allowPreJoin && isQueueOpen) {
+      closeQueue({ source: args.source, actorUsername: args.actorUsername })
+    }
+
+    // 3. Заполняем освободившиеся места из списка ожидания
+    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+  }, [closeQueue, settings.allowPreJoin, isQueueOpen, setState, pushLog, balanceQueues])
 
   const contextValue = useMemo<QueueContextValue>(() => ({
     isQueueOpen,

@@ -1,44 +1,37 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueueSession, QueueState } from '../types'
-import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 export interface HandleFinishActiveQueueArgs {
   /** Источник вызова команды (обычно интерфейс стримера) */
   source: AppLogItem['source'];
   /** Никнейм того, кто инициировал завершение */
   actorUsername: string;
-  /** Текущие настройки очереди для лимита maxQueueSize */
-  settings: QueueSettings;
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
   pushLog: AppLogsContextValue['pushLog'];
-  /** Хелпер провайдера для записи логов */
-  closeQueue: QueueContextValue['closeQueue'];
 }
 
 /**
  * Хендлер для завершения текущей сессии, её архивации в историю,
- * фиксации кулдаунов участников и автоматического продвижения ожидающих.
+ * фиксации кулдаунов участников.
  */
 export const handleFinishActiveQueue = ({
   source,
   actorUsername,
-  settings,
   setState,
   pushLog,
-  closeQueue,
 }: HandleFinishActiveQueueArgs): void => {
   let playedPlayersCount = 0
-  let promotedPlayersCount = 0
   let nextSessionNumber = 1
+  let isQueueEmpty = false
 
   setState(prev => {
-    // Если активная очередь пуста и список ожидающих тоже пуст, делать нечего
-    if (prev.activeQueue.length === 0 && prev.waitingQueue.length === 0) {
+    // Если активная очередь пуста, завершать нечего
+    if (prev.activeQueue.length === 0) {
+      isQueueEmpty = true
       return prev
     }
 
@@ -65,38 +58,26 @@ export const handleFinishActiveQueue = ({
       players: prev.activeQueue,
     }
 
-    // 3. Вычисляем свободные места для ротации из ожидающих
-    const maxActiveSize = settings.maxQueueSize || 4
-    const updatedWaiting = [...prev.waitingQueue]
-
-    // Забираем игроков из начала waitingQueue и переносим в новую активную очередь
-    const newlyPromoted = updatedWaiting.splice(0, maxActiveSize)
-    promotedPlayersCount = newlyPromoted.length
-
     return {
       ...prev,
-      activeQueue: newlyPromoted,
-      waitingQueue: updatedWaiting,
+      activeQueue: [],
       queueHistory: [finishedSession, ...prev.queueHistory],
       globalSessionCounter: nextSessionNumber,
       playerHistory: updatedPlayerHistory,
     }
   })
 
-  if (!settings.allowPreJoin) {
-    closeQueue({ source, actorUsername })
-  }
-
-  // 4. Формируем лог
-  if (playedPlayersCount > 0 || promotedPlayersCount > 0) {
-    const logMessage = `Состав №${nextSessionNumber} завершен (игроков: ${playedPlayersCount}). ` +
-            `В активную очередь переведено игроков из ожидания: ${promotedPlayersCount}.`
-
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
-  } else {
-    pushLog({ message: 'Не удалось завершить сессию: очереди пусты.',
-      status: APP_LOG_STATUSES.ERROR,
-      source,
-      actorUsername })
-  }
+  setTimeout(() => {
+    if (!isQueueEmpty) {
+      const logMessage = `Состав №${nextSessionNumber} завершен (игроков: ${playedPlayersCount}).`
+      pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
+    } else {
+      pushLog({
+        message: 'Не удалось завершить сессию: активная очередь пуста.',
+        status: APP_LOG_STATUSES.ERROR,
+        source,
+        actorUsername,
+      })
+    }
+  }, 0)
 }

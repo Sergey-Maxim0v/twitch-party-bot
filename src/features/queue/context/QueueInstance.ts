@@ -83,9 +83,7 @@ export interface QueueContextValue {
     actorUsername: string;
   }) => void;
 
-  /**
-   * Произвести ручную балансировку игроков между активной очередью и списком ожидания.
-   */
+  /** Произвести ручную балансировку игроков между активной очередью и списком ожидания.  */
   balanceQueues: (args: {
     source: LogSource;
     actorUsername: string;
