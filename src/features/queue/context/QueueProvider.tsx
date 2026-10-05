@@ -1,4 +1,4 @@
-import { type ReactNode, type FC, useMemo, useCallback, useEffect } from 'react'
+import { type ReactNode, type FC, useMemo, useCallback } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
 import type { QueueState, QueuePlayerFormData, QueueType } from '../types'
@@ -48,27 +48,18 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     })
   }, [pushAppLog])
 
-  //  TODO
   // === СИНХРОНИЗАЦИЯ И БАЛАНСИРОВКА ОЧЕРЕДИ ===
-  useEffect(() => {
+
+  const balanceQueues = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleBalanceQueues({
       maxQueueSize: settings.maxQueueSize,
       moveOnSizeChange: settings.moveOnSizeChange,
       allowPreJoin: settings.allowPreJoin,
-      activeLength: state.activeQueue.length,
-      waitingLength: state.waitingQueue.length,
       setState,
       pushLog,
+      ...args,
     })
-  }, [
-    settings.maxQueueSize,
-    settings.moveOnSizeChange,
-    settings.allowPreJoin,
-    state.activeQueue.length,
-    state.waitingQueue.length,
-    setState,
-    pushLog,
-  ])
+  }, [settings.maxQueueSize, settings.moveOnSizeChange, settings.allowPreJoin, setState, pushLog])
 
   // === СТАТУС ОЧЕРЕДИ (Управление) ===
 
@@ -153,7 +144,16 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     actorUsername: string;
   }) => {
     handleMovePlayer({ ...args, setState, pushLog })
-  }, [setState, pushLog])
+
+    if (settings.moveOnSizeChange) {
+      const { source, actorUsername } = args
+
+      balanceQueues({
+        source,
+        actorUsername,
+      })
+    }
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
 
   // === ЖИЗНЕННЫЙ ЦИКЛ ОЧЕРЕДИ ===
 
@@ -178,6 +178,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     banPlayerFromQueue,
     movePlayer,
     finishActiveQueue,
+    balanceQueues,
   }), [
     isQueueOpen,
     openQueue,
@@ -192,6 +193,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     banPlayerFromQueue,
     movePlayer,
     finishActiveQueue,
+    balanceQueues,
   ])
 
   return <QueueContext.Provider value={contextValue}>{children}</QueueContext.Provider>

@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import type { LogSource } from '../../app-logs/types.ts'
 import type { QueueState, QueuePlayer } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
@@ -9,48 +9,34 @@ export interface HandleBalanceQueuesArgs {
   maxQueueSize: QueueSettings['maxQueueSize'];
   moveOnSizeChange: QueueSettings['moveOnSizeChange'];
   allowPreJoin: QueueSettings['allowPreJoin'];
-  activeLength: number;
-  waitingLength: number;
+  source: LogSource;
+  actorUsername: string;
   setState: Dispatch<SetStateAction<QueueState>>;
   pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
- * Автоматически переносит игроков между очередями при изменении размера очереди (maxQueueSize).
+ * Перенос игроков между текущей очередью и списком ожидания на основе актуального стейта.
  */
 export const handleBalanceQueues = ({
   maxQueueSize,
   moveOnSizeChange,
   allowPreJoin,
-  activeLength,
-  waitingLength,
+  source,
+  actorUsername,
   setState,
   pushLog,
 }: HandleBalanceQueuesArgs): void => {
 
-  // === СЦЕНАРИЙ 1: Очередь уменьшилась ===
-  if (activeLength > maxQueueSize) {
-    const count = activeLength - maxQueueSize
+  let logMessageText:string = 'Произведена балансировка очереди.'
 
-    // 1. Сначала безопасно отправляем один лог
-    if (moveOnSizeChange && allowPreJoin) {
-      pushLog({
-        message: `Размер очереди изменен. Автоматически перенесено игроков в начало списка ожидающих: ${count}.`,
-        status: APP_LOG_STATUSES.SUCCESS,
-        source: LOG_SOURCE.APPLICATION,
-        actorUsername: 'System',
-      })
-    } else {
-      pushLog({
-        message: `Размер очереди уменьшен. Лишние игроки удалены из активной очереди: ${count}.`,
-        status: APP_LOG_STATUSES.SUCCESS,
-        source: LOG_SOURCE.APPLICATION,
-        actorUsername: 'System',
-      })
-    }
+  setState(prev => {
+    const activeLength = prev.activeQueue.length
+    const waitingLength = prev.waitingQueue.length
 
-    // 2. Затем обновляем состояние (чистая функция)
-    setState(prev => {
+    // === СЦЕНАРИЙ 1: Очередь уменьшилась / переполнена ===
+    if (activeLength > maxQueueSize) {
+      const count = activeLength - maxQueueSize
       const updatedActive = [...prev.activeQueue]
       const movedPlayers = updatedActive.splice(maxQueueSize)
       const updatedWaiting = [...prev.waitingQueue]
@@ -59,22 +45,22 @@ export const handleBalanceQueues = ({
         updatedWaiting.unshift(...movedPlayers)
       }
 
+      if (moveOnSizeChange && allowPreJoin) {
+        logMessageText = `Произведена балансировка очереди. Автоматически перенесено игроков в начало списка ожидающих: ${count}.`
+      } else {
+        logMessageText = `Произведена балансировка очереди. Лишние игроки удалены из активной очереди: ${count}.`
+      }
+
       return {
         ...prev,
         activeQueue: updatedActive,
         waitingQueue: updatedWaiting,
       }
-    })
-    return
-  }
+    }
 
-  // === СЦЕНАРИЙ 2: Очередь увеличилась (работает только при активном moveOnSizeChange) ===
-  if (moveOnSizeChange && activeLength < maxQueueSize && waitingLength > 0) {
-    const freeSlots = maxQueueSize - activeLength
-
-    // 1. Сначала атомарно рассчитываем перенос вне setState (имитируем логику для лога)
-    let playersMovedCount = 0
-    setState(prev => {
+    // === СЦЕНАРИЙ 2: Очередь увеличилась / освободились места ===
+    if (moveOnSizeChange && activeLength < maxQueueSize && waitingLength > 0) {
+      const freeSlots = maxQueueSize - activeLength
       const updatedActive = [...prev.activeQueue]
       const sourceWaiting = [...prev.waitingQueue]
 
@@ -85,16 +71,12 @@ export const handleBalanceQueues = ({
       const activeUsernames = new Set(updatedActive.map(p => p.username.toLowerCase()))
 
       for (let i = 0; i < sourceWaiting.length; i++) {
-        if (playersToMove.length >= freeSlots) {
-          break
-        }
+        if (playersToMove.length >= freeSlots) break
 
         const player = sourceWaiting[i]
         const isDuplicate = activeUserIds.has(player.userId) || activeUsernames.has(player.username.toLowerCase())
 
-        if (isDuplicate) {
-          continue
-        }
+        if (isDuplicate) continue
 
         playersToMove.push(player)
         indicesToRemove.push(i)
@@ -103,34 +85,29 @@ export const handleBalanceQueues = ({
         activeUsernames.add(player.username.toLowerCase())
       }
 
-      if (playersToMove.length === 0) {
-        return prev
-      }
+      if (playersToMove.length === 0) return prev
 
-      // Сохраняем точное количество перенесенных игроков
-      playersMovedCount = playersToMove.length
+      logMessageText = `Произведена балансировка очереди. Автоматически перенесено игроков из списка ожидающих в конец активной очереди: ${playersToMove.length}.`
 
-      for (let i = indicesToRemove.length - 1; i >= 0; i--) {
-        sourceWaiting.splice(indicesToRemove[i], 1)
-      }
-
+      const realWaiting = sourceWaiting.filter((_, idx) => !indicesToRemove.includes(idx))
       updatedActive.push(...playersToMove)
 
       return {
         ...prev,
         activeQueue: updatedActive,
-        waitingQueue: sourceWaiting,
+        waitingQueue: realWaiting,
       }
-    })
-
-    // 2. Отправляем лог 
-    if (playersMovedCount > 0) {
-      pushLog({
-        message: `Размер очереди изменен. Автоматически перенесено игроков из списка ожидающих в конец активной очереди: ${playersMovedCount}.`,
-        status: APP_LOG_STATUSES.SUCCESS,
-        source: LOG_SOURCE.APPLICATION,
-        actorUsername: 'System',
-      })
     }
-  }
+
+    return prev
+  })
+
+  setTimeout(() => {
+    pushLog({
+      message: logMessageText,
+      status: APP_LOG_STATUSES.SUCCESS,
+      source,
+      actorUsername,
+    })
+  }, 0)
 }

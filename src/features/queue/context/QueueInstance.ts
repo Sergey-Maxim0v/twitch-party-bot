@@ -80,6 +80,11 @@ export interface QueueContextValue {
     actorUsername: string;
   }) => void;
 
+  /**
+   * Произвести ручную балансировку игроков между активной очередью и списком ожидания.
+   */
+  balanceQueues: (args: { source: LogSource; actorUsername: string }) => void;
+
   // === Жизненный цикл очереди ===
   /** Завершить текущую очередь (активная улетает в историю, из ожидающих переносятся) */
   finishActiveQueue: (args: { source: LogSource; actorUsername: string }) => void;
