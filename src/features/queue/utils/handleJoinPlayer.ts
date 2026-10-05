@@ -14,7 +14,6 @@ export interface HandleJoinPlayerArgs {
   actorUsername: string;
   rawCommand?: string;
   customTimestamp?: number;
-  state: QueueState;
   settings: QueueSettings;
   setState: Dispatch<SetStateAction<QueueState>>;
   pushLog: AppLogsContextValue['pushLog']
@@ -30,7 +29,6 @@ export const handleJoinPlayer = ({
   actorUsername,
   rawCommand,
   customTimestamp,
-  state,
   settings,
   setState,
   pushLog,
@@ -41,14 +39,7 @@ export const handleJoinPlayer = ({
   const isPrivileged = Boolean(playerData.isSubscriber || playerData.isVip || playerData.isModerator)
   const displayName = playerData.displayedUsername || username
 
-  // 1. Запуск валидации ограничений (кулдауны, бан-листы, открыта ли очередь)
-  const validationError = validateQueueEntry({ isQueueOpen, userId, username, isPrivileged, state, settings, source })
-  if (validationError) {
-    pushLog({ message: validationError, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
-    return
-  }
-
-  // 2. Извлечение игрового никнейма
+  // 1. Извлечение игрового никнейма
   const extractedNickname = extractGameNickname({
     rawMessage: playerData.rawMessage,
     gameConfig: settings.currentGame,
@@ -67,6 +58,22 @@ export const handleJoinPlayer = ({
   let isSuccess = false
 
   setState(prev => {
+    // 2. Первичная валидация по-актуальному стейту (кулдауны, баны, статус открытия)
+    const validationError = validateQueueEntry({
+      isQueueOpen,
+      userId,
+      username,
+      isPrivileged,
+      state: prev,
+      settings,
+      source,
+    })
+
+    if (validationError) {
+      finalLogMessage = validationError
+      return prev
+    }
+
     const maxActiveSize = settings.maxQueueSize || 4
     const existsInActive = prev.activeQueue.some(p => p.userId === userId || p.username === username)
     const existsInWaiting = prev.waitingQueue.some(p => p.userId === userId || p.username === username)
@@ -130,9 +137,11 @@ export const handleJoinPlayer = ({
     return { ...prev, waitingQueue: updatedWaiting }
   })
 
-  if (isSuccess) {
-    pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
-  } else if (finalLogMessage) {
-    pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
-  }
+  setTimeout(() => {
+    if (isSuccess) {
+      pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
+    } else if (finalLogMessage) {
+      pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
+    }
+  }, 0)
 }

@@ -110,8 +110,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
     customTimestamp?: number;
   }) => {
-    handleJoinPlayer({ ...args, isQueueOpen, state, settings, setState, pushLog })
-  }, [isQueueOpen, state, settings, setState, pushLog])
+    handleJoinPlayer({ ...args, isQueueOpen, settings, setState, pushLog })
+  }, [isQueueOpen, settings, setState, pushLog])
 
   const removePlayerFromQueue: QueueContextValue['removePlayerFromQueue'] = useCallback((args: {
     userId: string;
