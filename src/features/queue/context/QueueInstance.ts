@@ -77,6 +77,7 @@ export interface QueueContextValue {
   /** Универсальное перемещение игрока внутри списков или между ними (Drag-and-Drop) */
   movePlayer: (args: {
     userId: string;
+    displayedUsername?: string;
     targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;
     source: LogSource;

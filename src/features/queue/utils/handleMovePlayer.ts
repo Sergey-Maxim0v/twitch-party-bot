@@ -10,6 +10,8 @@ export interface HandleMovePlayerArgs {
   targetQueueType: Exclude<QueueType, 'history'>;
   /** Индекс (позиция), куда нужно вставить игрока (если не передан — падает в конец) */
   targetIndex: number | undefined;
+  /** Никнейм для отображения */
+  displayedUsername?: string;
   /** Источник вызова команды (чат/интерфейс) */
   source: AppLogItem['source'];
   /** Никнейм того, кто выполнил перемещение */
@@ -27,12 +29,13 @@ export const handleMovePlayer = ({
   userId,
   targetQueueType,
   targetIndex,
+  displayedUsername,
   source,
   actorUsername,
   setState,
   pushLog,
 }: HandleMovePlayerArgs): void => {
-  let targetPlayerName = ''
+  let targetPlayerName = displayedUsername || ''
   let sourceQueueType: Exclude<QueueType, 'history'> | null = null
   let isMoved = false
 
@@ -58,7 +61,9 @@ export const handleMovePlayer = ({
     // Если игрок вообще не найден в текущих списках, ничего не делаем
     if (!playerToMove) return prev
 
-    targetPlayerName = playerToMove.displayedUsername || playerToMove.username
+    if (!targetPlayerName) {
+      targetPlayerName = playerToMove.displayedUsername || playerToMove.username
+    }
     isMoved = true
 
     // 2. Вставляем игрока в целевую очередь
@@ -78,32 +83,33 @@ export const handleMovePlayer = ({
   })
 
   // 3. Логируем результат перемещения
-  if (isMoved && sourceQueueType) {
-    // 1. Формируем понятные названия для очередей
-    const queueLabels = {
-      [QUEUE_TYPES.ACTIVE]: 'активной очереди',
-      [QUEUE_TYPES.WAITING]: 'списка ожидающих',
+  setTimeout(() => {
+    if (isMoved && sourceQueueType) {
+      // 1. Формируем понятные названия для очередей
+      const queueLabels = {
+        [QUEUE_TYPES.ACTIVE]: 'активной очереди',
+        [QUEUE_TYPES.WAITING]: 'списка ожидающих',
+      }
+
+      const fromLabel = queueLabels[sourceQueueType]
+      const toLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активную очередь' : 'список ожидающих'
+
+      // 2. Формируем позицию (человеческий индекс с 1)
+      const positionLabel = targetIndex !== undefined ? ` на позицию ${targetIndex + 1}` : ' в конец'
+
+      // 3. Собираем текст сообщения без лишних повторов
+      const logMessage = sourceQueueType === targetQueueType
+        ? `Игрок ${targetPlayerName} перемещен внутри ${fromLabel}${positionLabel}.`
+        : `Игрок ${targetPlayerName} перенесен из ${fromLabel} в ${toLabel}${positionLabel}.`
+
+      pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
+    } else {
+      pushLog({
+        message: 'Ошибка перемещения: игрок не найден в списках очередей.',
+        status: APP_LOG_STATUSES.ERROR,
+        source,
+        actorUsername,
+      })
     }
-
-    const fromLabel = queueLabels[sourceQueueType]
-    const toLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активную очередь' : 'список ожидающих'
-
-    // 2. Формируем позицию (человеческий индекс с 1)
-    const positionLabel = targetIndex !== undefined ? ` на позицию ${targetIndex + 1}` : ' в конец'
-
-    // 3. Собираем текст сообщения без лишних повторов
-    const logMessage = sourceQueueType === targetQueueType
-      ? `Игрок ${targetPlayerName} перемещен внутри ${fromLabel}${positionLabel}.`
-      : `Игрок ${targetPlayerName} перенесен из ${fromLabel} в ${toLabel}${positionLabel}.`
-
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
-  } else {
-    pushLog({
-      message: 'Ошибка перемещения.',
-      status: APP_LOG_STATUSES.ERROR,
-      source,
-      actorUsername,
-    })
-  }
-
+  }, 0)
 }

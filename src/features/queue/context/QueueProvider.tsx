@@ -122,8 +122,10 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
   }) => {
     handleRemovePlayer({ ...args, setState, pushLog })
-    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-  }, [setState, pushLog, balanceQueues])
+    if(settings.moveOnSizeChange) {
+      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+    }
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
 
   const removePlayerFromAllQueues: QueueContextValue['removePlayerFromAllQueues'] = useCallback((args: {
     userId: string;
@@ -134,8 +136,10 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
   }) => {
     handleRemovePlayerFromAll({ ...args, setState, pushLog })
-    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-  }, [setState, pushLog, balanceQueues])
+    if(settings.moveOnSizeChange) {
+      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+    }
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
 
   const banPlayerFromQueue: QueueContextValue['banPlayerFromQueue'] = useCallback((args: {
     userId?: string;
@@ -148,13 +152,16 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
     handleBanPlayer({ ...args, settings, updateSettings, pushLog })
     removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
-    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+    if(settings.moveOnSizeChange) {
+      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+    }
   }, [settings, updateSettings, pushLog, removePlayerFromAllQueues, balanceQueues])
 
-  const movePlayer: QueueContextValue['movePlayer'] = useCallback((args: {
+  const movePlayer = useCallback((args: {
     userId: string;
     targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;
+    displayedUsername?: string;
     source: LogSource;
     actorUsername: string;
   }) => {
@@ -162,11 +169,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
     if (settings.moveOnSizeChange) {
       const { source, actorUsername } = args
-
-      balanceQueues({
-        source,
-        actorUsername,
-      })
+      balanceQueues({ source, actorUsername })
     }
   }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
 
@@ -182,8 +185,10 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     }
 
     // 3. Заполняем освободившиеся места из списка ожидания
-    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-  }, [closeQueue, settings.allowPreJoin, isQueueOpen, setState, pushLog, balanceQueues])
+    if(settings.moveOnSizeChange) {
+      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+    }
+  }, [setState, pushLog, settings.allowPreJoin, settings.moveOnSizeChange, isQueueOpen, closeQueue, balanceQueues])
 
   const contextValue = useMemo<QueueContextValue>(() => ({
     isQueueOpen,
