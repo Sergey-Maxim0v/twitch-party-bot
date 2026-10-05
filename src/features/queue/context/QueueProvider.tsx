@@ -50,14 +50,21 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   // === СИНХРОНИЗАЦИЯ И БАЛАНСИРОВКА ОЧЕРЕДИ ===
 
-  const balanceQueues = useCallback((args: { source: LogSource; actorUsername: string }) => {
+  const balanceQueues = useCallback((args: {
+    source: LogSource;
+    actorUsername: string;
+    overrideMaxQueueSize?: number;
+    overrideMoveOnSizeChange?: boolean;
+    overrideAllowPreJoin?: boolean;
+  }) => {
     handleBalanceQueues({
-      maxQueueSize: settings.maxQueueSize,
-      moveOnSizeChange: settings.moveOnSizeChange,
-      allowPreJoin: settings.allowPreJoin,
+      maxQueueSize: args.overrideMaxQueueSize ?? settings.maxQueueSize,
+      moveOnSizeChange: args.overrideMoveOnSizeChange ?? settings.moveOnSizeChange,
+      allowPreJoin: args.overrideAllowPreJoin ?? settings.allowPreJoin,
       setState,
       pushLog,
-      ...args,
+      source: args.source,
+      actorUsername: args.actorUsername,
     })
   }, [settings.maxQueueSize, settings.moveOnSizeChange, settings.allowPreJoin, setState, pushLog])
 

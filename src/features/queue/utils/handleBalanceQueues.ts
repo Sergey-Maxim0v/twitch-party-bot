@@ -1,9 +1,8 @@
-import type { Dispatch, SetStateAction } from 'react'
-import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-import type { LogSource } from '../../app-logs/types.ts'
-import type { QueueState, QueuePlayer } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
+import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
+import type { Dispatch, SetStateAction } from 'react'
+import type { QueuePlayer, QueueState } from '../types.ts'
 
 export interface HandleBalanceQueuesArgs {
   maxQueueSize: QueueSettings['maxQueueSize'];
@@ -27,8 +26,7 @@ export const handleBalanceQueues = ({
   setState,
   pushLog,
 }: HandleBalanceQueuesArgs): void => {
-
-  let logMessageText:string = 'Произведена балансировка очереди.'
+  let logMessageText: string | null = null
 
   setState(prev => {
     const activeLength = prev.activeQueue.length
@@ -87,7 +85,7 @@ export const handleBalanceQueues = ({
 
       if (playersToMove.length === 0) return prev
 
-      logMessageText = `Произведена балансировка очереди. Автоматически перенесено игроков из списка ожидающих в конец активной очереди: ${playersToMove.length}.`
+      logMessageText = `Произведена балансировка очереди. Автоматически перенесено игроков из списка ожидающих in конец активной очереди: ${playersToMove.length}.`
 
       const realWaiting = sourceWaiting.filter((_, idx) => !indicesToRemove.includes(idx))
       updatedActive.push(...playersToMove)
@@ -103,11 +101,13 @@ export const handleBalanceQueues = ({
   })
 
   setTimeout(() => {
-    pushLog({
-      message: logMessageText,
-      status: APP_LOG_STATUSES.SUCCESS,
-      source,
-      actorUsername,
-    })
+    if (logMessageText) {
+      pushLog({
+        message: logMessageText,
+        status: APP_LOG_STATUSES.SUCCESS,
+        source,
+        actorUsername,
+      })
+    }
   }, 0)
 }

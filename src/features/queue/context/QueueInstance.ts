@@ -7,6 +7,7 @@ import {
   type QueueType,
 } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
+import type { QueueSettings } from '../../queue-settings/types.ts'
 
 export interface QueueContextValue {
   /** Текущий статус очереди. */
@@ -83,7 +84,13 @@ export interface QueueContextValue {
   /**
    * Произвести ручную балансировку игроков между активной очередью и списком ожидания.
    */
-  balanceQueues: (args: { source: LogSource; actorUsername: string }) => void;
+  balanceQueues: (args: {
+    source: LogSource;
+    actorUsername: string;
+    overrideMaxQueueSize?: QueueSettings['maxQueueSize'];
+    overrideMoveOnSizeChange?: QueueSettings['moveOnSizeChange'];
+    overrideAllowPreJoin?: QueueSettings['allowPreJoin'];
+  }) => void;
 
   // === Жизненный цикл очереди ===
   /** Завершить текущую очередь (активная улетает в историю, из ожидающих переносятся) */

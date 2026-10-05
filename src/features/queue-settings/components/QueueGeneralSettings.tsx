@@ -1,4 +1,4 @@
-import { type FC } from 'react'
+import { type FC, useCallback } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import { SettingsNumberInput } from './SettingsNumberInput.tsx'
 import { SettingsCheckbox } from './SettingsCheckbox.tsx'
@@ -12,9 +12,31 @@ export interface QueueGeneralSettingsProps {
 
 const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName }) => {
   const { settings, updateSettings } = useQueueSettings()
-  const { clearWaitingQueue } = useQueue()
+  const { clearWaitingQueue, balanceQueues } = useQueue()
   const { session, userDisplayName } = useAuth()
-  
+
+  const actorUsername = userDisplayName ?? session?.login ?? ''
+
+  const handleChangeQueueLimit = useCallback((val: number) => {
+    updateSettings({ maxQueueSize: val })
+
+    if (settings.moveOnSizeChange) {
+      balanceQueues({
+        source: LOG_SOURCE.STREAMER_UI,
+        actorUsername,
+        overrideMaxQueueSize: val,
+      })
+    }
+  }, [actorUsername, balanceQueues, settings.moveOnSizeChange, updateSettings])
+
+  const handleChangeMoveOnSizeChange = useCallback((checked: boolean) => {
+    updateSettings({ moveOnSizeChange: checked })
+
+    if (checked) {
+      balanceQueues({ source: LOG_SOURCE.STREAMER_UI, actorUsername, overrideMoveOnSizeChange: checked })
+    }
+  }, [actorUsername, balanceQueues, updateSettings])
+
   return (
     <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
       <h3 className={titleClassName}>
@@ -25,7 +47,7 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         label="Лимит участников в очереди"
         max={99}
         min={1}
-        onChange={val => { updateSettings({ maxQueueSize: Number(val) || 1 }) }}
+        onChange={handleChangeQueueLimit}
         value={settings.maxQueueSize}
       />
 
@@ -37,7 +59,7 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
 
           if (!checked) {
             updateSettings({ allowMultipleEntries: false })
-            clearWaitingQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
+            clearWaitingQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername })
           }
         }}
       />
@@ -53,7 +75,7 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         checked={settings.moveOnSizeChange}
         disabled={!settings.allowPreJoin}
         label="Разрешить автоперенос игроков из списка ожидающих при изменении размера очереди"
-        onChange={checked => { updateSettings({ moveOnSizeChange: checked }) }}
+        onChange={ handleChangeMoveOnSizeChange}
       />
 
       <SettingsNumberInput
