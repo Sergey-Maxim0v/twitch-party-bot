@@ -44,9 +44,9 @@ export const handleBalanceQueues = ({
       }
 
       if (moveOnSizeChange && allowPreJoin) {
-        logMessageText = `Произведена балансировка очереди. Автоматически перенесено игроков в начало списка ожидающих: ${count}.`
+        logMessageText = `Автоматически перенесено игроков из активной очереди в начало списка ожидающих: ${count}.`
       } else {
-        logMessageText = `Произведена балансировка очереди. Лишние игроки удалены из активной очереди: ${count}.`
+        logMessageText = `Лишние игроки удалены из активной очереди: ${count}.`
       }
 
       return {
@@ -85,7 +85,7 @@ export const handleBalanceQueues = ({
 
       if (playersToMove.length === 0) return prev
 
-      logMessageText = `Произведена балансировка очереди. Автоматически перенесено игроков из списка ожидающих in конец активной очереди: ${playersToMove.length}.`
+      logMessageText = `Автоматически перенесено игроков из списка ожидающих в конец активной очереди: ${playersToMove.length}.`
 
       const realWaiting = sourceWaiting.filter((_, idx) => !indicesToRemove.includes(idx))
       updatedActive.push(...playersToMove)

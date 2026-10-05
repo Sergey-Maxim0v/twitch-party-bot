@@ -8,14 +8,14 @@ export interface HandleRemovePlayerFromAllArgs {
   userId: string;
   /** Логин пользователя на Twitch */
   username: string;
+  /** Отображаемое имя игрока */
+  displayedUsername?: string;
   /** Источник вызова команды (чат/интерфейс) */
   source: AppLogItem['source'];
   /** Никнейм того, кто выполнил удаление */
   actorUsername: string;
   /** Исходный текст команды (если вызвано из чата) */
   rawCommand?: string;
-  /** Текущее состояние очереди */
-  state: QueueState;
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
@@ -28,60 +28,73 @@ export interface HandleRemovePlayerFromAllArgs {
 export const handleRemovePlayerFromAll = ({
   userId,
   username,
+  displayedUsername,
   source,
   actorUsername,
   rawCommand,
-  state,
   setState,
   pushLog,
 }: HandleRemovePlayerFromAllArgs): void => {
   const targetUsernameLower = username.toLowerCase()
-  let targetPlayerName = ''
 
   // Функция-предикат для поиска совпадений по ID или по логину
   const isTargetPlayer = (p: { userId: string; username: string }) =>
     p.userId === userId || p.username.toLowerCase() === targetUsernameLower
 
-  const activeMatches = state.activeQueue.filter(isTargetPlayer)
-  const removedFromActiveCount = activeMatches.length
-  if (removedFromActiveCount > 0) {
-    targetPlayerName = activeMatches[0].displayedUsername || activeMatches[0].username
-  }
+  let logMessageText: string = ''
+  let isError = false
 
-  const waitingMatches = state.waitingQueue.filter(isTargetPlayer)
-  const removedFromWaitingCount = waitingMatches.length
-  if (removedFromWaitingCount > 0 && !targetPlayerName) {
-    targetPlayerName = waitingMatches[0].displayedUsername || waitingMatches[0].username
-  }
+  setState(prev => {
+    let targetPlayerName = displayedUsername || ''
 
-  const totalRemoved = removedFromActiveCount + removedFromWaitingCount
+    const activeMatches = prev.activeQueue.filter(isTargetPlayer)
+    const removedFromActiveCount = activeMatches.length
+    if (removedFromActiveCount > 0 && !targetPlayerName) {
+      targetPlayerName = activeMatches[0].displayedUsername || activeMatches[0].username
+    }
 
-  // Если игрок не найден ни по ID, ни по имени
-  if (totalRemoved === 0) {
-    const logMessage = `Ошибка отмены записи: игрок ${username} (ID: ${userId}) не найден ни в одном из списков.`
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
-    return
-  }
+    const waitingMatches = prev.waitingQueue.filter(isTargetPlayer)
+    const removedFromWaitingCount = waitingMatches.length
+    if (removedFromWaitingCount > 0 && !targetPlayerName) {
+      targetPlayerName = waitingMatches[0].displayedUsername || waitingMatches[0].username
+    }
 
-  // Игрок найден
-  let logMessage: string
-  const displayName = targetPlayerName || username
+    const totalRemoved = removedFromActiveCount + removedFromWaitingCount
 
-  if (removedFromActiveCount > 0 && removedFromWaitingCount > 0) {
-    logMessage = `Игрок ${displayName} удален из активной очереди (${removedFromActiveCount}) и списка ожидающих (${removedFromWaitingCount}).`
-  } else if (removedFromActiveCount > 0) {
-    logMessage = `Игрок ${displayName} удален из активной очереди (${removedFromActiveCount}).`
-  } else if (removedFromWaitingCount > 0) {
-    logMessage = `Игрок ${displayName} удален из списка ожидающих (${removedFromWaitingCount}).`
-  } else {
-    logMessage = `Игрок ${displayName} не найден в очередях.`
-  }
+    // Если игрок не найден ни по ID, ни по имени
+    if (totalRemoved === 0) {
+      isError = true
+      const nameToLog = displayedUsername || username
+      logMessageText = `Ошибка отмены записи: игрок ${nameToLog} (ID: ${userId}) не найден ни в одном из списков.`
+      return prev
+    }
 
-  setState({
-    ...state,
-    activeQueue: state.activeQueue.filter(p => !isTargetPlayer(p)),
-    waitingQueue: state.waitingQueue.filter(p => !isTargetPlayer(p)),
+    const displayName = targetPlayerName || displayedUsername || username
+
+    if (removedFromActiveCount > 0 && removedFromWaitingCount > 0) {
+      logMessageText = `Игрок ${displayName} удален из всех очередей: активная (${removedFromActiveCount}) и список ожидающих (${removedFromWaitingCount}).`
+    } else if (removedFromActiveCount > 0) {
+      logMessageText = `Игрок ${displayName} удален из всех очередей: активная (${removedFromActiveCount}).`
+    } else if (removedFromWaitingCount > 0) {
+      logMessageText = `Игрок ${displayName} удален из всех очередей: список ожидающих (${removedFromWaitingCount}).`
+    } else {
+      logMessageText = `Ошибка удаления из всех очередей: игрок ${displayName} не найден.`
+    }
+
+    return {
+      ...prev,
+      activeQueue: prev.activeQueue.filter(p => !isTargetPlayer(p)),
+      waitingQueue: prev.waitingQueue.filter(p => !isTargetPlayer(p)),
+    }
   })
 
-  pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
+  setTimeout(() => {
+    pushLog({
+      message: logMessageText,
+      status: isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.SUCCESS,
+      source,
+      actorUsername,
+      rawCommand,
+    })
+  }, 0)
 }

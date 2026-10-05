@@ -1,12 +1,8 @@
-import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 export interface HandleBanPlayerArgs {
-  /** Уникальный ID пользователя на Twitch (если известен, для фильтрации) */
-  userId?: string;
   /** Логин/никнейм пользователя для занесения в бан-лист */
   username: string;
   /** Красивое отображаемое имя (для логов) */
@@ -19,25 +15,21 @@ export interface HandleBanPlayerArgs {
   settings: QueueSettings;
   /** Функция обновления настроек */
   updateSettings: (newSettings: Partial<QueueSettings>) => void;
-  /** Функция обновления состояния игроков */
-  setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
   pushLog: AppLogsContextValue['pushLog']
 }
 
 /**
- * Хендлер для добавления игрока во внутренний бан-лист очереди
- * с последующей полной очисткой его записей из всех текущих списков.
+ * Хендлер для добавления игрока во внутренний бан-лист настроек очереди.
+ * Делегирует последующее удаление из списков специализированной утилите.
  */
 export const handleBanPlayer = ({
-  userId,
   username,
   displayedUsername,
   source,
   actorUsername,
   settings,
   updateSettings,
-  setState,
   pushLog,
 }: HandleBanPlayerArgs): void => {
   const targetLogin = username.toLowerCase()
@@ -47,13 +39,12 @@ export const handleBanPlayer = ({
   const alreadyBanned = settings.banList.some(b => b.toLowerCase() === targetLogin)
 
   if (alreadyBanned) {
-    pushLog(
-      { message: `Ошибка бана: пользователь ${displayName} уже находится в бан-листе очереди.`,
-        status: APP_LOG_STATUSES.ERROR,
-        source,
-        actorUsername,
-      },
-    )
+    pushLog({
+      message: `Ошибка бана: пользователь ${displayName} уже находится в бан-листе очереди.`,
+      status: APP_LOG_STATUSES.ERROR,
+      source,
+      actorUsername,
+    })
     return
   }
 
@@ -61,29 +52,11 @@ export const handleBanPlayer = ({
   const updatedBanList = [...settings.banList, username]
   updateSettings({ banList: updatedBanList })
 
-  // 3. Вычищаем игрока из активной очереди и списка ожидающих по userId или по логину
-  let removedCount = 0
-
-  setState(prev => {
-    const activeMatches = prev.activeQueue.filter(p => p.userId === userId || p.username.toLowerCase() === targetLogin)
-    const waitingMatches = prev.waitingQueue.filter(p => p.userId === userId || p.username.toLowerCase() === targetLogin)
-
-    removedCount = activeMatches.length + waitingMatches.length
-
-    if (removedCount === 0) {
-      return prev
-    }
-
-    return {
-      ...prev,
-      activeQueue: prev.activeQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin),
-      waitingQueue: prev.waitingQueue.filter(p => p.userId !== userId && p.username.toLowerCase() !== targetLogin),
-    }
+  // 3. Отправляем лог о внесении пользователя в бан-лист
+  pushLog({
+    message: `Пользователь ${displayName} добавлен во внутренний бан-лист очереди.`,
+    status: APP_LOG_STATUSES.SUCCESS,
+    source,
+    actorUsername,
   })
-
-  // 4. Формируем и отправляем итоговый лог
-  const cleanDetails = removedCount > 0 ? ` (удален из ${removedCount} очередей)` : ''
-  const logMessage = `Пользователь ${displayName} добавлен во внутренний бан-лист очереди${cleanDetails}.`
-
-  pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
 }

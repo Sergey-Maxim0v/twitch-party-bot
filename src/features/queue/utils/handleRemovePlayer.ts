@@ -8,14 +8,14 @@ export interface HandleRemovePlayerArgs {
   userId: string;
   /** Из какой именно очереди нужно удалить игрока */
   targetQueueType: QueueType;
+  /** Имя игрока для отображения */
+  displayedUsername?: string;
   /** Источник вызова команды (чат/интерфейс) */
   source: AppLogItem['source'];
   /** Никнейм того, кто выполнил удаление */
   actorUsername: string;
   /** Исходный текст команды (если вызвано из чата) */
   rawCommand?: string;
-  /** Текущее состояние очереди (передаем как значение) */
-  state: QueueState;
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Хелпер провайдера для записи логов */
@@ -28,10 +28,10 @@ export interface HandleRemovePlayerArgs {
 export const handleRemovePlayer = ({
   userId,
   targetQueueType,
+  displayedUsername,
   source,
   actorUsername,
   rawCommand,
-  state,
   setState,
   pushLog,
 }: HandleRemovePlayerArgs): void => {
@@ -47,29 +47,43 @@ export const handleRemovePlayer = ({
 
   const queueLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активной очереди' : 'списке ожидающих'
   const isTargetActive = targetQueueType === QUEUE_TYPES.ACTIVE
-  const queueToSearch = isTargetActive ? state.activeQueue : state.waitingQueue
 
-  const index = queueToSearch.findIndex(p => p.userId === userId)
+  let logMessageText: string = ''
+  let isError = false
 
-  if (index === -1) {
-    const logMessage = `Ошибка удаления: игрок с ID ${userId} не найден в ${queueLabel}.`
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
-    return
-  }
+  setState(prev => {
+    const queueToSearch = isTargetActive ? prev.activeQueue : prev.waitingQueue
+    const index = queueToSearch.findIndex(p => p.userId === userId)
 
-  const player = queueToSearch[index]
-  const targetPlayerName = player.displayedUsername || player.username
-  const logMessage = `Игрок ${targetPlayerName} удален из ${queueLabel}.`
+    if (index === -1) {
+      isError = true
+      const nameOrId = displayedUsername || `ID ${userId}`
+      logMessageText = `Ошибка удаления: игрок ${nameOrId} не найден в ${queueLabel}.`
+      return prev
+    }
 
-  if (isTargetActive) {
-    const updatedActive = [...state.activeQueue]
-    updatedActive.splice(index, 1)
-    setState({ ...state, activeQueue: updatedActive })
-  } else {
-    const updatedWaiting = [...state.waitingQueue]
-    updatedWaiting.splice(index, 1)
-    setState({ ...state, waitingQueue: updatedWaiting })
-  }
+    const player = queueToSearch[index]
+    const targetPlayerName = displayedUsername || player.displayedUsername || player.username
+    logMessageText = `Игрок ${targetPlayerName} удален из ${queueLabel}.`
 
-  pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
+    if (isTargetActive) {
+      const updatedActive = [...prev.activeQueue]
+      updatedActive.splice(index, 1)
+      return { ...prev, activeQueue: updatedActive }
+    } else {
+      const updatedWaiting = [...prev.waitingQueue]
+      updatedWaiting.splice(index, 1)
+      return { ...prev, waitingQueue: updatedWaiting }
+    }
+  })
+
+  setTimeout(() => {
+    pushLog({
+      message: logMessageText,
+      status: isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.SUCCESS,
+      source,
+      actorUsername,
+      rawCommand,
+    })
+  }, 0)
 }

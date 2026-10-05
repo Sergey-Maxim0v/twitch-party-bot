@@ -48,6 +48,7 @@ export interface QueueContextValue {
   /** Удалить первую найденную запись игрока из конкретной очереди (активной или ожидающих) */
   removePlayerFromQueue: (args: {
     userId: string;
+    displayedUsername?: string;
     targetQueueType: QueueType;
     source: LogSource;
     actorUsername: string;
@@ -58,6 +59,7 @@ export interface QueueContextValue {
   removePlayerFromAllQueues: (args: {
     userId: string;
     username: string;
+    displayedUsername?: string;
     source: LogSource;
     actorUsername: string;
     rawCommand?: string;

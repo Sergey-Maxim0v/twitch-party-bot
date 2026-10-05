@@ -116,34 +116,42 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const removePlayerFromQueue: QueueContextValue['removePlayerFromQueue'] = useCallback((args: {
     userId: string;
     targetQueueType: QueueType;
+    displayedUsername?: string;
     source: LogSource;
     actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayer({ ...args, state, setState, pushLog })
-  }, [state, setState, pushLog])
+    handleRemovePlayer({ ...args, setState, pushLog })
+    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+  }, [setState, pushLog, balanceQueues])
 
-  const removePlayerFromAllQueues = useCallback((args: {
+  const removePlayerFromAllQueues: QueueContextValue['removePlayerFromAllQueues'] = useCallback((args: {
     userId: string;
     username: string;
+    displayedUsername?: string;
     source: LogSource;
     actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayerFromAll({ ...args, state, setState, pushLog })
-  }, [state, setState, pushLog])
+    handleRemovePlayerFromAll({ ...args, setState, pushLog })
+    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+  }, [setState, pushLog, balanceQueues])
 
-  const banPlayerFromQueue = useCallback((args: {
+  const banPlayerFromQueue: QueueContextValue['banPlayerFromQueue'] = useCallback((args: {
     userId?: string;
     username: string;
     displayedUsername?: string;
     source: LogSource;
     actorUsername: string;
   }) => {
-    handleBanPlayer({ ...args, settings, updateSettings, setState, pushLog })
-  }, [settings, updateSettings, setState, pushLog])
+    const { userId = '', source, actorUsername, username, displayedUsername } = args
 
-  const movePlayer = useCallback((args: {
+    handleBanPlayer({ ...args, settings, updateSettings, pushLog })
+    removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
+    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+  }, [settings, updateSettings, pushLog, removePlayerFromAllQueues, balanceQueues])
+
+  const movePlayer: QueueContextValue['movePlayer'] = useCallback((args: {
     userId: string;
     targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;

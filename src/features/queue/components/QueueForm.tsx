@@ -32,6 +32,7 @@ const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
     const playerData: QueuePlayerFormData = {
       rawMessage: messageText.trim(),
       username: lowerCaseUser,
+      displayedUsername: trimmedUsername,
       userId: generatedId,
       isModerator: isMod,
       isSubscriber: isSub,
