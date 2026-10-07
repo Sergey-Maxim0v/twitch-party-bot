@@ -15,19 +15,12 @@ const QueueSettingsPanel: FC = () => {
 
   return (
     <div className="flex-1 p-4 space-y-6 overflow-y-auto custom-scrollbar min-w-0">
-
       <QueueGeneralSettings titleClassName={titleClassName} />
-
       <QueueClearSection titleClassName={titleClassName} />
-
       <QueueGameSection titleClassName={titleClassName} />
-
       <QueueCommandsSection titleClassName={titleClassName} />
-
       <QueueMessageSection titleClassName={titleClassName} />
-
       <QueueBanListSection titleClassName={titleClassName} />
-
       <QueueResetSettings titleClassName={titleClassName} />
     </div>
   )
