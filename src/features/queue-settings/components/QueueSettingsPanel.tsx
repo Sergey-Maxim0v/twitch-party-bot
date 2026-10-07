@@ -4,13 +4,10 @@ import { QueueBanListSection } from './QueueBanListSection.tsx'
 import { QueueGameSection } from './QueueGameSection.tsx'
 import QueueGeneralSettings from './QueueGeneralSettings.tsx'
 import QueueResetSettings from './QueueResetSection.tsx'
-import { useQueueAutoClose } from '../hooks/useQueueAutoClose.ts'
 import QueueMessageSection from './QueueMessageSection.tsx'
 import QueueClearSection from './QueueClearSection.tsx'
 
 const QueueSettingsPanel: FC = () => {
-
-  useQueueAutoClose()
 
   const titleClassName = 'text-xs font-bold tracking-wide text-base-content/50 uppercase'
 

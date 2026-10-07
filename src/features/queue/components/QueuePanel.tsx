@@ -12,13 +12,14 @@ import QueueElement from './QueueElement.tsx'
 import { QUEUE_TYPES, type QueuePlayer } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
 import { useChatCommands } from '../hooks/useChatCommands.ts'
+import { useQueueAutoClose } from '../hooks/useQueueAutoClose.ts'
 
 const QueuePanel: FC = () => {
   const { settings } = useQueueSettings()
   const { movePlayer, activeQueue, waitingQueue } = useQueue()
   const { userDisplayName } = useAuth()
 
-  // Вызов обработчика команд из сообщений чата
+  useQueueAutoClose()
   useChatCommands()
 
   const [isActiveListOpen, setIsActiveListOpen] = useState<boolean>(true)

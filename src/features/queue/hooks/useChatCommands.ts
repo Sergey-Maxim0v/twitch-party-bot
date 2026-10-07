@@ -5,6 +5,9 @@ import { LOG_SOURCE } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 
+/**
+ * Хук для обработки текстовых команд из чата Twitch.
+ */
 export const useChatCommands = () => {
   const { settings } = useQueueSettings()
   const { lastMessage, sendChatMessage } = useTwitchChat()

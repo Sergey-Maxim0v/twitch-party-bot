@@ -1,7 +1,7 @@
 import { type RefObject, useEffect, useRef } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
-import { useQueue } from '../../queue/hooks/useQueue.ts'
+import { useQueue } from './useQueue.ts'
 
 /**
  * Хук для автоматического закрытия очереди при разлогине, смене канала, перезагрузке страницы.
