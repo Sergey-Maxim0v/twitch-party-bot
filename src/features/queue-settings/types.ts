@@ -75,6 +75,10 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
     onQueueFull: false,
   },
   banList: [],
+  currentGame: undefined,
+  subscribersOnly: false,
+  prioritizeSubscribers: false,
+  maxGamesPerUser: 0,
 }
 
 export interface QueueSettings {

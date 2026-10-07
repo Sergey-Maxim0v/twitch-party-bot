@@ -38,7 +38,7 @@ const NOTIFICATION_LABELS: Record<string, string> = {
 }
 
 // Словарь разрешений сообщений
-const COMAND_LABELS: Record<string, string> = {
+const COMMAND_LABELS: Record<string, string> = {
   join: 'Вступление в очередь',
   leave: 'Выход из очереди',
   show: 'Показать текущую очередь',
@@ -124,7 +124,7 @@ export const usePanelSettingsLog = () => {
         const k = commandKey as keyof QueueSettings['commands']
         const currentCmd = settings.commands[k]
         const prevCmd = prev.commands[k]
-        const commandLabel = COMAND_LABELS[k] || k
+        const commandLabel = COMMAND_LABELS[k] || k
 
         if (prevCmd) {
           // Проверка изменения триггера (имени команды)

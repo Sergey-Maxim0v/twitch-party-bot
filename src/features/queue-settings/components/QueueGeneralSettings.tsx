@@ -98,8 +98,8 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
         label="Лимит игр для одного игрока"
         max={99}
         min={0}
-        onChange={val => { updateSettings({ maxGamesPerUser: Number(val) || 99 }) }}
-        value={settings.maxGamesPerUser || 99}
+        onChange={val => { updateSettings({ maxGamesPerUser: Number(val) || 0 }) }}
+        value={settings.maxGamesPerUser || 0}
       />
 
       <SettingsCheckbox
