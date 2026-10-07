@@ -67,7 +67,7 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
       <SettingsCheckbox
         checked={settings.allowMultipleEntries}
         disabled={!settings.allowPreJoin}
-        label="Разрешить записть в список ожидающих участников текущей очереди"
+        label="Разрешить запись в список ожидающих участников текущей очереди"
         onChange={checked => { updateSettings({ allowMultipleEntries: checked }) }}
       />
 

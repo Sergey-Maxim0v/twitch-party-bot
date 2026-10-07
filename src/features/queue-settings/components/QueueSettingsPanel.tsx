@@ -6,8 +6,12 @@ import QueueGeneralSettings from './QueueGeneralSettings.tsx'
 import QueueResetSettings from './QueueResetSection.tsx'
 import QueueMessageSection from './QueueMessageSection.tsx'
 import QueueClearSection from './QueueClearSection.tsx'
+import { usePanelSettingsLog } from '../hooks/usePanelSettingsLog.ts'
 
 const QueueSettingsPanel: FC = () => {
+  usePanelSettingsLog()
+  // TODO: приоритет сабов, лимиты и другие что по дефолту не заданы
+  // TODO: инпуты команд по фокусу
 
   const titleClassName = 'text-xs font-bold tracking-wide text-base-content/50 uppercase'
 

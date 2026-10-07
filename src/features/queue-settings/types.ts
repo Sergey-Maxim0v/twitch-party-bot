@@ -110,7 +110,7 @@ export interface QueueSettings {
     /** Бот пишет текущую очередь в чат. */
     show: QueueCommandConfig;
 
-    /** Очистить текущую очередь. */
+    /** Очистить очереди. */
     clear: QueueCommandConfig;
 
     /** Добавить игрока в очередь. */

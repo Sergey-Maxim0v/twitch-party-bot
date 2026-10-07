@@ -60,7 +60,7 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
       <SettingsCommandInput
         commandValue={settings.commands.clear.name}
         isModeratorValue={settings.commands.clear.isModeratorOnly}
-        label="Очистить текущую очередь"
+        label="Очистить очереди"
         onCommandChange={val => { handleCommandChange('clear', val) }}
         onModeratorChange={chk => { handleModChange('clear', chk) }}
       />
