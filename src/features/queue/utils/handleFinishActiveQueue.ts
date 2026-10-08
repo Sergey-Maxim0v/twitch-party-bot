@@ -70,7 +70,7 @@ export const handleFinishActiveQueue = ({
   setTimeout(() => {
     if (!isQueueEmpty) {
       const logMessage = `Состав №${nextSessionNumber} завершен (игроков: ${playedPlayersCount}).`
-      pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
+      pushLog({ message: logMessage, status: APP_LOG_STATUSES.WARNING, source, actorUsername })
     } else {
       pushLog({
         message: 'Не удалось завершить сессию: активная очередь пуста.',

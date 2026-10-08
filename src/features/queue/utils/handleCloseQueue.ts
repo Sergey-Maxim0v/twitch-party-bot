@@ -38,7 +38,7 @@ export const handleCloseQueue = ({
   setIsQueueOpen(false)
 
   pushLog({
-    message: 'Прием заявок в очередь закрыт.',
+    message: 'Закрыта очередь, добавлять в очередь могут только модераторы в чате и пользователь приложения.',
     status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,

@@ -104,7 +104,7 @@ export const handleBalanceQueues = ({
     if (logMessageText) {
       pushLog({
         message: logMessageText,
-        status: APP_LOG_STATUSES.SUCCESS,
+        status: APP_LOG_STATUSES.INFO,
         source,
         actorUsername,
       })

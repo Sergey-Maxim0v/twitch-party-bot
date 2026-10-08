@@ -34,6 +34,12 @@ export const handleUnbanPlayer = ({
   const isExist = settings.banList.some(b => b.toLowerCase() === targetLogin)
 
   if (!isExist) {
+    pushLog({
+      message: `Бан-лист очереди: Ошибка, ${username} не найден в бан-листе очереди.`,
+      status: APP_LOG_STATUSES.ERROR,
+      source,
+      actorUsername,
+    })
     return
   }
 
@@ -43,7 +49,7 @@ export const handleUnbanPlayer = ({
 
   // Пишем лог
   pushLog({
-    message: `Участник чата ${username} удален из бан-листа очереди.`,
+    message: `Бан-лист очереди: ${username} удален из бан-листа очереди.`,
     status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,

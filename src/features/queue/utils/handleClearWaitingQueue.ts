@@ -40,7 +40,7 @@ export const handleClearWaitingQueue = ({
 
   pushLog({
     message: logMessage,
-    status: APP_LOG_STATUSES.INFO,
+    status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,
   })

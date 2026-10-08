@@ -32,7 +32,7 @@ export const handleClearQueueHistory = ({
 
   pushLog({
     message: 'История сыгранных сессий очищена.',
-    status: APP_LOG_STATUSES.INFO,
+    status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,
   },

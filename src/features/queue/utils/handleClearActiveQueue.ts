@@ -30,7 +30,7 @@ export const handleClearActiveQueue = ({
 
   pushLog({
     message: 'Текущая очередь очищена.',
-    status: APP_LOG_STATUSES.INFO,
+    status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,
   })

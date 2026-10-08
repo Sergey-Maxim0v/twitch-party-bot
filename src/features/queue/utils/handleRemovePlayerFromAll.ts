@@ -65,20 +65,20 @@ export const handleRemovePlayerFromAll = ({
     if (totalRemoved === 0) {
       isError = true
       const nameToLog = displayedUsername || username
-      logMessageText = `Ошибка удаления из очередей: игрок ${nameToLog} не найден ни в одном из списков.`
+      logMessageText = `Удаление из всех очередей: Ошибка, игрок ${nameToLog} не найден ни в одном из списков.`
       return prev
     }
 
     const displayName = targetPlayerName || displayedUsername || username
 
     if (removedFromActiveCount > 0 && removedFromWaitingCount > 0) {
-      logMessageText = `Игрок ${displayName} удален из всех очередей: активная (${removedFromActiveCount}) и список ожидающих (${removedFromWaitingCount}).`
+      logMessageText = `Удаление из всех очередей: ${displayName} удален из активной очереди и списка ожидающих.`
     } else if (removedFromActiveCount > 0) {
-      logMessageText = `Игрок ${displayName} удален из всех очередей: активная (${removedFromActiveCount}).`
+      logMessageText = `Удаление из всех очередей: ${displayName} удален из активной очереди.`
     } else if (removedFromWaitingCount > 0) {
-      logMessageText = `Игрок ${displayName} удален из всех очередей: список ожидающих (${removedFromWaitingCount}).`
+      logMessageText = `Удаление из всех очередей: ${displayName} удален из списка ожидающих.`
     } else {
-      logMessageText = `Ошибка удаления из всех очередей: игрок ${displayName} не найден.`
+      logMessageText = `Удаление из всех очередей: Ошибка, ${displayName} не найден.`
     }
 
     return {

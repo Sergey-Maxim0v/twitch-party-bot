@@ -38,7 +38,7 @@ export const handleOpenQueue = ({
   setIsQueueOpen(true)
 
   pushLog({
-    message: 'Прием заявок в очередь открыт.',
+    message: 'Открыта очередь, участники чата могут добавляться.',
     status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,

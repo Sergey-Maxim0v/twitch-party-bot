@@ -37,7 +37,7 @@ export const handleRemovePlayer = ({
 }: HandleRemovePlayerArgs): void => {
   if (targetQueueType === QUEUE_TYPES.HISTORY) {
     pushLog({
-      message: 'Ошибка: из истории нельзя удалить игрока',
+      message: 'Удаление из очереди: Ошибка, из истории нельзя удалить игрока',
       source: LOG_SOURCE.APPLICATION,
       status: APP_LOG_STATUSES.ERROR,
       actorUsername,
@@ -58,13 +58,13 @@ export const handleRemovePlayer = ({
     if (index === -1) {
       isError = true
       const nameOrId = displayedUsername || `ID ${userId}`
-      logMessageText = `Ошибка удаления: игрок ${nameOrId} не найден в ${queueLabel}.`
+      logMessageText = `Удаление из очереди: Ошибка, игрок ${nameOrId} не найден в ${queueLabel}.`
       return prev
     }
 
     const player = queueToSearch[index]
     const targetPlayerName = displayedUsername || player.displayedUsername || player.username
-    logMessageText = `Игрок ${targetPlayerName} удален из ${queueLabel}.`
+    logMessageText = `Удаление из очереди: ${targetPlayerName} удален из ${queueLabel}.`
 
     if (isTargetActive) {
       const updatedActive = [...prev.activeQueue]

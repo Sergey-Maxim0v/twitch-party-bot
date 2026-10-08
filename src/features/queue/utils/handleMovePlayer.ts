@@ -102,7 +102,7 @@ export const handleMovePlayer = ({
         ? `Игрок ${targetPlayerName} перемещен внутри ${fromLabel}${positionLabel}.`
         : `Игрок ${targetPlayerName} перенесен из ${fromLabel} в ${toLabel}${positionLabel}.`
 
-      pushLog({ message: logMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername })
+      pushLog({ message: logMessage, status: APP_LOG_STATUSES.INFO, source, actorUsername })
     } else {
       pushLog({
         message: 'Ошибка перемещения: игрок не найден в списках очередей.',
