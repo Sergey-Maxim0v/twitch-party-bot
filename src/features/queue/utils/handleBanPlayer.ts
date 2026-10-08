@@ -19,9 +19,13 @@ export interface HandleBanPlayerArgs {
   pushLog: AppLogsContextValue['pushLog']
 }
 
+export interface HandleBanPlayerResult {
+  /** Флаг, указывающий, был ли успешно добавлен пользователь в бан-лист */
+  isBanned: boolean;
+}
+
 /**
  * Хендлер для добавления игрока во внутренний бан-лист настроек очереди.
- * Делегирует последующее удаление из списков специализированной утилите.
  */
 export const handleBanPlayer = ({
   username,
@@ -31,21 +35,26 @@ export const handleBanPlayer = ({
   settings,
   updateSettings,
   pushLog,
-}: HandleBanPlayerArgs): void => {
+}: HandleBanPlayerArgs): HandleBanPlayerResult => {
   const targetLogin = username.toLowerCase()
   const displayName = displayedUsername || username
 
   // 1. Проверяем, нет ли уже пользователя в бан-листе настроек
   const alreadyBanned = settings.banList.some(b => b.toLowerCase() === targetLogin)
 
-  if (alreadyBanned) {
+  const pushBanlistLog = (message: string) => {
     pushLog({
-      message: `Ошибка бана: пользователь ${displayName} уже находится в бан-листе очереди.`,
-      status: APP_LOG_STATUSES.ERROR,
+      message,
+      status: APP_LOG_STATUSES.WARNING,
       source,
       actorUsername,
     })
-    return
+  }
+
+  if (alreadyBanned) {
+    pushBanlistLog(`Бан-лист очереди: ${displayName} уже находится в бан-листе.`)
+
+    return { isBanned: false }
   }
 
   // 2. Обновляем бан-лист в настройках очереди (добавляем оригинальный никнейм)
@@ -53,10 +62,7 @@ export const handleBanPlayer = ({
   updateSettings({ banList: updatedBanList })
 
   // 3. Отправляем лог о внесении пользователя в бан-лист
-  pushLog({
-    message: `Пользователь ${displayName} добавлен во внутренний бан-лист очереди.`,
-    status: APP_LOG_STATUSES.SUCCESS,
-    source,
-    actorUsername,
-  })
+  pushBanlistLog(`Бан-лист очереди: ${displayName} добавлен.`)
+
+  return { isBanned: true }
 }

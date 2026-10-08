@@ -24,7 +24,7 @@ export const useAppLogsObserver = (): void => {
       lastUserRef.current = session.login
       pushLog({
         message: `Вы вошли в аккаунт: ${userDisplayName ?? session.login}`,
-        status: APP_LOG_STATUSES.WARNING,
+        status: APP_LOG_STATUSES.SUCCESS,
         source: LOG_SOURCE.APPLICATION,
         actorUsername: userDisplayName ?? session.login,
       })
@@ -56,10 +56,10 @@ export const useAppLogsObserver = (): void => {
       const isIntentionally = client?.isIntentionallyDisconnected ?? false
       if (isIntentionally) {
         message = `Соединение с каналом ${targetChannel} закрыто пользователем.`
-        status = APP_LOG_STATUSES.WARNING
+        status = APP_LOG_STATUSES.ERROR
       } else {
         message = 'Соединение с Twitch потеряно. Запуск автоматического восстановления...'
-        status = APP_LOG_STATUSES.WARNING
+        status = APP_LOG_STATUSES.ERROR
       }
     }
 
@@ -84,7 +84,7 @@ export const useAppLogsObserver = (): void => {
     const targetChannel = name ? `@${name}` : 'Twitch'
 
     let message = ''
-    let status: AppLogStatus = APP_LOG_STATUSES.INFO
+    let status: AppLogStatus = APP_LOG_STATUSES.SUCCESS
 
     if (chatAccessStatus === CHAT_ACCESS_STATUSES.CONNECTED) {
       message = `Чат канала ${targetChannel} подключен: бот может читать чат и отправлять сообщения.`
@@ -94,7 +94,7 @@ export const useAppLogsObserver = (): void => {
       status = APP_LOG_STATUSES.SUCCESS
     } else if (chatAccessStatus === CHAT_ACCESS_STATUSES.BANNED) {
       message = `Доступ к чату ${targetChannel} заблокирован: аккаунт бота забанен на канале.`
-      status = APP_LOG_STATUSES.WARNING
+      status = APP_LOG_STATUSES.ERROR
     }
 
     if (message) {

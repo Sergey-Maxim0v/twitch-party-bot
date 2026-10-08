@@ -39,7 +39,7 @@ export const handleOpenQueue = ({
 
   pushLog({
     message: 'Прием заявок в очередь открыт.',
-    status: APP_LOG_STATUSES.INFO,
+    status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,
   })

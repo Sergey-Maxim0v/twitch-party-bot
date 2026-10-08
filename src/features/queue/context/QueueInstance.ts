@@ -74,6 +74,13 @@ export interface QueueContextValue {
     actorUsername: string;
   }) => void;
 
+  /** Удалить игрока из внутреннего бан-листа очереди и зафиксировать амнистию в логах */
+  unbanPlayerFromQueue: (args: {
+    username: string;
+    source: LogSource;
+    actorUsername: string;
+  }) => void;
+
   /** Универсальное перемещение игрока внутри списков или между ними (Drag-and-Drop) */
   movePlayer: (args: {
     userId: string;

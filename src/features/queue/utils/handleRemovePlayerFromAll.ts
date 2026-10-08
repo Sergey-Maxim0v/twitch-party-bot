@@ -65,7 +65,7 @@ export const handleRemovePlayerFromAll = ({
     if (totalRemoved === 0) {
       isError = true
       const nameToLog = displayedUsername || username
-      logMessageText = `Ошибка отмены записи: игрок ${nameToLog} (ID: ${userId}) не найден ни в одном из списков.`
+      logMessageText = `Ошибка удаления из очередей: игрок ${nameToLog} не найден ни в одном из списков.`
       return prev
     }
 
@@ -91,7 +91,7 @@ export const handleRemovePlayerFromAll = ({
   setTimeout(() => {
     pushLog({
       message: logMessageText,
-      status: isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.SUCCESS,
+      status: isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
       source,
       actorUsername,
       rawCommand,

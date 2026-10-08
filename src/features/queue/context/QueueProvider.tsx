@@ -21,6 +21,7 @@ import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
 import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
 import { handleOpenQueue } from '../utils/handleOpenQueue.ts'
+import { handleUnbanPlayer } from '../utils/handleUnbanPlayer.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
@@ -150,12 +151,24 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   }) => {
     const { userId = '', source, actorUsername, username, displayedUsername } = args
 
-    handleBanPlayer({ ...args, settings, updateSettings, pushLog })
-    removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
-    if(settings.moveOnSizeChange) {
+    const { isBanned } = handleBanPlayer({ ...args, settings, updateSettings, pushLog })
+
+    if(isBanned) {
+      removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
+    }
+    
+    if(isBanned && settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
   }, [settings, updateSettings, pushLog, removePlayerFromAllQueues, balanceQueues])
+
+  const unbanPlayerFromQueue = useCallback((args: {
+    username: string;
+    source: LogSource;
+    actorUsername: string;
+  }) => {
+    handleUnbanPlayer({ ...args, settings, updateSettings, pushLog })
+  }, [settings, updateSettings, pushLog])
 
   const movePlayer = useCallback((args: {
     userId: string;
@@ -205,6 +218,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     removePlayerFromQueue,
     removePlayerFromAllQueues,
     banPlayerFromQueue,
+    unbanPlayerFromQueue,
     movePlayer,
     finishActiveQueue,
     balanceQueues,
@@ -220,6 +234,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     removePlayerFromQueue,
     removePlayerFromAllQueues,
     banPlayerFromQueue,
+    unbanPlayerFromQueue,
     movePlayer,
     finishActiveQueue,
     balanceQueues,

@@ -81,11 +81,11 @@ export const handleJoinPlayer = ({
     // Проверка на дубликаты
     if (!settings.allowMultipleEntries) {
       if (existsInActive || existsInWaiting) {
-        finalLogMessage = `Отклонено: игрок ${displayName} уже находится в очереди`
+        finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в очереди`
         return prev
       }
     } else if (existsInActive && !settings.allowPreJoin) {
-      finalLogMessage = `Отклонено: игрок ${displayName} уже в активной очереди, предзапись закрыта`
+      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже в активной очереди, предзапись закрыта`
       return prev
     }
 
@@ -101,26 +101,26 @@ export const handleJoinPlayer = ({
       } else {
         updatedActive.push(fullPlayer)
       }
-      finalLogMessage = `Игрок ${displayName} добавлен в активную очередь.`
+      finalLogMessage = `Добавление в очередь: Игрок ${displayName} добавлен в активную очередь.`
       isSuccess = true
       return { ...prev, activeQueue: updatedActive }
     }
 
     // Б) Вставка в список ОЖИДАЮЩИХ
     if (!settings.allowPreJoin) {
-      finalLogMessage = 'Отклонено: активная очередь заполнена, а список ожидающих отключен'
+      finalLogMessage = 'Добавление в очередь: Отклонено, активная очередь заполнена, а список ожидающих отключен'
       return prev
     }
 
     if (!settings.allowMultipleEntries && existsInWaiting) {
-      finalLogMessage = `Отклонено: игрок ${displayName} уже в списке ожидающих`
+      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже в списке ожидающих`
       return prev
     }
 
     if (settings.allowMultipleEntries
         && prev.waitingQueue.some((p, idx) => (p.userId === userId || p.username === username)
             && idx >= prev.waitingQueue.length - maxActiveSize)) {
-      finalLogMessage = 'Отклонено: нельзя записаться несколько раз подряд в один список'
+      finalLogMessage = 'Добавление в очередь: Отклонено, нельзя записаться несколько раз подряд в один список'
       return prev
     }
 
@@ -132,14 +132,14 @@ export const handleJoinPlayer = ({
       updatedWaiting.push(fullPlayer)
     }
 
-    finalLogMessage = `Игрок ${displayName} добавлен в список ожидания.`
+    finalLogMessage = `Добавление в очередь: Игрок ${displayName} добавлен в список ожидания.`
     isSuccess = true
     return { ...prev, waitingQueue: updatedWaiting }
   })
 
   setTimeout(() => {
     if (isSuccess) {
-      pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.SUCCESS, source, actorUsername, rawCommand })
+      pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.INFO, source, actorUsername, rawCommand })
     } else if (finalLogMessage) {
       pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
     }

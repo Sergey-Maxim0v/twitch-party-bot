@@ -80,7 +80,7 @@ export const handleRemovePlayer = ({
   setTimeout(() => {
     pushLog({
       message: logMessageText,
-      status: isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.SUCCESS,
+      status: isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
       source,
       actorUsername,
       rawCommand,
