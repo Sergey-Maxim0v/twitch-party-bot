@@ -66,7 +66,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
             {banList.map((username, index) => (
               <div className="flex items-center gap-2 w-full min-w-0" key={index}>
                 <input
-                  className="input input-bordered input-sm flex-1 min-w-0 text-sm bg-base-300/30 border-base-300 text-base-content/70 cursor-not-allowed"
+                  className="input input-bordered input-sm flex-1 min-w-0 text-sm bg-base-300/30 border-base-300 text-base-content/70"
                   disabled
                   type="text"
                   value={username}

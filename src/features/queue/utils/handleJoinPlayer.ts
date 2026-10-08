@@ -78,6 +78,8 @@ export const handleJoinPlayer = ({
     const existsInActive = prev.activeQueue.some(p => p.userId === userId || p.username === username)
     const existsInWaiting = prev.waitingQueue.some(p => p.userId === userId || p.username === username)
 
+    // TODO: написать нормальные сообщения для всех сценариев. и проверить логику этих сценариев (сейчас некоторые сценарии не так описываются в логах)
+
     // Проверка на дубликаты
     if (!settings.allowMultipleEntries) {
       if (existsInActive || existsInWaiting) {
@@ -120,7 +122,7 @@ export const handleJoinPlayer = ({
     if (settings.allowMultipleEntries
         && prev.waitingQueue.some((p, idx) => (p.userId === userId || p.username === username)
             && idx >= prev.waitingQueue.length - maxActiveSize)) {
-      finalLogMessage = 'Добавление в очередь: Отклонено, нельзя записаться несколько раз подряд в один список'
+      finalLogMessage = `Добавление в очередь: Отклонено,  игрок ${displayName}  уже в активной очереди и списке ожидающих`
       return prev
     }
 
