@@ -16,6 +16,7 @@ export interface HandleClearQueueHistoryArgs {
 
 /**
  * Хендлер для полной очистки истории сыгранных сессий (составов).
+ * Обнуляет историю, счетчик сессий и все кулдауны/лимиты игроков.
  */
 export const handleClearQueueHistory = ({
   setState,
@@ -35,6 +36,5 @@ export const handleClearQueueHistory = ({
     status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,
-  },
-  )
+  })
 }

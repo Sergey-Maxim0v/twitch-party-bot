@@ -60,7 +60,6 @@ export const handleJoinPlayer = ({
   setState(prev => {
     const validationError = validateQueueEntry({
       isQueueOpen,
-      userId,
       username,
       isPrivileged,
       state: prev,

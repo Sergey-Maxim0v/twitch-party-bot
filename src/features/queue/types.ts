@@ -73,6 +73,12 @@ export interface PlayerHistoryStats {
   lastPlayedTimestamp: number;
   /** Порядковый номер сессии, в которой игрок сыграл последний раз */
   lastPlayedSessionNumber: number;
+  /** Количество сыгранных игр/сессий за текущий стрим */
+  gamesPlayed: number;
+  /** Никнейм игрока на платформе (для поиска ручных добавлений) */
+  userID: string;
+  /** Никнейм игрока на платформе (для поиска ручных добавлений) */
+  username: string;
 }
 
 /**
@@ -88,5 +94,5 @@ export interface QueueState {
   /** Общий счетчик созданных/сыгранных сессий для расчета кулдауна по играм */
   globalSessionCounter: number;
   /** Быстрый индекс истории игроков для проверки временных и сессионных кулдаунов */
-  playerHistory: Record<string, PlayerHistoryStats>;
+  playerHistory: Record<BaseQueuePlayer['username'], PlayerHistoryStats>;
 }

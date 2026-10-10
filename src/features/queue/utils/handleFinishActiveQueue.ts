@@ -43,9 +43,15 @@ export const handleFinishActiveQueue = ({
 
     // 1. Фиксируем кулдауны для всех игроков, которые отыграли текущую сессию
     prev.activeQueue.forEach(player => {
-      updatedPlayerHistory[player.userId] = {
+      const existingStats = prev.playerHistory[player.username]
+      const currentGamesPlayed = existingStats?.gamesPlayed || 0
+
+      updatedPlayerHistory[player.username] = {
         lastPlayedTimestamp: currentTimestamp,
         lastPlayedSessionNumber: nextSessionNumber,
+        gamesPlayed: currentGamesPlayed + 1,
+        userID: player.userId,
+        username: player.username,
       }
     })
 

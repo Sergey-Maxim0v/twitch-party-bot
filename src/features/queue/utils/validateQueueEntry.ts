@@ -5,7 +5,6 @@ import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 interface ValidateQueueEntryArgs {
   isQueueOpen: QueueContextValue['isQueueOpen'];
-  userId: string;
   username: string;
   isPrivileged: boolean;
   state: QueueState;
@@ -19,25 +18,24 @@ interface ValidateQueueEntryArgs {
  */
 export const validateQueueEntry = ({
   isQueueOpen,
-  userId,
   username,
   isPrivileged,
   state,
   settings,
   source,
 }: ValidateQueueEntryArgs): string | null => {
-  // 1. Проверка: Локальный бан-лист фичи (Абсолютное ограничение для всех источников)
-  const isBanned = settings.banList.some(b => b.toLowerCase() === username.toLowerCase())
-  if (isBanned) {
-    return 'Добавление в очередь: Отклонено, пользователь находится в бан-листе очереди'
-  }
-
   // Стример, модераторы и система обходят остальные базовые правила (закрытую очередь, sub-only и кулдауны)
   const isStaff = source === LOG_SOURCE.APPLICATION
       || source === LOG_SOURCE.CHAT_MODERATOR
       || source === LOG_SOURCE.STREAMER_UI
 
   if (isStaff) return null
+
+  // 1. Проверка: Локальный бан-лист фичи
+  const isBanned = settings.banList.some(b => b.toLowerCase() === username.toLowerCase())
+  if (isBanned) {
+    return 'Добавление в очередь: Отклонено, игрок находится в бан-листе очереди'
+  }
 
   // 2. Проверка: Открыта ли очередь
   if (!isQueueOpen) {
@@ -50,8 +48,16 @@ export const validateQueueEntry = ({
   }
 
   // 4. Проверка кулдаунов (из playerHistory)
-  const playerStats = state.playerHistory[userId]
+  const playerStats = state.playerHistory[username]
+
   if (playerStats) {
+    if (settings.maxGamesPerUser && settings.maxGamesPerUser > 0) {
+      const gamesPlayed = playerStats.gamesPlayed || 0
+      if (gamesPlayed >= settings.maxGamesPerUser) {
+        return `Добавление в очередь: Отклонено, игрок ${username} уже сыграл максимальное количество игр (${gamesPlayed}/${settings.maxGamesPerUser})`
+      }
+    }
+
     const currentTimestamp = Date.now()
 
     // А) Временной кулдаун (sessionHistoryCooldown в минутах)
@@ -68,7 +74,7 @@ export const validateQueueEntry = ({
       const sessionsPassed = state.globalSessionCounter - playerStats.lastPlayedSessionNumber
       if (sessionsPassed < settings.gamesPlayedCooldown) {
         const remaining = settings.gamesPlayedCooldown - sessionsPassed
-        return `Добавление в очередь: Отклонено, кулдаун сыгранных игр (пропустите еще сессий: ${remaining})`
+        return `Добавление в очередь: Отклонено, кулдаун сыгранных игр (необходимо пропустить еще ${remaining} игр)`
       }
     }
   }
