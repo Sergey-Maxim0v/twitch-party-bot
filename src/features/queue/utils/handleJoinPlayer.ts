@@ -58,7 +58,6 @@ export const handleJoinPlayer = ({
   let isSuccess = false
 
   setState(prev => {
-    // 2. Первичная валидация по-актуальному стейту (кулдауны, баны, статус открытия)
     const validationError = validateQueueEntry({
       isQueueOpen,
       userId,
@@ -75,27 +74,15 @@ export const handleJoinPlayer = ({
     }
 
     const maxActiveSize = settings.maxQueueSize || 4
+    const isActiveQueueNotFull = prev.activeQueue.length < maxActiveSize
     const existsInActive = prev.activeQueue.some(p => p.userId === userId || p.username === username)
     const existsInWaiting = prev.waitingQueue.some(p => p.userId === userId || p.username === username)
-
-    // TODO: написать нормальные сообщения для всех сценариев. и проверить логику этих сценариев (сейчас некоторые сценарии не так описываются в логах)
-
-    // Проверка на дубликаты
-    if (!settings.allowMultipleEntries) {
-      if (existsInActive || existsInWaiting) {
-        finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в очереди`
-        return prev
-      }
-    } else if (existsInActive && !settings.allowPreJoin) {
-      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже в активной очереди, предзапись закрыта`
-      return prev
-    }
 
     const updatedActive = [...prev.activeQueue]
     const updatedWaiting = [...prev.waitingQueue]
 
-    // А) Вставка в АКТИВНУЮ очередь
-    if (updatedActive.length < maxActiveSize && !existsInActive) {
+    // Есть место в активной очереди, игрока там еще нет -> Добавляем в активную
+    if (isActiveQueueNotFull && !existsInActive) {
       if (settings.prioritizeSubscribers && isPrivileged) {
         const firstNonSubIdx = updatedActive.findIndex(p => !p.isSubscriber)
         const insertIdx = firstNonSubIdx === -1 ? updatedActive.length : firstNonSubIdx
@@ -108,24 +95,37 @@ export const handleJoinPlayer = ({
       return { ...prev, activeQueue: updatedActive }
     }
 
-    // Б) Вставка в список ОЖИДАЮЩИХ
-    if (!settings.allowPreJoin) {
-      finalLogMessage = 'Добавление в очередь: Отклонено, активная очередь заполнена, а список ожидающих отключен'
+    // Есть место в активной, игрок уже там, а список ожидающих отключен -> Отклонено
+    if (isActiveQueueNotFull && existsInActive && !settings.allowPreJoin) {
+      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже в активной очереди, список ожидающих отключен.`
       return prev
     }
 
-    if (!settings.allowMultipleEntries && existsInWaiting) {
-      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже в списке ожидающих`
+    // Активная очередь полна, игрока там нет, а список ожидающих отключен -> Отклонено
+    if (!isActiveQueueNotFull && !existsInActive && !settings.allowPreJoin) {
+      finalLogMessage = 'Добавление в очередь: Отклонено, активная очередь заполнена, а список ожидающих отключен.'
       return prev
     }
 
-    if (settings.allowMultipleEntries
-        && prev.waitingQueue.some((p, idx) => (p.userId === userId || p.username === username)
-            && idx >= prev.waitingQueue.length - maxActiveSize)) {
-      finalLogMessage = `Добавление в очередь: Отклонено,  игрок ${displayName}  уже в активной очереди и списке ожидающих`
+    // Игрок уже в активной, список ожидающих включен, но повторная запись запрещена -> Отклонено
+    if (existsInActive && settings.allowPreJoin && !settings.allowMultipleEntries) {
+      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в активной очереди, повторная запись запрещена.`
       return prev
     }
 
+    // Игрок уже и в активной очереди и в списке ожидающих -> Отклонено
+    if (existsInActive && settings.allowPreJoin && settings.allowMultipleEntries && existsInWaiting) {
+      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится и в активной очереди, и в списке ожидающих.`
+      return prev
+    }
+
+    // Игрока нет в активной, он уже находится в списке ожидающих (дубликат записи в вейтинг) -> Отклонено
+    if (!existsInActive && settings.allowPreJoin && existsInWaiting) {
+      finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в списке ожидающих.`
+      return prev
+    }
+
+    // Добавление в список ожидающих для оставшихся успешных сценариев
     if (settings.prioritizeSubscribers && isPrivileged) {
       const firstNonSubIdx = updatedWaiting.findIndex(p => !p.isSubscriber)
       const insertIdx = firstNonSubIdx === -1 ? updatedWaiting.length : firstNonSubIdx
@@ -134,8 +134,16 @@ export const handleJoinPlayer = ({
       updatedWaiting.push(fullPlayer)
     }
 
-    finalLogMessage = `Добавление в очередь: Игрок ${displayName} добавлен в список ожидания.`
     isSuccess = true
+
+    // Игрок уже в активной очереди, но разрешена мульти-запись -> Добавлен в список ожидания
+    if (existsInActive && settings.allowPreJoin && settings.allowMultipleEntries && !existsInWaiting) {
+      finalLogMessage = `Добавление в очередь: Игрок ${displayName} уже в активной очереди, добавлен в список ожидания.`
+      return { ...prev, waitingQueue: updatedWaiting }
+    }
+
+    // Нового игрока нет нигде, активная полна, список ожидающих включен -> Добавлен в список ожидания
+    finalLogMessage = `Добавление в очередь: Игрок ${displayName} добавлен в список ожидания.`
     return { ...prev, waitingQueue: updatedWaiting }
   })
 
