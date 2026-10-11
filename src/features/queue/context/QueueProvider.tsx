@@ -1,7 +1,7 @@
 import { type ReactNode, type FC, useMemo, useCallback } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
-import type { QueueState, QueuePlayerFormData, QueueType } from '../types'
+import { type QueueState, type QueuePlayerFormData, type QueueType, QUEUE_TYPES } from '../types'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings'
 import { createInitialState } from '../utils/createInitialState'
 import { STORAGE_KEY } from '../constants.ts'
@@ -14,7 +14,7 @@ import { handleRemovePlayerFromAll } from '../utils/handleRemovePlayerFromAll.ts
 import { handleBanPlayer } from '../utils/handleBanPlayer.ts'
 import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
-import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
+import { handleJoinPlayer, JOIN_QUEUE_STATUSES } from '../utils/handleJoinPlayer.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
@@ -34,7 +34,16 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const { settings, updateSettings } = useQueueSettings()
   const { pushLog: pushAppLog } = useAppLogs()
-  const { } = useQueueNotification() // TODO: написать логику работы с отправкой сообщений
+  const {
+    addJoinedUser,
+    addWaitingUser,
+    addDeletedUser,
+    addMovedUser,
+    addDeniedUser,
+    sendMessage,
+    startNotificationCycle,
+    stopNotificationCycle,
+  } = useQueueNotification()
 
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
     pushAppLog({ message, status, source, actorUsername, rawCommand })
@@ -60,11 +69,15 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
-  }, [isQueueOpen, setIsQueueOpen, pushLog])
+    sendMessage('Очередь открыта! Вводите команду для входа.') // TODO: добавить функцию собирающую текст из команд без флага isMod
+    startNotificationCycle()
+  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessage, startNotificationCycle])
 
   const closeQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
-  }, [isQueueOpen, setIsQueueOpen, pushLog])
+    sendMessage('Очередь закрыта! Прием заявок приостановлен.') // TODO: вынести отдельным методом в useQueueNotificationProvider и добавить составы очередей
+    stopNotificationCycle()
+  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessage, stopNotificationCycle])
 
   const clearActiveQueue = useCallback((args: {
     source: LogSource;
@@ -94,8 +107,16 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
     customTimestamp?: number;
   }) => {
-    handleJoinPlayer({ ...args, isQueueOpen, settings, setState, pushLog })
-  }, [isQueueOpen, settings, setState, pushLog])
+    const result = handleJoinPlayer({ ...args, isQueueOpen, settings, setState, pushLog })
+
+    if (result.status === JOIN_QUEUE_STATUSES.JOINED) {
+      addJoinedUser(args.playerData.username)
+    } else if (result.status === JOIN_QUEUE_STATUSES.WAITING) {
+      addWaitingUser(args.playerData.username)
+    } else if (result.status === JOIN_QUEUE_STATUSES.DENIED) {
+      addDeniedUser(args.playerData.username)
+    }
+  }, [isQueueOpen, settings, setState, pushLog, addJoinedUser, addWaitingUser, addDeniedUser])
 
   const removePlayerFromQueue: QueueContextValue['removePlayerFromQueue'] = useCallback((args: {
     userId: string;
@@ -106,10 +127,15 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
   }) => {
     handleRemovePlayer({ ...args, setState, pushLog })
+
+    if (args.displayedUsername) {
+      addDeletedUser(args.displayedUsername)
+    }
+
     if(settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addDeletedUser])
 
   const removePlayerFromAllQueues: QueueContextValue['removePlayerFromAllQueues'] = useCallback((args: {
     userId: string;
@@ -120,10 +146,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
   }) => {
     handleRemovePlayerFromAll({ ...args, setState, pushLog })
+
+    addDeletedUser(args.displayedUsername ?? args.username)
+
     if(settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addDeletedUser])
 
   const banPlayerFromQueue: QueueContextValue['banPlayerFromQueue'] = useCallback((args: {
     userId?: string;
@@ -163,11 +192,15 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   }) => {
     handleMovePlayer({ ...args, setState, pushLog })
 
+    if (args.targetQueueType === QUEUE_TYPES.ACTIVE && args.displayedUsername) {
+      addMovedUser(args.displayedUsername)
+    }
+
     if (settings.moveOnSizeChange) {
       const { source, actorUsername } = args
       balanceQueues({ source, actorUsername })
     }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addMovedUser])
 
   const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleFinishActiveQueue({ ...args, setState, pushLog })
