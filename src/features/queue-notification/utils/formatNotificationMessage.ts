@@ -48,7 +48,7 @@ export const formatNotificationMessage = (state: TwitchNotificationState): strin
     if (showWaitingCount > 0) {
       const items = waitingArray.slice(0, showWaitingCount).join(', ')
       const hidden = waitingArray.length - showWaitingCount
-      parts.push(`В ожидании: ${items}${hidden > 0 ? ` +${hidden}` : ''}`)
+      parts.push(`Добавлены в ожидающие: ${items}${hidden > 0 ? ` +${hidden}` : ''}`)
     }
 
     if (showDeletedCount > 0) {

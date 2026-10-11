@@ -42,11 +42,11 @@ function App() {
             <AppLogsProvider>
               <QueueSettingsProvider>
                 <TwitchChatProvider>
-                  <QueueProvider>
-                    <QueueNotificationProvider>
+                  <QueueNotificationProvider>
+                    <QueueProvider>
                       <StreamerWorkspace />
-                    </QueueNotificationProvider>
-                  </QueueProvider>
+                    </QueueProvider>
+                  </QueueNotificationProvider>
                 </TwitchChatProvider>
               </QueueSettingsProvider>
             </AppLogsProvider>

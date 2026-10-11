@@ -1,6 +1,5 @@
 import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
-import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
 import type { TwitchNotificationState } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
@@ -15,10 +14,11 @@ import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
 
 export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<TwitchNotificationState>(createInitialNotificationState())
+  const [activeQueueList, setActiveQueueList] = useState<string[]>([])
+  const [waitingQueueList, setWaitingQueueList] = useState<string[]>([])
 
   const { sendChatMessage } = useTwitchChat()
   const { settings } = useQueueSettings()
-  const { activeQueue, waitingQueue } = useQueue()
   const { pushLog } = useAppLogs()
   const { userDisplayName, session } = useAuth()
 
@@ -79,12 +79,9 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    const activeUsernames: string[] = activeQueue.map(player => player.username)
-    const waitingUsernames: string[] = waitingQueue.map(player => player.username)
-
     const queueStatusText = formatCurrentQueueStatus({
-      activeUsernames,
-      waitingUsernames,
+      activeUsernames: activeQueueList,
+      waitingUsernames: waitingQueueList,
       maxQueueSize: settings.maxQueueSize,
     })
 
@@ -94,8 +91,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     settings.chatNotificationPermissions.allowSending,
     settings.chatNotificationPermissions.onQueueClose,
     settings.maxQueueSize,
-    activeQueue,
-    waitingQueue,
+    activeQueueList,
+    waitingQueueList,
     sendAndLogNotification,
   ])
 
@@ -124,17 +121,14 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    const activeUsernames: string[] = activeQueue.map(player => player.username)
-    const waitingUsernames: string[] = waitingQueue.map(player => player.username)
-
     const statusText = formatCurrentQueueStatus({
-      activeUsernames,
-      waitingUsernames,
+      activeUsernames: activeQueueList,
+      waitingUsernames: waitingQueueList,
       maxQueueSize: settings.maxQueueSize,
     })
 
     sendAndLogNotification(statusText)
-  }, [settings.chatNotificationPermissions.allowSending, settings.maxQueueSize, activeQueue, waitingQueue, sendAndLogNotification])
+  }, [settings.chatNotificationPermissions.allowSending, settings.maxQueueSize, activeQueueList, waitingQueueList, sendAndLogNotification])
 
   // Автоматический перезапуск цикла при изменении интервала cooldown, если он уже был запущен
   useEffect(() => {
@@ -202,6 +196,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     startNotificationCycle,
     stopNotificationCycle,
     sendCurrentQueueStatus,
+    setActiveQueueList,
+    setWaitingQueueList,
   }), [
     state,
     addJoinedUser,
@@ -216,6 +212,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     startNotificationCycle,
     stopNotificationCycle,
     sendCurrentQueueStatus,
+    setActiveQueueList,
+    setWaitingQueueList,
   ])
 
   return (

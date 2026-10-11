@@ -4,17 +4,18 @@ import { useQueue } from './useQueue.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
+import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 
 /**
  * Хук для обработки текстовых команд из чата Twitch.
  */
 export const useChatCommands = () => {
   const { settings } = useQueueSettings()
-  const { lastMessage, sendChatMessage } = useTwitchChat()
+  const { lastMessage } = useTwitchChat()
+  const { sendCurrentQueueStatus, sendMessage } = useQueueNotification()
   const {
     openQueue,
     closeQueue,
-    activeQueue,
     addPlayerToQueue,
     removePlayerFromAllQueues,
     clearActiveQueue,
@@ -94,13 +95,7 @@ export const useChatCommands = () => {
       case commands.show.name: {
         if (!hasAccess(commands.show.isModeratorOnly)) return
 
-        const queueStatusText = `(${activeQueue.length}/${settings.maxQueueSize})`
-        const queueListText = activeQueue
-          .map((player, idx) => `${idx + 1}. @${player.displayedUsername ?? player.username}`)
-          .join(', ')
-        const queueMessage = activeQueue.length ? `Текущая очередь ${queueStatusText}: ${queueListText}` : 'Очередь пуста'
-
-        sendChatMessage(queueMessage)
+        sendCurrentQueueStatus()
         break
       }
 
@@ -147,6 +142,8 @@ export const useChatCommands = () => {
         if (!hasAccess(commands.clear.isModeratorOnly)) return
         clearWaitingQueue({ source, actorUsername })
         clearActiveQueue({ source, actorUsername })
+
+        sendMessage('Текущая очередь и список ожидания очищены.')
         break
       }
 

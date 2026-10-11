@@ -43,6 +43,12 @@ export interface QueueNotificationContextType {
 
   /** Сформировать и отправить текущий статус активной очереди в чат Twitch */
   sendCurrentQueueStatus: () => void;
+
+  /** Метод сохранения массива никнеймов текущей очереди для уведомления */
+  setActiveQueueList: (val: string[]) => void;
+
+  /** Метод сохранения массива никнеймов списка ожидающих для уведомления */
+  setWaitingQueueList: (val: string[]) => void;
 }
 
 export const QueueNotificationContext = createContext<QueueNotificationContextType | undefined>(undefined)

@@ -1,4 +1,4 @@
-import { type ReactNode, type FC, useMemo, useCallback } from 'react'
+import { type ReactNode, type FC, useMemo, useCallback, useEffect } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
 import { type QueueState, type QueuePlayerFormData, type QueueType, QUEUE_TYPES } from '../types'
@@ -44,7 +44,15 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     sendMessageClose,
     startNotificationCycle,
     stopNotificationCycle,
+    setActiveQueueList,
+    setWaitingQueueList,
   } = useQueueNotification()
+
+  // Эффект сохранения списков никнеймов для отправки уведомлений в Twitch чат.
+  useEffect(() => {
+    setActiveQueueList(state.activeQueue.map(player => player.username))
+    setWaitingQueueList(state.waitingQueue.map(player => player.username))
+  }, [setActiveQueueList, setWaitingQueueList, state.activeQueue, state.waitingQueue])
 
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
     pushAppLog({ message, status, source, actorUsername, rawCommand })
