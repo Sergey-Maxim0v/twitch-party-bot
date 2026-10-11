@@ -40,7 +40,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     addDeletedUser,
     addMovedUser,
     addDeniedUser,
-    sendMessage,
+    sendMessageOpen,
+    sendMessageClose,
     startNotificationCycle,
     stopNotificationCycle,
   } = useQueueNotification()
@@ -69,15 +70,15 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
-    sendMessage('Очередь открыта! Вводите команду для входа.') // TODO: добавить функцию собирающую текст из команд без флага isMod
+    sendMessageOpen()
     startNotificationCycle()
-  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessage, startNotificationCycle])
+  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageOpen, startNotificationCycle])
 
   const closeQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
-    sendMessage('Очередь закрыта! Прием заявок приостановлен.') // TODO: вынести отдельным методом в useQueueNotificationProvider и добавить составы очередей
+    sendMessageClose()
     stopNotificationCycle()
-  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessage, stopNotificationCycle])
+  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageClose, stopNotificationCycle])
 
   const clearActiveQueue = useCallback((args: {
     source: LogSource;
@@ -205,14 +206,14 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleFinishActiveQueue({ ...args, setState, pushLog })
 
-    if (!settings.allowPreJoin && isQueueOpen) {
+    if (isQueueOpen) {
       closeQueue({ source: args.source, actorUsername: args.actorUsername })
     }
 
     if(settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
-  }, [setState, pushLog, settings.allowPreJoin, settings.moveOnSizeChange, isQueueOpen, closeQueue, balanceQueues])
+  }, [setState, pushLog, settings.moveOnSizeChange, isQueueOpen, closeQueue, balanceQueues])
 
   const contextValue = useMemo<QueueContextValue>(() => ({
     isQueueOpen,

@@ -10,6 +10,8 @@ import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { APP_LOG_STATUSES, LOG_SOURCE } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
+import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
+import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
 
 export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<TwitchNotificationState>(createInitialNotificationState())
@@ -57,6 +59,45 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       timerRef.current = null
     }
   }, [])
+
+  const sendMessageOpen = useCallback((): void => {
+    if (!settings.chatNotificationPermissions.allowSending || !settings.chatNotificationPermissions.onQueueOpen) {
+      return
+    }
+
+    const messageText = formatQueueOpenMessage(settings.commands)
+    sendAndLogNotification(messageText)
+  }, [
+    settings.chatNotificationPermissions.allowSending,
+    settings.chatNotificationPermissions.onQueueOpen,
+    settings.commands,
+    sendAndLogNotification,
+  ])
+
+  const sendMessageClose = useCallback((): void => {
+    if (!settings.chatNotificationPermissions.allowSending || !settings.chatNotificationPermissions.onQueueClose) {
+      return
+    }
+
+    const activeUsernames: string[] = activeQueue.map(player => player.username)
+    const waitingUsernames: string[] = waitingQueue.map(player => player.username)
+
+    const queueStatusText = formatCurrentQueueStatus({
+      activeUsernames,
+      waitingUsernames,
+      maxQueueSize: settings.maxQueueSize,
+    })
+
+    const messageText = formatQueueCloseMessage(queueStatusText)
+    sendAndLogNotification(messageText)
+  }, [
+    settings.chatNotificationPermissions.allowSending,
+    settings.chatNotificationPermissions.onQueueClose,
+    settings.maxQueueSize,
+    activeQueue,
+    waitingQueue,
+    sendAndLogNotification,
+  ])
 
   const startNotificationCycle = useCallback((): void => {
     stopNotificationCycle()
@@ -155,6 +196,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     addMovedUser,
     addDeniedUser,
     sendMessage,
+    sendMessageOpen,
+    sendMessageClose,
     clearBuffer,
     startNotificationCycle,
     stopNotificationCycle,
@@ -167,6 +210,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     addMovedUser,
     addDeniedUser,
     sendMessage,
+    sendMessageOpen,
+    sendMessageClose,
     clearBuffer,
     startNotificationCycle,
     stopNotificationCycle,

@@ -26,6 +26,12 @@ export interface QueueNotificationContextType {
   /** Отправить мгновенное текстовое сообщение в указанный канал Twitch */
   sendMessage: ( text: string) => void;
 
+  /** Отправить мгновенное текстовое сообщение в указанный канал Twitch об открытии очереди */
+  sendMessageOpen: ( ) => void;
+
+  /** Отправить мгновенное текстовое сообщение в указанный канал Twitch о закрытии очереди  */
+  sendMessageClose: ( ) => void;
+
   /** Очистить накопленный буфер уведомлений */
   clearBuffer: () => void;
 
