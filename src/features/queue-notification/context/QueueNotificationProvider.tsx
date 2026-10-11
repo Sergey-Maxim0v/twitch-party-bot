@@ -9,30 +9,37 @@ import { createInitialNotificationState } from '../utils/createInitialNotificati
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { APP_LOG_STATUSES, LOG_SOURCE } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
 
 export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<TwitchNotificationState>(createInitialNotificationState())
 
   const { sendChatMessage } = useTwitchChat()
   const { settings } = useQueueSettings()
-  const { activeQueue } = useQueue()
+  const { activeQueue, waitingQueue } = useQueue()
   const { pushLog } = useAppLogs()
   const { userDisplayName, session } = useAuth()
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   const stateRef = useRef<TwitchNotificationState>(state)
-
-  const pushLogAboutNotification = useCallback((message: string) => {
-    const actorUsername = userDisplayName ?? session?.login ?? 'Application'
-    const logText = `Автоматически отправлено сообщение в чат: ${message}`
-
-    pushLog({ message: logText, status: APP_LOG_STATUSES.SUCCESS, source: LOG_SOURCE.APPLICATION, actorUsername })
-  }, [pushLog, session?.login, userDisplayName])
 
   useEffect(() => {
     stateRef.current = state
   }, [state])
+
+  const sendAndLogNotification = useCallback((message: string): void => {
+    sendChatMessage(message)
+
+    const actorUsername = userDisplayName ?? session?.login ?? 'Application'
+    const logText = `Автоматически отправлено сообщение в чат: ${message}`
+
+    pushLog({
+      message: logText,
+      status: APP_LOG_STATUSES.SUCCESS,
+      source: LOG_SOURCE.APPLICATION,
+      actorUsername,
+    })
+  }, [sendChatMessage, pushLog, session?.login, userDisplayName])
 
   const clearBuffer = useCallback((): void => {
     setState(createInitialNotificationState())
@@ -40,10 +47,9 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
 
   const sendMessage = useCallback((text: string): void => {
     if (settings.chatNotificationPermissions.allowSending && text.trim().length > 0) {
-      sendChatMessage(text)
-      pushLogAboutNotification(text)
+      sendAndLogNotification(text)
     }
-  }, [settings.chatNotificationPermissions.allowSending, sendChatMessage, pushLogAboutNotification])
+  }, [settings.chatNotificationPermissions.allowSending, sendAndLogNotification])
 
   const stopNotificationCycle = useCallback((): void => {
     if (timerRef.current) {
@@ -62,41 +68,32 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
         return
       }
 
-      // Безопасное чтение текущего состояния из ref
       const currentNotificationState = stateRef.current
       const messageText = formatNotificationMessage(currentNotificationState)
 
       if (messageText.length > 0) {
-        sendChatMessage(messageText)
-        pushLogAboutNotification(messageText)
+        sendAndLogNotification(messageText)
         setState(createInitialNotificationState())
       }
     }, intervalMs)
-  }, [stopNotificationCycle, settings.botMessageCooldown, settings.chatNotificationPermissions.allowSending, sendChatMessage, pushLogAboutNotification])
+  }, [stopNotificationCycle, settings.botMessageCooldown, settings.chatNotificationPermissions.allowSending, sendAndLogNotification])
 
   const sendCurrentQueueStatus = useCallback((): void => {
     if (!settings.chatNotificationPermissions.allowSending) {
       return
     }
 
-    if (activeQueue.length === 0) {
-      const message = '[Очередь] На данный момент очередь пуста.'
-      sendChatMessage(message)
-      pushLogAboutNotification(message)
-      return
-    }
+    const activeUsernames: string[] = activeQueue.map(player => player.username)
+    const waitingUsernames: string[] = waitingQueue.map(player => player.username)
 
-    const playerList = activeQueue.map(player => `@${player.username}`).join(', ')
-    const statusText = `[Очередь] Текущий состав (${activeQueue.length}/${settings.maxQueueSize}): ${playerList}`
+    const statusText = formatCurrentQueueStatus({
+      activeUsernames,
+      waitingUsernames,
+      maxQueueSize: settings.maxQueueSize,
+    })
 
-    if (statusText.length > 400) {
-      sendChatMessage(`${statusText.slice(0, 395)}...`)
-      pushLogAboutNotification(`${statusText.slice(0, 395)}...`)
-    } else {
-      sendChatMessage(statusText)
-      pushLogAboutNotification(statusText)
-    }
-  }, [settings.chatNotificationPermissions.allowSending, settings.maxQueueSize, activeQueue, sendChatMessage, pushLogAboutNotification])
+    sendAndLogNotification(statusText)
+  }, [settings.chatNotificationPermissions.allowSending, settings.maxQueueSize, activeQueue, waitingQueue, sendAndLogNotification])
 
   // Автоматический перезапуск цикла при изменении интервала cooldown, если он уже был запущен
   useEffect(() => {
