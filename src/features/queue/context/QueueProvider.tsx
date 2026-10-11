@@ -22,16 +22,19 @@ import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
 import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
 import { handleOpenQueue } from '../utils/handleOpenQueue.ts'
 import { handleUnbanPlayer } from '../utils/handleUnbanPlayer.ts'
+import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
 }
 
 export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
-  const { settings, updateSettings } = useQueueSettings()
   const [state, setState] = useLocalStorage<QueueState>(STORAGE_KEY, createInitialState())
-  const { pushLog: pushAppLog } = useAppLogs()
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage('twitch_queue_status', false)
+
+  const { settings, updateSettings } = useQueueSettings()
+  const { pushLog: pushAppLog } = useAppLogs()
+  const { } = useQueueNotification() // TODO: написать логику работы с отправкой сообщений
 
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
     pushAppLog({ message, status, source, actorUsername, rawCommand })

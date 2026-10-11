@@ -3,34 +3,39 @@ import type { SetTwitchNotificationState, TwitchNotificationState } from '../typ
 
 export interface QueueNotificationContextType {
   /** Текущее состояние буфера уникальных участников, сгруппированных по типам событий */
-  state: TwitchNotificationState;
+  notificationBuffer: TwitchNotificationState;
 
-  /** Сеттер для управления состоянием буфера накопления */
-  setState: SetTwitchNotificationState;
+  /** Функция обновления состояния буфера уведомлений */
+  setNotificationBuffer: SetTwitchNotificationState;
 
-  /**
-   * Отправляет мгновенное произвольное сообщение в чат Twitch.
-   */
-  sendMessage: (channel: string, text: string) => void;
+  /** Добавить пользователя в список подключившихся (joined) */
+  addJoinedUser: (username: string) => void;
 
-  /**
-   * Полностью очищает накопленный буфер событий (очищает все внутренние наборы Set)
-   */
-  clearMessage: () => void;
+  /** Добавить пользователя в список ожидающих (waiting) */
+  addWaitingUser: (username: string) => void;
 
-  /**
-   * Запускает циклический таймер (setInterval) периодической отправки сообщений в чат Twitch.
-   */
-  startCycle: () => void;
+  /** Добавить пользователя в список удаленных (deleted) */
+  addDeletedUser: (username: string) => void;
 
-  /**
-   * Останавливает циклический таймер отправки сообщений в чат Twitch и очищает интервал.
-   */
-  stopCycle: () => void;
+  /** Добавить пользователя в список перемещенных (moved) */
+  addMovedUser: (username: string) => void;
 
-  /**
-   * Формирует и отправляет в чат мгновенное сообщение с текущим составом активных участников очереди.
-   */
+  /** Добавить пользователя в список отклоненных (denied) */
+  addDeniedUser: (username: string) => void;
+
+  /** Отправить мгновенное текстовое сообщение в указанный канал Twitch */
+  sendMessage: ( text: string) => void;
+
+  /** Очистить накопленный буфер уведомлений */
+  clearBuffer: () => void;
+
+  /** Запустить циклический таймер периодической отправки уведомлений */
+  startNotificationCycle: () => void;
+
+  /** Остановить циклический таймер периодической отправки уведомлений */
+  stopNotificationCycle: () => void;
+
+  /** Сформировать и отправить текущий статус активной очереди в чат Twitch */
   sendCurrentQueueStatus: () => void;
 }
 
