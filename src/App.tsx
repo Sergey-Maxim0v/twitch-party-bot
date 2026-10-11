@@ -9,6 +9,7 @@ import { AppLogsProvider } from './features/app-logs/context/AppLogsProvider.tsx
 import { QueueSettingsProvider } from './features/queue-settings/context/QueueSettingsProvider.tsx'
 import { QueueProvider } from './features/queue/context/QueueProvider.tsx'
 import { TwitchChatProvider } from './services/twitch/context/TwitchChatProvider.tsx'
+import { QueueNotificationProvider } from './features/queue-notification/context/QueueNotificationProvider.tsx'
 
 //  TODO:
 //   проверить:
@@ -27,7 +28,6 @@ import { TwitchChatProvider } from './services/twitch/context/TwitchChatProvider
 //  TODO:
 //   - при командах в чат из приложения (/mod) ничего не отображается, при отправке следующего сообщения, вместо следующего отображается первое (/mod)
 //   - в светлой теме не видно SUCCESS и WARNING логов
-//   - хук или метод в провайдере twichChat сбора накопления и отправки комплексного сообщения в чат твича
 //   - README
 //   - привести в порядок код
 
@@ -43,7 +43,9 @@ function App() {
               <QueueSettingsProvider>
                 <TwitchChatProvider>
                   <QueueProvider>
-                    <StreamerWorkspace />
+                    <QueueNotificationProvider>
+                      <StreamerWorkspace />
+                    </QueueNotificationProvider>
                   </QueueProvider>
                 </TwitchChatProvider>
               </QueueSettingsProvider>

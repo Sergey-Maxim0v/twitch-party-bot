@@ -33,23 +33,9 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const { pushLog: pushAppLog } = useAppLogs()
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage('twitch_queue_status', false)
 
-  const pushLog: AppLogsContextValue['pushLog'] = useCallback(({
-    message,
-    status,
-    source,
-    actorUsername,
-    rawCommand,
-  }) => {
-    pushAppLog({
-      message,
-      status,
-      source,
-      actorUsername,
-      rawCommand,
-    })
+  const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
+    pushAppLog({ message, status, source, actorUsername, rawCommand })
   }, [pushAppLog])
-
-  // === СИНХРОНИЗАЦИЯ И БАЛАНСИРОВКА ОЧЕРЕДИ ===
 
   const balanceQueues = useCallback((args: {
     source: LogSource;
@@ -69,8 +55,6 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     })
   }, [settings.maxQueueSize, settings.moveOnSizeChange, settings.allowPreJoin, setState, pushLog])
 
-  // === СТАТУС ОЧЕРЕДИ (Управление) ===
-
   const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
   }, [isQueueOpen, setIsQueueOpen, pushLog])
@@ -78,8 +62,6 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const closeQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
   }, [isQueueOpen, setIsQueueOpen, pushLog])
-
-  // === МЕТОДЫ ОЧИСТКИ (Clear) ===
 
   const clearActiveQueue = useCallback((args: {
     source: LogSource;
@@ -101,8 +83,6 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   }) => {
     handleClearQueueHistory({ ...args, setState, pushLog })
   }, [setState, pushLog])
-
-  // === УПРАВЛЕНИЕ ИГРОКАМИ (CRUD) ===
 
   const addPlayerToQueue: QueueContextValue['addPlayerToQueue'] = useCallback((args: {
     playerData: QueuePlayerFormData;
@@ -186,18 +166,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     }
   }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues])
 
-  // === ЖИЗНЕННЫЙ ЦИКЛ ОЧЕРЕДИ ===
-
   const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
-    // 1. Архивируем текущую сессию в историю
     handleFinishActiveQueue({ ...args, setState, pushLog })
 
-    // 2. Если pre-join выключен и очередь была открыта — закрываем её
     if (!settings.allowPreJoin && isQueueOpen) {
       closeQueue({ source: args.source, actorUsername: args.actorUsername })
     }
 
-    // 3. Заполняем освободившиеся места из списка ожидания
     if(settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
