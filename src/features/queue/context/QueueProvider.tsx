@@ -23,6 +23,7 @@ import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
 import { handleOpenQueue } from '../utils/handleOpenQueue.ts'
 import { handleUnbanPlayer } from '../utils/handleUnbanPlayer.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
+import { useQueueAutoClose } from '../hooks/useQueueAutoClose.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
@@ -57,6 +58,9 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
     pushAppLog({ message, status, source, actorUsername, rawCommand })
   }, [pushAppLog])
+
+  // Автоматическое закрытие очереди при смене канала или закрытии вкладки
+  useQueueAutoClose({ setIsQueueOpen, isQueueOpen, pushLog })
 
   const balanceQueues = useCallback((args: {
     source: LogSource;
