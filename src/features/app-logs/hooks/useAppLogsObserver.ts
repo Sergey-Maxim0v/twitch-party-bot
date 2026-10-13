@@ -38,8 +38,7 @@ export const useAppLogsObserver = (): void => {
 
     const client = getClient()
     const channel = client?.currentChannel
-    const name = userDisplayName || channel
-    const targetChannel = name ? `@${name}` : 'Twitch'
+    const targetChannel = channel ? `@${channel}` : 'Twitch'
 
     let message = ''
     let status: AppLogStatus = APP_LOG_STATUSES.SUCCESS
@@ -79,9 +78,7 @@ export const useAppLogsObserver = (): void => {
     lastChatAccessRef.current = chatAccessStatus
 
     const channel = getClient()?.currentChannel || ''
-
-    const name = userDisplayName || channel
-    const targetChannel = name ? `@${name}` : 'Twitch'
+    const targetChannel = channel ? `@${channel}` : 'Twitch'
 
     let message = ''
     let status: AppLogStatus = APP_LOG_STATUSES.SUCCESS
