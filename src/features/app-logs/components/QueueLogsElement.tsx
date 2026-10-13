@@ -15,11 +15,11 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
   let statusClassName = 'text-base-content'
 
   if (log.status === APP_LOG_STATUSES.SUCCESS) {
-    statusClassName = 'text-emerald-600 font-medium [:where([data-theme=dim])_&]:text-success'
+    statusClassName = 'text-[color-mix(in_oklch,var(--color-success)_80%,black)] [:where([data-theme=dim])_&]:text-success font-medium'
   } else if (log.status === APP_LOG_STATUSES.WARNING) {
-    statusClassName = 'text-amber-600 font-medium [:where([data-theme=dim])_&]:text-warning'
+    statusClassName = 'text-[color-mix(in_oklch,var(--color-warning)_75%,black)] [:where([data-theme=dim])_&]:text-warning font-medium'
   } else if (log.status === APP_LOG_STATUSES.ERROR) {
-    statusClassName = 'text-rose-600 font-medium [:where([data-theme=dim])_&]:text-error'
+    statusClassName = 'text-[color-mix(in_oklch,var(--color-error)_85%,black)] [:where([data-theme=dim])_&]:text-error font-medium'
   }
 
   // Определение иконки и текста всплывающей подсказки
