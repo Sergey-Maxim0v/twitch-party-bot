@@ -116,5 +116,10 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     if (tags.slow === '0') return buildSystemPayload('Медленный режим отключен.')
   }
 
+  // Обработка системных уведомлений и ошибок выполнения команд чата (NOTICE)
+  if (command === TwitchIrcCommand.NOTICE) {
+    return buildSystemPayload(text || 'Произошла системная ошибка выполнения команды чата.')
+  }
+
   return null
 }

@@ -43,21 +43,27 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
   const handleModerationAndEvents = useCallback((message: ParsedIrcMessage): boolean => {
     const isModAction = message.command === TwitchIrcCommand.CLEAR_CHAT || message.command === TwitchIrcCommand.CLEAR_MSG
     const isChannelEvent = message.command === TwitchIrcCommand.USER_NOTICE || message.command === TwitchIrcCommand.ROOM_STATE
+    const isNotice = message.command === TwitchIrcCommand.NOTICE
 
-    if (!isModAction && !isChannelEvent) return false
+    if (!isModAction && !isChannelEvent && !isNotice) return false
+
+    if (isNotice && pendingTextsRef.current) {
+      pendingTextsRef.current.shift()
+    }
+
+    const systemLog = createSystemMessage(message)
+
+    if (!systemLog) return true
 
     setMessages(prev => {
       const updatedHistory = isModAction ? markDeletedMessages({ modMessage: message, currentMessages: prev }) : prev
-      const systemLog = createSystemMessage(message)
-
-      if (!systemLog) return updatedHistory
-
       const finalMessages = [...updatedHistory, systemLog]
+
       return finalMessages.length > MAX_MESSAGES ? finalMessages.slice(finalMessages.length - MAX_MESSAGES) : finalMessages
     })
 
     return true
-  }, [])
+  }, [pendingTextsRef])
 
   /**
    * Добавляет стандартные текстовые сообщения в общую историю чата.
