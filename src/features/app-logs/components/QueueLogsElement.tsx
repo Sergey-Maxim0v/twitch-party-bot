@@ -15,11 +15,11 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
   let statusClassName = 'text-base-content'
 
   if (log.status === APP_LOG_STATUSES.SUCCESS) {
-    statusClassName = 'text-success'
+    statusClassName = 'text-emerald-600 font-medium [:where([data-theme=dim])_&]:text-success'
   } else if (log.status === APP_LOG_STATUSES.WARNING) {
-    statusClassName = 'text-warning'
+    statusClassName = 'text-amber-600 font-medium [:where([data-theme=dim])_&]:text-warning'
   } else if (log.status === APP_LOG_STATUSES.ERROR) {
-    statusClassName = 'text-error'
+    statusClassName = 'text-rose-600 font-medium [:where([data-theme=dim])_&]:text-error'
   }
 
   // Определение иконки и текста всплывающей подсказки
@@ -45,7 +45,7 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
 
       <span
         className={'md:tooltip md:tooltip-top md:tooltip-sm'
-            + ' text-base-content/50 inline-flex items-center align-middle mr-1.5 z-100'}
+                + ' text-base-content/50 inline-flex items-center align-middle mr-1.5 z-100'}
         data-tip={tooltipText}
       >
         <InitiatorIcon className="w-3.5 h-3.5" />
