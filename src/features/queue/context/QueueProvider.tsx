@@ -16,7 +16,7 @@ import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { handleJoinPlayer, JOIN_QUEUE_STATUSES } from '../utils/handleJoinPlayer.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import { type LogSource } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
 import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
@@ -41,6 +41,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     addDeletedUser,
     addMovedUser,
     addDeniedUser,
+    sendMessage,
     sendMessageOpen,
     sendMessageClose,
     startNotificationCycle,
@@ -97,14 +98,16 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     actorUsername: string;
   }) => {
     handleClearActiveQueue({ ...args, setState, pushLog })
-  }, [setState, pushLog])
+    sendMessage('Очередь очищена')
+  }, [setState, pushLog, sendMessage])
 
   const clearWaitingQueue = useCallback((args: {
     source: LogSource;
     actorUsername: string;
   }) => {
     handleClearWaitingQueue({ ...args, setState, pushLog })
-  }, [setState, pushLog])
+    sendMessage('Список ожидания очищен')
+  }, [setState, pushLog, sendMessage])
 
   const clearQueueHistory = useCallback((args: {
     source: LogSource;
@@ -141,7 +144,6 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
   }) => {
     handleRemovePlayer({ ...args, setState, pushLog })
-
     addDeletedUser(args.displayedUsername ?? args.username)
 
     if(settings.moveOnSizeChange) {
@@ -158,7 +160,6 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     rawCommand?: string;
   }) => {
     handleRemovePlayerFromAll({ ...args, setState, pushLog })
-
     addDeletedUser(args.displayedUsername ?? args.username)
 
     if(settings.moveOnSizeChange) {
@@ -216,16 +217,40 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addMovedUser])
 
   const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
-    handleFinishActiveQueue({ ...args, setState, pushLog })
+    handleFinishActiveQueue({
+      setState,
+      onSuccess: (playedPlayers, sessionNumber) => {
+        const nicknames = playedPlayers
+          .map(user => `@${user.displayedUsername ?? user.username}`)
+          .join(', ')
+
+        sendMessage(`Очередь завершена. Сейчас играют: ${nicknames}`)
+
+        pushLog({
+          message: `Состав №${sessionNumber} завершен (игроков: ${playedPlayers.length}).`,
+          status: APP_LOG_STATUSES.WARNING,
+          source: args.source,
+          actorUsername: args.actorUsername,
+        })
+      },
+      onEmpty: () => {
+        pushLog({
+          message: 'Не удалось завершить сессию: активная очередь пуста.',
+          status: APP_LOG_STATUSES.WARNING,
+          source: args.source,
+          actorUsername: args.actorUsername,
+        })
+      },
+    })
 
     if (isQueueOpen) {
       closeQueue({ source: args.source, actorUsername: args.actorUsername })
     }
 
-    if(settings.moveOnSizeChange) {
+    if (settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
-  }, [setState, pushLog, settings.moveOnSizeChange, isQueueOpen, closeQueue, balanceQueues])
+  }, [setState, sendMessage, pushLog, isQueueOpen, settings.moveOnSizeChange, closeQueue, balanceQueues])
 
   const contextValue = useMemo<QueueContextValue>(() => ({
     isQueueOpen,

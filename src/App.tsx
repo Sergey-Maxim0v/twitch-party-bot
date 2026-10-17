@@ -27,6 +27,7 @@ import { QueueNotificationProvider } from './features/queue-notification/context
 //   -  данные между вкладками
 
 //  TODO:
+//   - согласовать настройки и авто-отправку сообщений
 //   - README
 //   - привести в порядок код
 

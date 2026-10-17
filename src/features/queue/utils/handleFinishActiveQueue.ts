@@ -1,17 +1,13 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueSession, QueueState } from '../types'
-import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import type { QueuePlayer, QueueSession, QueueState } from '../types'
 
 export interface HandleFinishActiveQueueArgs {
-  /** Источник вызова команды (обычно интерфейс стримера) */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто инициировал завершение */
-  actorUsername: string;
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
-  /** Хелпер провайдера для записи логов */
-  pushLog: AppLogsContextValue['pushLog'];
+  /** Колбэк при успешном завершении сессии */
+  onSuccess: (playedPlayers: QueuePlayer[], sessionNumber: number) => void;
+  /** Колбэк, если активная очередь оказалась пуста */
+  onEmpty: () => void;
 }
 
 /**
@@ -19,30 +15,25 @@ export interface HandleFinishActiveQueueArgs {
  * фиксации кулдаунов участников.
  */
 export const handleFinishActiveQueue = ({
-  source,
-  actorUsername,
   setState,
-  pushLog,
+  onSuccess,
+  onEmpty,
 }: HandleFinishActiveQueueArgs): void => {
-  let playedPlayersCount = 0
-  let nextSessionNumber = 1
-  let isQueueEmpty = false
-
   setState(prev => {
     // Если активная очередь пуста, завершать нечего
     if (prev.activeQueue.length === 0) {
-      isQueueEmpty = true
+      onEmpty()
       return prev
     }
 
-    playedPlayersCount = prev.activeQueue.length
+    const playedPlayers = [...prev.activeQueue]
     const currentTimestamp = Date.now()
-    nextSessionNumber = prev.globalSessionCounter + 1
+    const nextSessionNumber = prev.globalSessionCounter + 1
 
     const updatedPlayerHistory = { ...prev.playerHistory }
 
     // 1. Фиксируем кулдауны для всех игроков, которые отыграли текущую сессию
-    prev.activeQueue.forEach(player => {
+    playedPlayers.forEach(player => {
       const existingStats = prev.playerHistory[player.username]
       const currentGamesPlayed = existingStats?.gamesPlayed || 0
 
@@ -59,10 +50,13 @@ export const handleFinishActiveQueue = ({
     const finishedSession: QueueSession = {
       id: `session_${currentTimestamp}_${Math.random().toString(36).substring(2, 7)}`,
       name: `Состав №${nextSessionNumber}`,
-      createdAt: prev.activeQueue[0]?.timestamp || currentTimestamp,
+      createdAt: playedPlayers[0]?.timestamp || currentTimestamp,
       playedAt: currentTimestamp,
-      players: prev.activeQueue,
+      players: playedPlayers,
     }
+
+    // Вызываем успешный колбэк с данными
+    onSuccess(playedPlayers, nextSessionNumber)
 
     return {
       ...prev,
@@ -72,18 +66,4 @@ export const handleFinishActiveQueue = ({
       playerHistory: updatedPlayerHistory,
     }
   })
-
-  setTimeout(() => {
-    if (!isQueueEmpty) {
-      const logMessage = `Состав №${nextSessionNumber} завершен (игроков: ${playedPlayersCount}).`
-      pushLog({ message: logMessage, status: APP_LOG_STATUSES.WARNING, source, actorUsername })
-    } else {
-      pushLog({
-        message: 'Не удалось завершить сессию: активная очередь пуста.',
-        status: APP_LOG_STATUSES.ERROR,
-        source,
-        actorUsername,
-      })
-    }
-  }, 0)
 }
