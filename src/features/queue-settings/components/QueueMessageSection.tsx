@@ -81,6 +81,20 @@ const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = ''
         label="Сообщение о перемещении игрока между очередями"
         onChange={checked => { handlePermissionsChange('onMemberMove', checked) }}
       />
+
+      <SettingsCheckbox
+        checked={settings.chatNotificationPermissions.onClearActive}
+        disabled={!settings.chatNotificationPermissions.allowSending}
+        label="Сообщение о полной очистке активного состава игроков"
+        onChange={checked => { handlePermissionsChange('onClearActive', checked) }}
+      />
+
+      <SettingsCheckbox
+        checked={settings.chatNotificationPermissions.onClearWaiting}
+        disabled={!settings.chatNotificationPermissions.allowSending}
+        label="Сообщение о полной очистке списка ожидающих участников"
+        onChange={checked => { handlePermissionsChange('onClearWaiting', checked) }}
+      />
     </div>
   )
 }

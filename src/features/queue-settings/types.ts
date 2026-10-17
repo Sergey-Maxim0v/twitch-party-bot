@@ -73,6 +73,8 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
     onMemberMove: false,
     onMemberRemove: false,
     onQueueFull: false,
+    onClearActive: false,
+    onClearWaiting: false,
   },
   banList: [],
   currentGame: undefined,
@@ -149,6 +151,10 @@ export interface QueueSettings {
     onMemberMove: boolean;
     /** Отправка сообщений о полном заполнении очереди */
     onQueueFull: boolean;
+    /** Отправка сообщений о полной очистке активного состава игроков */
+    onClearActive: boolean;
+    /** Отправка сообщений о полной очистке списка ожидающих участников */
+    onClearWaiting: boolean;
   };
 
   /** Выбор регулярного выражения для проверки игрового никнейма. */

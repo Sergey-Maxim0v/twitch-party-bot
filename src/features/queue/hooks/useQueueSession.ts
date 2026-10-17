@@ -73,6 +73,14 @@ export const useQueueSession = ({
           source: args.source,
           actorUsername: args.actorUsername,
         })
+
+        if (isQueueOpen) {
+          closeQueue({ source: args.source, actorUsername: args.actorUsername })
+        }
+
+        if (settings.moveOnSizeChange) {
+          balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+        }
       },
       onEmpty: () => {
         pushLog({
@@ -83,14 +91,6 @@ export const useQueueSession = ({
         })
       },
     })
-
-    if (isQueueOpen) {
-      closeQueue({ source: args.source, actorUsername: args.actorUsername })
-    }
-
-    if (settings.moveOnSizeChange) {
-      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-    }
   }, [setState, sendMessage, pushLog, isQueueOpen, settings, closeQueue, balanceQueues])
 
   return { openQueue, closeQueue, finishActiveQueue, balanceQueues }

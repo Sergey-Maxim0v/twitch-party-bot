@@ -90,6 +90,35 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage(messageText)
   }, [permissions.onQueueClose, maxQueueSize, sendMessage])
 
+  const sendClearActive = useCallback(() => {
+    if (!permissions.onClearActive) {
+      return
+    }
+
+    // Очищаем из буфера уведомлений никнеймы, связанные с активным составом
+    setState(currentState => ({
+      ...currentState,
+      joined: new Set<string>(),
+      moved: new Set<string>(),
+    }))
+
+    sendMessage('Очередь очищена.')
+  }, [permissions.onClearActive, sendMessage])
+
+  const sendClearWaiting = useCallback(() => {
+    if (!permissions.onClearWaiting) {
+      return
+    }
+
+    // Очищаем из буфера уведомлений никнеймы, связанные со списком ожидания
+    setState(currentState => ({
+      ...currentState,
+      waiting: new Set<string>(),
+    }))
+
+    sendMessage('Список ожидающих очищен.')
+  }, [permissions.onClearWaiting, sendMessage])
+
   const sendCurrentQueueStatus = useCallback((): void => {
     const statusText = formatCurrentQueueStatus({
       activeUsernames: activeQueueRef.current,
@@ -174,6 +203,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage,
     sendMessageOpen,
     sendMessageClose,
+    sendClearActive,
+    sendClearWaiting,
     clearBuffer,
     startNotificationCycle,
     stopNotificationCycle,
@@ -190,6 +221,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage,
     sendMessageOpen,
     sendMessageClose,
+    sendClearActive,
+    sendClearWaiting,
     clearBuffer,
     startNotificationCycle,
     stopNotificationCycle,

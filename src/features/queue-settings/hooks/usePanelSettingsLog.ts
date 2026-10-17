@@ -35,6 +35,8 @@ const NOTIFICATION_LABELS: Record<string, string> = {
   onMemberAdd: 'Сообщение о добавлении игрока в очередь',
   onMemberRemove: 'Сообщение о удалении игрока из очереди',
   onMemberMove: 'Сообщение о перемещении игрока между очередями',
+  onClearActive: 'Сообщение об очистке очереди',
+  onClearWaiting: 'Сообщение об очистке списка ожидающих',
 }
 
 // Словарь разрешений сообщений

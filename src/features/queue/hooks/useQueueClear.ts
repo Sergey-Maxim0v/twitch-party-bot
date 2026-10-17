@@ -14,23 +14,23 @@ interface UseQueueClearArgs {
 }
 
 export const useQueueClear = ({ setState, pushLog }: UseQueueClearArgs) => {
-  const { sendMessage } = useQueueNotification()
+  const { sendClearActive, sendClearWaiting } = useQueueNotification()
 
   const clearActiveQueue = useCallback((args: {
     source: LogSource;
     actorUsername: string;
   }) => {
     handleClearActiveQueue({ ...args, setState, pushLog })
-    sendMessage('Очередь очищена') // TODO: sendMessageClearActive
-  }, [setState, pushLog, sendMessage])
+    sendClearActive()
+  }, [setState, pushLog, sendClearActive])
 
   const clearWaitingQueue = useCallback((args: {
     source: LogSource;
     actorUsername: string;
   }) => {
     handleClearWaitingQueue({ ...args, setState, pushLog })
-    sendMessage('Список ожидания очищен') // TODO: sendMessageClearWaiting
-  }, [setState, pushLog, sendMessage])
+    sendClearWaiting()
+  }, [setState, pushLog, sendClearWaiting])
 
   const clearQueueHistory = useCallback((args: {
     source: LogSource;
