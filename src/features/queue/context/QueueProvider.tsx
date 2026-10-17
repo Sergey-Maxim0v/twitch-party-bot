@@ -133,6 +133,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const removePlayerFromQueue: QueueContextValue['removePlayerFromQueue'] = useCallback((args: {
     userId: string;
+    username: string;
     targetQueueType: QueueType;
     displayedUsername?: string;
     source: LogSource;
@@ -141,9 +142,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   }) => {
     handleRemovePlayer({ ...args, setState, pushLog })
 
-    if (args.displayedUsername) {
-      addDeletedUser(args.displayedUsername)
-    }
+    addDeletedUser(args.displayedUsername ?? args.username)
 
     if(settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
@@ -195,8 +194,9 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     handleUnbanPlayer({ ...args, settings, updateSettings, pushLog })
   }, [settings, updateSettings, pushLog])
 
-  const movePlayer = useCallback((args: {
+  const movePlayer: QueueContextValue['movePlayer'] = useCallback((args: {
     userId: string;
+    username: string;
     targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;
     displayedUsername?: string;
@@ -205,8 +205,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   }) => {
     handleMovePlayer({ ...args, setState, pushLog })
 
-    if (args.targetQueueType === QUEUE_TYPES.ACTIVE && args.displayedUsername) {
-      addMovedUser(args.displayedUsername)
+    if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
+      addMovedUser(args.displayedUsername ?? args.username)
     }
 
     if (settings.moveOnSizeChange) {

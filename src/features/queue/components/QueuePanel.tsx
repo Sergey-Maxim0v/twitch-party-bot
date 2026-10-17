@@ -16,7 +16,7 @@ import { useChatCommands } from '../hooks/useChatCommands.ts'
 const QueuePanel: FC = () => {
   const { settings } = useQueueSettings()
   const { movePlayer, activeQueue, waitingQueue } = useQueue()
-  const { userDisplayName } = useAuth()
+  const { userDisplayName, session } = useAuth()
 
   useChatCommands()
 
@@ -45,15 +45,20 @@ const QueuePanel: FC = () => {
   }
 
   const onDragEnd = (event: DragEndEvent): void => {
-    setDraggingPlayer(null)
+    if(!draggingPlayer) return
+
+    const currentUsername = draggingPlayer.username
 
     handleDragEnd({
       event,
       activeQueue,
       waitingQueue: waitingQueue,
       movePlayer,
-      userDisplayName,
+      actorUsername: userDisplayName ?? session?.login ?? 'Application',
+      username: currentUsername,
     })
+
+    setDraggingPlayer(null)
   }
 
   return (

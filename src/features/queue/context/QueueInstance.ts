@@ -48,6 +48,7 @@ export interface QueueContextValue {
   /** Удалить первую найденную запись игрока из конкретной очереди (активной или ожидающих) */
   removePlayerFromQueue: (args: {
     userId: string;
+    username: string;
     displayedUsername?: string;
     targetQueueType: QueueType;
     source: LogSource;
@@ -84,6 +85,7 @@ export interface QueueContextValue {
   /** Универсальное перемещение игрока внутри списков или между ними (Drag-and-Drop) */
   movePlayer: (args: {
     userId: string;
+    username: string;
     displayedUsername?: string;
     targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;

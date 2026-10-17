@@ -73,8 +73,8 @@ const QueueElement: FC<QueueElementProps> = ({
 
   const handleBan = () => {
     banPlayerFromQueue({
-      userId: userId,
-      username: username,
+      userId,
+      username,
       displayedUsername: displayedUsername,
       actorUsername: userDisplayName ?? 'Application',
       source: LOG_SOURCE.STREAMER_UI,
@@ -83,7 +83,8 @@ const QueueElement: FC<QueueElementProps> = ({
 
   const handleDelete = () => {
     removePlayerFromQueue({
-      userId: userId,
+      userId,
+      username,
       source: LOG_SOURCE.STREAMER_UI,
       actorUsername: userDisplayName ?? 'Application',
       targetQueueType: queueType,
@@ -92,8 +93,8 @@ const QueueElement: FC<QueueElementProps> = ({
 
   const handleDeleteEverywhere = () => {
     removePlayerFromAllQueues({
-      userId: userId,
-      username: username,
+      userId,
+      username,
       source: LOG_SOURCE.STREAMER_UI,
       actorUsername: userDisplayName ?? 'Application',
     })

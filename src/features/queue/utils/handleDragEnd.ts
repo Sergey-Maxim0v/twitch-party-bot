@@ -1,7 +1,6 @@
 import { type DragEndEvent } from '@dnd-kit/core'
 import { QUEUE_TYPES, type QueueType } from '../types.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
-import type { TwitchAuthHookResult } from '../../auth/types'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 export interface HandleDragEndArgs {
@@ -9,10 +8,11 @@ export interface HandleDragEndArgs {
   activeQueue: QueueContextValue['activeQueue']
   waitingQueue: QueueContextValue['waitingQueue']
   movePlayer: QueueContextValue['movePlayer']
-  userDisplayName: TwitchAuthHookResult['userDisplayName']
+  actorUsername: string
+  username: string
 }
 
-export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, userDisplayName }: HandleDragEndArgs): void => {
+export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, actorUsername, username }: HandleDragEndArgs): void => {
   const { active, over } = event
   if (!over) return
 
@@ -56,9 +56,10 @@ export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, us
   // Вызываем существующий метод перемещения из QueueProvider
   movePlayer({
     userId: activeId,
+    username: username,
     targetQueueType,
     targetIndex,
     source: LOG_SOURCE.STREAMER_UI,
-    actorUsername: userDisplayName ?? 'Application',
+    actorUsername,
   })
 }

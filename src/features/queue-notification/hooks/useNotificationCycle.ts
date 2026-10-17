@@ -35,6 +35,9 @@ export const useNotificationCycle = ({
     formatNotificationMessage,
   })
 
+  // Реф для хранения актуальной функции tick для предотвращения замыкания старых ссылок
+  const tickRef = useRef<() => void>(() => {})
+
   useEffect(() => {
     cooldownRef.current = botMessageCooldown
     callbacksRef.current = {
@@ -45,22 +48,8 @@ export const useNotificationCycle = ({
     }
   }, [botMessageCooldown, sendMessage, clearBuffer, stateRef, formatNotificationMessage])
 
-  const stopNotificationCycle = useCallback((): void => {
-    isCycleActiveRef.current = false
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
-  }, [])
-
-  const startNotificationCycle = useCallback((): void => {
-    if (isCycleActiveRef.current && timerRef.current) {
-      return
-    }
-
-    isCycleActiveRef.current = true
-
-    const tick = (): void => {
+  useEffect(() => {
+    tickRef.current = (): void => {
       if (!isCycleActiveRef.current) return
 
       const {
@@ -80,14 +69,28 @@ export const useNotificationCycle = ({
       }
 
       const intervalMs = cooldownRef.current * 1000
-      timerRef.current = setTimeout(tick, intervalMs)
+      timerRef.current = setTimeout(() => tickRef.current(), intervalMs)
     }
+  })
 
-    const intervalMs = cooldownRef.current * 1000
-    timerRef.current = setTimeout(tick, intervalMs)
+  const stopNotificationCycle = useCallback((): void => {
+    isCycleActiveRef.current = false
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
   }, [])
 
-  // Автоматический сброс таймера при размонтировании компонента
+  const startNotificationCycle = useCallback((): void => {
+    if (isCycleActiveRef.current && timerRef.current) {
+      return
+    }
+
+    isCycleActiveRef.current = true
+    const intervalMs = cooldownRef.current * 1000
+    timerRef.current = setTimeout(() => tickRef.current(), intervalMs)
+  }, [])
+
   useEffect(() => {
     return () => {
       if (timerRef.current) {
