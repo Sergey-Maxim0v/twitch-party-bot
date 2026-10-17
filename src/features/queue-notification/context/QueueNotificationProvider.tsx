@@ -26,6 +26,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   const activeQueueRef = useRef<string[]>([])
   const waitingQueueRef = useRef<string[]>([])
   const stateRef = useRef<TwitchNotificationState>(state)
+  const isNotificationActiveRef = useRef<boolean>(false)
 
   useEffect(() => {
     stateRef.current = state
@@ -67,6 +68,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [sendAndLogNotification, permissions.allowSending])
 
   const sendMessageOpen = useCallback((): void => {
+    setState(createInitialNotificationState())
+
     if (!permissions.onQueueOpen) {
       return
     }
@@ -76,6 +79,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [permissions.onQueueOpen, commands, sendMessage])
 
   const sendMessageClose = useCallback((): void => {
+    setState(createInitialNotificationState())
+
     if (!permissions.onQueueClose) {
       return
     }
@@ -95,7 +100,6 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    // Очищаем из буфера уведомлений никнеймы, связанные с активным составом
     setState(currentState => ({
       ...currentState,
       joined: new Set<string>(),
@@ -110,7 +114,6 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    // Очищаем из буфера уведомлений никнеймы, связанные со списком ожидания
     setState(currentState => ({
       ...currentState,
       waiting: new Set<string>(),
@@ -129,7 +132,10 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage(statusText)
   }, [maxQueueSize, sendMessage])
 
-  const { startNotificationCycle, stopNotificationCycle } = useNotificationCycle({
+  const {
+    startNotificationCycle: startCycleRaw,
+    stopNotificationCycle: stopCycleRaw,
+  } = useNotificationCycle({
     botMessageCooldown,
     sendMessage,
     stateRef,
@@ -137,7 +143,21 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     formatNotificationMessage,
   })
 
+  const startNotificationCycle = useCallback((): void => {
+    isNotificationActiveRef.current = true
+    setState(createInitialNotificationState())
+    startCycleRaw()
+  }, [startCycleRaw])
+
+  const stopNotificationCycle = useCallback((): void => {
+    isNotificationActiveRef.current = false
+    setState(createInitialNotificationState())
+    stopCycleRaw()
+  }, [stopCycleRaw])
+
   const addJoinedUser = useCallback((username: string): void => {
+    if (!isNotificationActiveRef.current) return
+
     setState(currentState => {
       if (currentState.joined.has(username)) {
         return currentState
@@ -149,6 +169,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addWaitingUser = useCallback((username: string): void => {
+    if (!isNotificationActiveRef.current) return
+
     setState(currentState => {
       if (currentState.waiting.has(username)) {
         return currentState
@@ -160,6 +182,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addDeletedUser = useCallback((username: string): void => {
+    if (!isNotificationActiveRef.current) return
+
     setState(currentState => {
       if (currentState.deleted.has(username)) {
         return currentState
@@ -171,6 +195,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addMovedUser = useCallback((username: string): void => {
+    if (!isNotificationActiveRef.current) return
+
     setState(currentState => {
       if (currentState.moved.has(username)) {
         return currentState
@@ -182,6 +208,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addDeniedUser = useCallback((username: string): void => {
+    if (!isNotificationActiveRef.current) return
+
     setState(currentState => {
       if (currentState.denied.has(username)) {
         return currentState
