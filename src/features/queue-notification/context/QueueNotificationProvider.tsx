@@ -21,6 +21,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   const { settings } = useQueueSettings()
   const { pushLog } = useAppLogs()
   const { userDisplayName, session } = useAuth()
+  
+  const { chatNotificationPermissions: permissions } = settings
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const stateRef = useRef<TwitchNotificationState>(state)
@@ -28,6 +30,10 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   useEffect(() => {
     stateRef.current = state
   }, [state])
+
+  const clearBuffer = useCallback((): void => {
+    setState(createInitialNotificationState())
+  }, [])
 
   const sendAndLogNotification = useCallback((message: string): void => {
     sendChatMessage(message)
@@ -43,39 +49,31 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     })
   }, [sendChatMessage, pushLog, session?.login, userDisplayName])
 
-  const clearBuffer = useCallback((): void => {
-    setState(createInitialNotificationState())
-  }, [])
-
   const sendMessage = useCallback((text: string): void => {
-    if (settings.chatNotificationPermissions.allowSending && text.trim().length > 0) {
+    if (!permissions.allowSending) {
+      return
+    }
+
+    if (text.trim().length > 0) {
       sendAndLogNotification(text)
     }
-  }, [settings.chatNotificationPermissions.allowSending, sendAndLogNotification])
-
-  const stopNotificationCycle = useCallback((): void => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
-    }
-  }, [])
+  }, [sendAndLogNotification, permissions.allowSending])
 
   const sendMessageOpen = useCallback((): void => {
-    if (!settings.chatNotificationPermissions.allowSending || !settings.chatNotificationPermissions.onQueueOpen) {
+    if (!permissions.onQueueOpen) {
       return
     }
 
     const messageText = formatQueueOpenMessage(settings.commands)
-    sendAndLogNotification(messageText)
+    sendMessage(messageText)
   }, [
-    settings.chatNotificationPermissions.allowSending,
-    settings.chatNotificationPermissions.onQueueOpen,
+    permissions.onQueueOpen,
     settings.commands,
-    sendAndLogNotification,
+    sendMessage,
   ])
 
   const sendMessageClose = useCallback((): void => {
-    if (!settings.chatNotificationPermissions.allowSending || !settings.chatNotificationPermissions.onQueueClose) {
+    if (!permissions.onQueueClose) {
       return
     }
 
@@ -86,15 +84,31 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     })
 
     const messageText = formatQueueCloseMessage(queueStatusText)
-    sendAndLogNotification(messageText)
+    sendMessage(messageText)
   }, [
-    settings.chatNotificationPermissions.allowSending,
-    settings.chatNotificationPermissions.onQueueClose,
+    permissions.onQueueClose,
     settings.maxQueueSize,
     activeQueueList,
     waitingQueueList,
-    sendAndLogNotification,
+    sendMessage,
   ])
+
+  const sendCurrentQueueStatus = useCallback((): void => {
+    const statusText = formatCurrentQueueStatus({
+      activeUsernames: activeQueueList,
+      waitingUsernames: waitingQueueList,
+      maxQueueSize: settings.maxQueueSize,
+    })
+
+    sendMessage(statusText)
+  }, [settings.maxQueueSize, activeQueueList, waitingQueueList, sendMessage])
+
+  const stopNotificationCycle = useCallback((): void => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+  }, [])
 
   const startNotificationCycle = useCallback((): void => {
     stopNotificationCycle()
@@ -102,33 +116,16 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     const intervalMs = settings.botMessageCooldown * 1000
 
     timerRef.current = setInterval(() => {
-      if (!settings.chatNotificationPermissions.allowSending) {
-        return
-      }
 
       const currentNotificationState = stateRef.current
       const messageText = formatNotificationMessage(currentNotificationState)
 
       if (messageText.length > 0) {
-        sendAndLogNotification(messageText)
+        sendMessage(messageText)
         setState(createInitialNotificationState())
       }
     }, intervalMs)
-  }, [stopNotificationCycle, settings.botMessageCooldown, settings.chatNotificationPermissions.allowSending, sendAndLogNotification])
-
-  const sendCurrentQueueStatus = useCallback((): void => {
-    if (!settings.chatNotificationPermissions.allowSending) {
-      return
-    }
-
-    const statusText = formatCurrentQueueStatus({
-      activeUsernames: activeQueueList,
-      waitingUsernames: waitingQueueList,
-      maxQueueSize: settings.maxQueueSize,
-    })
-
-    sendAndLogNotification(statusText)
-  }, [settings.chatNotificationPermissions.allowSending, settings.maxQueueSize, activeQueueList, waitingQueueList, sendAndLogNotification])
+  }, [stopNotificationCycle, settings.botMessageCooldown, sendMessage])
 
   // Автоматический перезапуск цикла при изменении интервала cooldown, если он уже был запущен
   useEffect(() => {

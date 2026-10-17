@@ -10,7 +10,7 @@ export const formatQueueOpenMessage = (commands: QueueSettings['commands']): str
     parts.push(`${commands.join.name} для входа`)
   }
   if (!commands.leave.isModeratorOnly) {
-    parts.push(`${commands.leave.name} для удаления себя`)
+    parts.push(`${commands.leave.name} для выхода`)
   }
   if (!commands.show.isModeratorOnly) {
     parts.push(`${commands.show.name} для просмотра очереди`)
