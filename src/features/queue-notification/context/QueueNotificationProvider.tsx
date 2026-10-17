@@ -1,46 +1,53 @@
 import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
-import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
 import type { TwitchNotificationState } from '../types.ts'
-import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
-import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 import { createInitialNotificationState } from '../utils/createInitialNotificationState.ts'
+import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
+import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import { APP_LOG_STATUSES, LOG_SOURCE } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
+import { APP_LOG_STATUSES, LOG_SOURCE } from '../../app-logs/types.ts'
 import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
+import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
 import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
+import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
+import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
+import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 
 export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<TwitchNotificationState>(createInitialNotificationState())
-  const [activeQueueList, setActiveQueueList] = useState<string[]>([])
-  const [waitingQueueList, setWaitingQueueList] = useState<string[]>([])
 
   const { sendChatMessage } = useTwitchChat()
   const { settings } = useQueueSettings()
   const { pushLog } = useAppLogs()
   const { userDisplayName, session } = useAuth()
-  
-  const { chatNotificationPermissions: permissions } = settings
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { chatNotificationPermissions: permissions, commands, maxQueueSize, botMessageCooldown } = settings
+
+  const activeQueueRef = useRef<string[]>([])
+  const waitingQueueRef = useRef<string[]>([])
   const stateRef = useRef<TwitchNotificationState>(state)
 
   useEffect(() => {
     stateRef.current = state
   }, [state])
 
+  const setActiveQueueList = useCallback((list: string[]): void => {
+    activeQueueRef.current = list
+  }, [])
+
+  const setWaitingQueueList = useCallback((list: string[]): void => {
+    waitingQueueRef.current = list
+  }, [])
+
   const clearBuffer = useCallback((): void => {
     setState(createInitialNotificationState())
   }, [])
 
   const sendAndLogNotification = useCallback((message: string): void => {
-    sendChatMessage(message)
-
     const actorUsername = userDisplayName ?? session?.login ?? 'Application'
     const logText = `Автоматически отправлено сообщение в чат: ${message}`
 
+    sendChatMessage(message)
     pushLog({
       message: logText,
       status: APP_LOG_STATUSES.SUCCESS,
@@ -64,13 +71,9 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    const messageText = formatQueueOpenMessage(settings.commands)
+    const messageText = formatQueueOpenMessage(commands)
     sendMessage(messageText)
-  }, [
-    permissions.onQueueOpen,
-    settings.commands,
-    sendMessage,
-  ])
+  }, [permissions.onQueueOpen, commands, sendMessage])
 
   const sendMessageClose = useCallback((): void => {
     if (!permissions.onQueueClose) {
@@ -78,104 +81,86 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     }
 
     const queueStatusText = formatCurrentQueueStatus({
-      activeUsernames: activeQueueList,
-      waitingUsernames: waitingQueueList,
-      maxQueueSize: settings.maxQueueSize,
+      activeUsernames: activeQueueRef.current,
+      waitingUsernames: waitingQueueRef.current,
+      maxQueueSize,
     })
 
     const messageText = formatQueueCloseMessage(queueStatusText)
     sendMessage(messageText)
-  }, [
-    permissions.onQueueClose,
-    settings.maxQueueSize,
-    activeQueueList,
-    waitingQueueList,
-    sendMessage,
-  ])
+  }, [permissions.onQueueClose, maxQueueSize, sendMessage])
 
   const sendCurrentQueueStatus = useCallback((): void => {
     const statusText = formatCurrentQueueStatus({
-      activeUsernames: activeQueueList,
-      waitingUsernames: waitingQueueList,
-      maxQueueSize: settings.maxQueueSize,
+      activeUsernames: activeQueueRef.current,
+      waitingUsernames: waitingQueueRef.current,
+      maxQueueSize,
     })
 
     sendMessage(statusText)
-  }, [settings.maxQueueSize, activeQueueList, waitingQueueList, sendMessage])
+  }, [maxQueueSize, sendMessage])
 
-  const stopNotificationCycle = useCallback((): void => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
-    }
-  }, [])
-
-  const startNotificationCycle = useCallback((): void => {
-    stopNotificationCycle()
-
-    const intervalMs = settings.botMessageCooldown * 1000
-
-    timerRef.current = setInterval(() => {
-
-      const currentNotificationState = stateRef.current
-      const messageText = formatNotificationMessage(currentNotificationState)
-
-      if (messageText.length > 0) {
-        sendMessage(messageText)
-        setState(createInitialNotificationState())
-      }
-    }, intervalMs)
-  }, [stopNotificationCycle, settings.botMessageCooldown, sendMessage])
-
-  // Автоматический перезапуск цикла при изменении интервала cooldown, если он уже был запущен
-  useEffect(() => {
-    if (timerRef.current) {
-      startNotificationCycle()
-    }
-  }, [settings.botMessageCooldown, startNotificationCycle])
-
-  // Очистка интервала при размонтировании
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-      }
-    }
-  }, [])
+  const { startNotificationCycle, stopNotificationCycle } = useNotificationCycle({
+    botMessageCooldown,
+    sendMessage,
+    stateRef,
+    clearBuffer,
+    formatNotificationMessage,
+  })
 
   const addJoinedUser = useCallback((username: string): void => {
-    setState(currentState => ({
-      ...currentState,
-      joined: new Set([...currentState.joined, username]),
-    }))
+    setState(currentState => {
+      if (currentState.joined.has(username)) {
+        return currentState
+      }
+      const nextSet = new Set(currentState.joined)
+      nextSet.add(username)
+      return { ...currentState, joined: nextSet }
+    })
   }, [])
 
   const addWaitingUser = useCallback((username: string): void => {
-    setState(currentState => ({
-      ...currentState,
-      waiting: new Set([...currentState.waiting, username]),
-    }))
+    setState(currentState => {
+      if (currentState.waiting.has(username)) {
+        return currentState
+      }
+      const nextSet = new Set(currentState.waiting)
+      nextSet.add(username)
+      return { ...currentState, waiting: nextSet }
+    })
   }, [])
 
   const addDeletedUser = useCallback((username: string): void => {
-    setState(currentState => ({
-      ...currentState,
-      deleted: new Set([...currentState.deleted, username]),
-    }))
+    setState(currentState => {
+      if (currentState.deleted.has(username)) {
+        return currentState
+      }
+      const nextSet = new Set(currentState.deleted)
+      nextSet.add(username)
+      return { ...currentState, deleted: nextSet }
+    })
   }, [])
 
   const addMovedUser = useCallback((username: string): void => {
-    setState(currentState => ({
-      ...currentState,
-      moved: new Set([...currentState.moved, username]),
-    }))
+    setState(currentState => {
+      if (currentState.moved.has(username)) {
+        return currentState
+      }
+      const nextSet = new Set(currentState.moved)
+      nextSet.add(username)
+      return { ...currentState, moved: nextSet }
+    })
   }, [])
 
   const addDeniedUser = useCallback((username: string): void => {
-    setState(currentState => ({
-      ...currentState,
-      denied: new Set([...currentState.denied, username]),
-    }))
+    setState(currentState => {
+      if (currentState.denied.has(username)) {
+        return currentState
+      }
+      const nextSet = new Set(currentState.denied)
+      nextSet.add(username)
+      return { ...currentState, denied: nextSet }
+    })
   }, [])
 
   const contextValue = useMemo<QueueNotificationContextType>(() => ({
