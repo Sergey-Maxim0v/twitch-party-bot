@@ -51,15 +51,9 @@ export const useQueueSession = ({
     startNotificationCycle()
   }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageOpen, startNotificationCycle])
 
-  // Добавляем опциональный параметр silent для предотвращения спама в чат
-  const closeQueue = useCallback((args: { source: LogSource; actorUsername: string; silent?: boolean }) => {
+  const closeQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
-
-    // Если вызван тихий режим, блокируем отправку сообщения
-    if (!args.silent) {
-      sendMessageClose()
-    }
-
+    sendMessageClose()
     stopNotificationCycle()
   }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageClose, stopNotificationCycle])
 
@@ -71,8 +65,10 @@ export const useQueueSession = ({
           .map(user => `@${user.displayedUsername ?? user.username}`)
           .join(', ')
 
+        // 1. Отправляем сообщение в чат Twitch
         sendMessage(`Очередь завершена. Сейчас играют: ${nicknames}`)
 
+        // 2. Логируем завершение состава
         pushLog({
           message: `Состав №${sessionNumber} завершен (игроков: ${playedPlayers.length}).`,
           status: APP_LOG_STATUSES.WARNING,
@@ -80,11 +76,19 @@ export const useQueueSession = ({
           actorUsername: args.actorUsername,
         })
 
+        // 3. Если очередь была открыта, производим системные сайд-эффекты и закрываем её
         if (isQueueOpen) {
-          // Вызываем закрытие в "тихом" режиме
-          closeQueue({ source: args.source, actorUsername: args.actorUsername, silent: true })
+          pushLog({
+            message: 'Очередь автоматически закрыта в связи с завершением сессии.',
+            status: APP_LOG_STATUSES.INFO,
+            source: args.source,
+            actorUsername: args.actorUsername,
+          })
+          stopNotificationCycle()
+          setIsQueueOpen(false)
         }
 
+        // 4. Запускаем балансировку при необходимости
         if (settings.moveOnSizeChange) {
           balanceQueues({ source: args.source, actorUsername: args.actorUsername })
         }
@@ -98,7 +102,7 @@ export const useQueueSession = ({
         })
       },
     })
-  }, [setState, sendMessage, pushLog, isQueueOpen, settings, closeQueue, balanceQueues])
+  }, [setState, sendMessage, pushLog, isQueueOpen, setIsQueueOpen, stopNotificationCycle, settings.moveOnSizeChange, balanceQueues])
 
   return { openQueue, closeQueue, finishActiveQueue, balanceQueues }
 }
