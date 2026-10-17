@@ -51,9 +51,15 @@ export const useQueueSession = ({
     startNotificationCycle()
   }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageOpen, startNotificationCycle])
 
-  const closeQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
+  // Добавляем опциональный параметр silent для предотвращения спама в чат
+  const closeQueue = useCallback((args: { source: LogSource; actorUsername: string; silent?: boolean }) => {
     handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
-    sendMessageClose()
+
+    // Если вызван тихий режим, блокируем отправку сообщения
+    if (!args.silent) {
+      sendMessageClose()
+    }
+
     stopNotificationCycle()
   }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageClose, stopNotificationCycle])
 
@@ -75,7 +81,8 @@ export const useQueueSession = ({
         })
 
         if (isQueueOpen) {
-          closeQueue({ source: args.source, actorUsername: args.actorUsername })
+          // Вызываем закрытие в "тихом" режиме
+          closeQueue({ source: args.source, actorUsername: args.actorUsername, silent: true })
         }
 
         if (settings.moveOnSizeChange) {

@@ -15,7 +15,7 @@ export interface QueueContextValue {
   /** Открыть прием заявок в очередь */
   openQueue: (args: { source: LogSource; actorUsername: string }) => void;
   /** Приостановить прием заявок в очередь */
-  closeQueue: (args: { source: LogSource; actorUsername: string }) => void;
+  closeQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => void;
 
   // === Реактивные состояния (Стейты) ===
   /** Игроки в текущей активной очереди */
