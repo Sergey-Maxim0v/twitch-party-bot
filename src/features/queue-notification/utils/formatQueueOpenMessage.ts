@@ -34,7 +34,7 @@ export const formatQueueOpenMessage = (commands: QueueSettings['commands']): str
     parts.push(`${commands.delete.name} для исключения`)
   }
 
-  const prefix = 'Очередь открыта!'
+  const prefix = '[Очередь] Очередь открыта!'
 
   return parts.length > 0
     ? `${prefix} Доступные команды: ${parts.join(', ')}.`

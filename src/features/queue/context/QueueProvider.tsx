@@ -1,4 +1,4 @@
-import { type ReactNode, type FC, useMemo, useCallback, useEffect } from 'react'
+import { type ReactNode, type FC, useMemo, useCallback, useEffect, useRef } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
 import type { QueueState } from '../types'
@@ -12,6 +12,7 @@ import { useQueueAutoClose } from '../hooks/useQueueAutoClose.ts'
 import { useQueueSession } from '../hooks/useQueueSession.ts'
 import { useQueueClear } from '../hooks/useQueueClear.ts'
 import { useQueuePlayers } from '../hooks/useQueuePlayers.ts'
+import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
 interface QueueProviderProps {
   children: ReactNode;
@@ -22,13 +23,36 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage('twitch_queue_status', false)
 
   const { pushLog: pushAppLog } = useAppLogs()
-  const { setActiveQueueList, setWaitingQueueList } = useQueueNotification()
+  const { settings } = useQueueSettings()
+  const {
+    setActiveQueueList,
+    setWaitingQueueList,
+    sendQueueFullMessage,
+  } = useQueueNotification()
+
+  const wasFullRef = useRef<boolean>(false)
 
   // Синхронизация списков никнеймов для Twitch-уведомлений
   useEffect(() => {
     setActiveQueueList(state.activeQueue.map(player => player.username))
     setWaitingQueueList(state.waitingQueue.map(player => player.username))
   }, [setActiveQueueList, setWaitingQueueList, state.activeQueue, state.waitingQueue])
+
+  // Отслеживание заполнения очереди и отправка уведомления
+  useEffect(() => {
+    if (!isQueueOpen) {
+      wasFullRef.current = false
+      return
+    }
+
+    const isCurrentlyFull = state.activeQueue.length >= settings.maxQueueSize
+
+    if (isCurrentlyFull && !wasFullRef.current) {
+      sendQueueFullMessage()
+    }
+
+    wasFullRef.current = isCurrentlyFull
+  }, [isQueueOpen, state.activeQueue.length, settings.maxQueueSize, sendQueueFullMessage])
 
   // Изолированная обёртка для логирования
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {

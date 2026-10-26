@@ -45,8 +45,8 @@ export const formatCurrentQueueStatus = ({
       parts.push(`В ожидании: +${waitingArray.length}`)
     }
 
-    const prefix = `[Очередь] (${activeArray.length}/${maxQueueSize})`
-    return parts.length > 0 ? `${prefix} ${parts.join(' | ')}` : `${prefix} Пуста.`
+    const counter = `(${activeArray.length}/${maxQueueSize})`
+    return parts.length > 0 ? `${counter} ${parts.join(' | ')}` : `${counter} Пуста.`
   }
 
   let result = buildString()

@@ -64,6 +64,14 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     })
   }, [sendChatMessage, pushLog, session?.login, userDisplayName])
 
+  const getCurrentStatusText = useCallback((): string => {
+    return formatCurrentQueueStatus({
+      activeUsernames: activeQueueRef.current,
+      waitingUsernames: waitingQueueRef.current,
+      maxQueueSize,
+    })
+  }, [maxQueueSize])
+
   const sendMessage = useCallback((text: string): void => {
     if (!permissionsRef.current.allowSending) {
       return
@@ -92,15 +100,17 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    const queueStatusText = formatCurrentQueueStatus({
-      activeUsernames: activeQueueRef.current,
-      waitingUsernames: waitingQueueRef.current,
-      maxQueueSize,
-    })
-
-    const messageText = formatQueueCloseMessage(queueStatusText)
+    const messageText = formatQueueCloseMessage(getCurrentStatusText())
     sendMessage(messageText)
-  }, [maxQueueSize, sendMessage])
+  }, [getCurrentStatusText, sendMessage])
+
+  const sendQueueFullMessage = useCallback((): void => {
+    if (!permissionsRef.current.onQueueFull) {
+      return
+    }
+
+    sendMessage(`[Очередь] Очередь заполнена. Текущий состав: ${getCurrentStatusText()}`)
+  }, [getCurrentStatusText, sendMessage])
 
   const sendClearActive = useCallback(() => {
     if (!permissionsRef.current.onClearActive) {
@@ -130,14 +140,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [sendMessage])
 
   const sendCurrentQueueStatus = useCallback((): void => {
-    const statusText = formatCurrentQueueStatus({
-      activeUsernames: activeQueueRef.current,
-      waitingUsernames: waitingQueueRef.current,
-      maxQueueSize,
-    })
-
-    sendMessage(statusText)
-  }, [maxQueueSize, sendMessage])
+    sendMessage(`[Очередь] ${getCurrentStatusText()}`)
+  }, [getCurrentStatusText, sendMessage])
 
   const {
     startNotificationCycle: startCycleRaw,
@@ -237,6 +241,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage,
     sendMessageOpen,
     sendMessageClose,
+    sendQueueFullMessage,
     sendClearActive,
     sendClearWaiting,
     clearBuffer,
@@ -255,6 +260,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage,
     sendMessageOpen,
     sendMessageClose,
+    sendQueueFullMessage,
     sendClearActive,
     sendClearWaiting,
     clearBuffer,

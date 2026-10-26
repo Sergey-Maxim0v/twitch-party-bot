@@ -66,7 +66,7 @@ export const useQueueSession = ({
           .join(', ')
 
         // 1. Отправляем сообщение в чат Twitch
-        sendMessage(`Очередь завершена. Сейчас играют: ${nicknames}`)
+        sendMessage(`[Очередь] Очередь завершена. Сейчас играют: ${nicknames}`)
 
         // 2. Логируем завершение состава
         pushLog({
