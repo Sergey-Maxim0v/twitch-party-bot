@@ -33,7 +33,7 @@ const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = ''
       {/* Минимальное время ответа бота */}
       <SettingsNumberInput
         disabled={!settings.chatNotificationPermissions.allowSending}
-        label="Задержка ответов бота (сек)"
+        label="Задержка ответов бота об изменениях в составе очереди (сек)"
         max={99}
         min={1}
         onChange={val => { updateSettings({ botMessageCooldown: Number(val) }) }}

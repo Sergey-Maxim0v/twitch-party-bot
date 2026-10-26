@@ -23,7 +23,7 @@ const SETTING_LABELS: Record<string, string> = {
   maxGamesPerUser: 'Лимит игр для одного игрока',
   prioritizeSubscribers: 'Приоритет для подписчиков',
   subscribersOnly: 'Вход только для подписчиков',
-  botMessageCooldown: 'Задержка ответов бота (сек)',
+  botMessageCooldown: 'Задержка ответов бота об изменениях в составе очереди (сек)',
 }
 
 // Словарь разрешений сообщений
