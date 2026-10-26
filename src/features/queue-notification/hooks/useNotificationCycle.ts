@@ -1,12 +1,13 @@
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import type { TwitchNotificationState } from '../types.ts'
+import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
+import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
 
 interface UseNotificationCycleParams {
   botMessageCooldown: number
   sendMessage: (text: string) => void
   stateRef: RefObject<TwitchNotificationState>
   clearBuffer: () => void
-  formatNotificationMessage: (state: TwitchNotificationState) => string
 }
 
 interface UseNotificationCycleReturn {
@@ -22,8 +23,9 @@ export const useNotificationCycle = ({
   sendMessage,
   stateRef,
   clearBuffer,
-  formatNotificationMessage,
 }: UseNotificationCycleParams): UseNotificationCycleReturn => {
+  const { settings } = useQueueSettings()
+
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isCycleActiveRef = useRef<boolean>(false)
   const cooldownRef = useRef<number>(botMessageCooldown)
@@ -32,7 +34,7 @@ export const useNotificationCycle = ({
     sendMessage,
     clearBuffer,
     stateRef,
-    formatNotificationMessage,
+    permissions: settings.chatNotificationPermissions,
   })
 
   // Реф для хранения актуальной функции tick для предотвращения замыкания старых ссылок
@@ -44,9 +46,9 @@ export const useNotificationCycle = ({
       sendMessage,
       clearBuffer,
       stateRef,
-      formatNotificationMessage,
+      permissions: settings.chatNotificationPermissions,
     }
-  }, [botMessageCooldown, sendMessage, clearBuffer, stateRef, formatNotificationMessage])
+  }, [botMessageCooldown, sendMessage, clearBuffer, stateRef, settings.chatNotificationPermissions])
 
   useEffect(() => {
     tickRef.current = (): void => {
@@ -54,13 +56,16 @@ export const useNotificationCycle = ({
 
       const {
         stateRef: currentRawStateRef,
-        formatNotificationMessage: currentFormatFn,
         sendMessage: currentSendFn,
         clearBuffer: currentClearFn,
+        permissions: currentPermissions,
       } = callbacksRef.current
 
       if (currentRawStateRef.current) {
-        const messageText = currentFormatFn(currentRawStateRef.current)
+        const messageText = formatNotificationMessage({
+          state: currentRawStateRef.current,
+          permissions: currentPermissions,
+        })
 
         if (messageText.length > 0) {
           currentSendFn(messageText)

@@ -1,16 +1,26 @@
+import { formatNotificationPart } from './formatNotificationPart.ts'
 import type { TwitchNotificationState } from '../types.ts'
+import type { QueueSettings } from '../../queue-settings/types.ts'
+
+export interface FormatNotificationMessageArgs {
+  state: TwitchNotificationState;
+  permissions: QueueSettings['chatNotificationPermissions'];
+}
 
 /** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
 const TWITCH_MAX_LENGTH = 400
 
 /**
  * Форматирует пакет накопившихся изменений очереди в одну компактную строку
- * с учетом лимитов Twitch и приоритетов отображения групп.
+ * с учетом лимитов Twitch, настроек разрешений и приоритетов отображения групп.
  */
-export const formatNotificationMessage = (state: TwitchNotificationState): string => {
+export const formatNotificationMessage = ({
+  state,
+  permissions,
+}: FormatNotificationMessageArgs): string => {
   const { joined, waiting, deleted, moved, denied } = state
+  const { onMemberAdd, onMemberRemove, onMemberMove } = permissions
 
-  // Если вообще никаких событий не произошло, возвращаем пустую строку (сигнал для отмены отправки)
   if (
     joined.size === 0 &&
       waiting.size === 0 &&
@@ -21,53 +31,36 @@ export const formatNotificationMessage = (state: TwitchNotificationState): strin
     return ''
   }
 
-  // Преобразуем Set в массивы строк с префиксом @ для чата Twitch
   const joinedArray = Array.from(joined).map(nick => `@${nick}`)
   const waitingArray = Array.from(waiting).map(nick => `@${nick}`)
   const deletedArray = Array.from(deleted).map(nick => `@${nick}`)
   const movedArray = Array.from(moved).map(nick => `@${nick}`)
   const deniedArray = Array.from(denied).map(nick => `@${nick}`)
 
-  // Внутренние счетчики отображаемых элементов в каждой группе
-  let showJoinedCount = joinedArray.length
-  let showWaitingCount = waitingArray.length
-  let showDeletedCount = deletedArray.length
-  let showMovedCount = movedArray.length
-  let showDeniedCount = deniedArray.length
+  let showJoinedCount = onMemberAdd ? joinedArray.length : 0
+  let showWaitingCount = onMemberAdd ? waitingArray.length : 0
+  let showDeletedCount = onMemberRemove ? deletedArray.length : 0
+  let showMovedCount = onMemberMove ? movedArray.length : 0
+  let showDeniedCount = onMemberAdd ? deniedArray.length : 0
 
   /** Вспомогательная функция сборки строки на основе текущих счетчиков лимитов */
   const buildString = (): string => {
     const parts: string[] = []
 
-    if (showJoinedCount > 0) {
-      const items = joinedArray.slice(0, showJoinedCount).join(', ')
-      const hidden = joinedArray.length - showJoinedCount
-      parts.push(`Добавлены: ${items}${hidden > 0 ? ` +${hidden}` : ''}`)
-    }
+    const joinedPart = formatNotificationPart({ title: 'Добавлены', members: joinedArray, limit: showJoinedCount })
+    if (joinedPart) parts.push(joinedPart)
 
-    if (showWaitingCount > 0) {
-      const items = waitingArray.slice(0, showWaitingCount).join(', ')
-      const hidden = waitingArray.length - showWaitingCount
-      parts.push(`Добавлены в ожидающие: ${items}${hidden > 0 ? ` +${hidden}` : ''}`)
-    }
+    const waitingPart = formatNotificationPart({ title: 'Добавлены в ожидающие', members: waitingArray, limit: showWaitingCount })
+    if (waitingPart) parts.push(waitingPart)
 
-    if (showDeletedCount > 0) {
-      const items = deletedArray.slice(0, showDeletedCount).join(', ')
-      const hidden = deletedArray.length - showDeletedCount
-      parts.push(`Удалены: ${items}${hidden > 0 ? ` +${hidden}` : ''}`)
-    }
+    const deletedPart = formatNotificationPart({ title: 'Удалены', members: deletedArray, limit: showDeletedCount })
+    if (deletedPart) parts.push(deletedPart)
 
-    if (showMovedCount > 0) {
-      const items = movedArray.slice(0, showMovedCount).join(', ')
-      const hidden = movedArray.length - showMovedCount
-      parts.push(`Перемещены: ${items}${hidden > 0 ? ` +${hidden}` : ''}`)
-    }
+    const movedPart = formatNotificationPart({ title: 'Перемещены', members: movedArray, limit: showMovedCount })
+    if (movedPart) parts.push(movedPart)
 
-    if (showDeniedCount > 0) {
-      const items = deniedArray.slice(0, showDeniedCount).join(', ')
-      const hidden = deniedArray.length - showDeniedCount
-      parts.push(`Отказано: ${items}${hidden > 0 ? ` +${hidden}` : ''}`)
-    }
+    const deniedPart = formatNotificationPart({ title: 'Отказано', members: deniedArray, limit: showDeniedCount })
+    if (deniedPart) parts.push(deniedPart)
 
     return parts.length > 0 ? `[Очередь] ${parts.join(' | ')}` : ''
   }

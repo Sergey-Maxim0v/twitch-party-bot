@@ -10,7 +10,6 @@ import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
 import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
 import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
 import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
-import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
 import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 
 export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
@@ -28,9 +27,17 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   const stateRef = useRef<TwitchNotificationState>(state)
   const isNotificationActiveRef = useRef<boolean>(false)
 
+  // Реф для хранения актуальных разрешений без инвалидации useCallback-функций
+  const permissionsRef = useRef(permissions)
+
   useEffect(() => {
     stateRef.current = state
   }, [state])
+
+  // Всегда держим Реф разрешений в актуальном состоянии
+  useEffect(() => {
+    permissionsRef.current = permissions
+  }, [permissions])
 
   const setActiveQueueList = useCallback((list: string[]): void => {
     activeQueueRef.current = list
@@ -58,30 +65,30 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [sendChatMessage, pushLog, session?.login, userDisplayName])
 
   const sendMessage = useCallback((text: string): void => {
-    if (!permissions.allowSending) {
+    if (!permissionsRef.current.allowSending) {
       return
     }
 
     if (text.trim().length > 0) {
       sendAndLogNotification(text)
     }
-  }, [sendAndLogNotification, permissions.allowSending])
+  }, [sendAndLogNotification])
 
   const sendMessageOpen = useCallback((): void => {
     setState(createInitialNotificationState())
 
-    if (!permissions.onQueueOpen) {
+    if (!permissionsRef.current.onQueueOpen) {
       return
     }
 
     const messageText = formatQueueOpenMessage(commands)
     sendMessage(messageText)
-  }, [permissions.onQueueOpen, commands, sendMessage])
+  }, [commands, sendMessage])
 
   const sendMessageClose = useCallback((): void => {
     setState(createInitialNotificationState())
 
-    if (!permissions.onQueueClose) {
+    if (!permissionsRef.current.onQueueClose) {
       return
     }
 
@@ -93,10 +100,10 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
 
     const messageText = formatQueueCloseMessage(queueStatusText)
     sendMessage(messageText)
-  }, [permissions.onQueueClose, maxQueueSize, sendMessage])
+  }, [maxQueueSize, sendMessage])
 
   const sendClearActive = useCallback(() => {
-    if (!permissions.onClearActive) {
+    if (!permissionsRef.current.onClearActive) {
       return
     }
 
@@ -106,11 +113,11 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       moved: new Set<string>(),
     }))
 
-    sendMessage('Очередь очищена.')
-  }, [permissions.onClearActive, sendMessage])
+    sendMessage('[Очередь] Очередь очищена.')
+  }, [sendMessage])
 
   const sendClearWaiting = useCallback(() => {
-    if (!permissions.onClearWaiting) {
+    if (!permissionsRef.current.onClearWaiting) {
       return
     }
 
@@ -119,8 +126,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       waiting: new Set<string>(),
     }))
 
-    sendMessage('Список ожидающих очищен.')
-  }, [permissions.onClearWaiting, sendMessage])
+    sendMessage('[Очередь] Список ожидающих очищен.')
+  }, [sendMessage])
 
   const sendCurrentQueueStatus = useCallback((): void => {
     const statusText = formatCurrentQueueStatus({
@@ -140,7 +147,6 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage,
     stateRef,
     clearBuffer,
-    formatNotificationMessage,
   })
 
   const startNotificationCycle = useCallback((): void => {
@@ -156,7 +162,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [stopCycleRaw])
 
   const addJoinedUser = useCallback((username: string): void => {
-    if (!isNotificationActiveRef.current) return
+    if (!isNotificationActiveRef.current || !permissionsRef.current.onMemberAdd) return
 
     setState(currentState => {
       if (currentState.joined.has(username)) {
@@ -169,7 +175,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addWaitingUser = useCallback((username: string): void => {
-    if (!isNotificationActiveRef.current) return
+    if (!isNotificationActiveRef.current || !permissionsRef.current.onMemberAdd) return
 
     setState(currentState => {
       if (currentState.waiting.has(username)) {
@@ -182,7 +188,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addDeletedUser = useCallback((username: string): void => {
-    if (!isNotificationActiveRef.current) return
+    if (!isNotificationActiveRef.current || !permissionsRef.current.onMemberRemove) return
 
     setState(currentState => {
       if (currentState.deleted.has(username)) {
@@ -195,7 +201,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addMovedUser = useCallback((username: string): void => {
-    if (!isNotificationActiveRef.current) return
+    if (!isNotificationActiveRef.current || !permissionsRef.current.onMemberMove) return
 
     setState(currentState => {
       if (currentState.moved.has(username)) {
@@ -208,7 +214,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const addDeniedUser = useCallback((username: string): void => {
-    if (!isNotificationActiveRef.current) return
+    if (!isNotificationActiveRef.current || !permissionsRef.current.onMemberAdd) return
 
     setState(currentState => {
       if (currentState.denied.has(username)) {
