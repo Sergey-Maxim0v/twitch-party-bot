@@ -89,9 +89,9 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    const messageText = formatQueueOpenMessage(commands)
+    const messageText = formatQueueOpenMessage({ commands, prefix: settings.messagePrefix })
     sendMessage(messageText)
-  }, [commands, sendMessage])
+  }, [commands, sendMessage, settings.messagePrefix])
 
   const sendMessageClose = useCallback((): void => {
     setState(createInitialNotificationState())
@@ -100,9 +100,9 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    const messageText = formatQueueCloseMessage(getCurrentStatusText())
+    const messageText = formatQueueCloseMessage({ queueStatusText: getCurrentStatusText(), prefix: settings.messagePrefix })
     sendMessage(messageText)
-  }, [getCurrentStatusText, sendMessage])
+  }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
 
   const sendQueueFullMessage = useCallback((): void => {
     if (!permissionsRef.current.onQueueFull) {

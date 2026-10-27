@@ -65,6 +65,7 @@ export const useNotificationCycle = ({
         const messageText = formatNotificationMessage({
           state: currentRawStateRef.current,
           permissions: currentPermissions,
+          prefix: settings.messagePrefix,
         })
 
         if (messageText.length > 0) {

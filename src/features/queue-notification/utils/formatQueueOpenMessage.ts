@@ -3,7 +3,9 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 /**
  * Сформировать текстовое сообщение об открытии очереди на основе доступных для пользователей команд
  */
-export const formatQueueOpenMessage = (commands: QueueSettings['commands']): string => {
+export const formatQueueOpenMessage = (
+  { commands, prefix }: { commands: QueueSettings['commands'], prefix: QueueSettings['messagePrefix'] },
+): string => {
   const parts: string[] = []
 
   if (!commands.join.isModeratorOnly) {
@@ -34,9 +36,9 @@ export const formatQueueOpenMessage = (commands: QueueSettings['commands']): str
     parts.push(`${commands.delete.name} для исключения`)
   }
 
-  const prefix = '[Очередь] Очередь открыта!'
+  const baseMessage = prefix ? `${prefix} Очередь открыта!` : 'Очередь открыта!'
 
   return parts.length > 0
-    ? `${prefix} Доступные команды: ${parts.join(', ')}.`
-    : prefix
+    ? `${baseMessage} Доступные команды: ${parts.join(', ')}.`
+    : baseMessage
 }

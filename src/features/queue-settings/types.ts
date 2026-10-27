@@ -54,6 +54,7 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   botMessageCooldown: 5,
   sessionHistoryCooldown: 0,
   gamesPlayedCooldown: 0,
+  messagePrefix: '🎮 [PartyBot]',
   commands: {
     join: { name: '!join', isModeratorOnly: false },
     leave: { name: '!leave', isModeratorOnly: false },
@@ -104,6 +105,9 @@ export interface QueueSettings {
 
   /** Через сколько игр игрок может повторно участвовать. */
   gamesPlayedCooldown: number;
+
+  /** Префикс для автоматических сообщений об изменении в составе очереди. */
+  messagePrefix?: string;
 
   /** Настройки команд: строки, сообщения с которыми бот будет обрабатывать. */
   commands: {

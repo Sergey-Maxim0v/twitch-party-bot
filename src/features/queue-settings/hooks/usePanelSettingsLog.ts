@@ -105,6 +105,13 @@ export const usePanelSettingsLog = () => {
       }
     })
 
+    // Проверка изменения префикса сообщений
+    if (settings.messagePrefix !== prev.messagePrefix && prev.messagePrefix !== undefined) {
+      logChange({
+        message: `Настройки изменены (Сообщения): Префикс для автоматических сообщений в чат Twitch - ${formatValue(settings.messagePrefix)}`,
+      })
+    }
+
     // 2. Разрешения сообщений (chatNotificationPermissions)
     if (settings.chatNotificationPermissions && prev.chatNotificationPermissions) {
       Object.keys(NOTIFICATION_LABELS).forEach(key => {
@@ -153,7 +160,7 @@ export const usePanelSettingsLog = () => {
       })
     }
 
-    // Обновляем реф актуальными настройками для следующего сравнения
+    // Обновляем Реф актуальными настройками для следующего сравнения
     prevSettingsRef.current = settings
 
     // eslint-disable-next-line

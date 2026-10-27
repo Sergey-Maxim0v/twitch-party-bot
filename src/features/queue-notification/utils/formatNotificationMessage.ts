@@ -5,6 +5,7 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 export interface FormatNotificationMessageArgs {
   state: TwitchNotificationState;
   permissions: QueueSettings['chatNotificationPermissions'];
+  prefix: QueueSettings['messagePrefix']
 }
 
 /** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
@@ -17,6 +18,7 @@ const TWITCH_MAX_LENGTH = 400
 export const formatNotificationMessage = ({
   state,
   permissions,
+  prefix,
 }: FormatNotificationMessageArgs): string => {
   const { joined, waiting, deleted, moved, denied } = state
   const { onMemberAdd, onMemberRemove, onMemberMove } = permissions
@@ -62,7 +64,9 @@ export const formatNotificationMessage = ({
     const deniedPart = formatNotificationPart({ title: 'Отказано', members: deniedArray, limit: showDeniedCount })
     if (deniedPart) parts.push(deniedPart)
 
-    return parts.length > 0 ? `[Очередь] ${parts.join(' | ')}` : ''
+    if (parts.length === 0) return ''
+
+    return prefix ? `${prefix} ${parts.join(' | ')}` : parts.join(' | ')
   }
 
   let result = buildString()
