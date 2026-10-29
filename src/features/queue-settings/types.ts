@@ -67,7 +67,7 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
     play: { name: '!play', isModeratorOnly: true },
   },
   chatNotificationPermissions: {
-    allowSending: true,
+    allowSending: false,
     onQueueOpen: true,
     onQueueClose: true,
     onMemberAdd: false,

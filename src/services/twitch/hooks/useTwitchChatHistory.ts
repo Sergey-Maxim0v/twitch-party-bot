@@ -44,8 +44,9 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
     const isModAction = message.command === TwitchIrcCommand.CLEAR_CHAT || message.command === TwitchIrcCommand.CLEAR_MSG
     const isChannelEvent = message.command === TwitchIrcCommand.USER_NOTICE || message.command === TwitchIrcCommand.ROOM_STATE
     const isNotice = message.command === TwitchIrcCommand.NOTICE
+    const isSessionControl = message.command === TwitchIrcCommand.RECONNECT || message.command === TwitchIrcCommand.GLOBAL_USER_STATE
 
-    if (!isModAction && !isChannelEvent && !isNotice) return false
+    if (!isModAction && !isChannelEvent && !isNotice && !isSessionControl) return false
 
     if (isNotice && pendingTextsRef.current) {
       pendingTextsRef.current.shift()
