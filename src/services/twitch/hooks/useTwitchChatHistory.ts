@@ -8,17 +8,18 @@ import type { ParsedIrcMessage } from '../types.ts'
 interface UseTwitchChatHistoryProps {
   client: TwitchIrcClient | null;
   pendingTextsRef: RefObject<string[]>;
+  roomStateTagsRef: RefObject<Record<string, string>>; // <- Добавили в типы пропсов
 }
 
 /**
  * Хук для управления историей сообщений чата Twitch и модерацией.
  */
-export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatHistoryProps) => {
+export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef }: UseTwitchChatHistoryProps) => {
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
   const lastChannelRef = useRef<string | null>(null)
 
-  // Очистка чата при смене канала
+  // Очистка чата и состояния комнаты при смене канала
   useEffect(() => {
     if (!client?.onChannelChange) return
 
@@ -31,11 +32,16 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef }: UseTwitchChatH
 
       if (nextChannel !== lastChannelRef.current) {
         setMessages([])
+
+        // СБРОС ТЕГОВ: Очищаем накопленные ограничения старого канала
+        if (roomStateTagsRef.current) {
+          roomStateTagsRef.current = {}
+        }
       }
 
       lastChannelRef.current = nextChannel
     })
-  }, [client])
+  }, [client, roomStateTagsRef])
 
   /**
    * Обрабатывает модераторские действия (удаление сообщений, баны) и системные логи

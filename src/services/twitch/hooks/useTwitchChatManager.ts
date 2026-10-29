@@ -8,6 +8,7 @@ import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
 import { TwitchIrcCommand } from '../config.ts'
 import type { ParsedIrcMessage } from '../types.ts'
+import { useAppLogs } from '../../../features/app-logs/hooks/useAppLogs.ts'
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -16,7 +17,10 @@ import type { ParsedIrcMessage } from '../types.ts'
 export const useTwitchChatManager = () => {
   const socketContext = useSocketContext()
   const { session } = useAuth()
+  const { pushLog } = useAppLogs()
   const [lastMessage, setLastMessage] = useState<ParsedIrcMessage | null>(null)
+
+  const roomStateTagsRef = useRef<Record<string, string>>({})
 
   // Подключаем контроль активности сокета (Heartbeat)
   const { handleSocketActivity } = useTwitchHeartbeat()
@@ -28,6 +32,7 @@ export const useTwitchChatManager = () => {
   const { messages, handleModerationAndEvents, handleStandardMessage } = useTwitchChatHistory({
     client,
     pendingTextsRef,
+    roomStateTagsRef,
   })
 
   const currentUserLogin = session?.login?.toLowerCase() ?? 'broadcaster'
@@ -65,12 +70,21 @@ export const useTwitchChatManager = () => {
 
     // 2. Вычисляем права доступа и управляем состоянием блокировок
     if (socketContext && socketContext.updateChatAccessStatus) {
+      if (message.command === TwitchIrcCommand.ROOM_STATE) {
+        roomStateTagsRef.current = {
+          ...roomStateTagsRef.current,
+          ...(message.tags || {}),
+        }
+      }
+
       updateChatAccess({
         message,
         currentUserLogin,
         pendingTextsRef,
         timeoutTimerRef,
         updateChatAccessStatus: socketContext.updateChatAccessStatus,
+        pushLog,
+        currentRoomTags: roomStateTagsRef.current,
       })
     }
 
@@ -101,6 +115,7 @@ export const useTwitchChatManager = () => {
     client?.currentChannel,
     pendingTextsRef,
     timeoutTimerRef,
+    pushLog,
   ])
 
   // Слой стабилизации подписки: защищает от переподписок при батчинге пачек сообщений

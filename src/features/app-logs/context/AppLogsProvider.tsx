@@ -34,7 +34,7 @@ export const AppLogsProvider: FC<AppLogsProviderProps> = ({ children }) => {
     }
 
     setTimeout(() => {
-      setLogs(prev => [newLog, ...prev].slice(0, 200))
+      setLogs(prev => [newLog, ...prev].slice(0, 1000))
     }, 0)
   }, [])
 
