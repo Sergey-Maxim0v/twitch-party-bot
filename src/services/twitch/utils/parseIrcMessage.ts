@@ -89,15 +89,16 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
   // Вычисляем флаги на основе прочитанной команды
   const isSystem =
     tags['is-system'] === '1' ||
-        command === TwitchIrcCommand.NOTICE ||
-        command === TwitchIrcCommand.ROOM_STATE ||
-        command === TwitchIrcCommand.USER_NOTICE ||
-        command === TwitchIrcCommand.CLEAR_CHAT ||
-        command === TwitchIrcCommand.CLEAR_MSG
+      command === TwitchIrcCommand.NOTICE ||
+      command === TwitchIrcCommand.ROOM_STATE ||
+      command === TwitchIrcCommand.USER_NOTICE ||
+      command === TwitchIrcCommand.CLEAR_CHAT ||
+      command === TwitchIrcCommand.CLEAR_MSG ||
+      command === TwitchIrcCommand.RECONNECT
 
   const isChannelEvent = isSystem ||
-        command === TwitchIrcCommand.GLOBAL_USER_STATE ||
-        command === TwitchIrcCommand.MOTD_START
+      command === TwitchIrcCommand.GLOBAL_USER_STATE ||
+      command === TwitchIrcCommand.MOTD_START
 
   const userId: IrcUserData['userId'] = tags['user-id'] || ''
 

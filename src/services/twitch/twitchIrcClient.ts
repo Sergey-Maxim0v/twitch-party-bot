@@ -6,6 +6,7 @@ import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
 import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
 import type { ParsedIrcMessage } from './types.ts'
+import { TwitchIrcCommand } from './config.ts'
 
 /**
  * Класс управления WebSocket-соединением с Twitch IRC.
@@ -128,7 +129,13 @@ export class TwitchIrcClient {
     handleIrcMessage({
       event,
       socket,
-      emitMessage: (message: ParsedIrcMessage) => { this.emitter.emit(message) },
+      emitMessage: (message: ParsedIrcMessage) => {
+        this.emitter.emit(message)
+
+        if (message.command === TwitchIrcCommand.RECONNECT) {
+          this.forceCloseAndReconnect()
+        }
+      },
     })
   }
 
