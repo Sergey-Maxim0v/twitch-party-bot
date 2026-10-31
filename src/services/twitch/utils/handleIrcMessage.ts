@@ -28,7 +28,14 @@ export const handleIrcMessage = ({ event, socket, emitMessage }: HandleIrcMessag
 
     // 2. Парсим сообщение
     const parsed = parseIrcMessage(trimmedLine)
-    if (!parsed) continue
+    
+    if (!parsed) {
+      console.info(`[IRC Parser] Failed to parse message at ${new Date().toISOString()}:`, {
+        rawLength: trimmedLine.length,
+        text: trimmedLine,
+      })
+      continue
+    }
 
     // 3. Отправляем панелям через систему подписок
     emitMessage(parsed)
