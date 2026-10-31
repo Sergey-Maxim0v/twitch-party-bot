@@ -1,38 +1,133 @@
-# Twitch-party-bot
+# Twitch Party Bot
 
 ![GitHub language count](https://img.shields.io/github/languages/count/Sergey-Maxim0v/twitch-party-bot)
 ![GitHub top language](https://img.shields.io/github/languages/top/Sergey-Maxim0v/twitch-party-bot)
 ![GitHub repo size](https://img.shields.io/github/repo-size/Sergey-Maxim0v/twitch-party-bot)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Sergey-Maxim0v/twitch-party-bot)
-
 ![GitHub last commit](https://img.shields.io/github/last-commit/Sergey-Maxim0v/twitch-party-bot)
 
+![React 19](https://img.shields.io/badge/React-19-blue?logo=react)
+![Vite 8](https://img.shields.io/badge/Vite-8-orange?logo=vite)
+![Tailwind v4](https://img.shields.io/badge/Tailwind-v4-teal?logo=tailwindcss)
+
+[![Website](https://img.shields.io/badge/Website-Live-brightgreen?logo=globe)](https://sergey-maxim0v.github.io/twitch-party-bot/)
+
+[![GitHub license](https://img.shields.io/github/license/Sergey-Maxim0v/twitch-party-bot)](LICENSE)
+
 ---
 
-<!-- ![screenshot](public/screenshot.png) -->
+<p align="center">
+  <img src="public/screenshots/screenshot_1.png" width="45%" alt="screenshot 1"/>
+  &nbsp;&nbsp;
+  <img src="public/screenshots/screenshot_2.png" width="45%" alt="screenshot 2"/>
+</p>
 
 ---
 
-## Scripts
+**Twitch Party Bot** — это простой и понятный инструмент для стримеров, который помогает быстро собрать зрителей из чата в одну команду. Бот сам ведёт очередь и собирает ники игроков для совместных игр, чтобы вам не приходилось делать это вручную.
+
+---
+
+### Как это работает?
+1. **Зрители пишут в чат** команду `!join` (или любую другую, которую вы настроите), и бот автоматически добавляет их в список.
+2. **У вас есть удобный интерфейс**, где вы видите всех желающих. Игроков можно легко добавлять, менять местами или удалять прямо в интерфейсе.
+3. **Список ожидающих:** вы можете открыть предварительную запись, чтобы зрители занимали очередь заранее, на следующую игру.
+4. **Бот сам пишет в чат**, когда очередь открывается, закрывается или заполняется, об изменениях в очереди.
+5. **Гибкая система настроек:** лимиты очереди, кастомные команды для чата, разрешения на отправку автоматических сообщений в чат и многое другое.
+
+---
+
+### Быстрый старт для работы на стриме
+
+Вы можете использовать приложение двумя способами:
+
+* **🚀 Быстрый запуск (Рекомендуется):** Приложение уже развернуто и готово к работе на GitHub Pages: **[sergey-maxim0v.github.io/twitch-party-bot](https://sergey-maxim0v.github.io/twitch-party-bot/)**. Просто перейдите по ссылке, авторизуйтесь под своим Twitch-аккаунтом (для работы бота достаточно разрешения на чтение и отправку сообщений в чат) и выберите канал, на котором будет работать бот.
+* **🛠 Локальный запуск:** Вы можете развернуть проект у себя на компьютере. Для этого склонируйте репозиторий, зарегистрируйте собственное приложение в **[Консоли разработчика Twitch](https://dev.twitch.tv/console)** для получения ключей доступа. Затем создайте в корне проекта файл `.env`, укажите в нём ваш Идентификатор клиента (`VITE_TWITCH_CLIENT_ID=ваш_id`) и запустите проект по инструкции ниже.
+
+---
+
+### Архитектура и технические особенности
+
+* **Авторизация (Twitch OAuth):** Реализован верхнеуровневый процесс авторизации через всплывающее окно по схеме **Implicit Flow** (запрашиваемые скоупы: `chat:read` и `chat:edit`). Токен доступа и профиль сессии кэшируются и сохраняются в `localStorage`.
+* **Сетевой слой (Twitch IRC WebSocket):** Вместо тяжеловесных библиотек используется кастомный легковесный клиент на базе стандартного текстового протокола IRC поверх WebSockets (`wss://irc-ws.chat.twitch.tv:443`).
+* **Обеспечение стабильности сокета:**
+  * Класс `TwitchIrcClient` инкапсулирует прохождение хэндшейка по протоколу Twitch IRC.
+  * Корректно обрабатываются системные события поддержания соединения `PING / PONG`.
+  * Реализована динамическая смена каналов «на лету» без утечек памяти и дублирования асинхронных событий. При переключении канала интерфейс гарантированно очищает предыдущий экран и логи чата.
+* **Синхронизация работы между вкладками:** Настроена реактивная синхронизация состояния приложения в реальном времени. Кастомный хук `useLocalStorage` слушает системное событие браузера `storage`, автоматически обновляя стейт во всех открытых вкладках при изменении данных в одной из них.
+* **Фоновые потоки (Web Workers):** Сетевой клиент вынесен в отдельный фоновый поток (Web Worker). Это гарантирует, что WebSocket-соединение с Twitch IRC не будет приостановлено или разорвано браузером, даже если вкладка приложения свернута или неактивна.
+
+---
+
+### Зависимости (Dependencies)
+
+- **[React 19](https://react.dev) & [TypeScript](https://typescriptlang.org):** Фронтенд-основа проекта со строгой типизацией.
+- **[Vite 8](https://vite.dev):** Инструмент сборки и сервер разработки.
+- **[Tailwind CSS v4](https://tailwindcss.com) & [DaisyUI v5](https://daisyui.com):** Стек стилизации интерфейса, тем и дизайн-системы компонентов.
+- **[@dnd-kit](https://dnd-kit.com):** Набор абстракций для плавной сортировки игроков в очереди с помощью Drag-and-Drop.
+- **[ESLint](https://eslint.org) & [Simple Git Hooks](https://github.com/toplenboren/simple-git-hooks):** Статический анализ кода и валидация типов на pre-commit хуках.
+
+## Инструкция по сборке и запуску
 
 ```bash
-# Start the development server
+# Установка всех зависимостей проекта
+npm install
+
+# Запуск локального сервера разработки
 npm run dev
-```
 
-```bash
-# Build for production
-npm run build
-```
+# Проверка типов TypeScript (без генерации файлов)
+npm run typecheck
 
-```bash
-# Formats your code 
+# Проверка кодовой базы линтером
 npm run lint
-```
 
-```bash
-# Preview the build
+# Сборка оптимизированного продакшен-билда
+npm run build
+
+# Предварительный локальный просмотр готового билда
 npm run preview
 ```
 
+## Структура папок проекта
+
+```plaintext
+/
+├── .github/                     # Конфигурация GitHub Actions и CI/CD процессов
+├── public/                      # Статические ресурсы (иконки, скриншоты)
+├── src/                         # Основной исходный код приложения
+│   ├── assets/                  # Общие медиа-файлы и статика
+│   ├── components/              # Глобальные и компоновочные UI-элементы
+│   │   ├── layout/              # Структурные сетки (Header, Sidebar, Workspace)
+│   │   └── QueueCollapse.tsx    # Сворачиваемая панель текущей очереди лобби
+│   ├── constants/               # Файлы конфигурации и констант
+│   │   ├── theme.constants.ts   # Настройки тем оформления интерфейса
+│   │   └── twitch.constants.ts  # Спецификация скоупов и эндпоинтов Twitch API
+│   ├── features/                # Изолированные модули бизнес-логики
+│   │   ├── app-logs/            # Компоненты логирования системных сетевых событий, работы приложения и изменений в очереди
+│   │   ├── auth/                # Модуль авторизации OAuth и контекст стримера
+│   │   ├── queue/               # Стейт-менеджмент очередей и списков игроков
+│   │   ├── queue-notification/  # Диспетчер отправки триггерных уведомлений в чат
+│   │   └── queue-settings/      # Конфигурация интерфейса QueueSettings
+│   ├── hooks/                   # Кастомные React-хуки
+│   ├── services/                # Низкоуровневые инфраструктурные сервисы
+│   │   ├── socket/              # Архитектура и шина интеграции веб-сокетов
+│   │   └── twitch/              # Класс TwitchIrcClient и фоновые Web Workers
+│   ├── App.tsx                  # Корневой управляющий компонент приложения
+│   ├── index.css                # Глобальные стили (точка входа Tailwind CSS v4)
+│   └── main.tsx                 # Точка монтирования React-приложения в DOM
+├── eslint.config.js             # Модульная конфигурация ESLint плоского типа
+├── tsconfig.app.json            # Спецификация компилятора TypeScript под клиентскую часть
+├── vite.config.ts               # Файл плагинов и конфигурации сборщика Vite
+└── package.json                 # Манифест проекта, скрипты и дерево зависимостей
+```
+
 ---
+
+Приятных стримов! 🎥 Хороших игр! 🎮 Приятного кодинга! 👨‍💻
+
+---
+
+### Лицензия (License)
+
+Этот проект распространяется под лицензией **[MIT](LICENSE)**.
