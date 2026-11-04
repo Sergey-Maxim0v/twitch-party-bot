@@ -109,8 +109,12 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    sendMessage(`[Очередь] Очередь заполнена. Текущий состав: ${getCurrentStatusText()}`)
-  }, [getCurrentStatusText, sendMessage])
+    sendMessage(
+      settings.messagePrefix
+        ? `${settings.messagePrefix} Очередь заполнена. Текущий состав: ${getCurrentStatusText()}`
+        : `Очередь заполнена. Текущий состав: ${getCurrentStatusText()}`,
+    )
+  }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
 
   const sendClearActive = useCallback(() => {
     if (!permissionsRef.current.onClearActive) {
@@ -123,8 +127,12 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       moved: new Set<string>(),
     }))
 
-    sendMessage('[Очередь] Очередь очищена.')
-  }, [sendMessage])
+    sendMessage(
+      settings.messagePrefix
+        ? `${settings.messagePrefix} Очередь очищена.`
+        : 'Очередь очищена.',
+    )
+  }, [sendMessage, settings.messagePrefix])
 
   const sendClearWaiting = useCallback(() => {
     if (!permissionsRef.current.onClearWaiting) {
@@ -136,12 +144,20 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       waiting: new Set<string>(),
     }))
 
-    sendMessage('[Очередь] Список ожидающих очищен.')
-  }, [sendMessage])
+    sendMessage(
+      settings.messagePrefix
+        ? `${settings.messagePrefix} Список ожидающих очищен.`
+        : 'Список ожидающих очищен.',
+    )
+  }, [sendMessage, settings.messagePrefix])
 
   const sendCurrentQueueStatus = useCallback((): void => {
-    sendMessage(`[Очередь] ${getCurrentStatusText()}`)
-  }, [getCurrentStatusText, sendMessage])
+    sendMessage(
+      settings.messagePrefix
+        ? `${settings.messagePrefix} ${getCurrentStatusText()}`
+        : `${getCurrentStatusText()}`,
+    )
+  }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
 
   const {
     startNotificationCycle: startCycleRaw,

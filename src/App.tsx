@@ -27,7 +27,6 @@ import { QueueNotificationProvider } from './features/queue-notification/context
 //   -  данные между вкладками
 
 //  TODO:
-//   - убрать сообщение при перемещении внутри очереди, проверить чтоб сообщения были только о перемещении из ожидающих в текущую
 //   - привести в порядок код
 
 function App() {

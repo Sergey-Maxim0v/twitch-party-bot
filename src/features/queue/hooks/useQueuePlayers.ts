@@ -17,6 +17,7 @@ interface UseQueuePlayersArgs {
   isQueueOpen: boolean;
   pushLog: AppLogsContextValue['pushLog'];
   balanceQueues: (args: { source: LogSource; actorUsername: string }) => void;
+  rawState: QueueState;
 }
 
 export const useQueuePlayers = ({
@@ -24,6 +25,7 @@ export const useQueuePlayers = ({
   isQueueOpen,
   pushLog,
   balanceQueues,
+  rawState,
 }: UseQueuePlayersArgs) => {
   const { settings, updateSettings } = useQueueSettings()
   const { addJoinedUser, addWaitingUser, addDeletedUser, addMovedUser, addDeniedUser } = useQueueNotification()
@@ -115,16 +117,27 @@ export const useQueuePlayers = ({
     source: LogSource;
     actorUsername: string;
   }) => {
+    let sourceQueueType: Exclude<QueueType, 'history'> | null = null
+
+    const isInActive = rawState.activeQueue.some(p => p.userId === args.userId)
+    const isInWaiting = rawState.waitingQueue.some(p => p.userId === args.userId)
+
+    if (isInActive) {
+      sourceQueueType = QUEUE_TYPES.ACTIVE
+    } else if (isInWaiting) {
+      sourceQueueType = QUEUE_TYPES.WAITING
+    }
+
     handleMovePlayer({ ...args, setState, pushLog })
 
-    if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
+    if (sourceQueueType && sourceQueueType !== args.targetQueueType) {
       addMovedUser(args.displayedUsername ?? args.username)
     }
 
     if (settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addMovedUser])
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addMovedUser, rawState.activeQueue, rawState.waitingQueue])
 
   return {
     addPlayerToQueue,

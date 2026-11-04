@@ -89,6 +89,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     isQueueOpen,
     pushLog,
     balanceQueues,
+    rawState: state,
   })
 
   const contextValue = useMemo<QueueContextValue>(() => ({

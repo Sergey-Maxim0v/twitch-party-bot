@@ -25,7 +25,7 @@ export const useQueueSession = ({
   pushLog,
 }: UseQueueSessionArgs) => {
   const { settings } = useQueueSettings()
-  const { sendMessage, sendMessageOpen, sendMessageClose, startNotificationCycle, stopNotificationCycle } = useQueueNotification()
+  const { sendMessage, sendMessageOpen, sendMessageClose, startNotificationCycle, stopNotificationCycle, addMovedUser } = useQueueNotification()
 
   const balanceQueues = useCallback((args: {
     source: LogSource;
@@ -42,8 +42,11 @@ export const useQueueSession = ({
       pushLog,
       source: args.source,
       actorUsername: args.actorUsername,
+      onPlayersMoved: usernames => {
+        usernames.forEach(username => addMovedUser(username))
+      },
     })
-  }, [settings, setState, pushLog])
+  }, [settings, setState, pushLog, addMovedUser])
 
   const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
@@ -66,8 +69,11 @@ export const useQueueSession = ({
           .join(', ')
 
         // 1. Отправляем сообщение в чат Twitch
-        sendMessage(`[Очередь] Очередь завершена. Сейчас играют: ${nicknames}`)
-
+        sendMessage(
+          settings.messagePrefix
+            ? `${settings.messagePrefix} Очередь завершена. Сейчас играют: ${nicknames}`
+            : `Очередь завершена. Сейчас играют: ${nicknames}`,
+        )
         // 2. Логируем завершение состава
         pushLog({
           message: `Состав №${sessionNumber} завершен (игроков: ${playedPlayers.length}).`,
@@ -102,7 +108,7 @@ export const useQueueSession = ({
         })
       },
     })
-  }, [setState, sendMessage, pushLog, isQueueOpen, setIsQueueOpen, stopNotificationCycle, settings.moveOnSizeChange, balanceQueues])
+  }, [setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, stopNotificationCycle, setIsQueueOpen, balanceQueues])
 
   return { openQueue, closeQueue, finishActiveQueue, balanceQueues }
 }

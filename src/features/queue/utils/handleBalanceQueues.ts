@@ -12,6 +12,8 @@ export interface HandleBalanceQueuesArgs {
   actorUsername: string;
   setState: Dispatch<SetStateAction<QueueState>>;
   pushLog: AppLogsContextValue['pushLog'];
+  /** Колбэк, возвращающий список имен игроков, изменивших статус очереди */
+  onPlayersMoved?: (usernames: string[]) => void;
 }
 
 /**
@@ -25,8 +27,10 @@ export const handleBalanceQueues = ({
   actorUsername,
   setState,
   pushLog,
+  onPlayersMoved,
 }: HandleBalanceQueuesArgs): void => {
   let logMessageText: string | null = null
+  let movedUsernamesList: string[] = []
 
   setState(prev => {
     const activeLength = prev.activeQueue.length
@@ -41,6 +45,7 @@ export const handleBalanceQueues = ({
 
       if (moveOnSizeChange && allowPreJoin) {
         updatedWaiting.unshift(...movedPlayers)
+        movedUsernamesList = movedPlayers.map(p => p.displayedUsername ?? p.username)
       }
 
       if (moveOnSizeChange && allowPreJoin) {
@@ -86,6 +91,7 @@ export const handleBalanceQueues = ({
       if (playersToMove.length === 0) return prev
 
       logMessageText = `Автоматически перенесено игроков из списка ожидающих в конец активной очереди: ${playersToMove.length}.`
+      movedUsernamesList = playersToMove.map(p => p.displayedUsername ?? p.username)
 
       const realWaiting = sourceWaiting.filter((_, idx) => !indicesToRemove.includes(idx))
       updatedActive.push(...playersToMove)
@@ -108,6 +114,9 @@ export const handleBalanceQueues = ({
         source,
         actorUsername,
       })
+    }
+    if (movedUsernamesList.length > 0 && onPlayersMoved) {
+      onPlayersMoved(movedUsernamesList)
     }
   }, 0)
 }
