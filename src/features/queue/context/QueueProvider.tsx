@@ -40,11 +40,6 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   // Отслеживание заполнения очереди и отправка уведомления
   useEffect(() => {
-    if (!isQueueOpen) {
-      wasFullRef.current = false
-      return
-    }
-
     const isCurrentlyFull = state.activeQueue.length >= settings.maxQueueSize
 
     if (isCurrentlyFull && !wasFullRef.current) {
@@ -52,7 +47,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     }
 
     wasFullRef.current = isCurrentlyFull
-  }, [isQueueOpen, state.activeQueue.length, settings.maxQueueSize, sendQueueFullMessage])
+  }, [state.activeQueue.length, settings.maxQueueSize, sendQueueFullMessage])
 
   // Изолированная обёртка для логирования
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
