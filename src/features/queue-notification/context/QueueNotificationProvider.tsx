@@ -12,6 +12,7 @@ import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
 import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
 import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 import { useNotificationGuard } from '../hooks/useNotificationGuard.ts'
+import { useNotificationActions } from '../hooks/useNotificationActions.ts'
 
 export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<TwitchNotificationState>(createInitialNotificationState())
@@ -181,83 +182,14 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     }
   }, [startNotificationCycle, stopNotificationCycle])
 
-  const addJoinedUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberAdd) return
-
-    setState(currentState => {
-      if (currentState.joined.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.joined)
-      nextSet.add(username)
-      return { ...currentState, joined: nextSet }
-    })
-  }, [])
-
-  const addWaitingUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberAdd) return
-
-    setState(currentState => {
-      if (currentState.waiting.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.waiting)
-      nextSet.add(username)
-      return { ...currentState, waiting: nextSet }
-    })
-  }, [])
-
-  const addDeletedUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberRemove) return
-
-    setState(currentState => {
-      if (currentState.deleted.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.deleted)
-      nextSet.add(username)
-      return { ...currentState, deleted: nextSet }
-    })
-  }, [])
-
-  const addMovedToActiveUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberMove) return
-
-    setState(currentState => {
-      if (currentState.movedToActive.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.movedToActive)
-      nextSet.add(username)
-      return { ...currentState, movedToActive: nextSet }
-    })
-  }, [])
-
-  const addMovedToWaitingUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberMove) return
-
-    setState(currentState => {
-      if (currentState.movedToWaiting.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.movedToWaiting)
-      nextSet.add(username)
-      return { ...currentState, movedToWaiting: nextSet }
-    })
-  }, [])
-
-  const addDeniedUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberAdd) return
-
-    setState(currentState => {
-      if (currentState.denied.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.denied)
-      nextSet.add(username)
-      return { ...currentState, denied: nextSet }
-    })
-  }, [])
+  const {
+    addJoinedUser,
+    addWaitingUser,
+    addDeletedUser,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
+    addDeniedUser,
+  } = useNotificationActions({ permissionsRef, setState })
 
   const contextValue = useMemo<QueueNotificationContextType>(() => ({
     notificationBuffer: state,
