@@ -23,20 +23,28 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
      */
   const login = useCallback((): void => {
     setError(null)
-    setAuthStage(AUTH_STAGES.WAITING)
-    setIsModalOpen(true)
 
-    const width = 500
-    const height = 650
-    const left = window.screen.width / 2 - width / 2
-    const top = window.screen.height / 2 - height / 2
+    try {
+      const url = getTwitchAuthUrl()
 
-    const url = getTwitchAuthUrl()
-    popupRef.current = window.open(
-      url,
-      'TwitchAuthPopup',
-      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`,
-    )
+      setAuthStage(AUTH_STAGES.WAITING)
+      setIsModalOpen(true)
+
+      const width = 500
+      const height = 650
+      const left = window.screen.width / 2 - width / 2
+      const top = window.screen.height / 2 - height / 2
+
+      popupRef.current = window.open(
+        url,
+        'TwitchAuthPopup',
+        `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`,
+      )
+    } catch (err) {
+      setAuthStage(AUTH_STAGES.ERROR)
+      const errorMessage = err instanceof Error ? err.message : 'Ошибка при формировании URL авторизации.'
+      setError(errorMessage)
+    }
   }, [setError])
 
   /**
