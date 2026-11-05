@@ -22,7 +22,10 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+
       - run: npm run build
+        env:
+          VITE_TWITCH_CLIENT_ID: ${{ vars.VITE_TWITCH_CLIENT_ID }}
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
