@@ -28,7 +28,7 @@ export const useQueuePlayers = ({
   rawState,
 }: UseQueuePlayersArgs) => {
   const { settings, updateSettings } = useQueueSettings()
-  const { addJoinedUser, addWaitingUser, addDeletedUser, addMovedUser, addDeniedUser } = useQueueNotification()
+  const { addJoinedUser, addWaitingUser, addDeletedUser, addMovedToActiveUser, addMovedToWaitingUser, addDeniedUser } = useQueueNotification()
 
   const addPlayerToQueue = useCallback((args: {
     playerData: QueuePlayerFormData;
@@ -131,13 +131,18 @@ export const useQueuePlayers = ({
     handleMovePlayer({ ...args, setState, pushLog })
 
     if (sourceQueueType && sourceQueueType !== args.targetQueueType) {
-      addMovedUser(args.displayedUsername ?? args.username)
+      const username = args.displayedUsername ?? args.username
+      if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
+        addMovedToActiveUser(username)
+      } else if (args.targetQueueType === QUEUE_TYPES.WAITING) {
+        addMovedToWaitingUser(username)
+      }
     }
 
     if (settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addMovedUser, rawState.activeQueue, rawState.waitingQueue])
+  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addMovedToActiveUser, addMovedToWaitingUser, rawState.activeQueue, rawState.waitingQueue])
 
   return {
     addPlayerToQueue,

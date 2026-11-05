@@ -13,36 +13,38 @@ const TWITCH_MAX_LENGTH = 400
 
 /**
  * Форматирует пакет накопившихся изменений очереди в одну компактную строку
- * с учетом лимитов Twitch, настроек разрешений и приоритетов отображения групп.
  */
 export const formatNotificationMessage = ({
   state,
   permissions,
   prefix,
 }: FormatNotificationMessageArgs): string => {
-  const { joined, waiting, deleted, moved, denied } = state
+  const { joined, waiting, deleted, movedToActive, movedToWaiting, denied } = state
   const { onMemberAdd, onMemberRemove, onMemberMove } = permissions
 
   if (
     joined.size === 0 &&
       waiting.size === 0 &&
       deleted.size === 0 &&
-      moved.size === 0 &&
+      movedToActive.size === 0 &&
+      movedToWaiting.size === 0 &&
       denied.size === 0
   ) {
     return ''
   }
 
-  const joinedArray = Array.from(joined).map(nick => `@${nick}`)
-  const waitingArray = Array.from(waiting).map(nick => `@${nick}`)
-  const deletedArray = Array.from(deleted).map(nick => `@${nick}`)
-  const movedArray = Array.from(moved).map(nick => `@${nick}`)
-  const deniedArray = Array.from(denied).map(nick => `@${nick}`)
+  const joinedArray = Array.from(joined).map(nick => `🟢@${nick}`)
+  const waitingArray = Array.from(waiting).map(nick => `🟡@${nick}`)
+  const deletedArray = Array.from(deleted).map(nick => `🔴@${nick}`)
+  const movedToActiveArray = Array.from(movedToActive).map(nick => `🟢@${nick}`)
+  const movedToWaitingArray = Array.from(movedToWaiting).map(nick => `🟡@${nick}`)
+  const deniedArray = Array.from(denied).map(nick => `🔴@${nick}`)
 
   let showJoinedCount = onMemberAdd ? joinedArray.length : 0
   let showWaitingCount = onMemberAdd ? waitingArray.length : 0
   let showDeletedCount = onMemberRemove ? deletedArray.length : 0
-  let showMovedCount = onMemberMove ? movedArray.length : 0
+  let showMovedToActiveCount = onMemberMove ? movedToActiveArray.length : 0
+  let showMovedToWaitingCount = onMemberMove ? movedToWaitingArray.length : 0
   let showDeniedCount = onMemberAdd ? deniedArray.length : 0
 
   /** Вспомогательная функция сборки строки на основе текущих счетчиков лимитов */
@@ -58,8 +60,11 @@ export const formatNotificationMessage = ({
     const deletedPart = formatNotificationPart({ title: 'Удалены', members: deletedArray, limit: showDeletedCount })
     if (deletedPart) parts.push(deletedPart)
 
-    const movedPart = formatNotificationPart({ title: 'Перемещены', members: movedArray, limit: showMovedCount })
-    if (movedPart) parts.push(movedPart)
+    const movedToActivePart = formatNotificationPart({ title: 'Перемещены в очередь', members: movedToActiveArray, limit: showMovedToActiveCount })
+    if (movedToActivePart) parts.push(movedToActivePart)
+
+    const movedToWaitingPart = formatNotificationPart({ title: 'Перемещены в ожидающие', members: movedToWaitingArray, limit: showMovedToWaitingCount })
+    if (movedToWaitingPart) parts.push(movedToWaitingPart)
 
     const deniedPart = formatNotificationPart({ title: 'Отказано', members: deniedArray, limit: showDeniedCount })
     if (deniedPart) parts.push(deniedPart)
@@ -75,8 +80,10 @@ export const formatNotificationMessage = ({
   while (result.length > TWITCH_MAX_LENGTH) {
     if (showDeniedCount > 0) {
       showDeniedCount--
-    } else if (showMovedCount > 0) {
-      showMovedCount--
+    } else if (showMovedToWaitingCount > 0) {
+      showMovedToWaitingCount--
+    } else if (showMovedToActiveCount > 0) {
+      showMovedToActiveCount--
     } else if (showDeletedCount > 0) {
       showDeletedCount--
     } else if (showWaitingCount > 0) {

@@ -25,7 +25,7 @@ export const useQueueSession = ({
   pushLog,
 }: UseQueueSessionArgs) => {
   const { settings } = useQueueSettings()
-  const { sendMessage, sendMessageOpen, sendMessageClose, startNotificationCycle, stopNotificationCycle, addMovedUser } = useQueueNotification()
+  const { sendMessage, sendMessageOpen, sendMessageClose, startNotificationCycle, stopNotificationCycle, addMovedToActiveUser, addMovedToWaitingUser } = useQueueNotification()
 
   const balanceQueues = useCallback((args: {
     source: LogSource;
@@ -42,11 +42,14 @@ export const useQueueSession = ({
       pushLog,
       source: args.source,
       actorUsername: args.actorUsername,
-      onPlayersMoved: usernames => {
-        usernames.forEach(username => addMovedUser(username))
+      onPlayersMovedToActive: usernames => {
+        usernames.forEach(username => addMovedToActiveUser(username))
+      },
+      onPlayersMovedToWaiting: usernames => {
+        usernames.forEach(username => addMovedToWaitingUser(username))
       },
     })
-  }, [settings, setState, pushLog, addMovedUser])
+  }, [settings, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser])
 
   const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })

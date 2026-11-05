@@ -124,7 +124,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     setState(currentState => ({
       ...currentState,
       joined: new Set<string>(),
-      moved: new Set<string>(),
+      movedToActive: new Set<string>(),
     }))
 
     sendMessage(
@@ -142,6 +142,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     setState(currentState => ({
       ...currentState,
       waiting: new Set<string>(),
+      movedToWaiting: new Set<string>(),
     }))
 
     sendMessage(
@@ -220,16 +221,29 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     })
   }, [])
 
-  const addMovedUser = useCallback((username: string): void => {
+  const addMovedToActiveUser = useCallback((username: string): void => {
     if (!isNotificationActiveRef.current || !permissionsRef.current.onMemberMove) return
 
     setState(currentState => {
-      if (currentState.moved.has(username)) {
+      if (currentState.movedToActive.has(username)) {
         return currentState
       }
-      const nextSet = new Set(currentState.moved)
+      const nextSet = new Set(currentState.movedToActive)
       nextSet.add(username)
-      return { ...currentState, moved: nextSet }
+      return { ...currentState, movedToActive: nextSet }
+    })
+  }, [])
+
+  const addMovedToWaitingUser = useCallback((username: string): void => {
+    if (!isNotificationActiveRef.current || !permissionsRef.current.onMemberMove) return
+
+    setState(currentState => {
+      if (currentState.movedToWaiting.has(username)) {
+        return currentState
+      }
+      const nextSet = new Set(currentState.movedToWaiting)
+      nextSet.add(username)
+      return { ...currentState, movedToWaiting: nextSet }
     })
   }, [])
 
@@ -252,7 +266,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     addJoinedUser,
     addWaitingUser,
     addDeletedUser,
-    addMovedUser,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
     addDeniedUser,
     sendMessage,
     sendMessageOpen,
@@ -271,7 +286,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     addJoinedUser,
     addWaitingUser,
     addDeletedUser,
-    addMovedUser,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
     addDeniedUser,
     sendMessage,
     sendMessageOpen,

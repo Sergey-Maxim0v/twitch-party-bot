@@ -17,8 +17,11 @@ export interface QueueNotificationContextType {
   /** Добавить пользователя в список удаленных (deleted) */
   addDeletedUser: (username: string) => void;
 
-  /** Добавить пользователя в список перемещенных (moved) */
-  addMovedUser: (username: string) => void;
+  /** Добавить пользователя в список перемещенных в активную очередь (movedToActive) */
+  addMovedToActiveUser: (username: string) => void;
+
+  /** Добавить пользователя в список перемещенных в список ожидающих (movedToWaiting) */
+  addMovedToWaitingUser: (username: string) => void;
 
   /** Добавить пользователя в список отклоненных (denied) */
   addDeniedUser: (username: string) => void;
