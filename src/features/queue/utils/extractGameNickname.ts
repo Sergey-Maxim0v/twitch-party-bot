@@ -1,7 +1,7 @@
 import type { QueueGameConfig } from '../../queue-settings/types.ts'
 
 interface ExtractGameNicknameArgs {
-  /** Полный текст сообщения из чата */
+  /** Полный текст сообщения */
   rawMessage: string;
   /** Текущие настройки игры и регулярного выражения */
   gameConfig?: QueueGameConfig;
@@ -22,21 +22,19 @@ export const extractGameNickname = ({
   }
 
   const trimmed = rawMessage.trim()
-  // Разбиваем строку по пробелам на массив отдельных слов/фрагментов
-  const textParts = trimmed.split(/\s+/)
 
-  // Если в сообщении только одно слово (команда), искать нечего
-  if (textParts.length <= 1) {
+  if (!trimmed) {
     return null
   }
 
-  // Убираем первое слово (саму команду, например "!join")
-  const wordsToScan = textParts.slice(1)
+  const textParts = trimmed.split(/\s+/)
+
+  const isCommand = textParts[0].startsWith('!')
+  const wordsToScan = isCommand ? textParts.slice(1) : textParts
 
   try {
     const regex = new RegExp(gameConfig.validationPattern)
 
-    // Перебираем каждое слово по отдельности в поисках совпадения с паттерном
     for (const word of wordsToScan) {
       if (regex.test(word)) {
         return word
@@ -46,6 +44,5 @@ export const extractGameNickname = ({
     console.error('Ошибка в регулярном выражении игры:', e)
   }
 
-  // Если ни одно слово в сообщении не подошло под паттерн игры
   return null
 }
