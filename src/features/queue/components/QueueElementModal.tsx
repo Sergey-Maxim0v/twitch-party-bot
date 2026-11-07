@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, type MouseEvent } from 'react'
 import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
 import { QUEUE_SOURCE_META } from '../constants'
 import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX } from 'react-icons/lu'
@@ -42,7 +42,7 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
   const sourceMeta = QUEUE_SOURCE_META[playerSource] || { label: playerSource, badgeClass: 'badge-ghost' }
 
   // Закрытие при клике на оверлей backdrop
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>): void => {
+  const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>): void => {
     if (e.target === e.currentTarget) {
       onClose()
     }
@@ -67,7 +67,7 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
 
             <span className="text-base-content/50">Игровой ник:</span>
             <span className="col-span-2 text-success font-bold">
-              {gameNickname ?? !settings.currentGame ? 'Игра не выбрана в настройках' : 'Не определен'}
+              {gameNickname ?? (!settings?.currentGame ? 'Игра не выбрана в настройках' : 'Не определен')}
             </span>
 
             <span className="text-base-content/50">Добавлен в:</span>

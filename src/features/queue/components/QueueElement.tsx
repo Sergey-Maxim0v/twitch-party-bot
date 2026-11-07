@@ -1,5 +1,5 @@
 import { type FC, useRef } from 'react'
-import { LuTrash2, LuUserX, LuCopy, LuInfo, LuClock, LuGamepad, LuGripVertical } from 'react-icons/lu'
+import { LuTrash2, LuUserX, LuInfo, LuClock, LuGamepad, LuGripVertical } from 'react-icons/lu'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
@@ -162,9 +162,13 @@ const QueueElement: FC<QueueElementProps> = ({
           </span>
 
           {/* Игровой ник */}
-          {gameNickname && (
-            <span className={'text-[10px] h-3.5 px-1 rounded bg-base-300 text-success font-mono font-bold'
-                    + ' inline-flex items-center gap-0.5 border border-base-content/5 shrink-0'}
+          {settings?.currentGame && gameNickname && (
+            <span
+              className={'text-[10px] h-3.5 px-1 rounded bg-base-300 text-success font-mono font-bold'
+                      + ' inline-flex items-center gap-0.5 border border-base-content/5 shrink-0'
+                      + ' cursor-pointer select-none hover:bg-base-300/80 transition-colors'}
+              onClick={handleCopyNickname}
+              title="Кликните, чтобы скопировать ник"
             >
               <LuGamepad className="w-2.5 h-2.5" />
               {gameNickname}
@@ -192,20 +196,6 @@ const QueueElement: FC<QueueElementProps> = ({
             <LuInfo className="w-3 h-3" />
             <span>Подробно</span>
           </button>
-
-          {settings?.currentGame && (
-            <button
-              className={'btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/40'
-                        + ' hover:text-success hover:bg-base-300/50 flex items-center gap-1'
-                        + ' disabled:text-base-content/20 disabled:bg-transparent disabled:opacity-50 disabled:cursor-not-allowed'}
-              disabled={!gameNickname}
-              onClick={handleCopyNickname}
-              title={gameNickname ? 'Скопировать ник' : 'Игровой никнейм не определен'}
-            >
-              <LuCopy className="w-3 h-3" />
-              <span>Ник</span>
-            </button>
-          )}
 
           <button
             className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/20 hover:text-error hover:bg-error/10 flex items-center gap-1"
