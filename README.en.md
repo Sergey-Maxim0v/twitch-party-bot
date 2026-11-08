@@ -16,11 +16,7 @@
 
 ---
 
-<p align="center">
-  <img src="public/screenshots/screenshot_1.png" width="45%" alt="screenshot 1"/>
-  &nbsp;&nbsp;
-  <img src="public/screenshots/screenshot_2.png" width="45%" alt="screenshot 2"/>
-</p>
+<img src="public/screenshots/screenshot_1.png" width="70%" alt="screenshot"/>
 
 ---
 
