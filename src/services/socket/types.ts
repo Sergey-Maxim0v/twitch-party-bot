@@ -5,6 +5,9 @@ import { SOCKET_CONNECTION_STATUSES, TWITCH_CHAT_ACCESS_STATUSES } from '../../c
 
 export { SOCKET_CONNECTION_STATUSES, TWITCH_CHAT_ACCESS_STATUSES }
 
+/**
+ * Интерфейс для хранения состояния сокета.
+ */
 export interface SocketStorage {
   connect: (channel: string, token: string, userLogin: string) => void;
   disconnect: () => void;

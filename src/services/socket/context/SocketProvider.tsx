@@ -1,20 +1,23 @@
-import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   TWITCH_CHAT_ACCESS_STATUSES,
   type ChatAccessStatus,
   SOCKET_CONNECTION_STATUSES,
   type ConnectionStatus,
   type SocketStorage,
-} from '../types.ts'
-import { SocketInstance } from './SocketInstance.ts'
-import { TwitchIrcClient } from '../../twitch/twitchIrcClient.ts'
-import { useSocketNetworkSync } from '../hooks/useSocketNetworkSync.ts'
-import type { MessageCallback } from '../../twitch/utils/createMessageEmitter.ts'
+} from '../types'
+import { SocketInstance } from './SocketInstance'
+import { TwitchIrcClient } from '../../twitch/twitchIrcClient'
+import { useSocketNetworkSync } from '../hooks/useSocketNetworkSync'
+import type { MessageCallback } from '../../twitch/utils/createMessageEmitter'
 
 interface SocketProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Провайдер сокетов для управления WebSocket соединением.
+ */
 export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   const [client] = useState<TwitchIrcClient>(() => new TwitchIrcClient())
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
@@ -28,7 +31,7 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     }
   }, [chatAccessStatus])
 
-  // Единая подписка на системные изменения статуса сокета низкого уровня
+  /** Используется для подписки на изменения статуса сокета. */
   useEffect(() => {
     const unsubscribe = client.onStatusChange((status: ConnectionStatus) => {
       setConnectionStatus(status)
@@ -44,7 +47,7 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     }
   }, [client])
 
-  // Подключаем изолированный модуль синхронизации сети ОС
+  /** Инициализируем синхронизацию сети. */
   useSocketNetworkSync({ client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus })
 
   const connect = useCallback((channel: string, token: string, userLogin: string): void => {
