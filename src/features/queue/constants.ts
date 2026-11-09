@@ -1,8 +1,8 @@
 import type { QueuePlayerSource } from './types.ts'
 
-export const STORAGE_KEY = 'twitch_queue_data'
+export const QUEUE_STORAGE_KEY = 'twitch_queue_data'
 
-export const QUEUE_SOURCE_META: Record<
+export const QUEUE_PLAYER_SOURCE_META: Record<
   QueuePlayerSource,
   { label: string; badgeClass: string }
 > = {

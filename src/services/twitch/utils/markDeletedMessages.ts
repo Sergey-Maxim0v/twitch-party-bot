@@ -1,4 +1,4 @@
-import { TwitchIrcCommand } from '../config.ts'
+import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 
 export interface markDeletedMessages {
@@ -11,7 +11,7 @@ export const markDeletedMessages = (
   const { command, text, tags } = modMessage
 
   //  Полная очистка чата (CLEARCHAT без указания пользователя)
-  if (command === TwitchIrcCommand.CLEAR_CHAT && !text?.trim()) {
+  if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT && !text?.trim()) {
     return currentMessages.map(msg => ({
       ...msg,
       isDeleted: true,
@@ -20,7 +20,7 @@ export const markDeletedMessages = (
   }
 
   //  Бан или тайм-аут конкретного пользователя (CLEARCHAT с ником в text)
-  if (command === TwitchIrcCommand.CLEAR_CHAT && text?.trim()) {
+  if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT && text?.trim()) {
     const bannedUser = text.trim().toLowerCase()
     return currentMessages.map(msg =>
       msg.user.nick.toLowerCase() === bannedUser
@@ -30,7 +30,7 @@ export const markDeletedMessages = (
   }
 
   //  Удаление одного конкретного сообщения по его ID (CLEARMSG)
-  if (command === TwitchIrcCommand.CLEAR_MSG) {
+  if (command === TWITCH_IRC_COMMANDS.CLEAR_MSG) {
     const targetMsgId = tags['target-msg-id']
     if (!targetMsgId) return currentMessages
 

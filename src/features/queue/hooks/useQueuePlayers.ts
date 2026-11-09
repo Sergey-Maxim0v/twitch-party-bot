@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { type QueueState, type QueuePlayerFormData, type QueueType, QUEUE_TYPES } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-import { handleJoinPlayer, JOIN_QUEUE_STATUSES } from '../utils/handleJoinPlayer.ts'
+import { handleJoinPlayer, QUEUE_JOIN_STATUSES } from '../utils/handleJoinPlayer.ts'
 import { handleRemovePlayer } from '../utils/handleRemovePlayer.ts'
 import { handleRemovePlayerFromAll } from '../utils/handleRemovePlayerFromAll.ts'
 import { handleBanPlayer } from '../utils/handleBanPlayer.ts'
@@ -39,11 +39,11 @@ export const useQueuePlayers = ({
   }) => {
     const result = handleJoinPlayer({ ...args, isQueueOpen, settings, setState, pushLog })
 
-    if (result.status === JOIN_QUEUE_STATUSES.JOINED) {
+    if (result.status === QUEUE_JOIN_STATUSES.JOINED) {
       addJoinedUser(args.playerData.username)
-    } else if (result.status === JOIN_QUEUE_STATUSES.WAITING) {
+    } else if (result.status === QUEUE_JOIN_STATUSES.WAITING) {
       addWaitingUser(args.playerData.username)
-    } else if (result.status === JOIN_QUEUE_STATUSES.DENIED) {
+    } else if (result.status === QUEUE_JOIN_STATUSES.DENIED) {
       addDeniedUser(args.playerData.username)
     }
   }, [isQueueOpen, settings, setState, pushLog, addJoinedUser, addWaitingUser, addDeniedUser])

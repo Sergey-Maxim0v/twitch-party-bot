@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useEffect } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { useOnWindowUnload } from '../../../hooks/useOnWindowUnload.ts'
-import { APP_LOG_STATUSES, type AppLogStatus, LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
 
 /**
  * Аргументы для лог-сообщения, передаваемого в функцию pushLog.
@@ -41,7 +41,7 @@ export const useQueueAutoClose = ({ setIsQueueOpen, isQueueOpen, pushLog }: UseA
       pushLog({
         message: 'Очередь автоматически закрыта из-за перезагрузки страницы или закрытия вкладки приложения.',
         status: APP_LOG_STATUSES.WARNING,
-        source: LOG_SOURCE.APPLICATION,
+        source: APP_LOG_SOURCES.APPLICATION,
         actorUsername,
       })
     }
@@ -54,7 +54,7 @@ export const useQueueAutoClose = ({ setIsQueueOpen, isQueueOpen, pushLog }: UseA
       pushLog({
         message: 'Очередь автоматически закрыта в связи с переключением на канала.',
         status: APP_LOG_STATUSES.WARNING,
-        source: LOG_SOURCE.APPLICATION,
+        source: APP_LOG_SOURCES.APPLICATION,
         actorUsername,
       })
     }

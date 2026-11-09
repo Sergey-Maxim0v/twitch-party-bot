@@ -1,6 +1,6 @@
 import { type DragEndEvent } from '@dnd-kit/core'
 import { QUEUE_TYPES, type QueueType } from '../types.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 interface HandleDragEndArgs {
@@ -59,7 +59,7 @@ export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, ac
     username: username,
     targetQueueType,
     targetIndex,
-    source: LOG_SOURCE.STREAMER_UI,
+    source: APP_LOG_SOURCES.STREAMER_UI,
     actorUsername,
   })
 }

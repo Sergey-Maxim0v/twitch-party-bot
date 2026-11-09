@@ -1,9 +1,6 @@
-export const APP_LOG_STATUSES = {
-  INFO: 'info',
-  SUCCESS: 'success',
-  WARNING: 'warning',
-  ERROR: 'error',
-} as const
+import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../constants/app-log.constants.ts'
+
+export { APP_LOG_SOURCES, APP_LOG_STATUSES }
 
 export type AppLogStatus = typeof APP_LOG_STATUSES[keyof typeof APP_LOG_STATUSES]
 
@@ -25,14 +22,4 @@ export interface AppLogItem {
   status: AppLogStatus;
 }
 
-/**
- * Источник инициации действий для логирования
- */
-export const LOG_SOURCE = {
-  STREAMER_UI: 'streamer_ui', //  пользователь приложения
-  CHAT_MODERATOR: 'chat_moderator', //  модератор командой в чате
-  CHAT_USER: 'chat_user', //  участник чата
-  APPLICATION: 'application', //  система
-} as const
-
-export type LogSource = typeof LOG_SOURCE[keyof typeof LOG_SOURCE]
+export type LogSource = typeof APP_LOG_SOURCES[keyof typeof APP_LOG_SOURCES]

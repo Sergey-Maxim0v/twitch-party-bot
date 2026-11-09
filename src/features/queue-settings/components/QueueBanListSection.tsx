@@ -1,6 +1,6 @@
 import { useState, type FC, type KeyboardEvent } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { LuPlus, LuTrash2 } from 'react-icons/lu'
 import { useQueueSettings } from '../hooks/useQueueSettings'
 import { useQueue } from '../../queue/hooks/useQueue.ts' // Оставляем только для чтения списка
@@ -31,7 +31,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
     banPlayerFromQueue({
       username: trimmedValue,
       displayedUsername: trimmedValue,
-      source: LOG_SOURCE.STREAMER_UI,
+      source: APP_LOG_SOURCES.STREAMER_UI,
       actorUsername,
     })
 
@@ -47,7 +47,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
   const handleRemoveRow = (username: string) => {
     unbanPlayerFromQueue({
       username,
-      source: LOG_SOURCE.STREAMER_UI,
+      source: APP_LOG_SOURCES.STREAMER_UI,
       actorUsername,
     })
   }

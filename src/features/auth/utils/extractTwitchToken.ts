@@ -1,6 +1,6 @@
 import { isValidState } from './crypto.ts'
 import type { TwitchAuthMessageData } from '../types/messages.types.ts'
-import { TWITCH_AUTH_ERRORS } from '../config.ts'
+import { TWITCH_AUTH_ERRORS } from '../../../constants/auth.constants.ts'
 
 interface TwitchHashData {
   token: string | null;

@@ -6,7 +6,7 @@ import { updateChatAccess } from '../utils/updateChatAccess.ts'
 import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
-import { TwitchIrcCommand } from '../config.ts'
+import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 import { useAppLogs } from '../../../features/app-logs/hooks/useAppLogs.ts'
 
@@ -52,7 +52,7 @@ export const useTwitchChatManager = () => {
    */
   const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
     // 0. Обновляем стейт последнего полученного сообщения для входящих команд
-    if (message.command === TwitchIrcCommand.PRIV_MSG) {
+    if (message.command === TWITCH_IRC_COMMANDS.PRIV_MSG) {
       setLastMessage(prevMessage => {
         const currentId = message.tags?.id
         const prevId = prevMessage?.tags?.id
@@ -70,7 +70,7 @@ export const useTwitchChatManager = () => {
 
     // 2. Вычисляем права доступа и управляем состоянием блокировок
     if (socketContext && socketContext.updateChatAccessStatus) {
-      if (message.command === TwitchIrcCommand.ROOM_STATE) {
+      if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
         roomStateTagsRef.current = {
           ...roomStateTagsRef.current,
           ...(message.tags || {}),
@@ -98,7 +98,7 @@ export const useTwitchChatManager = () => {
     const processedMessage = handleStandardMessage(message, currentUserLogin, client?.currentChannel ?? null)
 
     // Фильтруем запись в lastMessage, чтобы автоматические ответы приложения не ломали стейт команд
-    if (processedMessage && processedMessage.command === TwitchIrcCommand.PRIV_MSG) {
+    if (processedMessage && processedMessage.command === TWITCH_IRC_COMMANDS.PRIV_MSG) {
       const isCommand = processedMessage.text.trim().startsWith('!')
       const isFromOtherUser = processedMessage.user.nick !== currentUserLogin
 

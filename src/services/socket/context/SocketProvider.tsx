@@ -1,8 +1,8 @@
 import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  CHAT_ACCESS_STATUSES,
+  TWITCH_CHAT_ACCESS_STATUSES,
   type ChatAccessStatus,
-  CONNECTION_STATUSES,
+  SOCKET_CONNECTION_STATUSES,
   type ConnectionStatus,
   type SocketStorage,
 } from '../types.ts'
@@ -17,13 +17,13 @@ interface SocketProviderProps {
 
 export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   const [client] = useState<TwitchIrcClient>(() => new TwitchIrcClient())
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED)
-  const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
+  const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
 
-  const lastActiveChatStatusRef = useRef<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE)
+  const lastActiveChatStatusRef = useRef<ChatAccessStatus>(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
 
   useEffect(() => {
-    if (chatAccessStatus !== CHAT_ACCESS_STATUSES.OFFLINE) {
+    if (chatAccessStatus !== TWITCH_CHAT_ACCESS_STATUSES.OFFLINE) {
       lastActiveChatStatusRef.current = chatAccessStatus
     }
   }, [chatAccessStatus])
@@ -33,9 +33,9 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     const unsubscribe = client.onStatusChange((status: ConnectionStatus) => {
       setConnectionStatus(status)
 
-      if (status === CONNECTION_STATUSES.DISCONNECTED) {
-        lastActiveChatStatusRef.current = CHAT_ACCESS_STATUSES.OFFLINE
-        setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE)
+      if (status === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
+        lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
+        setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
       }
     })
 
@@ -48,16 +48,16 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   useSocketNetworkSync({ client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus })
 
   const connect = useCallback((channel: string, token: string, userLogin: string): void => {
-    lastActiveChatStatusRef.current = CHAT_ACCESS_STATUSES.OFFLINE
-    setConnectionStatus(CONNECTION_STATUSES.CONNECTING)
-    setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE)
+    lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
+    setConnectionStatus(SOCKET_CONNECTION_STATUSES.CONNECTING)
+    setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
 
     client.connect(channel, token, userLogin)
   }, [client])
 
   const disconnect = useCallback(() => {
-    lastActiveChatStatusRef.current = CHAT_ACCESS_STATUSES.OFFLINE
-    setChatAccessStatus(CHAT_ACCESS_STATUSES.OFFLINE)
+    lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
+    setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
     client.disconnect()
   }, [client])
 

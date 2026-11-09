@@ -1,3 +1,7 @@
+import { TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
+
+export { TWITCH_AUTH_STAGES }
+
 export interface TwitchUserData {
   userId: string;
   login: string;
@@ -7,15 +11,7 @@ export interface TwitchUserSession extends TwitchUserData {
   accessToken: string;
 }
 
-export const AUTH_STAGES = {
-  IDLE: 'idle',
-  WAITING: 'waiting',
-  VALIDATING: 'validating',
-  SUCCESS: 'success',
-  ERROR: 'error',
-} as const
-
-export type AuthStage = typeof AUTH_STAGES[keyof typeof AUTH_STAGES]
+export type AuthStage = typeof TWITCH_AUTH_STAGES[keyof typeof TWITCH_AUTH_STAGES]
 
 export interface TwitchAuthHookResult {
   session: TwitchUserSession | null;

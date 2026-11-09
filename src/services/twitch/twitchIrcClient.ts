@@ -1,12 +1,12 @@
 import { sendInitialIrcCommands } from './utils/sendInitialIrcCommands.ts'
 import { handleIrcMessage } from './utils/handleIrcMessage.ts'
 import { createMessageEmitter, type MessageCallback, type MessageEmitter } from './utils/createMessageEmitter.ts'
-import { CONNECTION_STATUSES, type ConnectionStatus } from '../socket/types.ts'
+import { SOCKET_CONNECTION_STATUSES, type ConnectionStatus } from '../socket/types.ts'
 import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
 import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
 import type { ParsedIrcMessage } from './types.ts'
-import { TwitchIrcCommand } from './config.ts'
+import { TWITCH_IRC_COMMANDS } from '../../constants/twitch.constants.ts'
 
 /**
  * Класс управления WebSocket-соединением с Twitch IRC.
@@ -92,7 +92,7 @@ export class TwitchIrcClient {
     }
 
     this.socketManager.destroy()
-    this.stateManager.emit(CONNECTION_STATUSES.CONNECTING)
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTING)
 
     this.connectTimeoutId = setTimeout(() => {
       this.socketManager.create({
@@ -109,7 +109,7 @@ export class TwitchIrcClient {
     if (!this.channel || !this.lastToken || !this.lastUserLogin) return
 
     this.reconnectManager.resetAttempts()
-    this.stateManager.emit(CONNECTION_STATUSES.CONNECTED)
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTED)
 
     const socket = this.socketManager.rawSocket
     if (socket) {
@@ -132,7 +132,7 @@ export class TwitchIrcClient {
       emitMessage: (message: ParsedIrcMessage) => {
         this.emitter.emit(message)
 
-        if (message.command === TwitchIrcCommand.RECONNECT) {
+        if (message.command === TWITCH_IRC_COMMANDS.RECONNECT) {
           this.forceCloseAndReconnect()
         }
       },
@@ -140,7 +140,7 @@ export class TwitchIrcClient {
   }
 
   private handleSocketClose(): void {
-    this.stateManager.emit(CONNECTION_STATUSES.DISCONNECTED)
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
     this.reconnectManager.trigger(this.hasSessionParams())
   }
 
@@ -169,7 +169,7 @@ export class TwitchIrcClient {
     this.reconnectManager.setIntentionallyDisconnected(false)
 
     this.socketManager.destroy()
-    this.stateManager.emit(CONNECTION_STATUSES.DISCONNECTED)
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
     this.reconnectManager.trigger(this.hasSessionParams())
   }
 
@@ -192,7 +192,7 @@ export class TwitchIrcClient {
 
   private retryConnection(): void {
     if (this.channel && this.lastToken && this.lastUserLogin) {
-      this.stateManager.emit(CONNECTION_STATUSES.CONNECTING)
+      this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTING)
       this.connect(this.channel, this.lastToken, this.lastUserLogin)
     }
   }

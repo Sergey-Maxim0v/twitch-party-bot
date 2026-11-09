@@ -1,8 +1,6 @@
-export const QUEUE_PLAYER_SOURCE = {
-  APP: 'app',
-  MOD_CMD: 'mod_cmd',
-  USER_CMD: 'user_cmd',
-} as const
+import { QUEUE_PLAYER_SOURCE, QUEUE_TYPES } from '../../constants/queue.constants.ts'
+
+export { QUEUE_PLAYER_SOURCE, QUEUE_TYPES }
 
 export type QueuePlayerSource = typeof QUEUE_PLAYER_SOURCE[keyof typeof QUEUE_PLAYER_SOURCE]
 
@@ -41,12 +39,6 @@ export interface QueuePlayerFormData extends BaseQueuePlayer {
 /**
  * Типы очередей в приложении
  */
-export const QUEUE_TYPES = {
-  ACTIVE: 'active',
-  WAITING: 'waiting',
-  HISTORY: 'history',
-} as const
-
 export type QueueType = typeof QUEUE_TYPES[keyof typeof QUEUE_TYPES]
 
 /**

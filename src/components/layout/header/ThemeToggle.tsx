@@ -4,7 +4,7 @@ import { useTheme } from '../../../hooks/useTheme.ts'
 import type { ThemeMode } from '../../../hooks/types/theme.types.ts'
 import { THEME_OPTIONS } from '../../../constants/theme.constants.ts'
 
-const THEME_ICONS = {
+const THEME_MODE_ICONS = {
   nord: LuSun,
   dim: LuMoon,
   system: LuSunMoon,
@@ -22,7 +22,7 @@ export const ThemeToggle: FC = () => {
     })
   }, [setThemeMode])
 
-  const Icon = THEME_ICONS[themeMode] || LuSunMoon
+  const Icon = THEME_MODE_ICONS[themeMode] || LuSunMoon
   const currentOption = THEME_OPTIONS.find(option => option.id === themeMode)
 
   return (

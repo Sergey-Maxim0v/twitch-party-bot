@@ -1,5 +1,5 @@
 /** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
-const TWITCH_MAX_LENGTH = 400
+const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
 
 interface FormatQueueStatusOptions {
   /** Массив никнеймов в активной очереди */
@@ -51,7 +51,7 @@ export const formatCurrentQueueStatus = ({
 
   let result = buildString()
 
-  while (result.length > TWITCH_MAX_LENGTH) {
+  while (result.length > TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH) {
     if (showWaitingCount > 0) {
       showWaitingCount--
     } else if (showActiveCount > 1) {

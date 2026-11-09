@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { TWITCH_STORAGE_KEYS } from '../config.ts'
+import { TWITCH_STORAGE_KEYS } from '../../../constants/auth.constants.ts'
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 

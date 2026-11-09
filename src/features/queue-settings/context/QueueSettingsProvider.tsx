@@ -1,11 +1,12 @@
 import { type FC, type ReactNode } from 'react'
-import { DEFAULT_QUEUE_SETTINGS, type QueueSettings } from '../types.ts'
+import type { QueueSettings } from '../types.ts'
+import { DEFAULT_QUEUE_SETTINGS } from '../../../constants/queue.constants.ts'
 import { QueueSettingsContext } from './QueueSettingsInstance'
-import { LOCAL_STORAGE_KEY } from '../constants.ts'
+import { QUEUE_SETTINGS_STORAGE_KEY } from '../../../constants/queue.constants.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
 export const QueueSettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useLocalStorage<QueueSettings>(LOCAL_STORAGE_KEY, DEFAULT_QUEUE_SETTINGS)
+  const [settings, setSettings] = useLocalStorage<QueueSettings>(QUEUE_SETTINGS_STORAGE_KEY, DEFAULT_QUEUE_SETTINGS)
 
   /**
      *  Функция для частичного обновления настроек

@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from 'react'
-import { CHAT_ACCESS_STATUSES, CONNECTION_STATUSES } from '../types.ts'
+import { TWITCH_CHAT_ACCESS_STATUSES, SOCKET_CONNECTION_STATUSES } from '../types.ts'
 import type { ChatAccessStatus, ConnectionStatus } from '../types.ts'
 import type { TwitchIrcClient } from '../../twitch/twitchIrcClient.ts'
 
@@ -29,13 +29,13 @@ export const useSocketNetworkSync = ({
 
   useEffect(() => {
     const handleOffline = (): void => {
-      setConnectionStatusRef.current(CONNECTION_STATUSES.DISCONNECTED)
-      setChatAccessStatusRef.current(CHAT_ACCESS_STATUSES.OFFLINE)
+      setConnectionStatusRef.current(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
+      setChatAccessStatusRef.current(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
     }
 
     const handleOnline = (): void => {
       if (client.readyState === WebSocket.OPEN) {
-        setConnectionStatusRef.current(CONNECTION_STATUSES.CONNECTED)
+        setConnectionStatusRef.current(SOCKET_CONNECTION_STATUSES.CONNECTED)
         setChatAccessStatusRef.current(lastActiveChatStatusRef.current)
         return
       }

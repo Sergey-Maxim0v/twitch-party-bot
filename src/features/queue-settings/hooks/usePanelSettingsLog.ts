@@ -1,5 +1,5 @@
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import { APP_LOG_STATUSES, type AppLogStatus, LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { useQueueSettings } from './useQueueSettings.ts'
 import { useEffect, useRef } from 'react'
@@ -13,7 +13,7 @@ interface logChangeArgs {
 }
 
 // Словарь названий базовых настроек
-const SETTING_LABELS: Record<string, string> = {
+const QUEUE_SETTING_LABELS: Record<string, string> = {
   maxQueueSize: 'Лимит участников в очереди',
   allowPreJoin: 'Разрешить запись в список ожидающих',
   allowMultipleEntries: 'Разрешить запись в список ожидающих участников текущей очереди',
@@ -27,7 +27,7 @@ const SETTING_LABELS: Record<string, string> = {
 }
 
 // Словарь разрешений сообщений
-const NOTIFICATION_LABELS: Record<string, string> = {
+const QUEUE_NOTIFICATION_LABELS: Record<string, string> = {
   allowSending: 'Разрешить боту отправку сообщений в чат',
   onQueueOpen: 'Сообщение об открытии очереди',
   onQueueFull: 'Сообщение об заполнении текущей очереди',
@@ -40,7 +40,7 @@ const NOTIFICATION_LABELS: Record<string, string> = {
 }
 
 // Словарь разрешений сообщений
-const COMMAND_LABELS: Record<string, string> = {
+const QUEUE_COMMAND_LABELS: Record<string, string> = {
   join: 'Вступление в очередь',
   leave: 'Выход из очереди',
   show: 'Показать текущую очередь',
@@ -68,7 +68,7 @@ export const usePanelSettingsLog = () => {
   const logChange = ({
     message,
     status = APP_LOG_STATUSES.WARNING,
-    source = LOG_SOURCE.STREAMER_UI,
+    source = APP_LOG_SOURCES.STREAMER_UI,
     actorUsername = logUserName,
   }: logChangeArgs) => {
     pushLog({
@@ -94,13 +94,13 @@ export const usePanelSettingsLog = () => {
     }
 
     // 1. Плоские (базовые) настройки
-    (Object.keys(SETTING_LABELS) as Array<keyof QueueSettings>).forEach(key => {
+    (Object.keys(QUEUE_SETTING_LABELS) as Array<keyof QueueSettings>).forEach(key => {
       const currentVal = settings[key]
       const prevVal = prev[key]
 
       if (currentVal !== prevVal && prevVal !== undefined) {
         logChange({
-          message: `Настройки изменены: ${SETTING_LABELS[key]} - ${formatValue(currentVal)}`,
+          message: `Настройки изменены: ${QUEUE_SETTING_LABELS[key]} - ${formatValue(currentVal)}`,
         })
       }
     })
@@ -114,14 +114,14 @@ export const usePanelSettingsLog = () => {
 
     // 2. Разрешения сообщений (chatNotificationPermissions)
     if (settings.chatNotificationPermissions && prev.chatNotificationPermissions) {
-      Object.keys(NOTIFICATION_LABELS).forEach(key => {
+      Object.keys(QUEUE_NOTIFICATION_LABELS).forEach(key => {
         const k = key as keyof QueueSettings['chatNotificationPermissions']
         const currentVal = settings.chatNotificationPermissions[k]
         const prevVal = prev.chatNotificationPermissions[k]
 
         if (currentVal !== prevVal && prevVal !== undefined) {
           logChange({
-            message: `Настройки изменены (Сообщения): ${NOTIFICATION_LABELS[k]} - ${formatValue(currentVal)}`,
+            message: `Настройки изменены (Сообщения): ${QUEUE_NOTIFICATION_LABELS[k]} - ${formatValue(currentVal)}`,
           })
         }
       })
@@ -133,7 +133,7 @@ export const usePanelSettingsLog = () => {
         const k = commandKey as keyof QueueSettings['commands']
         const currentCmd = settings.commands[k]
         const prevCmd = prev.commands[k]
-        const commandLabel = COMMAND_LABELS[k] || k
+        const commandLabel = QUEUE_COMMAND_LABELS[k] || k
 
         if (prevCmd) {
           // Проверка изменения триггера (имени команды)

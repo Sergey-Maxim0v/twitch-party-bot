@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession } from '../types'
+import { TWITCH_AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession } from '../types'
 import { useTwitchPopup } from './useTwitchPopup.ts'
 import { useTwitchChannelState } from './useTwitchChannelState.ts'
-import { TWITCH_STORAGE_KEYS } from '../config.ts'
+import { TWITCH_STORAGE_KEYS } from '../../../constants/auth.constants.ts'
 import { useChannelProfile } from './useChannelProfile.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
 import { extractTwitchToken } from '../utils/extractTwitchToken.ts'
 
-const VALIDATION_INTERVAL = 45 * 60 * 1000
+const TWITCH_TOKEN_VALIDATION_INTERVAL_MS = 45 * 60 * 1000
 
 export const useTwitchAuth = (): TwitchAuthHookResult => {
   const [session, setSession] = useLocalStorage<TwitchUserSession | null>(TWITCH_STORAGE_KEYS.SESSION, null)
@@ -66,7 +66,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   const logout = useCallback((): void => {
     setSession(null)
     setError(null)
-    popupManager.setAuthStage(AUTH_STAGES.IDLE)
+    popupManager.setAuthStage(TWITCH_AUTH_STAGES.IDLE)
     popupManager.setIsModalOpen(false)
   }, [setSession, popupManager])
 
@@ -105,7 +105,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
       if (!validated) {
         logout()
       }
-    }, VALIDATION_INTERVAL)
+    }, TWITCH_TOKEN_VALIDATION_INTERVAL_MS)
 
     return () => {
       clearInterval(interval)

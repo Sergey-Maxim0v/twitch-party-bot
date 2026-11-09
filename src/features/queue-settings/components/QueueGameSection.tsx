@@ -1,6 +1,7 @@
 import type { ChangeEvent, FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
-import { GAME_PATTERNS, QUEUE_GAMES, type QueueGameKey } from '../types.ts'
+import { QUEUE_GAME_DISPLAY_NAMES, QUEUE_GAME_NICKNAME_PATTERNS } from '../../../constants/queue.constants.ts'
+import type { QueueGameKey } from '../types.ts'
 
 interface QueueGameSectionProps {
   className?: string;
@@ -24,7 +25,7 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
     updateSettings({
       currentGame: {
         key: selectedKey,
-        validationPattern: GAME_PATTERNS[selectedKey],
+        validationPattern: QUEUE_GAME_NICKNAME_PATTERNS[selectedKey],
       },
     })
   }
@@ -47,7 +48,7 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
         >
           <option value="">—</option>
 
-          {Object.entries(QUEUE_GAMES).map(([key, name]) => (
+          {Object.entries(QUEUE_GAME_DISPLAY_NAMES).map(([key, name]) => (
             <option key={key} value={key}>
               {name}
             </option>

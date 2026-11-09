@@ -2,7 +2,7 @@ import { type FC, useState, type MouseEvent } from 'react'
 import { LuUserRoundPlus } from 'react-icons/lu'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE, type QueuePlayerFormData } from '../types.ts'
 
 interface QueueFormProps {
@@ -42,7 +42,7 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
 
     addPlayerToQueue({
       playerData,
-      source: LOG_SOURCE.STREAMER_UI,
+      source: APP_LOG_SOURCES.STREAMER_UI,
       actorUsername: userDisplayName ?? session?.login ?? '',
       rawCommand: 'Ручное добавление в очередь',
       customTimestamp: timestamp,

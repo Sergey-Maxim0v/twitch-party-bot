@@ -7,13 +7,13 @@ import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 
-export const JOIN_QUEUE_STATUSES = {
+export const QUEUE_JOIN_STATUSES = {
   JOINED: 'joined',
   WAITING: 'waiting',
   DENIED: 'denied',
 } as const
 
-type JoinQueueResultStatus = typeof JOIN_QUEUE_STATUSES[keyof typeof JOIN_QUEUE_STATUSES]
+type JoinQueueResultStatus = typeof QUEUE_JOIN_STATUSES[keyof typeof QUEUE_JOIN_STATUSES]
 
 interface JoinQueueResult {
   status: JoinQueueResultStatus;
@@ -66,7 +66,7 @@ export const handleJoinPlayer = ({
   }
 
   let finalLogMessage = ''
-  let operationStatus: JoinQueueResult['status'] = JOIN_QUEUE_STATUSES.DENIED
+  let operationStatus: JoinQueueResult['status'] = QUEUE_JOIN_STATUSES.DENIED
 
   setState(prev => {
     const validationError = validateQueueEntry({
@@ -80,7 +80,7 @@ export const handleJoinPlayer = ({
 
     if (validationError) {
       finalLogMessage = validationError
-      operationStatus = JOIN_QUEUE_STATUSES.DENIED
+      operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
@@ -102,42 +102,42 @@ export const handleJoinPlayer = ({
         updatedActive.push(fullPlayer)
       }
       finalLogMessage = `Добавление в очередь: Игрок ${displayName} добавлен в активную очередь.`
-      operationStatus = JOIN_QUEUE_STATUSES.JOINED
+      operationStatus = QUEUE_JOIN_STATUSES.JOINED
       return { ...prev, activeQueue: updatedActive }
     }
 
     // Есть место в активной, игрок уже там, а список ожидающих отключен -> Отклонено
     if (isActiveQueueNotFull && existsInActive && !settings.allowPreJoin) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже в активной очереди, список ожидающих отключен.`
-      operationStatus = JOIN_QUEUE_STATUSES.DENIED
+      operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
     // Активная очередь полна, игрока там нет, а список ожидающих отключен -> Отклонено
     if (!isActiveQueueNotFull && !existsInActive && !settings.allowPreJoin) {
       finalLogMessage = 'Добавление в очередь: Отклонено, активная очередь заполнена, а список ожидающих отключен.'
-      operationStatus = JOIN_QUEUE_STATUSES.DENIED
+      operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
     // Игрок уже в активной, список ожидающих включен, но повторная запись запрещена -> Отклонено
     if (existsInActive && settings.allowPreJoin && !settings.allowMultipleEntries) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в активной очереди, повторная запись запрещена.`
-      operationStatus = JOIN_QUEUE_STATUSES.DENIED
+      operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
     // Игрок уже и в активной очереди и в списке ожидающих -> Отклонено
     if (existsInActive && settings.allowPreJoin && settings.allowMultipleEntries && existsInWaiting) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится и в активной очереди, и в списке ожидающих.`
-      operationStatus = JOIN_QUEUE_STATUSES.DENIED
+      operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
     // Игрок нет в активной, он уже находится в списке ожидающих (дубликат записи в вейтинг) -> Отклонено
     if (!existsInActive && settings.allowPreJoin && existsInWaiting) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в списке ожидающих.`
-      operationStatus = JOIN_QUEUE_STATUSES.DENIED
+      operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
@@ -150,7 +150,7 @@ export const handleJoinPlayer = ({
       updatedWaiting.push(fullPlayer)
     }
 
-    operationStatus = JOIN_QUEUE_STATUSES.WAITING
+    operationStatus = QUEUE_JOIN_STATUSES.WAITING
 
     // Игрок уже в активной очереди, но разрешена мульти-запись -> Добавлен в список ожидания
     if (existsInActive && settings.allowPreJoin && settings.allowMultipleEntries && !existsInWaiting) {
@@ -164,7 +164,7 @@ export const handleJoinPlayer = ({
   })
 
   setTimeout(() => {
-    if (operationStatus !== JOIN_QUEUE_STATUSES.DENIED) {
+    if (operationStatus !== QUEUE_JOIN_STATUSES.DENIED) {
       pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.INFO, source, actorUsername, rawCommand })
     } else if (finalLogMessage) {
       pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })

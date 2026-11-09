@@ -1,11 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
-import { CONNECTION_STATUSES } from '../../socket/types.ts'
-import { HeartbeatWorkerCommand, HeartbeatWorkerEvent, TwitchIrcCommand } from '../config.ts'
+import { SOCKET_CONNECTION_STATUSES } from '../../socket/types.ts'
+import { TWITCH_HEARTBEAT_WORKER_COMMANDS, TWITCH_HEARTBEAT_WORKER_EVENTS, TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
 
 import HeartbeatWorker from '../workers/heartbeat.worker.ts?worker'
 
-const HEARTBEAT_INTERVAL = 60000
+const TWITCH_HEARTBEAT_INTERVAL_MS = 60000
 const PONG_TIMEOUT = 10000
 
 /**
@@ -26,7 +26,7 @@ export const useTwitchHeartbeat = () => {
   const handleConnectionFailure = useCallback(() => {
     if (!socketContext) return
 
-    workerRef.current?.postMessage({ type: HeartbeatWorkerCommand.CLEAR_ALL })
+    workerRef.current?.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL })
 
     const client = socketContext.getClient()
     client.forceCloseAndReconnect()
@@ -34,14 +34,14 @@ export const useTwitchHeartbeat = () => {
 
   // Отправка системного IRC-запроса PING на сервер Twitch.
   const sendPing = useCallback(() => {
-    if (!socketContext || connectionStatusRef.current !== CONNECTION_STATUSES.CONNECTED) return
+    if (!socketContext || connectionStatusRef.current !== SOCKET_CONNECTION_STATUSES.CONNECTED) return
 
     const client = socketContext.getClient()
 
     client.sendRaw('PING :twitch_party_queue')
 
     workerRef.current?.postMessage({
-      type: HeartbeatWorkerCommand.START_PONG_TIMER,
+      type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER,
       payload: PONG_TIMEOUT,
     })
   }, [socketContext])
@@ -50,15 +50,15 @@ export const useTwitchHeartbeat = () => {
      * Сбрасывает таймер ожидания PONG при успехе и перезапускает таймер тишины.
      */
   const handleSocketActivity = useCallback((command: string) => {
-    if (connectionStatusRef.current !== CONNECTION_STATUSES.CONNECTED || !workerRef.current) return
+    if (connectionStatusRef.current !== SOCKET_CONNECTION_STATUSES.CONNECTED || !workerRef.current) return
 
-    if (command === TwitchIrcCommand.PONG) {
-      workerRef.current.postMessage({ type: HeartbeatWorkerCommand.CLEAR_PONG_TIMER })
+    if (command === TWITCH_IRC_COMMANDS.PONG) {
+      workerRef.current.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_PONG_TIMER })
     }
 
     workerRef.current.postMessage({
-      type: HeartbeatWorkerCommand.START_PING_TIMER,
-      payload: HEARTBEAT_INTERVAL,
+      type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER,
+      payload: TWITCH_HEARTBEAT_INTERVAL_MS,
     })
   }, [])
 
@@ -77,9 +77,9 @@ export const useTwitchHeartbeat = () => {
     worker.onmessage = (event: MessageEvent) => {
       const { type } = event.data
 
-      if (type === HeartbeatWorkerEvent.PING_TICK) {
+      if (type === TWITCH_HEARTBEAT_WORKER_EVENTS.PING_TICK) {
         sendPingRef.current()
-      } else if (type === HeartbeatWorkerEvent.PONG_TIMEOUT) {
+      } else if (type === TWITCH_HEARTBEAT_WORKER_EVENTS.PONG_TIMEOUT) {
         handleConnectionFailureRef.current()
       }
     }
@@ -95,13 +95,13 @@ export const useTwitchHeartbeat = () => {
     const currentWorker = workerRef.current
     if (!currentWorker) return
 
-    if (connectionStatus === CONNECTION_STATUSES.CONNECTED) {
+    if (connectionStatus === SOCKET_CONNECTION_STATUSES.CONNECTED) {
       currentWorker.postMessage({
-        type: HeartbeatWorkerCommand.START_PING_TIMER,
-        payload: HEARTBEAT_INTERVAL,
+        type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER,
+        payload: TWITCH_HEARTBEAT_INTERVAL_MS,
       })
-    } else if (connectionStatus === CONNECTION_STATUSES.DISCONNECTED) {
-      currentWorker.postMessage({ type: HeartbeatWorkerCommand.CLEAR_ALL })
+    } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
+      currentWorker.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL })
     }
   }, [connectionStatus, workerRef])
 

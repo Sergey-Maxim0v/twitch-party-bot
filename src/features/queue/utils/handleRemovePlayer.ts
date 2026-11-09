@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { QUEUE_TYPES, type QueueState, type QueueType } from '../types'
-import { APP_LOG_STATUSES, type AppLogItem, LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
 interface HandleRemovePlayerArgs {
@@ -38,7 +38,7 @@ export const handleRemovePlayer = ({
   if (targetQueueType === QUEUE_TYPES.HISTORY) {
     pushLog({
       message: 'Удаление из очереди: Ошибка, из истории нельзя удалить игрока',
-      source: LOG_SOURCE.APPLICATION,
+      source: APP_LOG_SOURCES.APPLICATION,
       status: APP_LOG_STATUSES.ERROR,
       actorUsername,
     })

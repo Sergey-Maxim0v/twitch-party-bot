@@ -1,4 +1,6 @@
-import type { TwitchIrcCommandType } from './config.ts'
+import { TWITCH_IRC_COMMANDS } from '../../constants/twitch.constants.ts'
+
+export type TwitchIrcCommandType = typeof TWITCH_IRC_COMMANDS[keyof typeof TWITCH_IRC_COMMANDS]
 
 export interface ParsedIrcMessage {
   /** Уникальный идентификатор сообщения (msg-id из тегов Twitch) */

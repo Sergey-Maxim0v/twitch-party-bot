@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from './useQueue.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
@@ -51,7 +51,7 @@ export const useChatCommands = () => {
     const isModerator = isModeratorOrStreamer
     const isSubscriber = lastMessage.user.isSubscriber
     const isVip = lastMessage.user.isVip
-    const source = isModeratorOrStreamer ? LOG_SOURCE.CHAT_MODERATOR : LOG_SOURCE.CHAT_USER
+    const source = isModeratorOrStreamer ? APP_LOG_SOURCES.CHAT_MODERATOR : APP_LOG_SOURCES.CHAT_USER
     const rawMessage = trimmedText
     const rawCommand = trimmedText
 

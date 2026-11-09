@@ -1,6 +1,6 @@
 import type { CSSProperties, FC } from 'react'
 import { LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench } from 'react-icons/lu'
-import { TwitchIrcCommand } from '../config.ts'
+import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 import { getAdaptedTwitchColors } from '../utils/getAdaptedTwitchColors.ts'
 
@@ -51,7 +51,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   const displaySenderName = msg.user.displayName || msg.user.nick
 
   if (msg.isSystem) {
-    const isAlert = msg.command === TwitchIrcCommand.USER_NOTICE && !msg.isAnnouncement
+    const isAlert = msg.command === TWITCH_IRC_COMMANDS.USER_NOTICE && !msg.isAnnouncement
 
     // Смешиваем системные цвета с черным для светлой темы, возвращая оригинал для data-theme="dim"
     let systemColorClass = 'text-[color-mix(in_oklch,var(--color-warning)_75%,black)] [:where([data-theme=dim])_&]:text-warning/80 font-medium italic'

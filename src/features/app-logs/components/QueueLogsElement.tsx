@@ -1,6 +1,6 @@
 import { type FC } from 'react'
 import { LuCrown, LuShield, LuMessageSquare, LuCpu } from 'react-icons/lu'
-import { APP_LOG_STATUSES, LOG_SOURCE, type AppLogItem } from '../types.ts'
+import { APP_LOG_STATUSES, APP_LOG_SOURCES, type AppLogItem } from '../types.ts'
 
 interface QueueLogsElementProps {
   log: AppLogItem;
@@ -26,13 +26,13 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
   let InitiatorIcon = LuCpu
   let tooltipText = 'Система'
 
-  if (log.source === LOG_SOURCE.STREAMER_UI) {
+  if (log.source === APP_LOG_SOURCES.STREAMER_UI) {
     InitiatorIcon = LuCrown
     tooltipText = 'Пользователь приложения'
-  } else if (log.source === LOG_SOURCE.CHAT_MODERATOR) {
+  } else if (log.source === APP_LOG_SOURCES.CHAT_MODERATOR) {
     InitiatorIcon = LuShield
     tooltipText = 'Модератор в чате'
-  } else if (log.source === LOG_SOURCE.CHAT_USER) {
+  } else if (log.source === APP_LOG_SOURCES.CHAT_USER) {
     InitiatorIcon = LuMessageSquare
     tooltipText = 'Участник чата'
   }

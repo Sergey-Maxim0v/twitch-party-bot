@@ -1,4 +1,4 @@
-import { TwitchIrcCommand } from '../config.ts'
+import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 
 /**
@@ -24,7 +24,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   })
 
   // Полная очистка чата или бан/таймаут пользователя
-  if (command === TwitchIrcCommand.CLEAR_CHAT) {
+  if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT) {
     const bannedUser = text?.trim()
 
     // Если текста нет — это полная очистка чата
@@ -42,13 +42,13 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   }
 
   // Удаление одного конкретного сообщения
-  if (command === TwitchIrcCommand.CLEAR_MSG) {
+  if (command === TWITCH_IRC_COMMANDS.CLEAR_MSG) {
     const targetUser = tags.login || 'Пользователь'
     return buildSystemPayload(`Сообщение от @${targetUser} удалено.`)
   }
 
   // Подписки, рейды, подарки и важные события канала
-  if (command === TwitchIrcCommand.USER_NOTICE) {
+  if (command === TWITCH_IRC_COMMANDS.USER_NOTICE) {
     const msgId = tags['msg-id']
     const login = tags['display-name'] || tags.login || 'Пользователь'
     const userMessage = text?.trim() ? `: "${text.trim()}"` : ''
@@ -107,7 +107,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   }
 
   // Глобальные изменения режимов комнаты (ROOMSTATE)
-  if (command === TwitchIrcCommand.ROOM_STATE) {
+  if (command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
     // Если это стартовый пакет инициализации комнаты — полностью игнорируем вывод сообщения в чат
     const hasAllTags = tags['subs-only'] !== undefined && tags.slow !== undefined && tags['emote-only'] !== undefined
 
@@ -137,7 +137,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   }
 
   // Обработка системных уведомлений и ошибок выполнения команд чата (NOTICE)
-  if (command === TwitchIrcCommand.NOTICE) {
+  if (command === TWITCH_IRC_COMMANDS.NOTICE) {
     const msgId = tags['msg-id'] || ''
     const cleanText = text?.trim() || ''
 
@@ -174,12 +174,12 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   }
 
   // Глобальное состояние пользователя при авторизации
-  if (command === TwitchIrcCommand.GLOBAL_USER_STATE) {
+  if (command === TWITCH_IRC_COMMANDS.GLOBAL_USER_STATE) {
     return buildSystemPayload('Глобальные метаданные учетной записи успешно синхронизированы с Twitch.')
   }
 
   // Запрос сервера на плановое переподключение сессии
-  if (command === TwitchIrcCommand.RECONNECT) {
+  if (command === TWITCH_IRC_COMMANDS.RECONNECT) {
     return buildSystemPayload('Получен системный запрос RECONNECT от сервера Twitch. Запускается процесс планового переподключения.')
   }
 

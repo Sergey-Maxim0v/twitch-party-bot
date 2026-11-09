@@ -1,18 +1,5 @@
-export const BREAKPOINTS = {
-  /** 640px */
-  SM: 'sm',
+import { BREAKPOINTS } from '../../constants/layout.constants.ts'
 
-  /** 768px */
-  MD: 'md',
-
-  /** 1024px */
-  LG: 'lg',
-
-  /** 1280px */
-  XL: 'xl',
-
-  /** 1536px */
-  XXL: '2xl',
-} as const
+export { BREAKPOINTS }
 
 export type Breakpoint = typeof BREAKPOINTS[keyof typeof BREAKPOINTS]

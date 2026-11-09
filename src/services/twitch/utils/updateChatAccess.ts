@@ -1,9 +1,9 @@
 import type { RefObject } from 'react'
-import { TwitchIrcCommand } from '../config'
-import { CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../../socket/types.ts'
+import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../../socket/types.ts'
 import { checkIsRoomRestricted } from './checkIsRoomRestricted'
 import type { ParsedIrcMessage } from '../types.ts'
-import { APP_LOG_STATUSES, type AppLogItem, LOG_SOURCE } from '../../../features/app-logs/types.ts'
+import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../../features/app-logs/types.ts'
 
 interface UpdateChatAccessProps {
   message: ParsedIrcMessage;
@@ -36,11 +36,11 @@ export const updateChatAccess = ({
 }: UpdateChatAccessProps): void => {
 
   const pushStatusLog = (logMessage: string) => {
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source: LOG_SOURCE.APPLICATION, actorUsername: 'twitch' })
+    pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source: APP_LOG_SOURCES.APPLICATION, actorUsername: 'twitch' })
   }
 
   // 1. Обработка глобальных настроек комнаты
-  if (message.command === TwitchIrcCommand.ROOM_STATE) {
+  if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
     const tags = message.tags || {}
 
     // Если это стартовый пакет инициализации комнаты — формируем одно общее лог-уведомление
@@ -80,28 +80,28 @@ export const updateChatAccess = ({
 
     // 2. Передаем в валидатор полную историю ограничений комнаты вместо обрывистого сообщения
     const isRestricted = checkIsRoomRestricted({ ...message, tags: currentRoomTags })
-    updateChatAccessStatus(isRestricted ? CHAT_ACCESS_STATUSES.RESTRICTED : CHAT_ACCESS_STATUSES.CONNECTED)
+    updateChatAccessStatus(isRestricted ? TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED : TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
     return
   }
 
   // 2. Персональные блокировки из NOTICE (ошибки отправки при муте)
-  if (message.command === TwitchIrcCommand.NOTICE) {
+  if (message.command === TWITCH_IRC_COMMANDS.NOTICE) {
     const msgId = message.tags?.['msg-id']
 
     if (msgId === 'msg_banned') {
       pushStatusLog('Ошибка отправки сообщения: аккаунт забанен на канале.')
-      updateChatAccessStatus(CHAT_ACCESS_STATUSES.BANNED)
+      updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
       pendingTextsRef.current = []
     } else if (msgId === 'msg_subsonly' || msgId === 'msg_followersonly' || msgId === 'msg_timedout') {
       pushStatusLog(`Ошибка отправки сообщения: чат ограничен (причина: ${msgId}).`)
-      updateChatAccessStatus(CHAT_ACCESS_STATUSES.RESTRICTED)
+      updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED)
       pendingTextsRef.current = []
     }
     return
   }
 
   // 3. Мгновенный перехват мута/бана нашего аккаунта через CLEAR_CHAT
-  if (message.command === TwitchIrcCommand.CLEAR_CHAT) {
+  if (message.command === TWITCH_IRC_COMMANDS.CLEAR_CHAT) {
     const targetUser = message.text?.trim()?.toLowerCase()
 
     if (targetUser && targetUser === currentUserLogin) {
@@ -114,33 +114,33 @@ export const updateChatAccess = ({
 
       if (durationStr) {
         pushStatusLog(`Аккаунт получил таймаут на ${durationStr} сек.`)
-        updateChatAccessStatus(CHAT_ACCESS_STATUSES.RESTRICTED)
+        updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED)
 
         const durationSeconds = parseInt(durationStr, 10)
 
         if (!isNaN(durationSeconds) && durationSeconds > 0) {
           timeoutTimerRef.current = setTimeout(() => {
             pushStatusLog('Время таймаута истекло.')
-            updateChatAccessStatus(CHAT_ACCESS_STATUSES.CONNECTED)
+            updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
             timeoutTimerRef.current = null
           }, durationSeconds * 1000)
         }
       } else {
         pushStatusLog('Аккаунт перманентно забанен на канале.')
-        updateChatAccessStatus(CHAT_ACCESS_STATUSES.BANNED)
+        updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
       }
     }
     return
   }
 
   // 4. Перехват успешного USER_STATE (сигнал разбана или успешной отправки)
-  if (message.command === TwitchIrcCommand.USER_STATE) {
+  if (message.command === TWITCH_IRC_COMMANDS.USER_STATE) {
     if (timeoutTimerRef.current) {
       clearTimeout(timeoutTimerRef.current)
       timeoutTimerRef.current = null
       pushStatusLog('Ограничение чата досрочно снято.')
     }
-    updateChatAccessStatus(CHAT_ACCESS_STATUSES.CONNECTED)
+    updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
     return
   }
 }

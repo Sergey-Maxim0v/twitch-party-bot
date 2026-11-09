@@ -6,7 +6,7 @@ import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
 import { QueueElementModal } from './QueueElementModal.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from '../hooks/useQueue.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 interface QueueElementProps {
@@ -77,7 +77,7 @@ export const QueueElement: FC<QueueElementProps> = ({
       username,
       displayedUsername: displayedUsername,
       actorUsername: userDisplayName ?? 'Application',
-      source: LOG_SOURCE.STREAMER_UI,
+      source: APP_LOG_SOURCES.STREAMER_UI,
     })
   }
 
@@ -85,7 +85,7 @@ export const QueueElement: FC<QueueElementProps> = ({
     removePlayerFromQueue({
       userId,
       username,
-      source: LOG_SOURCE.STREAMER_UI,
+      source: APP_LOG_SOURCES.STREAMER_UI,
       actorUsername: userDisplayName ?? 'Application',
       targetQueueType: queueType,
     })
@@ -95,7 +95,7 @@ export const QueueElement: FC<QueueElementProps> = ({
     removePlayerFromAllQueues({
       userId,
       username,
-      source: LOG_SOURCE.STREAMER_UI,
+      source: APP_LOG_SOURCES.STREAMER_UI,
       actorUsername: userDisplayName ?? 'Application',
     })
   }

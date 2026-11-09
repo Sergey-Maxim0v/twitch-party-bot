@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
-import { CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
+import { TWITCH_CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
 
 /**
  * Хук для проверки готовности к отправке автоматических уведомлений.
@@ -23,7 +23,7 @@ export const useNotificationGuard = (): boolean => {
     return false
   }
 
-  const chatStatus = socketContext?.chatAccessStatus ?? CHAT_ACCESS_STATUSES.OFFLINE
+  const chatStatus = socketContext?.chatAccessStatus ?? TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
 
-  return chatStatus === CHAT_ACCESS_STATUSES.CONNECTED || chatStatus === CHAT_ACCESS_STATUSES.RESTRICTED
+  return chatStatus === TWITCH_CHAT_ACCESS_STATUSES.CONNECTED || chatStatus === TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED
 }

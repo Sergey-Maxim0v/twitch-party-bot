@@ -1,6 +1,6 @@
 import { forwardRef, type MouseEvent } from 'react'
 import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
-import { QUEUE_SOURCE_META } from '../constants'
+import { QUEUE_PLAYER_SOURCE_META } from '../../../constants/queue.constants.ts'
 import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX } from 'react-icons/lu'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
@@ -39,7 +39,7 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
     gameNickname,
   } = player
 
-  const sourceMeta = QUEUE_SOURCE_META[playerSource] || { label: playerSource, badgeClass: 'badge-ghost' }
+  const sourceMeta = QUEUE_PLAYER_SOURCE_META[playerSource] || { label: playerSource, badgeClass: 'badge-ghost' }
 
   // Закрытие при клике на оверлей backdrop
   const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>): void => {

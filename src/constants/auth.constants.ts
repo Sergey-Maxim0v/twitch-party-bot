@@ -1,0 +1,40 @@
+/**
+ * @see https://dev.twitch.tv/docs/authentication/register-app
+ */
+export const TWITCH_CLIENT_ID = import.meta.env.VITE_TWITCH_CLIENT_ID
+
+export const TWITCH_AUTH_BASE_URL = 'https://id.twitch.tv/oauth2'
+
+export const TWITCH_AUTH_REDIRECT_URI = window.location.origin + window.location.pathname
+
+/**
+ * @see https://dev.twitch.tv/docs/authentication/scopes/#irc-chat-scopes
+ */
+export const TWITCH_AUTH_SCOPES = {
+  READ_CHAT: 'chat:read',
+  WRITE_CHAT: 'chat:edit',
+}
+
+export const TWITCH_AUTH_ERRORS = {
+  CSRF_FAILED: 'CSRF_VALIDATION_FAILED',
+}
+
+export const TWITCH_STORAGE_KEYS = {
+  SESSION: 'tqp_twitch_session',
+  ACTIVE_CHANNEL: 'tqp_active_channel',
+}
+
+export const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
+
+export const TWITCH_AUTH_STAGES = {
+  IDLE: 'idle',
+  WAITING: 'waiting',
+  VALIDATING: 'validating',
+  SUCCESS: 'success',
+  ERROR: 'error',
+}
+
+/**
+ * Интервал фоновой проверки токена (45 минут).
+ */
+export const TWITCH_TOKEN_VALIDATION_INTERVAL_MS = 45 * 60 * 1000

@@ -1,6 +1,6 @@
 import { type FC } from 'react'
 import { useAuth } from '../hooks/useAuth.ts'
-import { AUTH_STAGES } from '../types'
+import { TWITCH_AUTH_STAGES } from '../types'
 
 export const AuthModal: FC = () => {
   const { isModalOpen, authStage, error, login, closeModal } = useAuth()
@@ -12,7 +12,7 @@ export const AuthModal: FC = () => {
       <div className="modal-box max-w-sm flex flex-col items-center text-center p-6 gap-4">
 
         {/* Ожидание действий в Popup-окне */}
-        {authStage === AUTH_STAGES.WAITING && (
+        {authStage === TWITCH_AUTH_STAGES.WAITING && (
           <>
             <span className="loading loading-spinner loading-lg text-primary"></span>
             <h3 className="font-bold text-lg">Авторизация на Twitch</h3>
@@ -28,7 +28,7 @@ export const AuthModal: FC = () => {
         )}
 
         {/* Проверка токена через Twitch API */}
-        {authStage === AUTH_STAGES.VALIDATING && (
+        {authStage === TWITCH_AUTH_STAGES.VALIDATING && (
           <>
             <span className="loading loading-ring loading-lg text-secondary"></span>
             <h3 className="font-bold text-lg">Проверка токена</h3>
@@ -39,7 +39,7 @@ export const AuthModal: FC = () => {
         )}
 
         {/* Успешный вход */}
-        {authStage === AUTH_STAGES.SUCCESS && (
+        {authStage === TWITCH_AUTH_STAGES.SUCCESS && (
           <>
             <div
               className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success"
@@ -56,7 +56,7 @@ export const AuthModal: FC = () => {
         )}
 
         {/* Ошибка в процессе входа */}
-        {authStage === AUTH_STAGES.ERROR && (
+        {authStage === TWITCH_AUTH_STAGES.ERROR && (
           <>
             <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center text-error">
               <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24">

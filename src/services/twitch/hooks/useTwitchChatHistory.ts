@@ -1,6 +1,6 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import type { TwitchIrcClient } from '../twitchIrcClient.ts'
-import { MAX_MESSAGES, TwitchIrcCommand } from '../config.ts'
+import { TWITCH_CHAT_HISTORY_MAX_MESSAGES, TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
 import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
 import type { ParsedIrcMessage } from '../types.ts'
@@ -47,10 +47,10 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
    * Обрабатывает модераторские действия (удаление сообщений, баны) и системные логи
    */
   const handleModerationAndEvents = useCallback((message: ParsedIrcMessage): boolean => {
-    const isModAction = message.command === TwitchIrcCommand.CLEAR_CHAT || message.command === TwitchIrcCommand.CLEAR_MSG
-    const isChannelEvent = message.command === TwitchIrcCommand.USER_NOTICE || message.command === TwitchIrcCommand.ROOM_STATE
-    const isNotice = message.command === TwitchIrcCommand.NOTICE
-    const isSessionControl = message.command === TwitchIrcCommand.RECONNECT || message.command === TwitchIrcCommand.GLOBAL_USER_STATE
+    const isModAction = message.command === TWITCH_IRC_COMMANDS.CLEAR_CHAT || message.command === TWITCH_IRC_COMMANDS.CLEAR_MSG
+    const isChannelEvent = message.command === TWITCH_IRC_COMMANDS.USER_NOTICE || message.command === TWITCH_IRC_COMMANDS.ROOM_STATE
+    const isNotice = message.command === TWITCH_IRC_COMMANDS.NOTICE
+    const isSessionControl = message.command === TWITCH_IRC_COMMANDS.RECONNECT || message.command === TWITCH_IRC_COMMANDS.GLOBAL_USER_STATE
 
     if (!isModAction && !isChannelEvent && !isNotice && !isSessionControl) return false
 
@@ -66,7 +66,7 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
       const updatedHistory = isModAction ? markDeletedMessages({ modMessage: message, currentMessages: prev }) : prev
       const finalMessages = [...updatedHistory, systemLog]
 
-      return finalMessages.length > MAX_MESSAGES ? finalMessages.slice(finalMessages.length - MAX_MESSAGES) : finalMessages
+      return finalMessages.length > TWITCH_CHAT_HISTORY_MAX_MESSAGES ? finalMessages.slice(finalMessages.length - TWITCH_CHAT_HISTORY_MAX_MESSAGES) : finalMessages
     })
 
     return true
@@ -80,8 +80,8 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
     currentUserLogin: string,
     currentChannel: string | null,
   ): ParsedIrcMessage | undefined => {
-    const isUserstate = message.command === TwitchIrcCommand.USER_STATE
-    const isPrivmsg = message.command === TwitchIrcCommand.PRIV_MSG
+    const isUserstate = message.command === TWITCH_IRC_COMMANDS.USER_STATE
+    const isPrivmsg = message.command === TWITCH_IRC_COMMANDS.PRIV_MSG
 
     if (!isUserstate && !isPrivmsg) return undefined
 
@@ -124,7 +124,7 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
     const messageToPush: ParsedIrcMessage = {
       ...message,
       id: uniqueId,
-      command: TwitchIrcCommand.PRIV_MSG,
+      command: TWITCH_IRC_COMMANDS.PRIV_MSG,
       text: isUserstate ? (savedText ?? '') : message.text,
       user: isPrivmsg
         ? message.user
@@ -146,8 +146,8 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
       }
 
       const nextHistory = [...prev, messageToPush]
-      if (nextHistory.length > MAX_MESSAGES) {
-        return nextHistory.slice(nextHistory.length - MAX_MESSAGES)
+      if (nextHistory.length > TWITCH_CHAT_HISTORY_MAX_MESSAGES) {
+        return nextHistory.slice(nextHistory.length - TWITCH_CHAT_HISTORY_MAX_MESSAGES)
       }
       return nextHistory
     })

@@ -1,5 +1,5 @@
-import { TwitchIrcCommand, type TwitchIrcCommandType } from '../config.ts'
-import type { IrcUserData, ParsedIrcMessage } from '../types.ts'
+import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import type { IrcUserData, ParsedIrcMessage, TwitchIrcCommandType } from '../types.ts'
 
 /**
  * Парсит сырую строку от Twitch IRC в структурированный объект.
@@ -65,7 +65,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
   } else {
     // Для команд без текста (например, CLEARCHAT всего чата)
     const parts = remaining.split(' ')
-    if (parts.length > 2 && (parts[0] === TwitchIrcCommand.CLEAR_CHAT || parts[0] === TwitchIrcCommand.CLEAR_MSG)) {
+    if (parts.length > 2 && (parts[0] === TWITCH_IRC_COMMANDS.CLEAR_CHAT || parts[0] === TWITCH_IRC_COMMANDS.CLEAR_MSG)) {
       commandPart = parts.slice(0, 2).join(' ')
     }
   }
@@ -74,7 +74,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
   const command = (commandParts[0] || '') as TwitchIrcCommandType
 
   // Для CLEARCHAT, безопасное извлечение цели бана/удаления сообщения из тегов или параметров команды
-  if ((command === TwitchIrcCommand.CLEAR_CHAT || command === TwitchIrcCommand.CLEAR_MSG) && !text && commandParts[2]) {
+  if ((command === TWITCH_IRC_COMMANDS.CLEAR_CHAT || command === TWITCH_IRC_COMMANDS.CLEAR_MSG) && !text && commandParts[2]) {
     text = commandParts[2]
   }
 
@@ -89,16 +89,16 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
   // Вычисляем флаги на основе прочитанной команды
   const isSystem =
     tags['is-system'] === '1' ||
-      command === TwitchIrcCommand.NOTICE ||
-      command === TwitchIrcCommand.ROOM_STATE ||
-      command === TwitchIrcCommand.USER_NOTICE ||
-      command === TwitchIrcCommand.CLEAR_CHAT ||
-      command === TwitchIrcCommand.CLEAR_MSG ||
-      command === TwitchIrcCommand.RECONNECT
+      command === TWITCH_IRC_COMMANDS.NOTICE ||
+      command === TWITCH_IRC_COMMANDS.ROOM_STATE ||
+      command === TWITCH_IRC_COMMANDS.USER_NOTICE ||
+      command === TWITCH_IRC_COMMANDS.CLEAR_CHAT ||
+      command === TWITCH_IRC_COMMANDS.CLEAR_MSG ||
+      command === TWITCH_IRC_COMMANDS.RECONNECT
 
   const isChannelEvent = isSystem ||
-      command === TwitchIrcCommand.GLOBAL_USER_STATE ||
-      command === TwitchIrcCommand.MOTD_START
+      command === TWITCH_IRC_COMMANDS.GLOBAL_USER_STATE ||
+      command === TWITCH_IRC_COMMANDS.MOTD_START
 
   const userId: IrcUserData['userId'] = tags['user-id'] || ''
 

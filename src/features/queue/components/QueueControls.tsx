@@ -1,7 +1,7 @@
 import { type FC, useCallback } from 'react'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 
 interface QueueControlsProps {
   className?: string;
@@ -12,14 +12,14 @@ export const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
   const { session, userDisplayName } = useAuth()
 
   const handleFinishActiveQueue = useCallback(() => {
-    finishActiveQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
+    finishActiveQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
   }, [finishActiveQueue, session?.login, userDisplayName])
 
   const handleQueueToggle = useCallback(() => {
     if(isQueueOpen) {
-      closeQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' } )
+      closeQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' } )
     } else {
-      openQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
+      openQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
     }
   }, [isQueueOpen, closeQueue, userDisplayName, session?.login, openQueue])
 

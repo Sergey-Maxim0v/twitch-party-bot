@@ -2,7 +2,7 @@
  * @file heartbeat.worker.ts
  * @description Изолированный Web Worker для ведения точных фоновых таймеров.
  */
-import { HeartbeatWorkerCommand, HeartbeatWorkerEvent } from '../config.ts'
+import { TWITCH_HEARTBEAT_WORKER_COMMANDS, TWITCH_HEARTBEAT_WORKER_EVENTS } from '../../../constants/twitch.constants.ts'
 
 let pingTimeoutId: ReturnType<typeof setTimeout> | null = null
 let pongTimeoutId: ReturnType<typeof setTimeout> | null = null
@@ -24,31 +24,31 @@ self.onmessage = (event: MessageEvent) => {
 
   switch (type) {
     // Инициализация или сброс таймера контроля тишины чата
-    case HeartbeatWorkerCommand.START_PING_TIMER: {
+    case TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER: {
       clearAllTimers()
 
       const interval = payload || 60000
 
       pingTimeoutId = setTimeout(() => {
-        self.postMessage({ type: HeartbeatWorkerEvent.PING_TICK })
+        self.postMessage({ type: TWITCH_HEARTBEAT_WORKER_EVENTS.PING_TICK })
       }, interval)
       break
     }
 
     // Запуск таймера ожидания ответа PONG от сервера
-    case HeartbeatWorkerCommand.START_PONG_TIMER: {
+    case TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER: {
       clearAllTimers()
 
       const timeout = payload || 10000
 
       pongTimeoutId = setTimeout(() => {
-        self.postMessage({ type: HeartbeatWorkerEvent.PONG_TIMEOUT })
+        self.postMessage({ type: TWITCH_HEARTBEAT_WORKER_EVENTS.PONG_TIMEOUT })
       }, timeout)
       break
     }
 
     // Снятие таймера ожидания ответа при успешном получении PONG
-    case HeartbeatWorkerCommand.CLEAR_PONG_TIMER: {
+    case TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_PONG_TIMER: {
       if (pongTimeoutId) {
         clearTimeout(pongTimeoutId)
         pongTimeoutId = null
@@ -57,7 +57,7 @@ self.onmessage = (event: MessageEvent) => {
     }
 
     // Полная остановка всех фоновых таймеров контроля сессии
-    case HeartbeatWorkerCommand.CLEAR_ALL: {
+    case TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL: {
       clearAllTimers()
       break
     }

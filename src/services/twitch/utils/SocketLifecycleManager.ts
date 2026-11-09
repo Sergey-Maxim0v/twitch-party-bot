@@ -1,4 +1,4 @@
-import { TWITCH_SOCKET_BASE_URL } from '../config.ts'
+import { TWITCH_IRC_SOCKET_URL } from '../../../constants/twitch.constants.ts'
 
 interface SocketListeners {
   onOpen: () => void;
@@ -33,7 +33,7 @@ export class SocketLifecycleManager {
   public create(listeners: SocketListeners): WebSocket {
     this.destroy()
 
-    this.socket = new WebSocket(TWITCH_SOCKET_BASE_URL)
+    this.socket = new WebSocket(TWITCH_IRC_SOCKET_URL)
 
     this.socket.onopen = listeners.onOpen
     this.socket.onmessage = listeners.onMessage

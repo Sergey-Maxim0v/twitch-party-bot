@@ -3,18 +3,18 @@ import { LuSend } from 'react-icons/lu'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import * as React from 'react'
 import { TWITCH_CHAT_MESSAGE_MAX_LENGTH, TWITCH_CHAT_MESSAGE_MIN_LENGTH } from '../../../constants/twitch.constants.ts'
-import { CHAT_ACCESS_STATUSES } from '../../socket/types.ts'
+import { TWITCH_CHAT_ACCESS_STATUSES } from '../../socket/types.ts'
 
 interface ChatInputProps {
   onSendMessage: (text: string) => void;
   actions?: ReactNode;
 }
 
-const STATUS_BUTTON_CLASSES: Record<string, string> = {
-  [CHAT_ACCESS_STATUSES.CONNECTED]: 'btn-primary',
-  [CHAT_ACCESS_STATUSES.RESTRICTED]: 'btn-warning text-black',
-  [CHAT_ACCESS_STATUSES.OFFLINE]: 'btn-error text-white',
-  [CHAT_ACCESS_STATUSES.BANNED]: 'btn-neutral',
+const TWITCH_CHAT_STATUS_BUTTON_CLASSES: Record<string, string> = {
+  [TWITCH_CHAT_ACCESS_STATUSES.CONNECTED]: 'btn-primary',
+  [TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED]: 'btn-warning text-black',
+  [TWITCH_CHAT_ACCESS_STATUSES.OFFLINE]: 'btn-error text-white',
+  [TWITCH_CHAT_ACCESS_STATUSES.BANNED]: 'btn-neutral',
 }
 
 export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
@@ -70,8 +70,8 @@ export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
     }
   }
 
-  const currentStatus = socketContext?.chatAccessStatus || CHAT_ACCESS_STATUSES.OFFLINE
-  const buttonStatusClass = STATUS_BUTTON_CLASSES[currentStatus] || 'btn-primary'
+  const currentStatus = socketContext?.chatAccessStatus || TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
+  const buttonStatusClass = TWITCH_CHAT_STATUS_BUTTON_CLASSES[currentStatus] || 'btn-primary'
 
   return (
     <div className="p-3 shrink-0">

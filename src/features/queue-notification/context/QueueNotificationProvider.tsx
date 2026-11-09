@@ -5,7 +5,7 @@ import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { APP_LOG_STATUSES, LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES, APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
 import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
 import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
@@ -60,7 +60,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     pushLog({
       message: logText,
       status: APP_LOG_STATUSES.SUCCESS,
-      source: LOG_SOURCE.APPLICATION,
+      source: APP_LOG_SOURCES.APPLICATION,
       actorUsername,
     })
   }, [sendChatMessage, pushLog, session?.login, userDisplayName])

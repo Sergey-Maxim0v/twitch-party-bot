@@ -1,6 +1,5 @@
-export const PANEL_DIRECTIONS = {
-  HORIZONTAL: 'horizontal',
-  VERTICAL: 'vertical',
-} as const
+import { PANEL_DIRECTIONS } from '../../../../constants/layout.constants.ts'
+
+export { PANEL_DIRECTIONS }
 
 export type PanelDirection = typeof PANEL_DIRECTIONS[keyof typeof PANEL_DIRECTIONS]

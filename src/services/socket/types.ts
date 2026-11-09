@@ -1,6 +1,10 @@
 import type { TwitchIrcClient } from '../twitch/twitchIrcClient.ts'
 import type { MessageCallback } from '../twitch/utils/createMessageEmitter.ts'
 
+import { SOCKET_CONNECTION_STATUSES, TWITCH_CHAT_ACCESS_STATUSES } from '../../constants/socket.constants.ts'
+
+export { SOCKET_CONNECTION_STATUSES, TWITCH_CHAT_ACCESS_STATUSES }
+
 export interface SocketStorage {
   connect: (channel: string, token: string, userLogin: string) => void;
   disconnect: () => void;
@@ -12,20 +16,5 @@ export interface SocketStorage {
   updateChatAccessStatus: (status: ChatAccessStatus) => void;
 }
 
-// Константы для сетевого статуса WebSocket-соединения
-export const CONNECTION_STATUSES = {
-  DISCONNECTED: 'disconnected',
-  CONNECTING: 'connecting',
-  CONNECTED: 'connected',
-} as const
-
-// Константы для статуса доступности чата Twitch IRC
-export const CHAT_ACCESS_STATUSES = {
-  OFFLINE: 'offline',
-  CONNECTED: 'connected',
-  RESTRICTED: 'restricted',
-  BANNED: 'banned',
-} as const
-
-export type ConnectionStatus = typeof CONNECTION_STATUSES[keyof typeof CONNECTION_STATUSES]
-export type ChatAccessStatus = typeof CHAT_ACCESS_STATUSES[keyof typeof CHAT_ACCESS_STATUSES]
+export type ConnectionStatus = typeof SOCKET_CONNECTION_STATUSES[keyof typeof SOCKET_CONNECTION_STATUSES]
+export type ChatAccessStatus = typeof TWITCH_CHAT_ACCESS_STATUSES[keyof typeof TWITCH_CHAT_ACCESS_STATUSES]

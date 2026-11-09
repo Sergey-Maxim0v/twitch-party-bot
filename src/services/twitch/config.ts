@@ -1,14 +1,14 @@
-export const TWITCH_SOCKET_BASE_URL = 'wss://irc-ws.chat.twitch.tv:443'
+export const TWITCH_IRC_SOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443'
 
 /**
  * Лимит сообщений в истории чата
  */
-export const MAX_MESSAGES = 300
+export const TWITCH_CHAT_HISTORY_MAX_MESSAGES = 300
 
 /**
  * @see https://dev.twitch.tv/docs/chat/irc#irc-command-reference
  */
-export const TwitchIrcCommand = {
+export const TWITCH_IRC_COMMANDS = {
   CLEAR_CHAT: 'CLEARCHAT',
   CLEAR_MSG: 'CLEARMSG',
   GLOBAL_USER_STATE: 'GLOBALUSERSTATE',
@@ -25,13 +25,13 @@ export const TwitchIrcCommand = {
   MOTD_START: '375', // Сигнал начала приветствия сервера
 } as const
 
-export type TwitchIrcCommandType = typeof TwitchIrcCommand[keyof typeof TwitchIrcCommand]
+export type TwitchIrcCommandType = typeof TWITCH_IRC_COMMANDS[keyof typeof TWITCH_IRC_COMMANDS]
 
 /**
  * Дополнительные возможности (Capabilities) Twitch IRC сокета.
  * @see https://dev.twitch.tv/docs/chat/irc#twitch-irc-membership-commands
  */
-export const TwitchIrcCapability = {
+export const TWITCH_IRC_CAPABILITIES = {
   MEMBERSHIP: 'twitch.tv/membership',
   TAGS: 'twitch.tv/tags',
   COMMANDS: 'twitch.tv/commands',
@@ -40,7 +40,7 @@ export const TwitchIrcCapability = {
 /**
  * Команды управления, отправляемые из основного потока React в Web Worker
  */
-export const HeartbeatWorkerCommand = {
+export const TWITCH_HEARTBEAT_WORKER_COMMANDS = {
   START_PING_TIMER: 'START_PING_TIMER',
   START_PONG_TIMER: 'START_PONG_TIMER',
   CLEAR_PONG_TIMER: 'CLEAR_PONG_TIMER',
@@ -50,7 +50,7 @@ export const HeartbeatWorkerCommand = {
 /**
  * События сетевой активности, возвращаемые из Web Worker в основной поток React
  */
-export const HeartbeatWorkerEvent = {
+export const TWITCH_HEARTBEAT_WORKER_EVENTS = {
   PING_TICK: 'PING_TICK',
   PONG_TIMEOUT: 'PONG_TIMEOUT',
 } as const

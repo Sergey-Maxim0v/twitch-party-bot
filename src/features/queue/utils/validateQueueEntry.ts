@@ -1,6 +1,6 @@
 import type { QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { LOG_SOURCE, type LogSource } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 interface ValidateQueueEntryArgs {
@@ -25,9 +25,9 @@ export const validateQueueEntry = ({
   source,
 }: ValidateQueueEntryArgs): string | null => {
   // Стример, модераторы и система обходят остальные базовые правила (закрытую очередь, sub-only и кулдауны)
-  const isStaff = source === LOG_SOURCE.APPLICATION
-      || source === LOG_SOURCE.CHAT_MODERATOR
-      || source === LOG_SOURCE.STREAMER_UI
+  const isStaff = source === APP_LOG_SOURCES.APPLICATION
+      || source === APP_LOG_SOURCES.CHAT_MODERATOR
+      || source === APP_LOG_SOURCES.STREAMER_UI
 
   if (isStaff) return null
 

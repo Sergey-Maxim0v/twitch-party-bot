@@ -9,7 +9,7 @@ interface FormatNotificationMessageArgs {
 }
 
 /** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
-const TWITCH_MAX_LENGTH = 400
+const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
 
 /**
  * Форматирует пакет накопившихся изменений очереди в одну компактную строку
@@ -77,7 +77,7 @@ export const formatNotificationMessage = ({
   let result = buildString()
 
   // Если строка превышает лимит, плавно убираем по одному никнейму с учетом приоритетов (снизу вверх)
-  while (result.length > TWITCH_MAX_LENGTH) {
+  while (result.length > TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH) {
     if (showDeniedCount > 0) {
       showDeniedCount--
     } else if (showMovedToWaitingCount > 0) {

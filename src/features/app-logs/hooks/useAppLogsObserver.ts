@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
 import { useAppLogs } from './useAppLogs.ts'
-import { APP_LOG_STATUSES, type AppLogStatus, LOG_SOURCE } from '../types.ts'
-import { CONNECTION_STATUSES, CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
+import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES } from '../types.ts'
+import { SOCKET_CONNECTION_STATUSES, TWITCH_CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 /**
@@ -25,7 +25,7 @@ export const useAppLogsObserver = (): void => {
       pushLog({
         message: `Вы вошли в аккаунт: ${userDisplayName ?? session.login}`,
         status: APP_LOG_STATUSES.SUCCESS,
-        source: LOG_SOURCE.APPLICATION,
+        source: APP_LOG_SOURCES.APPLICATION,
         actorUsername: userDisplayName ?? session.login,
       })
     }
@@ -43,15 +43,15 @@ export const useAppLogsObserver = (): void => {
     let message = ''
     let status: AppLogStatus = APP_LOG_STATUSES.SUCCESS
 
-    if (connectionStatus === CONNECTION_STATUSES.CONNECTING) {
+    if (connectionStatus === SOCKET_CONNECTION_STATUSES.CONNECTING) {
       const currentAttempts = client?.reconnectAttempts ?? 0
       message = currentAttempts > 0
         ? `Повторная попытка подключения к каналу ${targetChannel} (№${currentAttempts})...`
         : `Подключение к каналу ${targetChannel}...`
-    } else if (connectionStatus === CONNECTION_STATUSES.CONNECTED) {
+    } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.CONNECTED) {
       message = `Подключение к каналу ${targetChannel} установлено.`
       status = APP_LOG_STATUSES.SUCCESS
-    } else if (connectionStatus === CONNECTION_STATUSES.DISCONNECTED) {
+    } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
       const isIntentionally = client?.isIntentionallyDisconnected ?? false
       if (isIntentionally) {
         message = `Соединение с каналом ${targetChannel} закрыто пользователем.`
@@ -66,7 +66,7 @@ export const useAppLogsObserver = (): void => {
       pushLog({
         message,
         status,
-        source: LOG_SOURCE.APPLICATION,
+        source: APP_LOG_SOURCES.APPLICATION,
         actorUsername: userDisplayName ?? session?.login ?? 'Application',
       })
     }
@@ -83,13 +83,13 @@ export const useAppLogsObserver = (): void => {
     let message = ''
     let status: AppLogStatus = APP_LOG_STATUSES.SUCCESS
 
-    if (chatAccessStatus === CHAT_ACCESS_STATUSES.CONNECTED) {
+    if (chatAccessStatus === TWITCH_CHAT_ACCESS_STATUSES.CONNECTED) {
       message = `Чат канала ${targetChannel} подключен: бот может читать чат и отправлять сообщения.`
       status = APP_LOG_STATUSES.SUCCESS
-    } else if (chatAccessStatus === CHAT_ACCESS_STATUSES.RESTRICTED) {
+    } else if (chatAccessStatus === TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED) {
       message = `Доступ к чату ${targetChannel} ограничен: бот может читать чат, отправка сообщений ограничена.`
       status = APP_LOG_STATUSES.SUCCESS
-    } else if (chatAccessStatus === CHAT_ACCESS_STATUSES.BANNED) {
+    } else if (chatAccessStatus === TWITCH_CHAT_ACCESS_STATUSES.BANNED) {
       message = `Доступ к чату ${targetChannel} заблокирован: аккаунт бота забанен на канале.`
       status = APP_LOG_STATUSES.ERROR
     }
@@ -98,7 +98,7 @@ export const useAppLogsObserver = (): void => {
       pushLog({
         message,
         status,
-        source: LOG_SOURCE.APPLICATION,
+        source: APP_LOG_SOURCES.APPLICATION,
         actorUsername: userDisplayName ?? session?.login ?? 'Application',
       })
     }

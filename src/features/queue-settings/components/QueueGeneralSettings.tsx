@@ -3,7 +3,7 @@ import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import { SettingsNumberInput } from './SettingsNumberInput.tsx'
 import { SettingsCheckbox } from './SettingsCheckbox.tsx'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
-import { LOG_SOURCE } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 interface QueueGeneralSettingsProps {
@@ -22,7 +22,7 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
 
     if (settings.moveOnSizeChange) {
       balanceQueues({
-        source: LOG_SOURCE.STREAMER_UI,
+        source: APP_LOG_SOURCES.STREAMER_UI,
         actorUsername,
         overrideMaxQueueSize: val,
       })
@@ -33,7 +33,7 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
     updateSettings({ moveOnSizeChange: checked })
 
     if (checked) {
-      balanceQueues({ source: LOG_SOURCE.STREAMER_UI, actorUsername, overrideMoveOnSizeChange: checked })
+      balanceQueues({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername, overrideMoveOnSizeChange: checked })
     }
   }, [actorUsername, balanceQueues, updateSettings])
 
@@ -59,7 +59,7 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
 
           if (!checked) {
             updateSettings({ allowMultipleEntries: false })
-            clearWaitingQueue({ source: LOG_SOURCE.STREAMER_UI, actorUsername })
+            clearWaitingQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername })
           }
         }}
       />
