@@ -26,9 +26,6 @@ import { QueueNotificationProvider } from './features/queue-notification/context
 //   -  отправка сообщений в чат при изменении очереди согласно настройкам
 //   -  данные между вкладками
 
-//  TODO:
-//   - привести в порядок код
-
 function App() {
   return (
     <SocketProvider>

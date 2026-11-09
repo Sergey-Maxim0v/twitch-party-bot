@@ -1,5 +1,7 @@
 # Twitch Party Bot
 
+[![Language Switch](https://img.shields.io/badge/Language-Russian%20%7C%20English-blue)](README.md)
+
 ![GitHub language count](https://img.shields.io/github/languages/count/Sergey-Maxim0v/twitch-party-bot)
 ![GitHub top language](https://img.shields.io/github/languages/top/Sergey-Maxim0v/twitch-party-bot)
 ![GitHub repo size](https://img.shields.io/github/repo-size/Sergey-Maxim0v/twitch-party-bot)
