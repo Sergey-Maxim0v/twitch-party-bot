@@ -10,7 +10,7 @@ export interface QueueGeneralSettingsProps {
   titleClassName?: string;
 }
 
-const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName }) => {
+export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName }) => {
   const { settings, updateSettings } = useQueueSettings()
   const { clearWaitingQueue, balanceQueues } = useQueue()
   const { session, userDisplayName } = useAuth()
@@ -117,5 +117,3 @@ const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName })
     </div>
   )
 }
-
-export default QueueGeneralSettings

@@ -6,7 +6,7 @@ interface ChatSettingsToggleProps {
   onChange: (value: boolean) => void;
 }
 
-const ChatSettingsToggle: FC<ChatSettingsToggleProps> = ({
+export const ChatSettingsToggle: FC<ChatSettingsToggleProps> = ({
   label,
   checked,
   onChange,
@@ -26,5 +26,3 @@ const ChatSettingsToggle: FC<ChatSettingsToggleProps> = ({
     </label>
   )
 }
-
-export default ChatSettingsToggle

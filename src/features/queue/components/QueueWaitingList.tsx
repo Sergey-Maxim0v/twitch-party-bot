@@ -2,9 +2,9 @@ import { type FC, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useQueue } from '../hooks/useQueue.ts'
-import QueueCollapse from '../../../components/QueueCollapse.tsx'
+import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
-import QueueElement from './QueueElement.tsx'
+import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
 export interface QueueWaitingListProps {
@@ -14,7 +14,7 @@ export interface QueueWaitingListProps {
   disabled?: boolean
 }
 
-const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', onOpenChange, open, disabled }) => {
+export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', onOpenChange, open, disabled }) => {
   const { waitingQueue } = useQueue()
   const { settings } = useQueueSettings()
 
@@ -56,5 +56,3 @@ const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', onOpenCha
     </QueueCollapse>
   )
 }
-
-export default QueueWaitingList

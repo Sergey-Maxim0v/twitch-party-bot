@@ -2,7 +2,7 @@ import { type FC } from 'react'
 import { LuTwitch } from 'react-icons/lu'
 import { useAuth } from '../../features/auth/hooks/useAuth.ts'
 
-const WelcomeScreen: FC = () => {
+export const WelcomeScreen: FC = () => {
   const { login } = useAuth()
 
   return (
@@ -32,5 +32,3 @@ const WelcomeScreen: FC = () => {
     </div>
   )
 }
-
-export default WelcomeScreen

@@ -3,7 +3,7 @@ import { LuTrash2, LuUserX, LuInfo, LuClock, LuGamepad, LuGripVertical } from 'r
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
-import QueueElementModal from './QueueElementModal.tsx'
+import { QueueElementModal } from './QueueElementModal.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from '../hooks/useQueue.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
@@ -15,7 +15,7 @@ export interface QueueElementProps {
   queueType: QueueType;
 }
 
-const QueueElement: FC<QueueElementProps> = ({
+export const QueueElement: FC<QueueElementProps> = ({
   className = '',
   player,
   queueType,
@@ -106,8 +106,8 @@ const QueueElement: FC<QueueElementProps> = ({
   return (
     <div
       className={`py-1.5 px-2.5 rounded-lg border border-base-content/5 bg-base-200/30
-        hover:bg-base-200/60 transition-all flex items-start gap-2 shadow-xs 
-        ${isDragging ? 'opacity-0 border-primary/30 bg-base-300' : ''} 
+        hover:bg-base-200/60 transition-all flex items-start gap-2 shadow-xs
+        ${isDragging ? 'opacity-0 border-primary/30 bg-base-300' : ''}
         ${className}`}
       ref={setNodeRef}
       style={style}
@@ -233,5 +233,3 @@ const QueueElement: FC<QueueElementProps> = ({
     </div>
   )
 }
-
-export default QueueElement

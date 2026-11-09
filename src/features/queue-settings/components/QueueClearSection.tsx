@@ -8,7 +8,7 @@ export interface QueueClearSectionProps {
   className?: string;
 }
 
-const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleClassName = '' }) => {
+export const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleClassName = '' }) => {
   const { clearActiveQueue, clearQueueHistory, clearWaitingQueue } = useQueue()
   const { session, userDisplayName } = useAuth()
 
@@ -49,5 +49,3 @@ const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleCl
     </div>
   )
 }
-
-export default QueueClearSection

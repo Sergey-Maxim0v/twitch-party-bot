@@ -1,11 +1,11 @@
 import type { FC } from 'react'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 
-export interface ActiveProfileInfo {
+export interface ActiveProfileInfoProps {
   className?: string;
 }
 
-const ActiveProfileInfo: FC<ActiveProfileInfo> = ({ className = '' }) => {
+export const ActiveProfileInfo: FC<ActiveProfileInfoProps> = ({ className = '' }) => {
   const {
     session,
     activeChannel,
@@ -63,5 +63,3 @@ const ActiveProfileInfo: FC<ActiveProfileInfo> = ({ className = '' }) => {
     </div>
   )
 }
-
-export default ActiveProfileInfo

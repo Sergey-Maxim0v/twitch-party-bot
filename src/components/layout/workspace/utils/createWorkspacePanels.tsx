@@ -1,9 +1,9 @@
 import { type Breakpoint, BREAKPOINTS } from '../../../../hooks/types/breakpoint.types.ts'
-import CollapsiblePanel from '../../panel/CollapsiblePanel.tsx'
-import QueueSettingsPanel from '../../../../features/queue-settings/components/QueueSettingsPanel.tsx'
-import QueueLogsPanel from '../../../../features/app-logs/components/QueueLogsPanel.tsx'
-import QueuePanel from '../../../../features/queue/components/QueuePanel.tsx'
-import TwitchChat from '../../../../services/twitch/components/TwitchChat.tsx'
+import { CollapsiblePanel } from '../../panel/CollapsiblePanel.tsx'
+import { QueueSettingsPanel } from '../../../../features/queue-settings/components/QueueSettingsPanel.tsx'
+import { QueueLogsPanel } from '../../../../features/app-logs/components/QueueLogsPanel.tsx'
+import { QueuePanel } from '../../../../features/queue/components/QueuePanel.tsx'
+import { TwitchChat } from '../../../../services/twitch/components/TwitchChat.tsx'
 import type { WorkspaceDirections } from '../../panel/utils/getPanelDirections.ts'
 
 export interface CreateWorkspacePanelProps {

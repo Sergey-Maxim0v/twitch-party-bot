@@ -15,7 +15,7 @@ interface SocketProviderProps {
   children: ReactNode;
 }
 
-const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
+export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   const [client] = useState<TwitchIrcClient>(() => new TwitchIrcClient())
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(CONNECTION_STATUSES.DISCONNECTED)
   const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(CHAT_ACCESS_STATUSES.OFFLINE)
@@ -94,5 +94,3 @@ const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     </SocketInstance.Provider>
   )
 }
-
-export default SocketProvider

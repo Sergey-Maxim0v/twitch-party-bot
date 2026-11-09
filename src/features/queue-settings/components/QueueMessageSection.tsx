@@ -8,7 +8,7 @@ export interface QueueMessageSectionProps {
   titleClassName?: string;
 }
 
-const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = '' }) => {
+export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = '' }) => {
   const { settings, updateSettings } = useQueueSettings()
 
   const handlePermissionsChange = (key: keyof typeof settings.chatNotificationPermissions, val: boolean) => {
@@ -105,5 +105,3 @@ const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = ''
     </div>
   )
 }
-
-export default QueueMessageSection

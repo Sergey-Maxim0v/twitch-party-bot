@@ -11,7 +11,7 @@ export interface QueueCollapseProps {
   tooltipText?: string;
 }
 
-const QueueCollapse: FC<QueueCollapseProps> = ({
+export const QueueCollapse: FC<QueueCollapseProps> = ({
   className = '',
   title,
   open,
@@ -38,7 +38,7 @@ const QueueCollapse: FC<QueueCollapseProps> = ({
       data-tip={ tooltipText }
     >
       <div
-        className={`collapse-title text-sm font-medium flex items-center justify-between cursor-pointer 
+        className={`collapse-title text-sm font-medium flex items-center justify-between cursor-pointer
         select-none min-h-0 py-3 px-4 ${disabled ? 'pointer-events-none' : ''}`}
         onClick={() => {
           if (!disabled) {
@@ -46,7 +46,7 @@ const QueueCollapse: FC<QueueCollapseProps> = ({
           }
         }}
       >
-        <span className={`text-xs font-bold tracking-wide text-base-content/60 uppercase 
+        <span className={`text-xs font-bold tracking-wide text-base-content/60 uppercase
           ${disabled ? 'text-base-content/40' : ''}`}
         >
           {title}
@@ -62,5 +62,3 @@ const QueueCollapse: FC<QueueCollapseProps> = ({
     </div>
   )
 }
-
-export default QueueCollapse

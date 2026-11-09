@@ -3,8 +3,8 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
-import QueueCollapse from '../../../components/QueueCollapse.tsx'
-import QueueElement from './QueueElement.tsx'
+import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
+import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
 export interface QueueActiveListProps {
@@ -13,7 +13,7 @@ export interface QueueActiveListProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOpenChange, open }) => {
+export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOpenChange, open }) => {
   const { activeQueue } = useQueue()
   const { settings } = useQueueSettings()
 
@@ -46,5 +46,3 @@ const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOpenChang
     </QueueCollapse>
   )
 }
-
-export default QueueActiveList

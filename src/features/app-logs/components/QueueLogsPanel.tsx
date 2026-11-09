@@ -1,8 +1,8 @@
 import { type FC } from 'react'
-import QueueLogsElement from '../../app-logs/components/QueueLogsElement.tsx'
+import { QueueLogsElement } from './QueueLogsElement.tsx'
 import { useAppLogs } from '../hooks/useAppLogs.ts'
 
-const QueueLogsPanel: FC = () => {
+export const QueueLogsPanel: FC = () => {
 
   const { logs } = useAppLogs()
 
@@ -17,5 +17,3 @@ const QueueLogsPanel: FC = () => {
     </div>
   )
 }
-
-export default QueueLogsPanel

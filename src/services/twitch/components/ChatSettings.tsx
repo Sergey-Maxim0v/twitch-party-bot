@@ -1,6 +1,6 @@
 import type { FC } from 'react'
 import { LuSettings } from 'react-icons/lu'
-import ChatSettingsToggle from './ChatSettingsToggle.tsx'
+import { ChatSettingsToggle } from './ChatSettingsToggle.tsx'
 
 interface ChatSettingsProps {
   useColoredNames: boolean;
@@ -15,7 +15,7 @@ interface ChatSettingsProps {
   setHighlightPointsMessages: (value: boolean) => void;
 }
 
-const ChatSettings: FC<ChatSettingsProps> = ({
+export const ChatSettings: FC<ChatSettingsProps> = ({
   useColoredNames,
   setUseColoredNames,
   highlightRoles,
@@ -84,5 +84,3 @@ const ChatSettings: FC<ChatSettingsProps> = ({
     </div>
   )
 }
-
-export default ChatSettings

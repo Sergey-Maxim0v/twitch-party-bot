@@ -13,7 +13,7 @@ interface ChatMessageProps {
   highlightPointsMessages: boolean;
 }
 
-const ChatMessage: FC<ChatMessageProps> = ({
+export const ChatMessage: FC<ChatMessageProps> = ({
   msg,
   useColoredNames,
   highlightRoles,
@@ -96,5 +96,3 @@ const ChatMessage: FC<ChatMessageProps> = ({
     </div>
   )
 }
-
-export default ChatMessage

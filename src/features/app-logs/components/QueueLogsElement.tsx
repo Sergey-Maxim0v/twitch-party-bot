@@ -61,5 +61,3 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
     </div>
   )
 }
-
-export default QueueLogsElement

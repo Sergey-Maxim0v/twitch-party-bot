@@ -6,7 +6,7 @@ import { BREAKPOINTS } from '../../../hooks/types/breakpoint.types.ts'
 import { useWorkspacePanels } from './hooks/useWorkspacePanels.ts'
 import { createWorkspacePanels } from './utils/createWorkspacePanels.tsx'
 
-const StreamerWorkspace: FC = () => {
+export const StreamerWorkspace: FC = () => {
   const [isOpenSettings, setIsOpenSettings] = useLocalStorage<boolean>('panel_settings_open', true)
   const [isOpenQueue, setIsOpenQueue] = useLocalStorage<boolean>('panel_queue_open', true)
   const [isOpenLogs, setIsOpenLogs] = useLocalStorage<boolean>('panel_logs_open', true)
@@ -97,5 +97,3 @@ const StreamerWorkspace: FC = () => {
     </div>
   )
 }
-
-export default StreamerWorkspace

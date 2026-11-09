@@ -15,7 +15,7 @@ export interface QueueElementModalProps {
   queueType: QueueType;
 }
 
-const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(({
+export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(({
   className = '',
   player,
   onClose,
@@ -153,5 +153,3 @@ const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(
 })
 
 QueueElementModal.displayName = 'QueueElementModal'
-
-export default QueueElementModal

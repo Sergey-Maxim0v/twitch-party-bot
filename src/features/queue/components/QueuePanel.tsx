@@ -1,19 +1,19 @@
 import { type FC, useState } from 'react'
 import { DndContext, type DragEndEvent, type DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
-import QueueActiveList from './QueueActiveList.tsx'
-import QueueWaitingList from './QueueWaitingList.tsx'
-import QueueHistoryList from './QueueHistoryList.tsx'
-import QueueControls from './QueueControls.tsx'
-import QueueForm from './QueueForm.tsx'
+import { QueueActiveList } from './QueueActiveList.tsx'
+import { QueueWaitingList } from './QueueWaitingList.tsx'
+import { QueueHistoryList } from './QueueHistoryList.tsx'
+import { QueueControls } from './QueueControls.tsx'
+import { QueueForm } from './QueueForm.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import QueueElement from './QueueElement.tsx'
+import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES, type QueuePlayer } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
 import { useChatCommands } from '../hooks/useChatCommands.ts'
 
-const QueuePanel: FC = () => {
+export const QueuePanel: FC = () => {
   const { settings } = useQueueSettings()
   const { movePlayer, activeQueue, waitingQueue } = useQueue()
   const { userDisplayName, session } = useAuth()
@@ -96,5 +96,3 @@ const QueuePanel: FC = () => {
     </div>
   )
 }
-
-export default QueuePanel

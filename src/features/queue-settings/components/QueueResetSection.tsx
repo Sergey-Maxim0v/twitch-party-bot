@@ -6,7 +6,7 @@ export interface QueueResetSectionProps {
   className?: string;
 }
 
-const QueueResetSettings: FC<QueueResetSectionProps> = ({ titleClassName = '', className = '' }) => {
+export const QueueResetSettings: FC<QueueResetSectionProps> = ({ titleClassName = '', className = '' }) => {
   const { resetSettings } = useQueueSettings()
   return (
     <div
@@ -24,5 +24,3 @@ const QueueResetSettings: FC<QueueResetSectionProps> = ({ titleClassName = '', c
     </div>
   )
 }
-
-export default QueueResetSettings

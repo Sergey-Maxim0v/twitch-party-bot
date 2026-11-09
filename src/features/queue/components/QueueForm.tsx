@@ -9,7 +9,7 @@ export interface QueueFormProps {
   className?: string;
 }
 
-const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
+export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
   const { addPlayerToQueue } = useQueue()
   const { session, userDisplayName } = useAuth()
 
@@ -125,5 +125,3 @@ const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
     </form>
   )
 }
-
-export default QueueForm

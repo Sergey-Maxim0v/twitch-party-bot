@@ -17,7 +17,7 @@ const STATUS_BUTTON_CLASSES: Record<string, string> = {
   [CHAT_ACCESS_STATUSES.BANNED]: 'btn-neutral',
 }
 
-const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isOverflowed, setIsOverflowed] = useState(false)
@@ -77,9 +77,9 @@ const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
     <div className="p-3 shrink-0">
       <form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
         <textarea
-          className={`textarea textarea-bordered textarea-sm w-full bg-base-100 text-sm 
-                    focus:outline-none placeholder-base-content/40 resize-none 
-                    min-h-8 max-h-32 py-1.5 leading-relaxed custom-scrollbar 
+          className={`textarea textarea-bordered textarea-sm w-full bg-base-100 text-sm
+                    focus:outline-none placeholder-base-content/40 resize-none
+                    min-h-8 max-h-32 py-1.5 leading-relaxed custom-scrollbar
                     ${isOverflowed ? 'overflow-y-auto' : 'overflow-hidden'}`}
           maxLength={TWITCH_CHAT_MESSAGE_MAX_LENGTH}
           minLength={TWITCH_CHAT_MESSAGE_MIN_LENGTH}
@@ -109,5 +109,3 @@ const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
     </div>
   )
 }
-
-export default ChatInput

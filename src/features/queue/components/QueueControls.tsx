@@ -7,7 +7,7 @@ export interface QueueControlsProps {
   className?: string;
 }
 
-const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
+export const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
   const { isQueueOpen, openQueue, closeQueue, finishActiveQueue } = useQueue()
   const { session, userDisplayName } = useAuth()
 
@@ -45,5 +45,3 @@ const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
     </div>
   )
 }
-
-export default QueueControls

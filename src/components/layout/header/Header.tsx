@@ -1,14 +1,14 @@
 import { type FC } from 'react'
-import ThemeToggle from './ThemeToggle.tsx'
+import { ThemeToggle } from './ThemeToggle.tsx'
 import { LuTwitch } from 'react-icons/lu'
-import ActiveProfileInfo from './ActiveProfileInfo.tsx'
-import ConnectionStatusPanel from './ConnectionStatusPanel.tsx'
+import { ActiveProfileInfo } from './ActiveProfileInfo.tsx'
+import { ConnectionStatusPanel } from './ConnectionStatusPanel.tsx'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { ChannelSelectToggle } from '../../../features/auth/components/ChannelSelectToggle.tsx'
 import { LogoutToggle } from '../../../features/auth/components/LogoutToggle.tsx'
-import Version from './Version.tsx'
+import { Version } from './Version.tsx'
 
-const Header: FC = () => {
+export const Header: FC = () => {
   const { session, isAuthenticated, isLoading, login } = useAuth()
 
   return (
@@ -81,5 +81,3 @@ const Header: FC = () => {
     </header>
   )
 }
-
-export default Header

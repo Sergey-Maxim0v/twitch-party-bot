@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { useQueue } from '../hooks/useQueue.ts'
-import QueueCollapse from '../../../components/QueueCollapse.tsx'
-import QueueElement from './QueueElement.tsx'
+import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
+import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
 export interface QueueHistoryListProps {
@@ -10,7 +10,7 @@ export interface QueueHistoryListProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', onOpenChange, open }) => {
+export const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', onOpenChange, open }) => {
   const { queueHistory } = useQueue()
 
   const queueLength = queueHistory?.length ?? 0
@@ -61,5 +61,3 @@ const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', onOpenCha
     </QueueCollapse>
   )
 }
-
-export default QueueHistoryList

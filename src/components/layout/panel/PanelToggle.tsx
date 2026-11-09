@@ -10,7 +10,7 @@ interface PanelToggleProps {
   direction?: PanelDirection;
 }
 
-const PanelToggle: FC<PanelToggleProps> = ({
+export const PanelToggle: FC<PanelToggleProps> = ({
   isOpen,
   onOpen,
   title,
@@ -37,5 +37,3 @@ const PanelToggle: FC<PanelToggleProps> = ({
     </button>
   )
 }
-
-export default PanelToggle

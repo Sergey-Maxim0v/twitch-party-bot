@@ -13,7 +13,7 @@ interface StatusIndicatorProps {
  * @param badgeType - Тип окраски индикатора в стиле DaisyUI (success, warning, error, info, neutral)
  * @param tooltipText - Текст подробной подсказки при наведении
  */
-const StatusIndicator: FC<StatusIndicatorProps> = ({
+export const StatusIndicator: FC<StatusIndicatorProps> = ({
   label,
   statusText,
   badgeType,
@@ -42,7 +42,7 @@ const StatusIndicator: FC<StatusIndicatorProps> = ({
         <div className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
             {badgeType !== 'error' && badgeType !== 'neutral' && (
-              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 
+              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75
                             ${badgeColors[badgeType]}`}
               ></span>
             )}
@@ -57,5 +57,3 @@ const StatusIndicator: FC<StatusIndicatorProps> = ({
     </div>
   )
 }
-
-export default StatusIndicator

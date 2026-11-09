@@ -10,7 +10,7 @@ const THEME_ICONS = {
   system: LuSunMoon,
 }
 
-const ThemeToggle: FC = () => {
+export const ThemeToggle: FC = () => {
   const { themeMode, setThemeMode } = useTheme()
 
   const toggleTheme = useCallback(() => {
@@ -43,5 +43,3 @@ const ThemeToggle: FC = () => {
     </div>
   )
 }
-
-export default ThemeToggle

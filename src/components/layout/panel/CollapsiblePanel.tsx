@@ -1,5 +1,5 @@
 import { type FC, type ReactNode, useState } from 'react'
-import PanelToggle from './PanelToggle.tsx'
+import { PanelToggle } from './PanelToggle.tsx'
 import { PANEL_DIRECTIONS, type PanelDirection } from './types'
 
 export interface CollapsiblePanelProps {
@@ -16,7 +16,7 @@ export interface CollapsiblePanelProps {
  * * @param className - Стили для раскрытого состояния
  *  * @param collapsedClassName - Стили для свернутого состояния
  */
-const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
+export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
   isOpen,
   onToggle,
   title,
@@ -62,7 +62,7 @@ const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
   return (
     <section
       className={`
-        flex flex-col bg-base-200 relative border-r border-base-300 
+        flex flex-col bg-base-200 relative border-r border-base-300
         transition-all duration-300 ease-in-out
         shadow-[inset_-4px_0_4px_-4px,inset_0_4px_4px_-4px]
         ${sizeClasses}
@@ -115,5 +115,3 @@ const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
     </section>
   )
 }
-
-export default CollapsiblePanel

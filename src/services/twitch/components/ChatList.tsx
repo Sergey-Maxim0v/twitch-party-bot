@@ -1,4 +1,4 @@
-import ChatMessage from './ChatMessage.tsx'
+import { ChatMessage } from './ChatMessage.tsx'
 import type { ParsedIrcMessage } from '../types.ts'
 
 interface ChatListProps {
@@ -10,7 +10,7 @@ interface ChatListProps {
   highlightPointsMessages: boolean;
 }
 
-const ChatList = ({
+export const ChatList = ({
   messages,
   useColoredNames,
   IsShowDeletedMessages,
@@ -45,5 +45,3 @@ const ChatList = ({
     </div>
   )
 }
-
-export default ChatList
