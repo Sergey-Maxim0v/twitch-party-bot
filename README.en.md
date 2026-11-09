@@ -23,16 +23,30 @@
 
 ---
 
-**Twitch Party Bot** is a simple and intuitive tool for streamers designed to quickly gather viewers from the chat into a single team. The bot automatically manages the queue and collects players' nicknames for co-op games, saving you from doing it manually.
+**Twitch Party Bot** is a simple and intuitive tool for streamers designed to quickly gather viewers from the chat into a single party. The bot automatically manages the queue and collects players' nicknames for co-op games, saving you the trouble of doing it manually.
 
 ---
 
 ## How it works
 1. **Viewers type a command** in the chat, such as `!join` (or any other custom command you set), and the bot automatically adds them to the list.
-2. **You get a convenient dashboard** where you can see all the applicants. You can easily add, reorder, or remove players directly via the UI.
+2. **You get a convenient dashboard** where you can see all interested viewers. You can easily add, reorder, or remove players directly via the UI.
 3. **Waiting list:** You can open a pre-registration queue so that viewers can secure their spot in advance for the next game.
-4. **Automated chat updates:** The bot posts updates directly to your chat when the queue opens, closes, gets full, or changes.
+4. **Automated chat messages:** The bot posts updates when the queue opens, closes, gets full, or changes its lineup. Sending must be enabled in the settings — it is turned off by default.
 5. **Flexible configuration:** Customize queue limits, chat commands, toggle automated chat messaging, and more.
+
+---
+
+## Features
+
+* **Built-in Twitch chat:** message history, role highlighting, colored nicknames, system notifications, and deleted-message display.
+* **Logs panel:** network events, app state, and queue changes.
+* **Queue management:** active roster, waiting list, history, and drag-and-drop player reordering.
+* **Three UI themes:** Nord, Dim, and System.
+* **Flexible settings:** player limit, custom commands, moderator permissions, cooldowns, and a ban list.
+* **Subscriber modes:** subscribers-only access and subscriber priority.
+* **Nickname validation for 10 games and platforms:** Riot Games, Steam, Ubisoft Connect, Battle.net, Apex Legends, PUBG, Fortnite, Naraka: Bladepoint, Goose Goose Duck, and Among Us.
+* **Automated chat messages:** sending can be enabled and fine-tuned in the settings panel.
+* **Cross-tab synchronization:** queue and settings changes appear instantly in every open browser tab.
 
 ---
 
@@ -41,8 +55,8 @@
 You can run the application in two ways:
 
 * **🚀 Quick Launch (Recommended):** The app is already deployed and ready to go on GitHub Pages: **[sergey-maxim0v.github.io/twitch-party-bot](https://sergey-maxim0v.github.io/twitch-party-bot/)**. Just open the link, log in with your Twitch account (the bot only requires permissions to read and send chat messages), and select the channel where the bot should operate.
-* **🛠 Local Setup:** You can run the project locally on your machine. Clone the repository, register your application in the **[Twitch Developer Console](https://dev.twitch.tv/console)** to obtain your credentials. Then, create a `.env` file in the root directory, specify your Client ID (`VITE_TWITCH_CLIENT_ID=your_id`), and run the project following the instructions below.
-* **🍴 Forking the project:** If you deploy your own fork to GitHub Pages, set `VITE_TWITCH_CLIENT_ID` in **Settings → Secrets and variables → Actions → Variables** — the build workflow reads it from there.
+* **🛠 Local Setup:** You can run the project locally on your machine. Clone the repository and register your application in the **[Twitch Developer Console](https://dev.twitch.tv/console)**. When registering, specify the **OAuth Redirect URL** — the address where the app will run (locally, for example, `http://localhost:5173/`; on GitHub Pages, your page URL). Then create a `.env` file in the root directory, set your Client ID (`VITE_TWITCH_CLIENT_ID=your_id`), and run the project following the instructions below.
+* **🍴 Forking the project:** If you deploy your own fork to GitHub Pages, set `VITE_TWITCH_CLIENT_ID` in **Settings → Secrets and variables → Actions → Variables** — the build workflow reads it from there. Also update `base` in `vite.config.ts` (currently `/twitch-party-bot/`) to `/your-repository-name/`, otherwise static assets will not load.
 
 ---
 
@@ -53,7 +67,7 @@ You can run the application in two ways:
 * **Socket Stability Management:**
     * The `TwitchIrcClient` class encapsulates the Twitch IRC protocol handshake sequence.
     * Handles native `PING / PONG` heartbeats to maintain a stable connection.
-    * Supports switching channels on the fly without memory leaks or duplicated asynchronous events. When switching channels, the UI clears the previous screen and logs.
+    * Supports switching channels on the fly without memory leaks or duplicated asynchronous events. When switching channels, the UI clears the previous screen and chat history.
 * **Cross-Tab Synchronization:** Real-time application state synchronization across multiple tabs. A custom `useLocalStorage` hook listens to the browser's native `storage` event, automatically updating the state in all open tabs when data changes in any of them.
 * **Background Timers (Web Worker):** Heartbeat timers (PING/PONG) run in a dedicated Web Worker so that the browser does not throttle them in an inactive tab and the bot detects a half-open connection in time. The IRC client itself runs on the main thread.
 
@@ -62,7 +76,7 @@ You can run the application in two ways:
 ## Limitations & Privacy
 
 * **No backend.** The app runs entirely in the browser: the bot reads and sends messages directly through Twitch IRC. No third-party servers are involved, and no analytics or trackers are used.
-* **Local data only.** The OAuth token, queue, and settings are stored in the browser's `localStorage`. Clearing site data or logging out resets them.
+* **Local data only.** The OAuth token, queue, and settings are stored in the browser's `localStorage`. Clearing site data resets everything, while logging out only clears the session.
 * **The bot runs only while the tab is open.** Closing the tab or browser stops chat responses. Keep the tab open while streaming.
 * **No cross-device sync.** The queue and settings are shared only between tabs of the same browser.
 * **Token lifetime.** With Implicit Flow, the Twitch token expires after a limited time and is not refreshed automatically; you will need to log in again.
@@ -71,7 +85,7 @@ You can run the application in two ways:
 
 ## Dependencies
 
-- **[React 19](https://react.dev) & [TypeScript](https://typescriptlang.org):** Frontend foundation with strict TypeScript typing.
+- **[React 19](https://react.dev) & [TypeScript](https://typescriptlang.org):** Frontend foundation built with React and TypeScript.
 - **[Vite 8](https://vite.dev):** Build tool and development server.
 - **[Tailwind CSS v4](https://tailwindcss.com) & [DaisyUI v5](https://daisyui.com):** Styling stack for UI components, themes, and the design system.
 - **[@dnd-kit](https://dnd-kit.com):** Primitives for drag-and-drop player reordering.
@@ -98,6 +112,9 @@ npm run typecheck
 # Codebase linting
 npm run lint
 
+# Automatically fix linting errors
+npm run lint:fix
+
 # Build the optimized production application
 npm run build
 
@@ -112,13 +129,8 @@ npm run preview
 ├── .github/                     # GitHub Actions and CI/CD workflow configurations
 ├── public/                      # Static assets (icons, screenshots)
 ├── src/                         # Main application source code
-│   ├── assets/                  # Shared media assets and static files
 │   ├── components/              # Global and layout UI components
-│   │   ├── layout/              # Structural grids (Header, Sidebar, Workspace)
-│   │   └── QueueCollapse.tsx    # Collapsible lobby queue panel
 │   ├── constants/               # Configuration files and constants
-│   │   ├── theme.constants.ts   # UI theme configuration presets
-│   │   └── twitch.constants.ts  # Twitch API endpoints and scopes specifications
 │   ├── features/                # Isolated business logic modules
 │   │   ├── app-logs/            # Components for logging network events, app state, and queue changes
 │   │   ├── auth/                # OAuth authentication module and streamer context
@@ -141,6 +153,8 @@ npm run preview
 ---
 
 Happy streaming! 🎥 Have great games! 🎮 Happy coding! 👨‍💻
+
+---
 
 ## License
 
