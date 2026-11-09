@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 import type { QueueSettings } from '../types.ts'
 
-export interface QueueSettingsContextType {
+interface QueueSettingsContextType {
   settings: QueueSettings;
   updateSettings: (newSettings: Partial<QueueSettings>) => void;
   resetSettings: () => void;

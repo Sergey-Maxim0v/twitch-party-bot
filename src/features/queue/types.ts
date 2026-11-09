@@ -9,7 +9,7 @@ export type QueuePlayerSource = typeof QUEUE_PLAYER_SOURCE[keyof typeof QUEUE_PL
 /**
  * Общие данные игрока
  */
-export interface BaseQueuePlayer {
+interface BaseQueuePlayer {
   userId: string;
   username: string;
   displayedUsername?: string;
@@ -68,7 +68,7 @@ export interface QueueSession {
 /**
  * Статистика истории игрока для расчета всех типов кулдаунов
  */
-export interface PlayerHistoryStats {
+interface PlayerHistoryStats {
   /** Последний timestamp, когда игрок заходил/играл */
   lastPlayedTimestamp: number;
   /** Порядковый номер сессии, в которой игрок сыграл последний раз */

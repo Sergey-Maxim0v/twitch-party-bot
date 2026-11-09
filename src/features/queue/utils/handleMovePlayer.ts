@@ -3,7 +3,7 @@ import { QUEUE_TYPES, type QueueState, type QueueType } from '../types'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
-export interface HandleMovePlayerArgs {
+interface HandleMovePlayerArgs {
   /** Уникальный ID пользователя на Twitch для перемещения */
   userId: string;
   /** Целевой тип очереди, куда перетаскивают игрока */

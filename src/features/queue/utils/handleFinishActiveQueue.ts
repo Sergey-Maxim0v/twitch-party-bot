@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueueSession, QueueState, QueuePlayer } from '../types'
 
-export interface HandleFinishActiveQueueArgs {
+interface HandleFinishActiveQueueArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Колбэк при успешном завершении сессии */

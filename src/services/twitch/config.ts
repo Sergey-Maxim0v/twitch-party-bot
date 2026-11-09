@@ -37,8 +37,6 @@ export const TwitchIrcCapability = {
   COMMANDS: 'twitch.tv/commands',
 } as const
 
-export type TwitchIrcCapabilityType = typeof TwitchIrcCapability[keyof typeof TwitchIrcCapability]
-
 /**
  * Команды управления, отправляемые из основного потока React в Web Worker
  */
@@ -49,8 +47,6 @@ export const HeartbeatWorkerCommand = {
   CLEAR_ALL: 'CLEAR_ALL',
 } as const
 
-export type HeartbeatWorkerCommandType = typeof HeartbeatWorkerCommand[keyof typeof HeartbeatWorkerCommand]
-
 /**
  * События сетевой активности, возвращаемые из Web Worker в основной поток React
  */
@@ -58,5 +54,3 @@ export const HeartbeatWorkerEvent = {
   PING_TICK: 'PING_TICK',
   PONG_TIMEOUT: 'PONG_TIMEOUT',
 } as const
-
-export type HeartbeatWorkerEventType = typeof HeartbeatWorkerEvent[keyof typeof HeartbeatWorkerEvent]

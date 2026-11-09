@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react'
 
-export interface QueueCollapseProps {
+interface QueueCollapseProps {
   className?: string;
   title: string;
   open: boolean;

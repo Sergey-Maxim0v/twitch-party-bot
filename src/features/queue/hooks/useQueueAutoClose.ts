@@ -16,7 +16,7 @@ interface LogMessagePayload {
 /**
  * Свойства для инициализации хука автоматического закрытия очереди.
  */
-export interface UseAutocloseQueueProps {
+interface UseAutocloseQueueProps {
   /** Текущий статус активности очереди. */
   isQueueOpen: boolean
   /** Функция изменения статуса активности очереди. */

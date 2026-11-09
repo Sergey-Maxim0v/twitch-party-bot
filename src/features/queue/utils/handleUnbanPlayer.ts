@@ -2,7 +2,7 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
-export interface HandleUnbanPlayerArgs {
+interface HandleUnbanPlayerArgs {
   /** Логин/никнейм пользователя для удаления из бан-листа */
   username: string;
   /** Источник вызова команды */

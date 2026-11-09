@@ -2,14 +2,14 @@ import { type RefObject, type Dispatch, type SetStateAction, useCallback } from 
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import type { TwitchNotificationState } from '../types.ts'
 
-export interface UseNotificationActionsArgs {
+interface UseNotificationActionsArgs {
   /** Актуальная ссылка на конфигурацию разрешений автоматических уведомлений. */
   permissionsRef: RefObject<QueueSettings['chatNotificationPermissions']>;
   /** Функция обновления состояния буфера отправки уведомлений. */
   setState: Dispatch<SetStateAction<TwitchNotificationState>>;
 }
 
-export interface UseNotificationActionsReturn {
+interface UseNotificationActionsReturn {
   /** Добавляет пользователя в список успешно присоединившихся к активной очереди. */
   addJoinedUser: (username: string) => void;
   /** Добавляет пользователя в список ожидающих участников. */

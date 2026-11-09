@@ -1,6 +1,6 @@
 import { validateChannelName } from './validateChannelName.ts'
 
-export interface GetChannelErrorParams {
+interface GetChannelErrorParams {
   channelError: string | null;
   isValidationTriggered: boolean;
   value: string;

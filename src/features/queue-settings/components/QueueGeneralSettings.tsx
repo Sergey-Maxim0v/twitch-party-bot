@@ -6,7 +6,7 @@ import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
-export interface QueueGeneralSettingsProps {
+interface QueueGeneralSettingsProps {
   titleClassName?: string;
 }
 

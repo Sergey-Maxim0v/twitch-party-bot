@@ -5,7 +5,7 @@ interface HandleIrcPingProps {
   socket: WebSocket;
 }
 
-export const PONG_MESSAGE = 'PONG :tmi.twitch.tv'
+const PONG_MESSAGE = 'PONG :tmi.twitch.tv'
 
 /**
  * Проверяет сообщение на PING от сервера Twitch и отправляет PONG для поддержания сессии.

@@ -6,7 +6,7 @@ import { QueuePanel } from '../../../../features/queue/components/QueuePanel.tsx
 import { TwitchChat } from '../../../../services/twitch/components/TwitchChat.tsx'
 import type { WorkspaceDirections } from '../../panel/utils/getPanelDirections.ts'
 
-export interface CreateWorkspacePanelProps {
+interface CreateWorkspacePanelProps {
   panelStyle: string
   directions: WorkspaceDirections
   currentBreakpoint: Breakpoint

@@ -4,7 +4,7 @@ import { SettingsCheckbox } from './SettingsCheckbox.tsx'
 import { SettingsNumberInput } from './SettingsNumberInput.tsx'
 import { SettingsTextInput } from './SettingsTextInput.tsx'
 
-export interface QueueMessageSectionProps {
+interface QueueMessageSectionProps {
   titleClassName?: string;
 }
 

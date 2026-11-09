@@ -36,7 +36,7 @@ export const GAME_PATTERNS: Record<QueueGameKey, string> = {
   AMONG_US: '^.{1,10}$',
 }
 
-export interface QueueCommandConfig {
+interface QueueCommandConfig {
   name: string;
   isModeratorOnly: boolean;
 }

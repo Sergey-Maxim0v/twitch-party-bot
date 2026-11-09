@@ -4,7 +4,7 @@ import { QUEUE_SOURCE_META } from '../constants'
 import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX } from 'react-icons/lu'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
-export interface QueueElementModalProps {
+interface QueueElementModalProps {
   className?: string;
   player: QueuePlayer;
   onClose: () => void;

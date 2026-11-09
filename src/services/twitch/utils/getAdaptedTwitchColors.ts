@@ -1,6 +1,6 @@
 import { hexToHsl } from './hexToHsl.ts'
 
-export interface AdaptedColors {
+interface AdaptedColors {
   lightColor: string;
   darkColor: string;
 }

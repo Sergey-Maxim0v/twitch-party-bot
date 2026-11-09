@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { type Breakpoint, BREAKPOINTS } from '../../../../hooks/types/breakpoint.types.ts'
 
-export interface UseWorkspacePanelProps {
+interface UseWorkspacePanelProps {
   currentBreakpoint: Breakpoint
   isOpenSettings: boolean
   isOpenQueue: boolean

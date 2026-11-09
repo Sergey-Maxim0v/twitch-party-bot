@@ -3,7 +3,7 @@ import { QUEUE_TYPES, type QueueState, type QueueType } from '../types'
 import { APP_LOG_STATUSES, type AppLogItem, LOG_SOURCE } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
-export interface HandleRemovePlayerArgs {
+interface HandleRemovePlayerArgs {
   /** Уникальный ID пользователя на Twitch для удаления */
   userId: string;
   /** Из какой именно очереди нужно удалить игрока */

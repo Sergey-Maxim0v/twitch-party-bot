@@ -9,7 +9,7 @@ import { useQueue } from '../hooks/useQueue.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
-export interface QueueElementProps {
+interface QueueElementProps {
   className?: string;
   player: QueuePlayer;
   queueType: QueueType;

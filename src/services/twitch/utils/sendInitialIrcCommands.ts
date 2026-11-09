@@ -1,6 +1,6 @@
 import { TwitchIrcCapability } from '../config.ts'
 
-export interface sendInitialIrcCommandsProps {
+interface sendInitialIrcCommandsProps {
   socket: WebSocket,
   token: string,
   userLogin: string,

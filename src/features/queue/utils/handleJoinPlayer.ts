@@ -13,13 +13,13 @@ export const JOIN_QUEUE_STATUSES = {
   DENIED: 'denied',
 } as const
 
-export type JoinQueueResultStatus = typeof JOIN_QUEUE_STATUSES[keyof typeof JOIN_QUEUE_STATUSES]
+type JoinQueueResultStatus = typeof JOIN_QUEUE_STATUSES[keyof typeof JOIN_QUEUE_STATUSES]
 
-export interface JoinQueueResult {
+interface JoinQueueResult {
   status: JoinQueueResultStatus;
 }
 
-export interface HandleJoinPlayerArgs {
+interface HandleJoinPlayerArgs {
   isQueueOpen: QueueContextValue['isQueueOpen'];
   playerData: QueuePlayerFormData;
   source: AppLogItem['source'];

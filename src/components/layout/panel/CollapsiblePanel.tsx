@@ -2,7 +2,7 @@ import { type FC, type ReactNode, useState } from 'react'
 import { PanelToggle } from './PanelToggle.tsx'
 import { PANEL_DIRECTIONS, type PanelDirection } from './types'
 
-export interface CollapsiblePanelProps {
+interface CollapsiblePanelProps {
   isOpen: boolean;
   onToggle: () => void;
   title: string;

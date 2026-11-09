@@ -3,7 +3,7 @@ import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
 
-export interface QueueClearSectionProps {
+interface QueueClearSectionProps {
   titleClassName?: string;
   className?: string;
 }

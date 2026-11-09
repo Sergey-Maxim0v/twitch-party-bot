@@ -3,7 +3,7 @@ import type { QueueState } from '../types'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
-export interface HandleClearWaitingQueueArgs {
+interface HandleClearWaitingQueueArgs {
   /** Функция обновления состояния */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Источник вызова команды (чат/интерфейс) */

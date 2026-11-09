@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 
-export interface ActiveProfileInfoProps {
+interface ActiveProfileInfoProps {
   className?: string;
 }
 

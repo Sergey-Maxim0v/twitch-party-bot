@@ -4,7 +4,7 @@ import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
-export interface QueueHistoryListProps {
+interface QueueHistoryListProps {
   className?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;

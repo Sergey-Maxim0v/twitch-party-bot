@@ -3,7 +3,7 @@ import { QUEUE_TYPES, type QueueType } from '../types.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 
-export interface HandleDragEndArgs {
+interface HandleDragEndArgs {
   event: DragEndEvent
   activeQueue: QueueContextValue['activeQueue']
   waitingQueue: QueueContextValue['waitingQueue']

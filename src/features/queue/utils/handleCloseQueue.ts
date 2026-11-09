@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
-export interface HandleCloseQueueArgs {
+interface HandleCloseQueueArgs {
   /** Текущее состояние открытости очереди */
   isQueueOpen: boolean;
   /** Функция обновления состояния открытости очереди */

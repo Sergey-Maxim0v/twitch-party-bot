@@ -3,7 +3,7 @@ import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
 
-export interface QueueControlsProps {
+interface QueueControlsProps {
   className?: string;
 }
 

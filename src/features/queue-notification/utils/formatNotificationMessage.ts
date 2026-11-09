@@ -2,7 +2,7 @@ import { formatNotificationPart } from './formatNotificationPart.ts'
 import type { TwitchNotificationState } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
-export interface FormatNotificationMessageArgs {
+interface FormatNotificationMessageArgs {
   state: TwitchNotificationState;
   permissions: QueueSettings['chatNotificationPermissions'];
   prefix: QueueSettings['messagePrefix']

@@ -5,7 +5,7 @@ import { useQueueSettings } from './useQueueSettings.ts'
 import { useEffect, useRef } from 'react'
 import type { QueueSettings } from '../types.ts'
 
-export interface logChangeArgs {
+interface logChangeArgs {
   message: string
   status?: AppLogStatus
   source?: LogSource

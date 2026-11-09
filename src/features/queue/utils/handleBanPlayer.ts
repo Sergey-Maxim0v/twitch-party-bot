@@ -2,7 +2,7 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 
-export interface HandleBanPlayerArgs {
+interface HandleBanPlayerArgs {
   /** Логин/никнейм пользователя для занесения в бан-лист */
   username: string;
   /** Красивое отображаемое имя (для логов) */
@@ -19,7 +19,7 @@ export interface HandleBanPlayerArgs {
   pushLog: AppLogsContextValue['pushLog']
 }
 
-export interface HandleBanPlayerResult {
+interface HandleBanPlayerResult {
   /** Флаг, указывающий, был ли успешно добавлен пользователь в бан-лист */
   isBanned: boolean;
 }

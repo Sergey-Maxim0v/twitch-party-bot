@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { LOG_SOURCE } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE, type QueuePlayerFormData } from '../types.ts'
 
-export interface QueueFormProps {
+interface QueueFormProps {
   className?: string;
 }
 

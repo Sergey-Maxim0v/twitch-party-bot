@@ -7,7 +7,7 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
-export interface QueueWaitingListProps {
+interface QueueWaitingListProps {
   className?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;

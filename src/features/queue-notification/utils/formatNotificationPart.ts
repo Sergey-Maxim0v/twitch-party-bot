@@ -1,4 +1,4 @@
-export interface FormatNotificationPartArgs {
+interface FormatNotificationPartArgs {
   title: string;
   members: string[];
   limit: number;

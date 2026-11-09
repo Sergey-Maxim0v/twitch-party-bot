@@ -4,7 +4,7 @@ import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueuePlayer, QueueState } from '../types.ts'
 
-export interface HandleBalanceQueuesArgs {
+interface HandleBalanceQueuesArgs {
   maxQueueSize: QueueSettings['maxQueueSize'];
   moveOnSizeChange: QueueSettings['moveOnSizeChange'];
   allowPreJoin: QueueSettings['allowPreJoin'];

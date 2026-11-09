@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 
-export interface QueueResetSectionProps {
+interface QueueResetSectionProps {
   titleClassName?: string;
   className?: string;
 }
