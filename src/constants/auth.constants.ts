@@ -1,5 +1,5 @@
 /**
- * @see https://dev.twitch.tv/docs/authentication/register-app
+ * @see {@link https://dev.twitch.tv/docs/authentication/register-app}
  */
 export const TWITCH_CLIENT_ID = import.meta.env.VITE_TWITCH_CLIENT_ID
 
@@ -8,7 +8,7 @@ export const TWITCH_AUTH_BASE_URL = 'https://id.twitch.tv/oauth2'
 export const TWITCH_AUTH_REDIRECT_URI = window.location.origin + window.location.pathname
 
 /**
- * @see https://dev.twitch.tv/docs/authentication/scopes/#irc-chat-scopes
+ * @see {@link https://dev.twitch.tv/docs/authentication/scopes/#irc-chat-scopes}
  */
 export const TWITCH_AUTH_SCOPES = {
   READ_CHAT: 'chat:read',

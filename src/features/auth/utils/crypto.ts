@@ -1,7 +1,9 @@
 const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
 
 /**
- * Генерирует случайную безопасную строку для параметра state.
+ * Генерирует случайную строку для параметра `state`, защищающего OAuth-поток от CSRF.
+ *
+ * @returns Случайная hex-строка длиной 32 символа.
  */
 export const generateRandomState = (): string => {
   const array = new Uint32Array(4)
@@ -10,18 +12,24 @@ export const generateRandomState = (): string => {
 }
 
 /**
- * Записывает state в сессию браузера.
+ * Сохраняет `state` в sessionStorage перед редиректом на Twitch.
+ *
+ * @param state - Сгенерированное значение `state`.
  */
 export const saveAuthState = (state: string): void => {
   sessionStorage.setItem(TWITCH_AUTH_STATE_STORAGE_KEY, state)
 }
 
 /**
- * Проверяет валидность вернувшегося параметра state и очищает сессию.
+ * Сверяет вернувшийся `state` с сохранённым и удаляет его из sessionStorage.
+ * Значение удаляется всегда, поэтому повторная проверка невозможна.
+ *
+ * @param receivedState - Значение `state` из URL после редиректа.
+ * @returns `true`, если `state` совпадает с сохранённым.
  */
 export const isValidState = (receivedState: string | null): boolean => {
   const savedState = sessionStorage.getItem(TWITCH_AUTH_STATE_STORAGE_KEY)
   sessionStorage.removeItem(TWITCH_AUTH_STATE_STORAGE_KEY)
 
-  return !(!savedState || !receivedState || savedState !== receivedState)
+  return Boolean(savedState) && savedState === receivedState
 }

@@ -7,6 +7,9 @@ import { getChannelSelectCurrentError } from '../utils/getChannelSelectCurrentEr
 import { TWITCH_STORAGE_KEYS } from '../../../constants/auth.constants.ts'
 import { getTwitchChannelProfile } from '../utils/getTwitchChannelProfile.ts'
 
+/**
+ * Модальное окно выбора канала чата: свой канал или ручной ввод.
+ */
 export const ChannelSelectModal: FC = () => {
   const {
     session,
@@ -30,7 +33,6 @@ export const ChannelSelectModal: FC = () => {
   const storedChannel = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL)
   const isChannelSelectedInSystem = storedChannel && storedChannel !== 'null'
 
-  // Слушатель нажатия клавиши Esc
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && hasSelectedChannel) {
@@ -59,14 +61,15 @@ export const ChannelSelectModal: FC = () => {
     if (isNotFound) setIsNotFound(false)
   }
 
-  // Обработчик для подключения к собственному каналу
+  /**
+   * Подключает бота к собственному каналу пользователя.
+   */
   const handleOwnChannelClick = async () => {
     if (!session?.login || !session?.accessToken || isChecking) return
 
     setIsChecking(true)
     setIsNotFound(false)
 
-    // Запрашиваем профиль собственного канала
     const channelProfile = await getTwitchChannelProfile(session.login, session.accessToken)
 
     if (channelProfile) {
@@ -78,7 +81,11 @@ export const ChannelSelectModal: FC = () => {
     setIsChecking(false)
   }
 
-  // Обработчик для ручного ввода канала
+  /**
+   * Подключает бота к каналу, введённому вручную.
+   *
+   * @param e - Событие отправки формы.
+   */
   const handleCustomSubmit = async (e: SyntheticEvent) => {
     e.preventDefault()
     if (isChecking) return
@@ -91,7 +98,6 @@ export const ChannelSelectModal: FC = () => {
     if (trimmed && validateChannelName(trimmed) && session?.accessToken && session?.login) {
       setIsChecking(true)
 
-      // Запрашиваем профиль кастомного канала
       const channelProfile = await getTwitchChannelProfile(trimmed, session.accessToken)
 
       if (channelProfile) {
@@ -114,7 +120,6 @@ export const ChannelSelectModal: FC = () => {
     <div className="modal modal-open z-100">
       <div className="modal-box max-w-sm flex flex-col p-6 gap-4 relative">
 
-        {/* Кнопка закрытия */}
         {isChannelSelectedInSystem && !isChecking && (
           <button
             aria-label="Закрыть модальное окно"
@@ -132,7 +137,6 @@ export const ChannelSelectModal: FC = () => {
           </p>
         </div>
 
-        {/* Способ 1: Быстрый вход на свой канал */}
         <button
           className="btn btn-primary w-full flex flex-col h-auto py-2.5 gap-0.5"
           disabled={isChecking}
@@ -144,7 +148,6 @@ export const ChannelSelectModal: FC = () => {
           )}
         </button>
 
-        {/* Способ 2: Ручной ввод канала */}
         <form className="flex flex-col gap-3 w-full" onSubmit={handleCustomSubmit}>
           <div className="form-control w-full">
             <input
@@ -170,7 +173,6 @@ export const ChannelSelectModal: FC = () => {
             )}
           </div>
 
-          {/* Главная кнопка сабмита */}
           <button
             className="btn btn-primary btn-outline w-full btn-sm flex flex-col h-14
                         justify-center items-center py-2 gap-0.5 overflow-hidden"
@@ -197,7 +199,6 @@ export const ChannelSelectModal: FC = () => {
         </form>
       </div>
 
-      {/* Бэкдроп */}
       <div
         className={`modal-backdrop bg-black/40 backdrop-blur-xs ${hasSelectedChannel && !isChecking ? 'cursor-pointer' : ''}`}
         onClick={(isChannelSelectedInSystem && !isChecking) ? closeChannelModal : undefined}

@@ -2,17 +2,29 @@ import { TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
 
 export { TWITCH_AUTH_STAGES }
 
+/**
+ * Данные пользователя, полученные при валидации токена Twitch.
+ */
 export interface TwitchUserData {
   userId: string;
   login: string;
 }
 
+/**
+ * Сохранённая сессия авторизованного пользователя.
+ */
 export interface TwitchUserSession extends TwitchUserData {
   accessToken: string;
 }
 
+/**
+ * Стадия процесса авторизации.
+ */
 export type AuthStage = typeof TWITCH_AUTH_STAGES[keyof typeof TWITCH_AUTH_STAGES]
 
+/**
+ * Публичный контракт хука `useAuth`.
+ */
 export interface TwitchAuthHookResult {
   session: TwitchUserSession | null;
   isAuthenticated: boolean;

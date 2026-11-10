@@ -2,6 +2,10 @@ import { type FC } from 'react'
 import { LuRefreshCw, LuTwitch } from 'react-icons/lu'
 import { useAuth } from '../hooks/useAuth.ts'
 
+/**
+ * Кнопка-переключатель активного канала чата.
+ * Открывает модальное окно выбора канала.
+ */
 export const ChannelSelectToggle: FC = () => {
   const {
     session,

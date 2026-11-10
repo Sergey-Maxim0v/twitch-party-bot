@@ -7,6 +7,13 @@ interface GetChannelErrorParams {
   isNotFound: boolean
 }
 
+/**
+ * Определяет текст ошибки, который нужно показать под полем ввода канала.
+ * Приоритет: ошибка из стора, затем «канал не найден», затем локальная валидация.
+ *
+ * @param params - Текущее состояние формы выбора канала.
+ * @returns Текст ошибки или `null`, если ошибок нет.
+ */
 export const getChannelSelectCurrentError = ({
   channelError,
   isValidationTriggered,

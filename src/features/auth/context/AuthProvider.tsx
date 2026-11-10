@@ -6,6 +6,9 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Провайдер авторизации Twitch, наполняющий `AuthContext` состоянием сессии.
+ */
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const auth = useTwitchAuth()
 

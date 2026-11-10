@@ -2,6 +2,9 @@ import { type FC } from 'react'
 import { useAuth } from '../hooks/useAuth.ts'
 import { TWITCH_AUTH_STAGES } from '../types'
 
+/**
+ * Модальное окно, отражающее текущую стадию авторизации Twitch.
+ */
 export const AuthModal: FC = () => {
   const { isModalOpen, authStage, error, login, closeModal } = useAuth()
 
@@ -11,7 +14,6 @@ export const AuthModal: FC = () => {
     <div className="modal modal-open z-200">
       <div className="modal-box max-w-sm flex flex-col items-center text-center p-6 gap-4">
 
-        {/* Ожидание действий в Popup-окне */}
         {authStage === TWITCH_AUTH_STAGES.WAITING && (
           <>
             <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -27,7 +29,6 @@ export const AuthModal: FC = () => {
           </>
         )}
 
-        {/* Проверка токена через Twitch API */}
         {authStage === TWITCH_AUTH_STAGES.VALIDATING && (
           <>
             <span className="loading loading-ring loading-lg text-secondary"></span>
@@ -38,7 +39,6 @@ export const AuthModal: FC = () => {
           </>
         )}
 
-        {/* Успешный вход */}
         {authStage === TWITCH_AUTH_STAGES.SUCCESS && (
           <>
             <div
@@ -55,7 +55,6 @@ export const AuthModal: FC = () => {
           </>
         )}
 
-        {/* Ошибка в процессе входа */}
         {authStage === TWITCH_AUTH_STAGES.ERROR && (
           <>
             <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center text-error">

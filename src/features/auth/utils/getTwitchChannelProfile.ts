@@ -10,11 +10,11 @@ export interface TwitchChannelData {
 }
 
 /**
- * Проверяет существование пользователя (канала) на платформе Twitch через Helix API.
+ * Получает профиль канала на Twitch через Helix API.
  *
- * @param {string} channelName - Имя проверяемого канала.
- * @param {string} token - Авторизационный токен пользователя (Bearer).
- * @returns {Promise<boolean>} - true, если канал существует; false, если не найден или произошла ошибка.
+ * @param channelName - Имя проверяемого канала.
+ * @param token - Авторизационный токен пользователя (Bearer).
+ * @returns Данные канала или `null`, если канал не найден либо запрос завершился ошибкой.
  */
 export const getTwitchChannelProfile = async (channelName: string, token: string): Promise<TwitchChannelData | null> => {
   const trimmed = channelName.trim().toLowerCase()
@@ -38,18 +38,18 @@ export const getTwitchChannelProfile = async (channelName: string, token: string
 
     const result = await response.json()
 
-    if (Array.isArray(result.data) && result.data.length > 0) {
-      const twitchUser = result.data[0]
-
-      return {
-        id: twitchUser.id,
-        login: twitchUser.login,
-        displayName: twitchUser.display_name,
-        profileImageUrl: twitchUser.profile_image_url,
-      }
+    if (!Array.isArray(result.data) || result.data.length === 0) {
+      return null
     }
 
-    return null
+    const twitchUser = result.data[0]
+
+    return {
+      id: twitchUser.id,
+      login: twitchUser.login,
+      displayName: twitchUser.display_name,
+      profileImageUrl: twitchUser.profile_image_url,
+    }
   } catch (error) {
     console.error('Ошибка сети при получении профиля канала:', error)
     return null

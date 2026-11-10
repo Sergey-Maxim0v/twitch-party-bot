@@ -10,7 +10,10 @@ interface UseTwitchPopupProps {
 }
 
 /**
- * Хук для управления всплывающим окном (popup) авторизации Twitch.
+ * Управляет всплывающим окном (popup) авторизации Twitch и стадиями процесса.
+ *
+ * @param props - Колбэк успешного получения токена и сеттер ошибки.
+ * @returns Состояние модального окна, текущая стадия и методы управления popup.
  */
 export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
@@ -19,8 +22,8 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
   const popupRef = useRef<Window | null>(null)
 
   /**
-     * Инициализирует процесс авторизации и открывает всплывающее окно
-     */
+   * Инициализирует процесс авторизации и открывает всплывающее окно.
+   */
   const login = useCallback((): void => {
     setError(null)
 
@@ -48,8 +51,8 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
   }, [setError])
 
   /**
-     * Закрывает модальное и всплывающее окна
-     */
+   * Закрывает модальное и всплывающее окна.
+   */
   const closeModal = useCallback((): void => {
     setIsModalOpen(false)
     if (popupRef.current && !popupRef.current.closed) {
@@ -57,7 +60,9 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
     }
   }, [])
 
-  // Слушатель событий message от всплывающего окна
+  /**
+   * Обрабатывает результат авторизации, присланный всплывающим окном.
+   */
   useEffect(() => {
     const handleMessage = async (event: MessageEvent): Promise<void> => {
       if (event.origin !== window.location.origin) return
@@ -75,24 +80,21 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
         return
       }
 
-      if (data.token) {
-        setAuthStage(TWITCH_AUTH_STAGES.VALIDATING)
-        try {
-          // Передаем токен во внешнюю логику сохранения сессии
-          await onSuccess(data.token)
+      if (!data.token) return
 
-          // Если сохранение прошло успешно, переводим в статус SUCCESS
-          setAuthStage(TWITCH_AUTH_STAGES.SUCCESS)
+      setAuthStage(TWITCH_AUTH_STAGES.VALIDATING)
 
-          // Плавно закрываем модальное окно через секунду
-          setTimeout(() => {
-            setIsModalOpen(false)
-          }, 1000)
-        } catch (err) {
-          setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-          const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка валидации токена.'
-          setError(errorMessage)
-        }
+      try {
+        await onSuccess(data.token)
+        setAuthStage(TWITCH_AUTH_STAGES.SUCCESS)
+
+        setTimeout(() => {
+          setIsModalOpen(false)
+        }, 1000)
+      } catch (err) {
+        setAuthStage(TWITCH_AUTH_STAGES.ERROR)
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка валидации токена.'
+        setError(errorMessage)
       }
     }
 
@@ -102,18 +104,18 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
     }
   }, [onSuccess, setError])
 
-  // Отслеживание ручного закрытия окна пользователем
+  /**
+   * Отслеживает ручное закрытие всплывающего окна пользователем.
+   */
   useEffect(() => {
     if (!isModalOpen || authStage !== TWITCH_AUTH_STAGES.WAITING) return
 
     const timer = setInterval(() => {
-      if (popupRef.current && popupRef.current.closed) {
-        clearInterval(timer)
-        if (authStage === TWITCH_AUTH_STAGES.WAITING) {
-          setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-          setError('Авторизация отменена: всплывающее окно было закрыто.')
-        }
-      }
+      if (!popupRef.current || !popupRef.current.closed) return
+
+      clearInterval(timer)
+      setAuthStage(TWITCH_AUTH_STAGES.ERROR)
+      setError('Авторизация отменена: всплывающее окно было закрыто.')
     }, 500)
 
     return () => {

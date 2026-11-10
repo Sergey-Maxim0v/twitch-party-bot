@@ -10,6 +10,12 @@ import { extractTwitchToken } from '../utils/extractTwitchToken.ts'
 
 const TWITCH_TOKEN_VALIDATION_INTERVAL_MS = 45 * 60 * 1000
 
+/**
+ * Основной хук авторизации Twitch: хранит сессию, валидирует токен
+ * и связывает между собой popup-авторизацию и выбор канала чата.
+ *
+ * @returns Полный набор данных и действий для работы с авторизацией.
+ */
 export const useTwitchAuth = (): TwitchAuthHookResult => {
   const [session, setSession] = useLocalStorage<TwitchUserSession | null>(TWITCH_STORAGE_KEYS.SESSION, null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -17,6 +23,12 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
   const isProcessingHash = useRef(false)
 
+  /**
+   * Проверяет токен и собирает на его основе объект сессии.
+   *
+   * @param token - Токен доступа OAuth.
+   * @returns Сессия пользователя или `null`, если токен недействителен.
+   */
   const validateSession = useCallback(async (token: string): Promise<TwitchUserSession | null> => {
     const userData = await validateTwitchToken(token)
     if (!userData) return null
@@ -27,7 +39,12 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     }
   }, [])
 
-  // Логика обработки успешного получения токена из попапа
+  /**
+   * Обрабатывает успешное получение токена из всплывающего окна.
+   *
+   * @param token - Токен доступа OAuth.
+   * @throws {Error} Если Twitch не подтвердил валидность токена.
+   */
   const handlePopupSuccess = useCallback(async (token: string): Promise<void> => {
     const userData = await validateTwitchToken(token)
 
@@ -62,7 +79,9 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     accessToken: session?.accessToken,
   })
 
-  // Синхронный полный сброс стейтов при разлогине
+  /**
+   * Синхронно сбрасывает состояние авторизации.
+   */
   const logout = useCallback((): void => {
     setSession(null)
     setError(null)
@@ -70,7 +89,6 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     popupManager.setIsModalOpen(false)
   }, [setSession, popupManager])
 
-  // Инициализация приложения
   useEffect(() => {
     const handleAuthInit = async (): Promise<void> => {
       if (isProcessingHash.current) return
@@ -96,7 +114,6 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     })
   }, [validateSession, setSession, session?.accessToken, logout])
 
-  // Фоновая проверка токена
   useEffect(() => {
     if (!session?.accessToken) return
 

@@ -2,6 +2,9 @@ import type { FC } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { LuLogOut, LuUser } from 'react-icons/lu'
 
+/**
+ * Кнопка выхода из аккаунта с отображением имени и аватара пользователя.
+ */
 export const LogoutToggle: FC = () => {
   const { session, logout, userDisplayName, userAvatar } = useAuth()
 

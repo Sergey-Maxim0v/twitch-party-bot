@@ -3,10 +3,11 @@ import { generateRandomState, saveAuthState } from './crypto.ts'
 
 /**
  * Генерирует URL-адрес для авторизации пользователя на стороне клиента.
+ *
+ * @returns URL страницы авторизации Twitch с параметрами приложения.
  * @throws {Error} Если Twitch Client ID не задан в переменных окружения.
  */
 export const getTwitchAuthUrl = (): string => {
-  // Защитная проверка на случай сбоев конфигурации CI/CD сборки
   if (!TWITCH_CLIENT_ID || TWITCH_CLIENT_ID === 'undefined') {
     throw new Error('Twitch Client ID не найден в конфигурации приложения. Проверьте настройки CI/CD.')
   }

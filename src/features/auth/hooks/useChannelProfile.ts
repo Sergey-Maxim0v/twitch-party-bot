@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import { getTwitchChannelProfile, type TwitchChannelData } from '../utils/getTwitchChannelProfile.ts'
 
-interface useChannelProfileParams {
+interface UseChannelProfileParams {
   channel: string | null;
   accessToken: string | undefined
 }
 
 /**
  * Хук для фонового получения актуального аватара и отображаемого имени стримера.
+ *
+ * @param params - Канал и токен, для которых запрашивается профиль.
+ * @returns Отображаемое имя и ссылка на аватар либо `null`, если данных ещё нет.
  */
-export const useChannelProfile = ({ channel, accessToken }: useChannelProfileParams) => {
+export const useChannelProfile = ({ channel, accessToken }: UseChannelProfileParams) => {
   const [profile, setProfile] = useState<TwitchChannelData | null>(null)
 
   useEffect(() => {

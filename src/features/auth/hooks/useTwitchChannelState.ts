@@ -3,6 +3,12 @@ import { TWITCH_STORAGE_KEYS } from '../../../constants/auth.constants.ts'
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
+/**
+ * Управляет выбранным каналом чата и состоянием модального окна его выбора.
+ *
+ * @param sessionLogin - Логин авторизованного пользователя.
+ * @returns Выбранный канал, состояние модального окна и обработчики выбора.
+ */
 export const useTwitchChannelState = (sessionLogin: string | undefined) => {
   const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL, null)
   const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(() => {

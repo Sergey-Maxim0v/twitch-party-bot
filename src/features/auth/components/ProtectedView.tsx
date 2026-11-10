@@ -7,6 +7,12 @@ interface ProtectedViewProps {
   fallback?: ReactNode;
 }
 
+/**
+ * Показывает содержимое только авторизованным пользователям.
+ *
+ * @param props - Защищённое содержимое и запасной вариант для гостей.
+ * @returns `children` при активной сессии, `fallback` — в противном случае.
+ */
 export const ProtectedView: FC<ProtectedViewProps> = ({ children, fallback = null }) => {
   const { isAuthenticated, isLoading } = useAuth()
 
