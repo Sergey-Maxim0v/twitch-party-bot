@@ -4,14 +4,20 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
 
 interface UseNotificationCycleParams {
+  /** Задержка между отправками накопленных уведомлений, в секундах. */
   botMessageCooldown: number
+  /** Функция отправки сообщения в чат. */
   sendMessage: (text: string) => void
+  /** Актуальное состояние буфера уведомлений. */
   stateRef: RefObject<TwitchNotificationState>
+  /** Функция очистки буфера после отправки. */
   clearBuffer: () => void
 }
 
 interface UseNotificationCycleReturn {
+  /** Запускает цикл отправки уведомлений. */
   startNotificationCycle: () => void
+  /** Останавливает цикл отправки уведомлений. */
   stopNotificationCycle: () => void
 }
 
@@ -37,8 +43,12 @@ export const useNotificationCycle = ({
     permissions: settings.chatNotificationPermissions,
   })
 
-  // Реф для хранения актуальной функции tick для предотвращения замыкания старых ссылок
   const tickRef = useRef<() => void>(() => {})
+
+  const scheduleNextTick = useCallback((): void => {
+    const intervalMs = cooldownRef.current * 1000
+    timerRef.current = setTimeout(() => tickRef.current(), intervalMs)
+  }, [])
 
   useEffect(() => {
     cooldownRef.current = botMessageCooldown
@@ -61,26 +71,27 @@ export const useNotificationCycle = ({
         permissions: currentPermissions,
       } = callbacksRef.current
 
-      if (currentRawStateRef.current) {
-        const messageText = formatNotificationMessage({
-          state: currentRawStateRef.current,
+      const currentState = currentRawStateRef.current
+      const messageText = currentState
+        ? formatNotificationMessage({
+          state: currentState,
           permissions: currentPermissions,
           prefix: settings.messagePrefix,
         })
+        : ''
 
-        if (messageText.length > 0) {
-          currentSendFn(messageText)
-          currentClearFn()
-        }
+      if (messageText.length > 0) {
+        currentSendFn(messageText)
+        currentClearFn()
       }
 
-      const intervalMs = cooldownRef.current * 1000
-      timerRef.current = setTimeout(() => tickRef.current(), intervalMs)
+      scheduleNextTick()
     }
   })
 
   const stopNotificationCycle = useCallback((): void => {
     isCycleActiveRef.current = false
+
     if (timerRef.current) {
       clearTimeout(timerRef.current)
       timerRef.current = null
@@ -93,17 +104,10 @@ export const useNotificationCycle = ({
     }
 
     isCycleActiveRef.current = true
-    const intervalMs = cooldownRef.current * 1000
-    timerRef.current = setTimeout(() => tickRef.current(), intervalMs)
-  }, [])
+    scheduleNextTick()
+  }, [scheduleNextTick])
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-      }
-    }
-  }, [])
+  useEffect(() => stopNotificationCycle, [stopNotificationCycle])
 
   return {
     startNotificationCycle,

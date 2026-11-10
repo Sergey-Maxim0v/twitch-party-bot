@@ -3,16 +3,19 @@ import type { TwitchNotificationState } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
 interface FormatNotificationMessageArgs {
+  /** Буфер накопленных событий очереди. */
   state: TwitchNotificationState;
+  /** Разрешения на отправку уведомлений по типам событий. */
   permissions: QueueSettings['chatNotificationPermissions'];
-  prefix: QueueSettings['messagePrefix']
+  /** Префикс автоматических сообщений. */
+  prefix: QueueSettings['messagePrefix'];
 }
 
 /** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
 const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
 
 /**
- * Форматирует пакет накопившихся изменений очереди в одну компактную строку
+ * Форматирует пакет накопившихся изменений очереди в одну компактную строку.
  */
 export const formatNotificationMessage = ({
   state,
@@ -22,14 +25,15 @@ export const formatNotificationMessage = ({
   const { joined, waiting, deleted, movedToActive, movedToWaiting, denied } = state
   const { onMemberAdd, onMemberRemove, onMemberMove } = permissions
 
-  if (
-    joined.size === 0 &&
-      waiting.size === 0 &&
-      deleted.size === 0 &&
-      movedToActive.size === 0 &&
-      movedToWaiting.size === 0 &&
-      denied.size === 0
-  ) {
+  const hasChanges =
+    joined.size > 0 ||
+    waiting.size > 0 ||
+    deleted.size > 0 ||
+    movedToActive.size > 0 ||
+    movedToWaiting.size > 0 ||
+    denied.size > 0
+
+  if (!hasChanges) {
     return ''
   }
 
@@ -47,36 +51,27 @@ export const formatNotificationMessage = ({
   let showMovedToWaitingCount = onMemberMove ? movedToWaitingArray.length : 0
   let showDeniedCount = onMemberAdd ? deniedArray.length : 0
 
-  /** Вспомогательная функция сборки строки на основе текущих счетчиков лимитов */
   const buildString = (): string => {
-    const parts: string[] = []
+    const parts = [
+      formatNotificationPart({ title: 'Добавлены', members: joinedArray, limit: showJoinedCount }),
+      formatNotificationPart({ title: 'Добавлены в ожидающие', members: waitingArray, limit: showWaitingCount }),
+      formatNotificationPart({ title: 'Удалены', members: deletedArray, limit: showDeletedCount }),
+      formatNotificationPart({ title: 'Перемещены в очередь', members: movedToActiveArray, limit: showMovedToActiveCount }),
+      formatNotificationPart({ title: 'Перемещены в ожидающие', members: movedToWaitingArray, limit: showMovedToWaitingCount }),
+      formatNotificationPart({ title: 'Отказано', members: deniedArray, limit: showDeniedCount }),
+    ].filter(part => part.length > 0)
 
-    const joinedPart = formatNotificationPart({ title: 'Добавлены', members: joinedArray, limit: showJoinedCount })
-    if (joinedPart) parts.push(joinedPart)
+    if (parts.length === 0) {
+      return ''
+    }
 
-    const waitingPart = formatNotificationPart({ title: 'Добавлены в ожидающие', members: waitingArray, limit: showWaitingCount })
-    if (waitingPart) parts.push(waitingPart)
+    const body = parts.join(' | ')
 
-    const deletedPart = formatNotificationPart({ title: 'Удалены', members: deletedArray, limit: showDeletedCount })
-    if (deletedPart) parts.push(deletedPart)
-
-    const movedToActivePart = formatNotificationPart({ title: 'Перемещены в очередь', members: movedToActiveArray, limit: showMovedToActiveCount })
-    if (movedToActivePart) parts.push(movedToActivePart)
-
-    const movedToWaitingPart = formatNotificationPart({ title: 'Перемещены в ожидающие', members: movedToWaitingArray, limit: showMovedToWaitingCount })
-    if (movedToWaitingPart) parts.push(movedToWaitingPart)
-
-    const deniedPart = formatNotificationPart({ title: 'Отказано', members: deniedArray, limit: showDeniedCount })
-    if (deniedPart) parts.push(deniedPart)
-
-    if (parts.length === 0) return ''
-
-    return prefix ? `${prefix} ${parts.join(' | ')}` : parts.join(' | ')
+    return prefix ? `${prefix} ${body}` : body
   }
 
   let result = buildString()
 
-  // Если строка превышает лимит, плавно убираем по одному никнейму с учетом приоритетов (снизу вверх)
   while (result.length > TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH) {
     if (showDeniedCount > 0) {
       showDeniedCount--

@@ -14,6 +14,10 @@ import { QueueNotificationContext, type QueueNotificationContextType } from './Q
 import { useNotificationGuard } from '../hooks/useNotificationGuard.ts'
 import { useNotificationActions } from '../hooks/useNotificationActions.ts'
 
+/**
+ * Провайдер автоматических уведомлений о событиях очереди.
+ * Накапливает изменения в буфере и периодически отправляет их в чат Twitch.
+ */
 export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<TwitchNotificationState>(createInitialNotificationState())
 
@@ -35,7 +39,6 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     stateRef.current = state
   }, [state])
 
-  // Всегда держим Реф разрешений в актуальном состоянии
   useEffect(() => {
     permissionsRef.current = permissions
   }, [permissions])
@@ -74,17 +77,15 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [maxQueueSize])
 
   const sendMessage = useCallback((text: string): void => {
-    if (!isReadyForAutomations) {
+    if (!isReadyForAutomations || !permissionsRef.current.allowSending) {
       return
     }
 
-    if (!permissionsRef.current.allowSending) {
+    if (text.trim().length === 0) {
       return
     }
 
-    if (text.trim().length > 0) {
-      sendAndLogNotification(text)
-    }
+    sendAndLogNotification(text)
   }, [sendAndLogNotification, isReadyForAutomations])
 
   const sendMessageOpen = useCallback((): void => {
@@ -114,14 +115,16 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
+    const statusText = getCurrentStatusText()
+
     sendMessage(
       settings.messagePrefix
-        ? `${settings.messagePrefix} Очередь заполнена. Текущий состав: ${getCurrentStatusText()}`
-        : `Очередь заполнена. Текущий состав: ${getCurrentStatusText()}`,
+        ? `${settings.messagePrefix} Очередь заполнена. Текущий состав: ${statusText}`
+        : `Очередь заполнена. Текущий состав: ${statusText}`,
     )
   }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
 
-  const sendClearActive = useCallback(() => {
+  const sendClearActive = useCallback((): void => {
     if (!permissionsRef.current.onClearActive) {
       return
     }
@@ -139,7 +142,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     )
   }, [sendMessage, settings.messagePrefix])
 
-  const sendClearWaiting = useCallback(() => {
+  const sendClearWaiting = useCallback((): void => {
     if (!permissionsRef.current.onClearWaiting) {
       return
     }
@@ -158,11 +161,9 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [sendMessage, settings.messagePrefix])
 
   const sendCurrentQueueStatus = useCallback((): void => {
-    sendMessage(
-      settings.messagePrefix
-        ? `${settings.messagePrefix} ${getCurrentStatusText()}`
-        : `${getCurrentStatusText()}`,
-    )
+    const statusText = getCurrentStatusText()
+
+    sendMessage(settings.messagePrefix ? `${settings.messagePrefix} ${statusText}` : statusText)
   }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
 
   const {

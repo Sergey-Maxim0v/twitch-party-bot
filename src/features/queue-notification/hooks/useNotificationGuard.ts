@@ -3,7 +3,9 @@ import { useSocketContext } from '../../../services/socket/hooks/useSocketContex
 import { TWITCH_CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
 
 /**
- * Хук для проверки готовности к отправке автоматических уведомлений.
+ * Проверяет готовность к отправке автоматических уведомлений.
+ *
+ * @returns `true`, если чат инициализирован и доступен для отправки сообщений.
  */
 export const useNotificationGuard = (): boolean => {
   const [isInitialized, setIsInitialized] = useState<boolean>(false)

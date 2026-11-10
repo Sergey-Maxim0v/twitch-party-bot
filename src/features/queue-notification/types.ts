@@ -1,5 +1,9 @@
 import type { Dispatch, SetStateAction } from 'react'
 
+/**
+ * Буфер уникальных участников, сгруппированных по типу события очереди.
+ * Порядок полей соответствует приоритету при сокращении длинного сообщения.
+ */
 export interface TwitchNotificationState {
   /** Уникальные никнеймы добавленных участников (Приоритет 1 - Высший) */
   joined: Set<string>;
@@ -20,4 +24,5 @@ export interface TwitchNotificationState {
   denied: Set<string>;
 }
 
+/** Функция обновления буфера уведомлений. */
 export type SetTwitchNotificationState = Dispatch<SetStateAction<TwitchNotificationState>>

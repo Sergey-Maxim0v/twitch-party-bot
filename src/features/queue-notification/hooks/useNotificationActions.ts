@@ -31,82 +31,82 @@ export const useNotificationActions = ({
   permissionsRef,
   setState,
 }: UseNotificationActionsArgs): UseNotificationActionsReturn => {
-  const addJoinedUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberAdd) return
+  const hasPermission = useCallback(
+    (permission: keyof QueueSettings['chatNotificationPermissions']): boolean =>
+      permissionsRef.current.allowSending && permissionsRef.current[permission],
+    [permissionsRef],
+  )
 
-    setState(currentState => {
-      if (currentState.joined.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.joined)
-      nextSet.add(username)
-      return { ...currentState, joined: nextSet }
-    })
-  }, [permissionsRef, setState])
+  const appendUsername = useCallback(
+    (field: keyof TwitchNotificationState, username: string): void => {
+      setState(currentState => {
+        if (currentState[field].has(username)) {
+          return currentState
+        }
+
+        const nextSet = new Set(currentState[field])
+        nextSet.add(username)
+
+        return { ...currentState, [field]: nextSet }
+      })
+    },
+    [setState],
+  )
+
+  const addJoinedUser = useCallback((username: string): void => {
+    if (!hasPermission('onMemberAdd')) {
+      return
+    }
+
+    appendUsername('joined', username)
+  }, [appendUsername, hasPermission])
 
   const addWaitingUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberAdd) return
+    if (!hasPermission('onMemberAdd')) {
+      return
+    }
 
-    setState(currentState => {
-      if (currentState.waiting.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.waiting)
-      nextSet.add(username)
-      return { ...currentState, waiting: nextSet }
-    })
-  }, [permissionsRef, setState])
+    appendUsername('waiting', username)
+  }, [appendUsername, hasPermission])
 
   const addDeletedUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberRemove) return
+    if (!hasPermission('onMemberRemove')) {
+      return
+    }
 
-    setState(currentState => {
-      if (currentState.deleted.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.deleted)
-      nextSet.add(username)
-      return { ...currentState, deleted: nextSet }
-    })
-  }, [permissionsRef, setState])
+    appendUsername('deleted', username)
+  }, [appendUsername, hasPermission])
 
   const addMovedToActiveUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberMove) return
+    if (!hasPermission('onMemberMove')) {
+      return
+    }
 
-    setState(currentState => {
-      if (currentState.movedToActive.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.movedToActive)
-      nextSet.add(username)
-      return { ...currentState, movedToActive: nextSet }
-    })
-  }, [permissionsRef, setState])
+    appendUsername('movedToActive', username)
+  }, [appendUsername, hasPermission])
 
   const addMovedToWaitingUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberMove) return
+    if (!hasPermission('onMemberMove')) {
+      return
+    }
 
-    setState(currentState => {
-      if (currentState.movedToWaiting.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.movedToWaiting)
-      nextSet.add(username)
-      return { ...currentState, movedToWaiting: nextSet }
-    })
-  }, [permissionsRef, setState])
+    appendUsername('movedToWaiting', username)
+  }, [appendUsername, hasPermission])
 
   const addDeniedUser = useCallback((username: string): void => {
-    if (!permissionsRef.current.allowSending || !permissionsRef.current.onMemberAdd) return
+    if (!hasPermission('onMemberAdd')) {
+      return
+    }
 
-    setState(currentState => {
-      if (currentState.denied.has(username)) {
-        return currentState
-      }
-      const nextSet = new Set(currentState.denied)
-      nextSet.add(username)
-      return { ...currentState, denied: nextSet }
-    })
-  }, [permissionsRef, setState])
-  return { addJoinedUser, addDeletedUser, addDeniedUser, addMovedToActiveUser, addMovedToWaitingUser, addWaitingUser }
+    appendUsername('denied', username)
+  }, [appendUsername, hasPermission])
+
+  return {
+    addJoinedUser,
+    addWaitingUser,
+    addDeletedUser,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
+    addDeniedUser,
+  }
 }

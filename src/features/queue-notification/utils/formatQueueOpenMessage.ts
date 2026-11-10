@@ -1,44 +1,38 @@
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
-/**
- * Сформировать текстовое сообщение об открытии очереди на основе доступных для пользователей команд
- */
-export const formatQueueOpenMessage = (
-  { commands, prefix }: { commands: QueueSettings['commands'], prefix: QueueSettings['messagePrefix'] },
-): string => {
-  const parts: string[] = []
+interface FormatQueueOpenMessageArgs {
+  /** Настройки команд чата. */
+  commands: QueueSettings['commands'];
+  /** Префикс автоматических сообщений. */
+  prefix: QueueSettings['messagePrefix'];
+}
 
-  if (!commands.join.isModeratorOnly) {
-    parts.push(`${commands.join.name} для входа`)
-  }
-  if (!commands.leave.isModeratorOnly) {
-    parts.push(`${commands.leave.name} для выхода`)
-  }
-  if (!commands.show.isModeratorOnly) {
-    parts.push(`${commands.show.name} для просмотра очереди`)
-  }
-  if (!commands.start.isModeratorOnly) {
-    parts.push(`${commands.start.name} для открытия`)
-  }
-  if (!commands.stop.isModeratorOnly) {
-    parts.push(`${commands.stop.name} для закрытия`)
-  }
-  if (!commands.play.isModeratorOnly) {
-    parts.push(`${commands.play.name} для завершения`)
-  }
-  if (!commands.clear.isModeratorOnly) {
-    parts.push(`${commands.clear.name} для очистки`)
-  }
-  if (!commands.add.isModeratorOnly) {
-    parts.push(`${commands.add.name} для добавления`)
-  }
-  if (!commands.delete.isModeratorOnly) {
-    parts.push(`${commands.delete.name} для исключения`)
-  }
+/**
+ * Формирует сообщение об открытии очереди со списком доступных команд.
+ */
+export const formatQueueOpenMessage = ({
+  commands,
+  prefix,
+}: FormatQueueOpenMessageArgs): string => {
+  const availableCommands = [
+    { command: commands.join, description: 'для входа' },
+    { command: commands.leave, description: 'для выхода' },
+    { command: commands.show, description: 'для просмотра очереди' },
+    { command: commands.start, description: 'для открытия' },
+    { command: commands.stop, description: 'для закрытия' },
+    { command: commands.play, description: 'для завершения' },
+    { command: commands.clear, description: 'для очистки' },
+    { command: commands.add, description: 'для добавления' },
+    { command: commands.delete, description: 'для исключения' },
+  ]
+    .filter(({ command }) => !command.isModeratorOnly)
+    .map(({ command, description }) => `${command.name} ${description}`)
 
   const baseMessage = prefix ? `${prefix} Очередь открыта!` : 'Очередь открыта!'
 
-  return parts.length > 0
-    ? `${baseMessage} Доступные команды: ${parts.join(', ')}.`
-    : baseMessage
+  if (availableCommands.length === 0) {
+    return baseMessage
+  }
+
+  return `${baseMessage} Доступные команды: ${availableCommands.join(', ')}.`
 }

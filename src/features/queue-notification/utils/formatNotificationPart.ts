@@ -1,6 +1,9 @@
 interface FormatNotificationPartArgs {
+  /** Заголовок группы участников. */
   title: string;
+  /** Никнеймы участников группы. */
   members: string[];
+  /** Максимальное количество отображаемых участников. */
   limit: number;
 }
 

@@ -19,7 +19,6 @@ export const formatCurrentQueueStatus = ({
   waitingUsernames,
   maxQueueSize,
 }: FormatQueueStatusOptions): string => {
-  // Добавляем префикс @ к каждому никнейму один раз на старте
   const activeArray = activeUsernames.map(nick => `@${nick}`)
   const waitingArray = waitingUsernames.map(nick => `@${nick}`)
 

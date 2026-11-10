@@ -1,6 +1,6 @@
 import type { TwitchNotificationState } from '../types.ts'
 
-/** Создание чистого объекта буфера уведомлений */
+/** Создает пустой буфер уведомлений. */
 export const createInitialNotificationState = (): TwitchNotificationState => ({
   joined: new Set<string>(),
   waiting: new Set<string>(),
