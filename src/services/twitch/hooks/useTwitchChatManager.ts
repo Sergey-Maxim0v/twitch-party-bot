@@ -22,7 +22,6 @@ export const useTwitchChatManager = () => {
 
   const roomStateTagsRef = useRef<Record<string, string>>({})
 
-  // Подключаем контроль активности сокета (Heartbeat)
   const { handleSocketActivity } = useTwitchHeartbeat()
 
   const { pendingTextsRef, timeoutTimerRef, registerPendingMessage } = useTwitchPendingMessages()
@@ -38,7 +37,7 @@ export const useTwitchChatManager = () => {
   const currentUserLogin = session?.login?.toLowerCase() ?? 'broadcaster'
 
   /**
-   * Функция отправки сообщения в Twitch чат
+   * Отправляет сообщение в Twitch-чат и ставит его в очередь ожидания USER_STATE.
    */
   const sendChatMessage = useCallback((message: string) => {
     if (socketContext && !!socketContext.sendMessage && registerPendingMessage && client) {
@@ -48,10 +47,9 @@ export const useTwitchChatManager = () => {
   }, [registerPendingMessage, socketContext, client])
 
   /**
-   * Главный диспетчер обработки каждого входящего IRC-сообщения
+   * Главный диспетчер обработки каждого входящего IRC-сообщения.
    */
   const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-    // 0. Обновляем стейт последнего полученного сообщения для входящих команд
     if (message.command === TWITCH_IRC_COMMANDS.PRIV_MSG) {
       setLastMessage(prevMessage => {
         const currentId = message.tags?.id
@@ -65,10 +63,8 @@ export const useTwitchChatManager = () => {
       })
     }
 
-    // 1. Регистрируем сетевую активность для сброса таймеров Heartbeat
     handleSocketActivity(message.command)
 
-    // 2. Вычисляем права доступа и управляем состоянием блокировок
     if (socketContext && socketContext.updateChatAccessStatus) {
       if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
         roomStateTagsRef.current = {
@@ -88,16 +84,13 @@ export const useTwitchChatManager = () => {
       })
     }
 
-    // 3. Обрабатываем модераторские действия и системные логи
     const isEventOrMod = handleModerationAndEvents(message)
     if (isEventOrMod) {
       return
     }
 
-    // 4. Обрабатываем стандартные и подтвержденные текстовые сообщения
     const processedMessage = handleStandardMessage(message, currentUserLogin, client?.currentChannel ?? null)
 
-    // Фильтруем запись в lastMessage, чтобы автоматические ответы приложения не ломали стейт команд
     if (processedMessage && processedMessage.command === TWITCH_IRC_COMMANDS.PRIV_MSG) {
       const isCommand = processedMessage.text.trim().startsWith('!')
       const isFromOtherUser = processedMessage.user.nick !== currentUserLogin
@@ -118,7 +111,7 @@ export const useTwitchChatManager = () => {
     pushLog,
   ])
 
-  // Слой стабилизации подписки: защищает от переподписок при батчинге пачек сообщений
+  // Стабильная ссылка защищает от переподписок при батчинге пачек сообщений
   const incomingMessageRef = useRef(handleIncomingMessage)
 
   useEffect(() => {
@@ -129,7 +122,6 @@ export const useTwitchChatManager = () => {
     incomingMessageRef.current(message)
   }, [])
 
-  // Передаем стабильную ссылку в подписку сокета
   useTwitchSubscription(stableSubscriptionCallback)
 
   return {

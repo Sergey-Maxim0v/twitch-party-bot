@@ -10,6 +10,9 @@ interface ChatListProps {
   highlightPointsMessages: boolean;
 }
 
+/**
+ * Список сообщений чата Twitch с учетом пользовательских настроек отображения.
+ */
 export const ChatList = ({
   messages,
   useColoredNames,

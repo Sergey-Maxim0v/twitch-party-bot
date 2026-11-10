@@ -22,13 +22,11 @@ export const handleIrcMessage = ({ event, socket, emitMessage }: HandleIrcMessag
 
     if (!trimmedLine) continue
 
-    // 1. Проверка и автоматический ответ на системный PING
     const isPing = handleIrcPingPong({ rawMessage: trimmedLine, socket })
     if (isPing) continue
 
-    // 2. Парсим сообщение
     const parsed = parseIrcMessage(trimmedLine)
-    
+
     if (!parsed) {
       console.info(`[IRC Parser] Failed to parse message at ${new Date().toISOString()}:`, {
         rawLength: trimmedLine.length,
@@ -37,7 +35,6 @@ export const handleIrcMessage = ({ event, socket, emitMessage }: HandleIrcMessag
       continue
     }
 
-    // 3. Отправляем панелям через систему подписок
     emitMessage(parsed)
   }
 }

@@ -6,7 +6,7 @@ interface ReconnectConfig {
 }
 
 /**
- * Менеджер управления политикой автоматических переподключений для Twitch IRC.
+ * Менеджер политики автоматических переподключений для Twitch IRC.
  */
 export class TwitchReconnectManager {
   private attempts = 0
@@ -45,18 +45,19 @@ export class TwitchReconnectManager {
   }
 
   /**
-     * Очищает активный таймер переподключения.
-     */
+   * Очищает активный таймер переподключения.
+   */
   public clearTimer(): void {
-    if (this.timerId) {
-      clearTimeout(this.timerId)
-      this.timerId = null
-    }
+    if (!this.timerId) return
+
+    clearTimeout(this.timerId)
+    this.timerId = null
   }
 
   /**
-     * Запускает таймер переподключения с экспоненциальной задержкой.
-     */
+   * Запускает таймер переподключения с экспоненциальной задержкой.
+   * @param hasSessionParams - Есть ли сохраненные данные сессии для повторного подключения.
+   */
   public trigger(hasSessionParams: boolean): void {
     if (this.isIntentionallyDisconnected) return
 

@@ -3,6 +3,8 @@ import type { ParsedIrcMessage } from '../types.ts'
 /**
  * Проверяет теги сообщения ROOM_STATE на наличие активных ограничений чата
  * (режим подписчиков, режим смайлов или медленный режим).
+ * @param message - Сообщение с тегами состояния комнаты.
+ * @returns `true`, если в чате действует хотя бы одно ограничение.
  */
 export const checkIsRoomRestricted = (message: ParsedIrcMessage): boolean => {
   const tags = message.tags || {}

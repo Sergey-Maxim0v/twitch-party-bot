@@ -1,16 +1,22 @@
 import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 
-export interface markDeletedMessages {
+interface MarkDeletedMessagesProps {
   modMessage: ParsedIrcMessage,
   currentMessages: ParsedIrcMessage[]
 }
 
+/**
+ * Помечает сообщения удаленными на основе модераторской команды.
+ * @param modMessage - Команда модерации (CLEARCHAT или CLEARMSG).
+ * @param currentMessages - Текущая история сообщений.
+ * @returns Обновленная история сообщений.
+ */
 export const markDeletedMessages = (
-  { modMessage, currentMessages }: markDeletedMessages): ParsedIrcMessage[] => {
+  { modMessage, currentMessages }: MarkDeletedMessagesProps): ParsedIrcMessage[] => {
   const { command, text, tags } = modMessage
 
-  //  Полная очистка чата (CLEARCHAT без указания пользователя)
+  // Полная очистка чата (CLEARCHAT без указания пользователя)
   if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT && !text?.trim()) {
     return currentMessages.map(msg => ({
       ...msg,
@@ -19,7 +25,7 @@ export const markDeletedMessages = (
     }))
   }
 
-  //  Бан или тайм-аут конкретного пользователя (CLEARCHAT с ником в text)
+  // Бан или тайм-аут конкретного пользователя
   if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT && text?.trim()) {
     const bannedUser = text.trim().toLowerCase()
     return currentMessages.map(msg =>
@@ -29,7 +35,7 @@ export const markDeletedMessages = (
     )
   }
 
-  //  Удаление одного конкретного сообщения по его ID (CLEARMSG)
+  // Удаление одного сообщения по его ID
   if (command === TWITCH_IRC_COMMANDS.CLEAR_MSG) {
     const targetMsgId = tags['target-msg-id']
     if (!targetMsgId) return currentMessages
@@ -41,6 +47,5 @@ export const markDeletedMessages = (
     )
   }
 
-  // Если команда не связана с модерацией, возвращаем массив без изменений
   return currentMessages
 }

@@ -20,8 +20,8 @@ export const useTwitchPendingMessages = () => {
   }, [])
 
   /**
-     * Регистрирует текст отправляемого сообщения в очереди ожидания USER_STATE
-     */
+   * Регистрирует текст отправляемого сообщения в очереди ожидания USER_STATE.
+   */
   const registerPendingMessage = useCallback((text: string): void => {
     pendingTextsRef.current.push(text)
   }, [])

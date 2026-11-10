@@ -1,6 +1,7 @@
-
 /**
- * Конвертирует HEX-строку в HSL-компоненты.
+ * Конвертирует HEX-строку в компоненты HSL.
+ * @param hex - HEX-цвет в формате `#RRGGBB` или `RRGGBB`.
+ * @returns Объект с округленными компонентами оттенка, насыщенности и яркости.
  */
 export const hexToHsl = (hex: string): { h: number; s: number; l: number } => {
   const sanitized = hex.replace('#', '')

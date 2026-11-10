@@ -5,6 +5,7 @@ import type { ParsedIrcMessage } from '../types.ts'
 /**
  * Базовый хук для подписки на события Twitch IRC.
  * Автоматически управляет жизненным циклом подписки.
+ * @param callback - Обработчик входящих IRC-сообщений.
  */
 export const useTwitchSubscription = (callback: (message: ParsedIrcMessage) => void) => {
   const socketContext = useSocketContext()
@@ -12,10 +13,8 @@ export const useTwitchSubscription = (callback: (message: ParsedIrcMessage) => v
   useEffect(() => {
     if (!socketContext?.subscribe) return
 
-    // Подписываемся на поток сообщений
     const unsubscribe = socketContext.subscribe(callback)
 
-    // Отписываемся при размонтировании компонента
     return () => {
       unsubscribe()
     }

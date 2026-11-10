@@ -5,6 +5,9 @@ import { ChatSettings } from './ChatSettings.tsx'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { useTwitchChat } from '../hooks/useTwitchChat.ts'
 
+/**
+ * Компонент чата Twitch: история сообщений, настройки и поле ввода.
+ */
 export const TwitchChat: FC = () => {
   const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>('twitch_chat_colored_names', true)
   const [highlightRoles, setHighlightRoles] = useLocalStorage<boolean>('twitch_chat_highlight_roles', true)

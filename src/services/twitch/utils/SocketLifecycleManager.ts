@@ -21,15 +21,25 @@ export class SocketLifecycleManager {
     return this.socket ? this.socket.readyState : null
   }
 
+  /**
+   * Проверяет, находится ли сокет в процессе подключения или уже открыт.
+   */
   public isConnectingOrOpen(): boolean {
     if (!this.socket) return false
     return this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN
   }
 
+  /**
+   * Проверяет, открыт ли сокет.
+   */
   public isOpen(): boolean {
     return this.socket?.readyState === WebSocket.OPEN
   }
 
+  /**
+   * Создает новый сокет и навешивает на него обработчики.
+   * @returns Созданный экземпляр сокета.
+   */
   public create(listeners: SocketListeners): WebSocket {
     this.destroy()
 
@@ -43,10 +53,16 @@ export class SocketLifecycleManager {
     return this.socket
   }
 
+  /**
+   * Отправляет данные через открытый сокет.
+   */
   public send(text: string): void {
     this.socket?.send(text)
   }
 
+  /**
+   * Снимает обработчики, закрывает сокет и очищает ссылку на него.
+   */
   public destroy(): void {
     if (!this.socket) return
 

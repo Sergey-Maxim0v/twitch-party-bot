@@ -1,7 +1,7 @@
 /**
  * Вычисляет задержку для очередной попытки автоматического переподключения.
- * @param {number} attempt - Порядковый номер текущей попытки.
- * @returns {number} Время задержки в миллисекундах для передачи в setTimeout.
+ * @param attempt - Порядковый номер текущей попытки.
+ * @returns Время задержки в миллисекундах для передачи в setTimeout.
  */
 export const getReconnectDelay = (attempt: number): number => {
   if (attempt <= 0) return 2000

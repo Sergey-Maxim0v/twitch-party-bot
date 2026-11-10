@@ -1,13 +1,14 @@
 /**
- * @file heartbeat.worker.ts
- * @description Изолированный Web Worker для ведения точных фоновых таймеров.
+ * Изолированный Web Worker для ведения точных фоновых таймеров.
  */
 import { TWITCH_HEARTBEAT_WORKER_COMMANDS, TWITCH_HEARTBEAT_WORKER_EVENTS } from '../../../constants/twitch.constants.ts'
 
 let pingTimeoutId: ReturnType<typeof setTimeout> | null = null
 let pongTimeoutId: ReturnType<typeof setTimeout> | null = null
 
-//  Сброс всех активных тайм-аутов в памяти воркера.
+/**
+ * Сбрасывает все активные таймеры воркера.
+ */
 const clearAllTimers = (): void => {
   if (pingTimeoutId) {
     clearTimeout(pingTimeoutId)
@@ -47,7 +48,7 @@ self.onmessage = (event: MessageEvent) => {
       break
     }
 
-    // Снятие таймера ожидания ответа при успешном получении PONG
+    // Снятие таймера ожидания при успешном получении PONG
     case TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_PONG_TIMER: {
       if (pongTimeoutId) {
         clearTimeout(pongTimeoutId)
@@ -56,7 +57,7 @@ self.onmessage = (event: MessageEvent) => {
       break
     }
 
-    // Полная остановка всех фоновых таймеров контроля сессии
+    // Полная остановка всех фоновых таймеров
     case TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL: {
       clearAllTimers()
       break

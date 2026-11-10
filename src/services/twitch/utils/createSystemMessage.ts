@@ -3,12 +3,12 @@ import type { ParsedIrcMessage } from '../types.ts'
 
 /**
  * Создает структурированное системное сообщение на основе служебных команд Twitch.
- * Если команда не является системной, возвращает null.
+ * @param message - Входящее IRC-сообщение.
+ * @returns Системное сообщение или null, если команда не является системной.
  */
 export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage | null => {
   const { command, text, tags, timestamp } = message
 
-  // Шаблон для генерации системного объекта
   const buildSystemPayload = (systemText: string): ParsedIrcMessage => ({
     id: `sys-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     user: {
@@ -23,16 +23,13 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     isChannelEvent: true,
   })
 
-  // Полная очистка чата или бан/таймаут пользователя
   if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT) {
     const bannedUser = text?.trim()
 
-    // Если текста нет — это полная очистка чата
     if (!bannedUser) {
       return buildSystemPayload('Чат был очищен модератором.')
     }
 
-    // Если текст есть — это бан или тайм-аут
     const duration = tags['ban-duration']
     const actionText = duration
       ? `Пользователь @${bannedUser} заблокирован на ${duration} сек.`
@@ -41,7 +38,6 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     return buildSystemPayload(actionText)
   }
 
-  // Удаление одного конкретного сообщения
   if (command === TWITCH_IRC_COMMANDS.CLEAR_MSG) {
     const targetUser = tags.login || 'Пользователь'
     return buildSystemPayload(`Сообщение от @${targetUser} удалено.`)
@@ -77,13 +73,11 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
       return buildSystemPayload(`Канал @${login} устраивает рейд и приводит ${viewerCount} зрителей!`)
     }
 
-    // Серия просмотров
     if (msgId === 'viewermilestone') {
       const value = tags['msg-param-value'] || '1'
       return buildSystemPayload(`@${login} отмечает серию просмотров: ${value} трансляций подряд!`)
     }
 
-    // Объявление (анонс) от стримера или модератора
     if (msgId === 'announcement') {
       return {
         id: `sys-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -106,16 +100,14 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     }
   }
 
-  // Глобальные изменения режимов комнаты (ROOMSTATE)
   if (command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
-    // Если это стартовый пакет инициализации комнаты — полностью игнорируем вывод сообщения в чат
+    // Стартовый пакет инициализации комнаты не выводим в чат
     const hasAllTags = tags['subs-only'] !== undefined && tags.slow !== undefined && tags['emote-only'] !== undefined
 
     if (hasAllTags) {
       return null
     }
 
-    // Генерируем точечные системные сообщения для логов чата при их изменении
     if (tags['subs-only'] === '1') return buildSystemPayload('Включен режим "Только для подписчиков".')
     if (tags['subs-only'] === '0') return buildSystemPayload('Режим "Только для подписчиков" отключен.')
 
@@ -136,12 +128,11 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     if (tags.slow === '0') return buildSystemPayload('Медленный режим отключен.')
   }
 
-  // Обработка системных уведомлений и ошибок выполнения команд чата (NOTICE)
   if (command === TWITCH_IRC_COMMANDS.NOTICE) {
     const msgId = tags['msg-id'] || ''
     const cleanText = text?.trim() || ''
 
-    // Фильтрация по идентификаторам тегов msg-id
+    // Дублирующие английские уведомления о режимах комнаты игнорируем
     const roomStateNoticeIds = [
       'room_subs_on', 'room_subs_off',
       'room_emoteonly_on', 'room_emoteonly_off',
@@ -154,7 +145,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
       'msg_slow_on', 'msg_slow_off',
     ]
 
-    // Резервная сквозная фильтрация по тексту сообщения (на случай, если Twitch прислал пустой msg-id)
+    // Резервная фильтрация по тексту на случай пустого msg-id
     const isEnglishDuplicate =
       cleanText.includes('This room is now in emote-only mode') ||
         cleanText.includes('This room is no longer in emote-only mode') ||
@@ -165,7 +156,6 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
         cleanText.includes('This room is now in slow mode') ||
         cleanText.includes('This room is no longer in slow mode')
 
-    // Полностью игнорируем дублирующие английские сообщения от NOTICE
     if (roomStateNoticeIds.includes(msgId) || isEnglishDuplicate) {
       return null
     }
@@ -173,12 +163,10 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     return buildSystemPayload(text || 'Произошла системная ошибка выполнения команды чата.')
   }
 
-  // Глобальное состояние пользователя при авторизации
   if (command === TWITCH_IRC_COMMANDS.GLOBAL_USER_STATE) {
     return buildSystemPayload('Глобальные метаданные учетной записи успешно синхронизированы с Twitch.')
   }
 
-  // Запрос сервера на плановое переподключение сессии
   if (command === TWITCH_IRC_COMMANDS.RECONNECT) {
     return buildSystemPayload('Получен системный запрос RECONNECT от сервера Twitch. Запускается процесс планового переподключения.')
   }

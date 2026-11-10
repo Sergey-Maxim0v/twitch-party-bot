@@ -39,11 +39,10 @@ export const updateChatAccess = ({
     pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source: APP_LOG_SOURCES.APPLICATION, actorUsername: 'twitch' })
   }
 
-  // 1. Обработка глобальных настроек комнаты
   if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
     const tags = message.tags || {}
 
-    // Если это стартовый пакет инициализации комнаты — формируем одно общее лог-уведомление
+    // Стартовый пакет инициализации комнаты содержит все теги сразу
     const hasAllTags = tags['subs-only'] !== undefined && tags.slow !== undefined && tags['emote-only'] !== undefined
 
     if (hasAllTags) {
@@ -58,7 +57,6 @@ export const updateChatAccess = ({
         pushStatusLog(`Активные ограничения чата: ${activeRestrictions.join(', ')}.`)
       }
     } else {
-      // Пошаговые точечные логи при изменении режимов модераторами в реальном времени
       if (tags['subs-only'] === '1') {
         pushStatusLog('Включен режим "Только для подписчиков".')
       } else if (tags['subs-only'] === '0') {
@@ -78,13 +76,13 @@ export const updateChatAccess = ({
       }
     }
 
-    // 2. Передаем в валидатор полную историю ограничений комнаты вместо обрывистого сообщения
+    // Проверяем полную историю ограничений комнаты, а не только текущее сообщение
     const isRestricted = checkIsRoomRestricted({ ...message, tags: currentRoomTags })
     updateChatAccessStatus(isRestricted ? TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED : TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
     return
   }
 
-  // 2. Персональные блокировки из NOTICE (ошибки отправки при муте)
+  // Персональные блокировки из NOTICE (ошибки отправки при муте)
   if (message.command === TWITCH_IRC_COMMANDS.NOTICE) {
     const msgId = message.tags?.['msg-id']
 
@@ -100,40 +98,47 @@ export const updateChatAccess = ({
     return
   }
 
-  // 3. Мгновенный перехват мута/бана нашего аккаунта через CLEAR_CHAT
+  // Мгновенный перехват мута/бана нашего аккаунта через CLEARCHAT
   if (message.command === TWITCH_IRC_COMMANDS.CLEAR_CHAT) {
     const targetUser = message.text?.trim()?.toLowerCase()
 
-    if (targetUser && targetUser === currentUserLogin) {
-      const durationStr = message.tags?.['ban-duration']
+    if (!targetUser || targetUser !== currentUserLogin) return
 
-      if (timeoutTimerRef.current) {
-        clearTimeout(timeoutTimerRef.current)
+    const durationStr = message.tags?.['ban-duration']
+
+    if (timeoutTimerRef.current) {
+      clearTimeout(timeoutTimerRef.current)
+      timeoutTimerRef.current = null
+    }
+
+    // 1. Обработка перманентного бана (тег отсутствует)
+    if (!durationStr) {
+      pushStatusLog('Аккаунт перманентно забанен на канале.')
+      updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
+      return
+    }
+
+    const durationSeconds = parseInt(durationStr, 10)
+
+    // 2. Обработка валидного тайм-аута
+    if (!isNaN(durationSeconds) && durationSeconds > 0) {
+      pushStatusLog(`Аккаунт получил таймаут на ${durationStr} сек.`)
+      updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED)
+
+      timeoutTimerRef.current = setTimeout(() => {
+        pushStatusLog('Время таймаута истекло.')
+        updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
         timeoutTimerRef.current = null
-      }
-
-      if (durationStr) {
-        pushStatusLog(`Аккаунт получил таймаут на ${durationStr} сек.`)
-        updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED)
-
-        const durationSeconds = parseInt(durationStr, 10)
-
-        if (!isNaN(durationSeconds) && durationSeconds > 0) {
-          timeoutTimerRef.current = setTimeout(() => {
-            pushStatusLog('Время таймаута истекло.')
-            updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
-            timeoutTimerRef.current = null
-          }, durationSeconds * 1000)
-        }
-      } else {
-        pushStatusLog('Аккаунт перманентно забанен на канале.')
-        updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
-      }
+      }, durationSeconds * 1000)
+    } else {
+      // 3. Фолбек-защита (на случай аномальных данных от API)
+      pushStatusLog('Аккаунт забанен (некорректный формат времени таймаута).')
+      updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
     }
     return
   }
 
-  // 4. Перехват успешного USER_STATE (сигнал разбана или успешной отправки)
+  // Успешный USERSTATE — сигнал разбана или успешной отправки
   if (message.command === TWITCH_IRC_COMMANDS.USER_STATE) {
     if (timeoutTimerRef.current) {
       clearTimeout(timeoutTimerRef.current)
@@ -141,6 +146,5 @@ export const updateChatAccess = ({
       pushStatusLog('Ограничение чата досрочно снято.')
     }
     updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
-    return
   }
 }

@@ -6,6 +6,9 @@ interface ChatSettingsToggleProps {
   onChange: (value: boolean) => void;
 }
 
+/**
+ * Переключатель настройки отображения чата.
+ */
 export const ChatSettingsToggle: FC<ChatSettingsToggleProps> = ({
   label,
   checked,

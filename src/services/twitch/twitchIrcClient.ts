@@ -23,22 +23,31 @@ export class TwitchIrcClient {
     onReconnectTriggered: () => { this.retryConnection() },
   })
 
-  // Кэш учетных данных для выполнения повторных попыток подключения
   private lastToken: string | null = null
   private lastUserLogin: string | null = null
 
-  // Таймер для дебаунса инициализации в Strict Mode
+  // Задержка гасит двойную инициализацию сокета в React Strict Mode
   private connectTimeoutId: ReturnType<typeof setTimeout> | null = null
 
+  /**
+   * Регистрирует колбэк, вызываемый при смене канала.
+   */
   public onChannelChange(callback: () => void): void {
     this.onChannelChangeCallback = callback
   }
 
-  /** Подписывает внешние компоненты или хуки на поток успешно распарсенных входящих IRC-сообщений.   */
+  /**
+   * Подписывает на поток распарсенных входящих IRC-сообщений.
+   * @returns Функция отписки.
+   */
   public subscribe(callback: MessageCallback): () => void {
     return this.emitter.subscribe(callback)
   }
 
+  /**
+   * Подписывает на изменение статуса соединения.
+   * @returns Функция отписки.
+   */
   public onStatusChange(callback: (status: ConnectionStatus) => void): () => void {
     return this.stateManager.subscribe(callback)
   }
@@ -47,21 +56,30 @@ export class TwitchIrcClient {
     return this.channel
   }
 
-  /** Возвращает текущее системное состояние готовности нативного сокета (readyState).    */
+  /**
+   * Возвращает текущее системное состояние готовности нативного сокета (readyState).
+   */
   public get readyState(): WebSocket['readyState'] | null {
     return this.socketManager.readyState
   }
 
-  /** Возвращает текущее количество попыток переподключения из менеджера переподключений. */
+  /**
+   * Возвращает текущее количество попыток переподключения.
+   */
   public get reconnectAttempts(): number {
     return this.reconnectManager.currentAttempts
   }
 
-  /** Возвращает флаг, было ли отключение инициировано пользователем намеренно. */
+  /**
+   * Возвращает флаг намеренного отключения пользователем.
+   */
   public get isIntentionallyDisconnected(): boolean {
     return this.reconnectManager.isIntentionally
   }
 
+  /**
+   * Подключается к IRC-каналу Twitch, пересоздавая сокет при необходимости.
+   */
   public connect(channel: string, token: string, userLogin: string): void {
     if (!channel || !token || !userLogin) return
 
@@ -86,10 +104,7 @@ export class TwitchIrcClient {
     }
 
     this.saveSession(targetChannel, token, userLogin)
-
-    if (this.onChannelChangeCallback) {
-      this.onChannelChangeCallback()
-    }
+    this.onChannelChangeCallback?.()
 
     this.socketManager.destroy()
     this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTING)
@@ -112,14 +127,14 @@ export class TwitchIrcClient {
     this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTED)
 
     const socket = this.socketManager.rawSocket
-    if (socket) {
-      sendInitialIrcCommands({
-        socket,
-        token: this.lastToken,
-        userLogin: this.lastUserLogin,
-        channel: this.channel,
-      })
-    }
+    if (!socket) return
+
+    sendInitialIrcCommands({
+      socket,
+      token: this.lastToken,
+      userLogin: this.lastUserLogin,
+      channel: this.channel,
+    })
   }
 
   private handleSocketMessage(event: MessageEvent): void {
@@ -151,6 +166,9 @@ export class TwitchIrcClient {
     this.reconnectManager.setIntentionallyDisconnected(false)
   }
 
+  /**
+   * Намеренно закрывает соединение и останавливает автоматические переподключения.
+   */
   public disconnect(): void {
     if (this.connectTimeoutId) {
       clearTimeout(this.connectTimeoutId)
@@ -162,6 +180,9 @@ export class TwitchIrcClient {
     this.socketManager.destroy()
   }
 
+  /**
+   * Принудительно разрывает соединение и запускает переподключение.
+   */
   public forceCloseAndReconnect(): void {
     if (this.connectTimeoutId) {
       clearTimeout(this.connectTimeoutId)
@@ -173,6 +194,9 @@ export class TwitchIrcClient {
     this.reconnectManager.trigger(this.hasSessionParams())
   }
 
+  /**
+   * Отправляет текстовое сообщение в текущий канал.
+   */
   public sendMessage(text: string): void {
     if (!this.socketManager.isOpen() || !this.channel) {
       console.error('[TwitchIRC Client] Невозможно отправить сообщение: сокет закрыт или канал не задан')
@@ -181,7 +205,9 @@ export class TwitchIrcClient {
     this.socketManager.send(`PRIVMSG #${this.channel} :${text}`)
   }
 
-  /** Метод отправки низкоуровневых системных строк.  */
+  /**
+   * Отправляет низкоуровневую системную строку в сокет.
+   */
   public sendRaw(text: string): void {
     if (!this.socketManager.isOpen()) {
       console.error('[TwitchIRC Client] Невозможно отправить данные: сокет закрыт')

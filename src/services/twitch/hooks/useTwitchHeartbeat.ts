@@ -22,7 +22,9 @@ export const useTwitchHeartbeat = () => {
     connectionStatusRef.current = connectionStatus
   }, [connectionStatus])
 
-  // Принудительный обрыв зависшего сокета при отсутствии PONG-ответа.
+  /**
+   * Принудительно обрывает зависший сокет при отсутствии PONG-ответа.
+   */
   const handleConnectionFailure = useCallback(() => {
     if (!socketContext) return
 
@@ -32,7 +34,9 @@ export const useTwitchHeartbeat = () => {
     client.forceCloseAndReconnect()
   }, [socketContext])
 
-  // Отправка системного IRC-запроса PING на сервер Twitch.
+  /**
+   * Отправляет системный IRC-запрос PING на сервер Twitch.
+   */
   const sendPing = useCallback(() => {
     if (!socketContext || connectionStatusRef.current !== SOCKET_CONNECTION_STATUSES.CONNECTED) return
 
@@ -47,8 +51,8 @@ export const useTwitchHeartbeat = () => {
   }, [socketContext])
 
   /**
-     * Сбрасывает таймер ожидания PONG при успехе и перезапускает таймер тишины.
-     */
+   * Сбрасывает таймер ожидания PONG при успехе и перезапускает таймер тишины.
+   */
   const handleSocketActivity = useCallback((command: string) => {
     if (connectionStatusRef.current !== SOCKET_CONNECTION_STATUSES.CONNECTED || !workerRef.current) return
 
@@ -90,7 +94,7 @@ export const useTwitchHeartbeat = () => {
     }
   }, [])
 
-  // Безопасное управление состояниями таймеров воркера
+  // Синхронизирует таймеры воркера с текущим статусом соединения
   useEffect(() => {
     const currentWorker = workerRef.current
     if (!currentWorker) return

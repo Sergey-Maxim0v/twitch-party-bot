@@ -8,7 +8,7 @@ import type { ParsedIrcMessage } from '../types.ts'
 interface UseTwitchChatHistoryProps {
   client: TwitchIrcClient | null;
   pendingTextsRef: RefObject<string[]>;
-  roomStateTagsRef: RefObject<Record<string, string>>; // <- Добавили в типы пропсов
+  roomStateTagsRef: RefObject<Record<string, string>>;
 }
 
 /**
@@ -33,7 +33,6 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
       if (nextChannel !== lastChannelRef.current) {
         setMessages([])
 
-        // СБРОС ТЕГОВ: Очищаем накопленные ограничения старого канала
         if (roomStateTagsRef.current) {
           roomStateTagsRef.current = {}
         }
@@ -44,7 +43,9 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
   }, [client, roomStateTagsRef])
 
   /**
-   * Обрабатывает модераторские действия (удаление сообщений, баны) и системные логи
+   * Обрабатывает модераторские действия, системные события и служебные логи.
+   * @param message - Входящее IRC-сообщение.
+   * @returns `true`, если сообщение обработано и не требует дальнейшей обработки.
    */
   const handleModerationAndEvents = useCallback((message: ParsedIrcMessage): boolean => {
     const isModAction = message.command === TWITCH_IRC_COMMANDS.CLEAR_CHAT || message.command === TWITCH_IRC_COMMANDS.CLEAR_MSG
@@ -74,6 +75,7 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
 
   /**
    * Добавляет стандартные текстовые сообщения в общую историю чата.
+   * @returns Добавленное сообщение или `undefined`, если сообщение обработано не было.
    */
   const handleStandardMessage = useCallback((
     message: ParsedIrcMessage,
@@ -94,16 +96,14 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
 
       if (!savedText) return undefined
 
-      // Динамически вычисляем роли, если теги badges отсутствуют в USER_STATE быстрых ответов
+      // В быстрых ответах USER_STATE может не содержать badges — вычисляем роли вручную
       if (!enrichedTags.badges) {
         const cleanChannel = currentChannel?.toLowerCase().replace('#', '')
         const isCurrentBroadcaster = cleanChannel && currentUserLogin.toLowerCase() === cleanChannel
 
         if (isCurrentBroadcaster) {
-          // Если авторизован стример — даем роли стримера и модератора
           enrichedTags.badges = 'broadcaster/1,moderator/1'
         } else {
-          // Если авторизован модератор — даем только роль модератора
           enrichedTags.badges = 'moderator/1'
         }
         enrichedTags.mod = '1'

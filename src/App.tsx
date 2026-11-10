@@ -19,6 +19,7 @@ import { QueueNotificationProvider } from './features/queue-notification/context
 //   -  удаление из очереди
 //   -  удаление из всех очередей
 //   -  бан
+//   -  разбан
 //   -  приоритет подписчиков
 //   -  все команды чата
 //   -  изменение команд для чата

@@ -17,6 +17,9 @@ const TWITCH_CHAT_STATUS_BUTTON_CLASSES: Record<string, string> = {
   [TWITCH_CHAT_ACCESS_STATUSES.BANNED]: 'btn-neutral',
 }
 
+/**
+ * Поле ввода и отправки сообщения в чат Twitch.
+ */
 export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
   const [value, setValue] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)

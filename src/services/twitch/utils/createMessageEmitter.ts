@@ -11,9 +11,9 @@ export const createMessageEmitter = () => {
 
   return {
     /**
-         * Подписывает колбэк на новые сообщения.
-         * Возвращает функцию для автоматической отписки.
-         */
+     * Подписывает колбэк на новые сообщения.
+     * @returns Функция отписки.
+     */
     subscribe: (callback: MessageCallback): (() => void) => {
       listeners.add(callback)
       return () => {
@@ -22,8 +22,8 @@ export const createMessageEmitter = () => {
     },
 
     /**
-         * Оповещает всех подписчиков о новом сообщении.
-         */
+     * Оповещает всех подписчиков о новом сообщении.
+     */
     emit: (message: ParsedIrcMessage): void => {
       listeners.forEach(callback => {
         try {
@@ -35,8 +35,8 @@ export const createMessageEmitter = () => {
     },
 
     /**
-         * Очищает всех подписчиков.
-         */
+     * Очищает всех подписчиков.
+     */
     clear: (): void => {
       listeners.clear()
     },

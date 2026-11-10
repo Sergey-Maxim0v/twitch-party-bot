@@ -6,6 +6,9 @@ interface TwitchChatProviderProps {
   children: ReactNode
 }
 
+/**
+ * Провайдер контекста чата Twitch.
+ */
 export const TwitchChatProvider = ({ children }: TwitchChatProviderProps) => {
   const chatValue = useTwitchChatManager()
 

@@ -15,6 +15,9 @@ interface ChatSettingsProps {
   setHighlightPointsMessages: (value: boolean) => void;
 }
 
+/**
+ * Выпадающая панель настроек отображения чата.
+ */
 export const ChatSettings: FC<ChatSettingsProps> = ({
   useColoredNames,
   setUseColoredNames,

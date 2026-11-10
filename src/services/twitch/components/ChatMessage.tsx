@@ -13,6 +13,9 @@ interface ChatMessageProps {
   highlightPointsMessages: boolean;
 }
 
+/**
+ * Отображает одно сообщение чата Twitch с учетом ролей, модерации и настроек.
+ */
 export const ChatMessage: FC<ChatMessageProps> = ({
   msg,
   useColoredNames,
@@ -53,7 +56,6 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   if (msg.isSystem) {
     const isAlert = msg.command === TWITCH_IRC_COMMANDS.USER_NOTICE && !msg.isAnnouncement
 
-    // Смешиваем системные цвета с черным для светлой темы, возвращая оригинал для data-theme="dim"
     let systemColorClass = 'text-[color-mix(in_oklch,var(--color-warning)_75%,black)] [:where([data-theme=dim])_&]:text-warning/80 font-medium italic'
 
     if (msg.isAnnouncement) {
