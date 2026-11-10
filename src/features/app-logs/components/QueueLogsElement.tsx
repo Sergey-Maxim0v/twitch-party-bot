@@ -22,7 +22,6 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
     statusClassName = 'text-[color-mix(in_oklch,var(--color-error)_85%,black)] [:where([data-theme=dim])_&]:text-error font-medium'
   }
 
-  // Определение иконки и текста всплывающей подсказки
   let InitiatorIcon = LuCpu
   let tooltipText = 'Система'
 

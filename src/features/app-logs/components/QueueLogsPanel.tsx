@@ -2,6 +2,9 @@ import { type FC } from 'react'
 import { QueueLogsElement } from './QueueLogsElement.tsx'
 import { useAppLogs } from '../hooks/useAppLogs.ts'
 
+/**
+ * Панель для отображения очереди логов в интерфейсе.
+ */
 export const QueueLogsPanel: FC = () => {
 
   const { logs } = useAppLogs()

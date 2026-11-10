@@ -18,7 +18,6 @@ export const useAppLogsObserver = (): void => {
   const lastChatAccessRef = useRef(chatAccessStatus)
   const lastUserRef = useRef<string | null>(null)
 
-  // 1. Логирование авторизации аккаунта
   useEffect(() => {
     if (session?.login && session.login !== lastUserRef.current) {
       lastUserRef.current = session.login
@@ -31,7 +30,6 @@ export const useAppLogsObserver = (): void => {
     }
   }, [session, pushLog, userDisplayName])
 
-  // 2. Логирование состояний сетевого соединения и попыток переподключения
   useEffect(() => {
     if (connectionStatus === lastStatusRef.current) return
     lastStatusRef.current = connectionStatus
@@ -53,13 +51,10 @@ export const useAppLogsObserver = (): void => {
       status = APP_LOG_STATUSES.SUCCESS
     } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
       const isIntentionally = client?.isIntentionallyDisconnected ?? false
-      if (isIntentionally) {
-        message = `Соединение с каналом ${targetChannel} закрыто пользователем.`
-        status = APP_LOG_STATUSES.ERROR
-      } else {
-        message = 'Соединение с Twitch потеряно. Запуск автоматического восстановления...'
-        status = APP_LOG_STATUSES.ERROR
-      }
+      message = isIntentionally
+        ? `Соединение с каналом ${targetChannel} закрыто пользователем.`
+        : 'Соединение с Twitch потеряно. Запуск автоматического восстановления...'
+      status = APP_LOG_STATUSES.ERROR
     }
 
     if (message) {
@@ -72,7 +67,6 @@ export const useAppLogsObserver = (): void => {
     }
   }, [connectionStatus, pushLog, getClient, session?.login, userDisplayName])
 
-  // 3. Логирование доступности чата и правил комнаты (Room State)
   useEffect(() => {
     if (chatAccessStatus === lastChatAccessRef.current) return
     lastChatAccessRef.current = chatAccessStatus

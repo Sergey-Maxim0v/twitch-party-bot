@@ -7,6 +7,10 @@ interface AppLogsProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Провайдер контекста логов приложения: хранит очередь логов
+ * и предоставляет методы для чтения, записи и очистки.
+ */
 export const AppLogsProvider: FC<AppLogsProviderProps> = ({ children }) => {
   const [logs, setLogs] = useState<AppLogItem[]>([])
 
