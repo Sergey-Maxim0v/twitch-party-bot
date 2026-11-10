@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { type Breakpoint, BREAKPOINTS } from './types/breakpoint.types.ts'
 
 /**
- * Хук для отслеживания текущего брейкпоинта экрана.
+ * Отслеживает текущий брейкпоинт экрана в соответствии с сеткой Tailwind CSS.
+ *
+ * @returns {Breakpoint} Активный брейкпоинт: `sm`, `md`, `lg`, `xl` или `2xl`.
  */
 export const useBreakpoint = (): Breakpoint => {
   const [breakpoint, setBreakpoint] = useState<Breakpoint>(BREAKPOINTS.XXL)
 
   useEffect(() => {
-    // Определяем медиа-запросы в соответствии с Tailwind CSS
     const queries = {
       '2xl': window.matchMedia('(min-width: 1536px)'),
       xl: window.matchMedia('(min-width: 1280px)'),
@@ -28,10 +29,8 @@ export const useBreakpoint = (): Breakpoint => {
       else setBreakpoint('sm')
     }
 
-    // Инициализация при монтировании
     updateBreakpoint()
 
-    // Подписываемся на изменения каждого брейкпоинта
     const listeners = Object.values(queries).map(q => {
       q.addEventListener('change', updateBreakpoint)
       return () => q.removeEventListener('change', updateBreakpoint)

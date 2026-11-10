@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
+/**
+ * Хранит состояние в localStorage и синхронизирует его между вкладками браузера.
+ *
+ * @template T - Тип сохраняемого значения.
+ * @param key - Ключ, под которым значение хранится в localStorage.
+ * @param initialValue - Значение, используемое при отсутствии данных в хранилище.
+ * @returns Кортеж с текущим значением и функцией для его обновления.
+ */
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
@@ -23,22 +31,21 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     }
   }, [key])
 
-  // Сохраняем актуальный initialValue в ref, чтобы не переподписывать эффект на каждый рендер объектов
+  // Актуальный initialValue храним в ref, чтобы не переподписывать эффект на каждый рендер объектов
   const initialValueRef = useRef(initialValue)
   useEffect(() => {
     initialValueRef.current = initialValue
   }, [initialValue])
 
-  // Синхронизация состояния между вкладками браузера в реальном времени
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === key) {
-        try {
-          const newValue = event.newValue ? JSON.parse(event.newValue) : initialValueRef.current
-          setStoredValue(newValue)
-        } catch (error) {
-          console.error(`Ошибка парсинга синхронизированных данных по ключу "${key}":`, error)
-        }
+      if (event.key !== key) return
+
+      try {
+        const newValue = event.newValue ? JSON.parse(event.newValue) : initialValueRef.current
+        setStoredValue(newValue)
+      } catch (error) {
+        console.error(`Ошибка парсинга синхронизированных данных по ключу "${key}":`, error)
       }
     }
 

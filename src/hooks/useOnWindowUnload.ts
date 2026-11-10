@@ -3,10 +3,10 @@ import { useEffect, useRef } from 'react'
 type UnloadCallback = () => void
 
 /**
- * Универсальный хук для выполнения операций при закрытии вкладки,
+ * Выполняет переданные обработчики при закрытии вкладки,
  * перезагрузке страницы или переходе на другой URL.
  *
- * @param callbacks Функция или массив функций, которые необходимо выполнить.
+ * @param callbacks - Функция или массив функций, которые нужно выполнить.
  */
 export const useOnWindowUnload = (callbacks: UnloadCallback | UnloadCallback[]): void => {
   const callbacksRef = useRef<UnloadCallback | UnloadCallback[]>(callbacks)
@@ -19,11 +19,12 @@ export const useOnWindowUnload = (callbacks: UnloadCallback | UnloadCallback[]):
     const handleUnload = (): void => {
       const currentCallbacks = callbacksRef.current
 
-      if (Array.isArray(currentCallbacks)) {
-        currentCallbacks.forEach(callback => callback())
-      } else {
+      if (!Array.isArray(currentCallbacks)) {
         currentCallbacks()
+        return
       }
+
+      currentCallbacks.forEach(callback => callback())
     }
 
     window.addEventListener('pagehide', handleUnload)

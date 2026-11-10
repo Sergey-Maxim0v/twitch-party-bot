@@ -3,8 +3,15 @@ import { useLocalStorage } from './useLocalStorage.ts'
 import { THEME_OPTIONS } from '../constants/theme.constants.ts'
 import type { ThemeConfig, ThemeMode } from './types/theme.types.ts'
 
+const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find(el => el.id === 'system') || THEME_OPTIONS[0]
+
+/**
+ * Управляет темой оформления приложения и сохраняет выбор в localStorage.
+ * Для режима `system` тема следует системным настройкам и обновляется при их изменении.
+ *
+ * @returns {object} Текущий режим темы и функция для его изменения.
+ */
 export const useTheme = () => {
-  const DEFAULT_THEME: ThemeConfig = THEME_OPTIONS.find(el => el.id === 'system') || THEME_OPTIONS[0]
   const [themeMode, setThemeMode] = useLocalStorage<ThemeMode>('twitch_party_theme', DEFAULT_THEME.id)
 
   useEffect(() => {
@@ -13,11 +20,11 @@ export const useTheme = () => {
 
     const applyTheme = () => {
       if (themeMode === 'system') {
-        const isDark = mediaQuery.matches
-        root.setAttribute('data-theme', isDark ? 'dim' : 'nord')
-      } else {
-        root.setAttribute('data-theme', themeMode)
+        root.setAttribute('data-theme', mediaQuery.matches ? 'dim' : 'nord')
+        return
       }
+
+      root.setAttribute('data-theme', themeMode)
     }
 
     applyTheme()
@@ -29,7 +36,6 @@ export const useTheme = () => {
         mediaQuery.removeEventListener('change', applyTheme)
       }
     }
-
   }, [themeMode])
 
   return { themeMode, setThemeMode }
