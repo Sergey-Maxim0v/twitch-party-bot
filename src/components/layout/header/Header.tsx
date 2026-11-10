@@ -8,6 +8,9 @@ import { ChannelSelectToggle } from '../../../features/auth/components/ChannelSe
 import { LogoutToggle } from '../../../features/auth/components/LogoutToggle.tsx'
 import { Version } from './Version.tsx'
 
+/**
+ * Шапка приложения: логотип, состояние подключения, профиль и меню аккаунта.
+ */
 export const Header: FC = () => {
   const { session, isAuthenticated, isLoading, login } = useAuth()
 
@@ -15,7 +18,6 @@ export const Header: FC = () => {
     <header
       className="navbar bg-base-200 border-b border-base-300 px-6 flex justify-between items-center select-none"
     >
-      {/* Логотип */}
       <div className="flex items-end gap-2 h-7">
         <LuTwitch className="text-2xl font-black text-primary self-center" />
         <span className="hidden sm:inline text-xl font-black tracking-tight text-primary leading-none">
@@ -24,7 +26,6 @@ export const Header: FC = () => {
         <Version className="hidden md:inline-block ml-1" />
       </div>
 
-      {/* Правая часть */}
       <div className="flex items-center gap-4">
         {isLoading ? (
           <button aria-label="Загрузка" className="btn btn-ghost btn-sm disabled">
@@ -36,9 +37,9 @@ export const Header: FC = () => {
 
             <div className="dropdown dropdown-end">
               <div
-                className={'btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3'
-                        + ' hover:bg-base-100 bg-base-300 transition-colors text-sm font-medium'
-                        + ' text-base-content border border-base-100'}
+                className={`btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
+                        hover:bg-base-100 bg-base-300 transition-colors text-sm font-medium
+                        text-base-content border border-base-100`}
                 role="button"
                 tabIndex={0}
               >
@@ -46,8 +47,8 @@ export const Header: FC = () => {
               </div>
 
               <ul
-                className={'dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box'
-                        + ' w-88 gap-0.5 z-50 mt-2 border border-base-100 right-0'}
+                className={`dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box
+                        w-88 gap-0.5 z-50 mt-2 border border-base-100 right-0`}
                 tabIndex={0}
               >
                 <li className="p-0">
@@ -65,7 +66,6 @@ export const Header: FC = () => {
             </div>
           </div>
         ) : (
-        /* Неавторизованное состояние */
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <button

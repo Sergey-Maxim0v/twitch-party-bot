@@ -3,26 +3,33 @@ import { LuArrowLeftFromLine, LuArrowUpFromLine } from 'react-icons/lu'
 import { PANEL_DIRECTIONS, type PanelDirection } from './types'
 
 interface PanelToggleProps {
+  /** Развернута ли панель. */
   isOpen: boolean;
+  /** Обработчик нажатия на кнопку сворачивания. */
   onOpen: () => void;
+  /** Заголовок панели. */
   title: string;
+  /** Дополнительные CSS-классы кнопки. */
   className?: string;
+  /** Направление раскладки панели. */
   direction?: PanelDirection;
 }
 
+/**
+ * Кнопка сворачивания панели с иконкой, зависящей от направления раскладки.
+ */
 export const PanelToggle: FC<PanelToggleProps> = ({
   isOpen,
   onOpen,
   title,
   className = '',
   direction = PANEL_DIRECTIONS.HORIZONTAL,
-}: PanelToggleProps) => {
+}) => {
   const isHorizontal = direction === PANEL_DIRECTIONS.HORIZONTAL
   const Icon = isHorizontal ? LuArrowLeftFromLine : LuArrowUpFromLine
-
   const iconClasses = isHorizontal
-    ? `${isOpen ? '-scale-x-100' : ''}`
-    : `${isOpen ? '' : 'rotate-180'}`
+    ? (isOpen ? '-scale-x-100' : '')
+    : (isOpen ? '' : 'rotate-180')
 
   return (
     <button

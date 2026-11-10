@@ -4,11 +4,14 @@ import { AuthModal } from '../../features/auth/components/AuthModal.tsx'
 import { ChannelSelectModal } from '../../features/auth/components/ChannelSelectModal.tsx'
 
 interface PageLayoutProps {
+  /** Основное содержимое страницы. */
   children: ReactNode;
 }
 
+/**
+ * Общий каркас страницы: шапка, область контента и модальные окна авторизации.
+ */
 export const PageLayout: FC<PageLayoutProps> = ({ children }) => {
-
   return (
     <div
       className="h-screen w-screen flex flex-col bg-base-100 text-base-content antialiased transition-colors duration-200"

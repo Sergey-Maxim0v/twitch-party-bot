@@ -7,6 +7,9 @@ import { BREAKPOINTS } from '../../../hooks/types/breakpoint.types.ts'
 import { useWorkspacePanels } from './hooks/useWorkspacePanels.ts'
 import { createWorkspacePanels } from './utils/createWorkspacePanels.tsx'
 
+/**
+ * Рабочее пространство стримера с панелями настроек, очереди, логов и чата.
+ */
 export const StreamerWorkspace: FC = () => {
   const [isOpenSettings, setIsOpenSettings] = useLocalStorage<boolean>(PANEL_STORAGE_KEYS.SETTINGS_OPEN, true)
   const [isOpenQueue, setIsOpenQueue] = useLocalStorage<boolean>(PANEL_STORAGE_KEYS.QUEUE_OPEN, true)
@@ -31,25 +34,23 @@ export const StreamerWorkspace: FC = () => {
   const panelStyle = 'flex-1 min-w-0 min-h-0'
 
   const { settingsPanel, queuePanel, logsPanel, chatPanel } = createWorkspacePanels({
+    currentBreakpoint,
     directions,
+    isOpenSettings,
+    isOpenQueue,
+    isOpenLogs,
     isOpenChat,
+    panelStyle,
     setIsOpenSettings,
     setIsOpenQueue,
-    isOpenLogs,
-    isOpenQueue,
-    isOpenSettings,
-    setIsOpenChat,
     setIsOpenLogs,
-    panelStyle,
-    currentBreakpoint,
+    setIsOpenChat,
   })
 
   return (
     <div className="w-screen h-full flex justify-center bg-base-300 overflow-hidden">
-      {/* Главный контейнер */}
       <div className="w-full h-full flex bg-base-100 overflow-hidden flex-col md:flex-row">
-
-        {/* --- 1. МОБИЛЬНЫЙ РЕЖИМ (SM: <768px) --- */}
+        {/* Мобильная раскладка: все панели в один столбец */}
         {currentBreakpoint === BREAKPOINTS.SM && (
           <>
             {settingsPanel}
@@ -59,7 +60,7 @@ export const StreamerWorkspace: FC = () => {
           </>
         )}
 
-        {/* --- 2. ПЛАНШЕТНЫЙ РЕЖИМ (MD / LG: 768px - 1279px) --- */}
+        {/* Планшетная раскладка: две колонки по две панели */}
         {(currentBreakpoint === BREAKPOINTS.MD || currentBreakpoint === BREAKPOINTS.LG) && (
           <>
             <div className="flex-1 h-full flex flex-col min-h-0">
@@ -73,7 +74,7 @@ export const StreamerWorkspace: FC = () => {
           </>
         )}
 
-        {/* --- 3. НОУТБУК РЕЖИМ (XL: 1280px - 1535px) --- */}
+        {/* Ноутбучная раскладка: настройки и логи в колонке, очередь и чат сбоку */}
         {currentBreakpoint === BREAKPOINTS.XL && (
           <>
             <div className="flex-1 h-full flex flex-col min-h-0">
@@ -85,7 +86,7 @@ export const StreamerWorkspace: FC = () => {
           </>
         )}
 
-        {/* --- 4. ДЕСКТОП РЕЖИМ (XXL: >=1536px) --- */}
+        {/* Десктопная раскладка: все панели в ряд */}
         {currentBreakpoint === BREAKPOINTS.XXL && (
           <>
             {settingsPanel}

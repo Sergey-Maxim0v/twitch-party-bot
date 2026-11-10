@@ -1,21 +1,18 @@
 import { PANEL_DIRECTIONS, type PanelDirection } from '../types'
 import { type Breakpoint, BREAKPOINTS } from '../../../../hooks/types/breakpoint.types.ts'
 
+/** Направления раскладки панелей рабочего пространства. */
 export type WorkspaceDirections = Record<'settings' | 'queue' | 'logs' | 'chat', PanelDirection>
 
 /**
- * Вычисление направления сворачивания (direction) для каждой панели
- * на основе текущего брейкпоинта экрана.
+ * Вычисляет направление сворачивания для каждой панели по текущему брейкпоинту экрана.
+ *
+ * @param currentBreakpoint - Текущий брейкпоинт сетки Tailwind CSS.
+ * @returns Направления раскладки панелей настроек, очереди, логов и чата.
  */
 export const getPanelDirections = (currentBreakpoint: Breakpoint): WorkspaceDirections => {
   switch (currentBreakpoint) {
     case BREAKPOINTS.SM:
-      return {
-        settings: PANEL_DIRECTIONS.VERTICAL,
-        queue: PANEL_DIRECTIONS.VERTICAL,
-        logs: PANEL_DIRECTIONS.VERTICAL,
-        chat: PANEL_DIRECTIONS.VERTICAL,
-      }
     case BREAKPOINTS.MD:
     case BREAKPOINTS.LG:
       return {

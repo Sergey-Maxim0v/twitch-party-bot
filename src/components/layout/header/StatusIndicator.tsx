@@ -1,17 +1,27 @@
 import { type FC } from 'react'
+import type { StatusBadgeType } from './types'
 
 interface StatusIndicatorProps {
+  /** Заголовок группы статуса (например, "Сеть" или "Чат"). */
   label: string;
+  /** Короткое слово состояния (например, "Подключен", "Ожидание"). */
   statusText: string;
-  badgeType: 'success' | 'warning' | 'error' | 'info' | 'neutral';
+  /** Тип окраски индикатора в стиле DaisyUI. */
+  badgeType: StatusBadgeType;
+  /** Текст подробной подсказки при наведении. */
   tooltipText: string;
 }
 
+const BADGE_COLORS: Record<StatusBadgeType, string> = {
+  success: 'bg-success',
+  warning: 'bg-warning',
+  error: 'bg-error',
+  info: 'bg-info',
+  neutral: 'bg-neutral-content',
+}
+
 /**
- * @param label - Заголовок группы статуса (например, "Сеть" или "Чат")
- * @param statusText - Короткое слово состояния (например, "Подключен", "Ожидание")
- * @param badgeType - Тип окраски индикатора в стиле DaisyUI (success, warning, error, info, neutral)
- * @param tooltipText - Текст подробной подсказки при наведении
+ * Индикатор состояния с цветной точкой, подписью и подсказкой при наведении.
  */
 export const StatusIndicator: FC<StatusIndicatorProps> = ({
   label,
@@ -19,13 +29,7 @@ export const StatusIndicator: FC<StatusIndicatorProps> = ({
   badgeType,
   tooltipText,
 }) => {
-  const badgeColors: Record<StatusIndicatorProps['badgeType'], string> = {
-    success: 'bg-success',
-    warning: 'bg-warning',
-    error: 'bg-error',
-    info: 'bg-info',
-    neutral: 'bg-neutral-content',
-  }
+  const isPulsing = badgeType !== 'error' && badgeType !== 'neutral'
 
   return (
     <div
@@ -41,12 +45,12 @@ export const StatusIndicator: FC<StatusIndicatorProps> = ({
 
         <div className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
-            {badgeType !== 'error' && badgeType !== 'neutral' && (
+            {isPulsing && (
               <span className={`absolute inline-flex h-full w-full rounded-full opacity-75
-                            ${badgeColors[badgeType]}`}
+                            ${BADGE_COLORS[badgeType]}`}
               ></span>
             )}
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${badgeColors[badgeType]}`}></span>
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${BADGE_COLORS[badgeType]}`}></span>
           </span>
 
           <span className="text-sm font-bold text-base-content">

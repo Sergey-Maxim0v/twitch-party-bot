@@ -5,9 +5,13 @@ import { getNetworkConfig } from './utils/getNetworkConfig.ts'
 import { getChatConfig } from './utils/getChatConfig.ts'
 
 interface ConnectionStatusPanelProps {
+  /** Дополнительные CSS-классы контейнера. */
   className?: string;
 }
 
+/**
+ * Индикаторы состояния сетевого соединения и доступа к чату.
+ */
 export const ConnectionStatusPanel: FC<ConnectionStatusPanelProps> = ({ className = '' }) => {
   const { connectionStatus, chatAccessStatus } = useSocketContext()
 
@@ -16,7 +20,6 @@ export const ConnectionStatusPanel: FC<ConnectionStatusPanelProps> = ({ classNam
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {/* Индикатор сетевого соединения */}
       <StatusIndicator
         badgeType={network.badgeType}
         label="Сеть"
@@ -24,7 +27,6 @@ export const ConnectionStatusPanel: FC<ConnectionStatusPanelProps> = ({ classNam
         tooltipText={network.tooltipText}
       />
 
-      {/* Индикатор состояния чата */}
       <StatusIndicator
         badgeType={chat.badgeType}
         label="Чат"

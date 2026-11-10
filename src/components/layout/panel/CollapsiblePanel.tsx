@@ -1,20 +1,26 @@
-import { type FC, type ReactNode, useState } from 'react'
+import { type FC, type ReactNode, type TransitionEvent, useState } from 'react'
 import { PanelToggle } from './PanelToggle.tsx'
 import { PANEL_DIRECTIONS, type PanelDirection } from './types'
 
 interface CollapsiblePanelProps {
+  /** Развернута ли панель. */
   isOpen: boolean;
+  /** Обработчик переключения состояния панели. */
   onToggle: () => void;
+  /** Заголовок панели. */
   title: string;
+  /** Содержимое панели. */
   children: ReactNode;
+  /** Дополнительные CSS-классы для раскрытого состояния. */
   className?: string;
+  /** Дополнительные CSS-классы для свернутого состояния. */
   collapsedClassName?: string;
+  /** Направление раскладки панели. */
   direction?: PanelDirection;
 }
 
 /**
- * * @param className - Стили для раскрытого состояния
- *  * @param collapsedClassName - Стили для свернутого состояния
+ * Панель, которую можно свернуть и развернуть кнопкой в углу заголовка.
  */
 export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
   isOpen,
@@ -24,13 +30,10 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
   className = '',
   collapsedClassName = '',
   direction = PANEL_DIRECTIONS.HORIZONTAL,
-}: CollapsiblePanelProps) => {
+}) => {
   const [isAnimationDone, setIsAnimationDone] = useState<boolean>(isOpen)
   const isHorizontal = direction === PANEL_DIRECTIONS.HORIZONTAL
 
-  /**
-   * Обработчик клика по кнопке сворачивания.
-   */
   const handleToggle = () => {
     if (isOpen) {
       setIsAnimationDone(false)
@@ -38,17 +41,13 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
     onToggle()
   }
 
-  /**
-   * Обработчик завершения CSS-перехода.
-   */
-  const handleTransitionEnd = (e: React.TransitionEvent<HTMLElement>) => {
+  const handleTransitionEnd = (event: TransitionEvent<HTMLElement>) => {
     const targetProperty = isHorizontal ? 'width' : 'height'
-    if (e.propertyName === targetProperty && e.target === e.currentTarget) {
+    if (event.propertyName === targetProperty && event.target === event.currentTarget) {
       setIsAnimationDone(isOpen)
     }
   }
 
-  // Настройка динамических классов размеров и отображения
   const sizeClasses = isHorizontal
     ? (isOpen ? `w-80 h-full ${className}` : `w-12 h-full bg-base-300 ${collapsedClassName}`)
     : (isOpen ? `w-full h-80 ${className}` : `w-full h-12 bg-base-300 ${collapsedClassName}`)
@@ -75,7 +74,7 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
           ${headerClasses}
         `}
       >
-        {/* Горизонтальный заголовок (в раскрытом состоянии или в свернутом вертикальном) */}
+        {/* Горизонтальный заголовок: раскрытая панель или свёрнутая вертикальная */}
         {(isOpen || !isHorizontal) && (
           <h2 className="text-sm font-bold uppercase tracking-wider truncate pr-10 select-none text-base-content/80">
             {title}
@@ -90,11 +89,10 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
           title={title}
         />
 
-        {/* Вертикальный текст только в свернутом горизонтальном состоянии */}
+        {/* Вертикальный заголовок только у свёрнутой горизонтальной панели */}
         {!isOpen && isHorizontal && (
           <span
-            className={'p-2 text-xs font-bold text-base-content/40 tracking-widest uppercase [writing-mode:vertical-lr]' +
-          ' mt-8 select-none max-h-[calc(100vh-8rem)] overflow-hidden text-ellipsis whitespace-nowrap'}
+            className="p-2 text-xs font-bold text-base-content/40 tracking-widest uppercase [writing-mode:vertical-lr] mt-8 select-none max-h-[calc(100vh-8rem)] overflow-hidden text-ellipsis whitespace-nowrap"
           >
             {title}
           </span>

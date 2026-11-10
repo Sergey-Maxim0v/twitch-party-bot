@@ -2,6 +2,9 @@ import { type FC } from 'react'
 import { LuTwitch } from 'react-icons/lu'
 import { useAuth } from '../../features/auth/hooks/useAuth.ts'
 
+/**
+ * Экран-приглашение к авторизации через Twitch.
+ */
 export const WelcomeScreen: FC = () => {
   const { login } = useAuth()
 

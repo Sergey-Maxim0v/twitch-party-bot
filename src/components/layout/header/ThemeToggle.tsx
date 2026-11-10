@@ -5,13 +5,18 @@ import type { ThemeMode } from '../../../hooks/types/theme.types.ts'
 import { THEME_OPTIONS } from '../../../constants/theme.constants.ts'
 import { THEME_MODE_ICONS } from '../../../constants/ui.constants.ts'
 
+/**
+ * Переключатель темы оформления, перебирающий доступные темы по кругу.
+ */
 export const ThemeToggle: FC = () => {
   const { themeMode, setThemeMode } = useTheme()
 
   const toggleTheme = useCallback(() => {
     setThemeMode((prevTheme: ThemeMode) => {
       const currentIndex = THEME_OPTIONS.findIndex(option => option.id === prevTheme)
-      if (currentIndex === -1) return THEME_OPTIONS[0].id
+      if (currentIndex === -1) {
+        return THEME_OPTIONS[0].id
+      }
       const nextIndex = (currentIndex + 1) % THEME_OPTIONS.length
       return THEME_OPTIONS[nextIndex].id
     })

@@ -7,19 +7,27 @@ import { TwitchChat } from '../../../../services/twitch/components/TwitchChat.ts
 import type { WorkspaceDirections } from '../../panel/utils/getPanelDirections.ts'
 
 interface CreateWorkspacePanelProps {
+  /** Общие CSS-классы панелей. */
   panelStyle: string
+  /** Направления раскладки панелей. */
   directions: WorkspaceDirections
+  /** Текущий брейкпоинт экрана. */
   currentBreakpoint: Breakpoint
+  /** Состояния раскрытия панелей. */
   isOpenSettings: boolean
   isOpenQueue: boolean
   isOpenLogs: boolean
   isOpenChat: boolean
+  /** Обработчики изменения состояния панелей. */
   setIsOpenSettings: (isOpen: boolean) => void
   setIsOpenLogs: (isOpen: boolean) => void
   setIsOpenQueue: (isOpen: boolean) => void
   setIsOpenChat: (isOpen: boolean) => void
 }
 
+/**
+ * Создаёт панели рабочего пространства с логикой переключения, зависящей от брейкпоинта экрана.
+ */
 export const createWorkspacePanels = ({
   panelStyle,
   directions,
@@ -33,30 +41,116 @@ export const createWorkspacePanels = ({
   setIsOpenQueue,
   setIsOpenChat,
 }: CreateWorkspacePanelProps) => {
+  const toggleSettings = () => {
+    switch (currentBreakpoint) {
+      case BREAKPOINTS.SM:
+        setIsOpenSettings(!isOpenSettings)
+        setIsOpenLogs(false)
+        setIsOpenQueue(false)
+        setIsOpenChat(false)
+        return
+      case BREAKPOINTS.MD:
+      case BREAKPOINTS.LG:
+        if (isOpenSettings && !isOpenQueue) {
+          setIsOpenSettings(false)
+          setIsOpenQueue(true)
+          return
+        }
+        setIsOpenSettings(!isOpenSettings)
+        return
+      case BREAKPOINTS.XL:
+        if (isOpenSettings && !isOpenLogs) {
+          setIsOpenSettings(false)
+          setIsOpenLogs(true)
+          return
+        }
+        setIsOpenSettings(!isOpenSettings)
+        return
+      default:
+        setIsOpenSettings(!isOpenSettings)
+    }
+  }
+
+  const toggleLogs = () => {
+    switch (currentBreakpoint) {
+      case BREAKPOINTS.SM:
+        setIsOpenSettings(false)
+        setIsOpenLogs(!isOpenLogs)
+        setIsOpenQueue(false)
+        setIsOpenChat(false)
+        return
+      case BREAKPOINTS.MD:
+      case BREAKPOINTS.LG:
+        if (isOpenLogs && !isOpenChat) {
+          setIsOpenLogs(false)
+          setIsOpenChat(true)
+          return
+        }
+        setIsOpenLogs(!isOpenLogs)
+        return
+      case BREAKPOINTS.XL:
+        if (!isOpenSettings && isOpenLogs) {
+          setIsOpenSettings(true)
+          setIsOpenLogs(false)
+          return
+        }
+        setIsOpenLogs(!isOpenLogs)
+        return
+      default:
+        setIsOpenLogs(!isOpenLogs)
+    }
+  }
+
+  const toggleQueue = () => {
+    switch (currentBreakpoint) {
+      case BREAKPOINTS.SM:
+        setIsOpenSettings(false)
+        setIsOpenLogs(false)
+        setIsOpenQueue(!isOpenQueue)
+        setIsOpenChat(false)
+        return
+      case BREAKPOINTS.MD:
+      case BREAKPOINTS.LG:
+        if (isOpenQueue && !isOpenSettings) {
+          setIsOpenSettings(true)
+          setIsOpenQueue(false)
+          return
+        }
+        setIsOpenQueue(!isOpenQueue)
+        return
+      default:
+        setIsOpenQueue(!isOpenQueue)
+    }
+  }
+
+  const toggleChat = () => {
+    switch (currentBreakpoint) {
+      case BREAKPOINTS.SM:
+        setIsOpenSettings(false)
+        setIsOpenQueue(false)
+        setIsOpenLogs(false)
+        setIsOpenChat(!isOpenChat)
+        return
+      case BREAKPOINTS.MD:
+      case BREAKPOINTS.LG:
+        if (isOpenChat && !isOpenLogs) {
+          setIsOpenLogs(true)
+          setIsOpenChat(false)
+          return
+        }
+        setIsOpenChat(!isOpenChat)
+        return
+      default:
+        setIsOpenChat(!isOpenChat)
+    }
+  }
+
   const settingsPanel = (
     <CollapsiblePanel
       className={panelStyle}
       direction={directions.settings}
       isOpen={isOpenSettings}
-      onToggle={() => {
-        if(currentBreakpoint === BREAKPOINTS.SM) {
-          setIsOpenSettings(!isOpenSettings)
-          setIsOpenLogs(false)
-          setIsOpenQueue(false)
-          setIsOpenChat(false)
-        } else if (currentBreakpoint === BREAKPOINTS.MD && isOpenSettings && !isOpenQueue ) {
-          setIsOpenSettings(false)
-          setIsOpenQueue(true)
-        } else if (currentBreakpoint === BREAKPOINTS.LG && isOpenSettings && !isOpenQueue) {
-          setIsOpenSettings(false)
-          setIsOpenQueue(true)
-        } else if (currentBreakpoint === BREAKPOINTS.XL && isOpenSettings && !isOpenLogs ) {
-          setIsOpenSettings(false)
-          setIsOpenLogs(true)
-        } else {
-          setIsOpenSettings(!isOpenSettings)
-        }
-      }}
+      onToggle={toggleSettings}
       title="Настройки очереди"
     >
       <QueueSettingsPanel />
@@ -68,25 +162,7 @@ export const createWorkspacePanels = ({
       className={panelStyle}
       direction={directions.logs}
       isOpen={isOpenLogs}
-      onToggle={() => {
-        if(currentBreakpoint === BREAKPOINTS.SM) {
-          setIsOpenSettings(false)
-          setIsOpenLogs(!isOpenLogs)
-          setIsOpenQueue(false)
-          setIsOpenChat(false)
-        } else if (currentBreakpoint === BREAKPOINTS.MD && isOpenLogs && !isOpenChat) {
-          setIsOpenLogs(false)
-          setIsOpenChat(true)
-        } else if (currentBreakpoint === BREAKPOINTS.LG && isOpenLogs && !isOpenChat) {
-          setIsOpenLogs(false)
-          setIsOpenChat(true)
-        } else if (currentBreakpoint === BREAKPOINTS.XL && !isOpenSettings && isOpenLogs ) {
-          setIsOpenSettings(true)
-          setIsOpenLogs(false)
-        } else {
-          setIsOpenLogs(!isOpenLogs)
-        }
-      }}
+      onToggle={toggleLogs}
       title="Логи очереди"
     >
       <QueueLogsPanel />
@@ -98,22 +174,7 @@ export const createWorkspacePanels = ({
       className={panelStyle}
       direction={directions.queue}
       isOpen={isOpenQueue}
-      onToggle={() => {
-        if(currentBreakpoint === BREAKPOINTS.SM) {
-          setIsOpenSettings(false)
-          setIsOpenLogs(false)
-          setIsOpenQueue(!isOpenQueue)
-          setIsOpenChat(false)
-        } else if (currentBreakpoint === BREAKPOINTS.MD && isOpenQueue && !isOpenSettings ) {
-          setIsOpenSettings(true)
-          setIsOpenQueue(false)
-        } else if (currentBreakpoint === BREAKPOINTS.LG && isOpenQueue && !isOpenSettings) {
-          setIsOpenSettings(true)
-          setIsOpenQueue(false)
-        } else {
-          setIsOpenQueue(!isOpenQueue)
-        }
-      }}
+      onToggle={toggleQueue}
       title="Очередь"
     >
       <QueuePanel />
@@ -125,26 +186,12 @@ export const createWorkspacePanels = ({
       className={panelStyle}
       direction={directions.chat}
       isOpen={isOpenChat}
-      onToggle={() => {
-        if(currentBreakpoint === BREAKPOINTS.SM) {
-          setIsOpenSettings(false)
-          setIsOpenQueue(false)
-          setIsOpenLogs(false)
-          setIsOpenChat(!isOpenChat)
-        } else if (currentBreakpoint === BREAKPOINTS.MD && isOpenChat && !isOpenLogs) {
-          setIsOpenLogs(true)
-          setIsOpenChat(false)
-        } else if (currentBreakpoint === BREAKPOINTS.LG && isOpenChat && !isOpenLogs) {
-          setIsOpenLogs(true)
-          setIsOpenChat(false)
-        } else {
-          setIsOpenChat(!isOpenChat)
-        }
-      }}
+      onToggle={toggleChat}
       title="Чат трансляции"
     >
       <TwitchChat />
     </CollapsiblePanel>
   )
+
   return { settingsPanel, logsPanel, queuePanel, chatPanel }
 }
