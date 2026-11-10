@@ -33,14 +33,6 @@ export const TWITCH_AUTH_ERRORS = {
 }
 
 /**
- * Ключи localStorage для хранения состояния авторизации.
- */
-export const TWITCH_STORAGE_KEYS = {
-  SESSION: 'tqp_twitch_session',
-  ACTIVE_CHANNEL: 'tqp_active_channel',
-}
-
-/**
  * Ключ sessionStorage для хранения `state`, защищающего OAuth-поток от CSRF.
  */
 export const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'

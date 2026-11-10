@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { TWITCH_AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession } from '../types'
 import { useTwitchPopup } from './useTwitchPopup.ts'
 import { useTwitchChannelState } from './useTwitchChannelState.ts'
-import { TWITCH_STORAGE_KEYS, TWITCH_TOKEN_VALIDATION_INTERVAL_MS } from '../../../constants/auth.constants.ts'
+import { TWITCH_TOKEN_VALIDATION_INTERVAL_MS } from '../../../constants/auth.constants.ts'
+import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useChannelProfile } from './useChannelProfile.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
@@ -15,7 +16,7 @@ import { extractTwitchToken } from '../utils/extractTwitchToken.ts'
  * @returns Полный набор данных и действий для работы с авторизацией.
  */
 export const useTwitchAuth = (): TwitchAuthHookResult => {
-  const [session, setSession] = useLocalStorage<TwitchUserSession | null>(TWITCH_STORAGE_KEYS.SESSION, null)
+  const [session, setSession] = useLocalStorage<TwitchUserSession | null>(AUTH_STORAGE_KEYS.SESSION, null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 

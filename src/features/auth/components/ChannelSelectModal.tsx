@@ -4,7 +4,7 @@ import { useSocketContext } from '../../../services/socket/hooks/useSocketContex
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { LuX } from 'react-icons/lu'
 import { getChannelSelectCurrentError } from '../utils/getChannelSelectCurrentError.ts'
-import { TWITCH_STORAGE_KEYS } from '../../../constants/auth.constants.ts'
+import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { getTwitchChannelProfile } from '../utils/getTwitchChannelProfile.ts'
 
 /**
@@ -30,7 +30,7 @@ export const ChannelSelectModal: FC = () => {
   const [isNotFound, setIsNotFound] = useState(false)
   const [isValidationTriggered, setIsValidationTriggered] = useState(false)
 
-  const storedChannel = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL)
+  const storedChannel = localStorage.getItem(AUTH_STORAGE_KEYS.ACTIVE_CHANNEL)
   const isChannelSelectedInSystem = storedChannel && storedChannel !== 'null'
 
   useEffect(() => {

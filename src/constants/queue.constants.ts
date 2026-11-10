@@ -2,16 +2,6 @@ import type { QueueGameKey, QueueSettings } from '../features/queue-settings/typ
 import type { QueuePlayerSource } from '../features/queue/types.ts'
 
 /**
- * Ключ localStorage для хранения состояния очереди.
- */
-export const QUEUE_STORAGE_KEY = 'twitch_queue_data'
-
-/**
- * Ключ localStorage для хранения настроек очереди.
- */
-export const QUEUE_SETTINGS_STORAGE_KEY = 'twitch_queue_settings'
-
-/**
  * Источники появления игрока в очереди.
  */
 export const QUEUE_PLAYER_SOURCE = {

@@ -3,7 +3,7 @@ import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
 import type { QueueState } from '../types'
 import { createInitialState } from '../utils/createInitialState'
-import { QUEUE_STORAGE_KEY } from '../../../constants/queue.constants.ts'
+import { QUEUE_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
@@ -23,8 +23,8 @@ interface QueueProviderProps {
  * Провайдер состояния и методов управления очередью.
  */
 export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
-  const [state, setState] = useLocalStorage<QueueState>(QUEUE_STORAGE_KEY, createInitialState())
-  const [isQueueOpen, setIsQueueOpen] = useLocalStorage('twitch_queue_status', false)
+  const [state, setState] = useLocalStorage<QueueState>(QUEUE_STORAGE_KEYS.DATA, createInitialState())
+  const [isQueueOpen, setIsQueueOpen] = useLocalStorage(QUEUE_STORAGE_KEYS.STATUS, false)
 
   const { pushLog: pushAppLog } = useAppLogs()
   const { settings } = useQueueSettings()

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { TWITCH_STORAGE_KEYS } from '../../../constants/auth.constants.ts'
+import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
@@ -10,9 +10,9 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
  * @returns Выбранный канал, состояние модального окна и обработчики выбора.
  */
 export const useTwitchChannelState = (sessionLogin: string | undefined) => {
-  const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL, null)
+  const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(AUTH_STORAGE_KEYS.ACTIVE_CHANNEL, null)
   const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(() => {
-    const stored = localStorage.getItem(TWITCH_STORAGE_KEYS.ACTIVE_CHANNEL)
+    const stored = localStorage.getItem(AUTH_STORAGE_KEYS.ACTIVE_CHANNEL)
     return !stored || stored === 'null'
   })
   const [channelError, setChannelError] = useState<string | null>(null)

@@ -1,5 +1,6 @@
 import { type FC } from 'react'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
+import { PANEL_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useBreakpoint } from '../../../hooks/useBreakpoint.ts'
 import { getPanelDirections } from '../panel/utils/getPanelDirections.ts'
 import { BREAKPOINTS } from '../../../hooks/types/breakpoint.types.ts'
@@ -7,10 +8,10 @@ import { useWorkspacePanels } from './hooks/useWorkspacePanels.ts'
 import { createWorkspacePanels } from './utils/createWorkspacePanels.tsx'
 
 export const StreamerWorkspace: FC = () => {
-  const [isOpenSettings, setIsOpenSettings] = useLocalStorage<boolean>('panel_settings_open', true)
-  const [isOpenQueue, setIsOpenQueue] = useLocalStorage<boolean>('panel_queue_open', true)
-  const [isOpenLogs, setIsOpenLogs] = useLocalStorage<boolean>('panel_logs_open', true)
-  const [isOpenChat, setIsOpenChat] = useLocalStorage<boolean>('panel_chat_open', true)
+  const [isOpenSettings, setIsOpenSettings] = useLocalStorage<boolean>(PANEL_STORAGE_KEYS.SETTINGS_OPEN, true)
+  const [isOpenQueue, setIsOpenQueue] = useLocalStorage<boolean>(PANEL_STORAGE_KEYS.QUEUE_OPEN, true)
+  const [isOpenLogs, setIsOpenLogs] = useLocalStorage<boolean>(PANEL_STORAGE_KEYS.LOGS_OPEN, true)
+  const [isOpenChat, setIsOpenChat] = useLocalStorage<boolean>(PANEL_STORAGE_KEYS.CHAT_OPEN, true)
 
   const currentBreakpoint = useBreakpoint()
   const directions = getPanelDirections(currentBreakpoint)
