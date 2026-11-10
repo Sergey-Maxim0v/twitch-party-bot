@@ -1,3 +1,6 @@
+/**
+ * Брейкпоинты сетки Tailwind CSS: sm — 640px, md — 768px, lg — 1024px, xl — 1280px, 2xl — 1536px.
+ */
 export const BREAKPOINTS = {
   /** 640px */
   SM: 'sm',
@@ -15,6 +18,9 @@ export const BREAKPOINTS = {
   XXL: '2xl',
 } as const
 
+/**
+ * Направления раскладки панелей.
+ */
 export const PANEL_DIRECTIONS = {
   HORIZONTAL: 'horizontal',
   VERTICAL: 'vertical',

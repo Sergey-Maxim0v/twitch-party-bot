@@ -1,12 +1,12 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { SOCKET_CONNECTION_STATUSES } from '../../socket/types.ts'
-import { TWITCH_HEARTBEAT_WORKER_COMMANDS, TWITCH_HEARTBEAT_WORKER_EVENTS, TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import {
+  TWITCH_HEARTBEAT_INTERVAL_MS,
+  TWITCH_HEARTBEAT_WORKER_COMMANDS, TWITCH_HEARTBEAT_WORKER_EVENTS, TWITCH_IRC_COMMANDS, TWITCH_PONG_TIMEOUT_MS,
+} from '../../../constants/twitch.constants.ts'
 
 import HeartbeatWorker from '../workers/heartbeat.worker.ts?worker'
-
-const TWITCH_HEARTBEAT_INTERVAL_MS = 60000
-const PONG_TIMEOUT = 10000
 
 /**
  * Изолированный хук для контроля «полуоткрытого» соединения (Heartbeat / Ping-Pong).
@@ -46,7 +46,7 @@ export const useTwitchHeartbeat = () => {
 
     workerRef.current?.postMessage({
       type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER,
-      payload: PONG_TIMEOUT,
+      payload: TWITCH_PONG_TIMEOUT_MS,
     })
   }, [socketContext])
 

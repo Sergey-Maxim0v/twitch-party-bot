@@ -1,14 +1,9 @@
 import { type FC, useCallback } from 'react'
-import { LuMoon, LuSun, LuSunMoon, LuPalette } from 'react-icons/lu'
+import { LuSunMoon, LuPalette } from 'react-icons/lu'
 import { useTheme } from '../../../hooks/useTheme.ts'
 import type { ThemeMode } from '../../../hooks/types/theme.types.ts'
 import { THEME_OPTIONS } from '../../../constants/theme.constants.ts'
-
-const THEME_MODE_ICONS = {
-  nord: LuSun,
-  dim: LuMoon,
-  system: LuSunMoon,
-}
+import { THEME_MODE_ICONS } from '../../../constants/ui.constants.ts'
 
 export const ThemeToggle: FC = () => {
   const { themeMode, setThemeMode } = useTheme()

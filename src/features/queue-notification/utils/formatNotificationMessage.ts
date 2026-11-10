@@ -1,6 +1,7 @@
 import { formatNotificationPart } from './formatNotificationPart.ts'
 import type { TwitchNotificationState } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
+import { TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH } from '../../../constants/twitch.constants.ts'
 
 interface FormatNotificationMessageArgs {
   /** Буфер накопленных событий очереди. */
@@ -10,9 +11,6 @@ interface FormatNotificationMessageArgs {
   /** Префикс автоматических сообщений. */
   prefix: QueueSettings['messagePrefix'];
 }
-
-/** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
-const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
 
 /**
  * Форматирует пакет накопившихся изменений очереди в одну компактную строку.

@@ -1,34 +1,57 @@
 import type { QueueGameKey, QueueSettings } from '../features/queue-settings/types.ts'
 import type { QueuePlayerSource } from '../features/queue/types.ts'
 
-/** Ключ localStorage для хранения состояния очереди. */
+/**
+ * Ключ localStorage для хранения состояния очереди.
+ */
 export const QUEUE_STORAGE_KEY = 'twitch_queue_data'
 
+/**
+ * Ключ localStorage для хранения настроек очереди.
+ */
 export const QUEUE_SETTINGS_STORAGE_KEY = 'twitch_queue_settings'
 
+/**
+ * Источники появления игрока в очереди.
+ */
 export const QUEUE_PLAYER_SOURCE = {
   APP: 'app',
   MOD_CMD: 'mod_cmd',
   USER_CMD: 'user_cmd',
 }
 
+/**
+ * Типы очередей в приложении.
+ */
 export const QUEUE_TYPES = {
   ACTIVE: 'active',
   WAITING: 'waiting',
   HISTORY: 'history',
 }
 
+/**
+ * Результат попытки присоединения игрока к очереди.
+ */
 export const QUEUE_JOIN_STATUSES = {
   JOINED: 'joined',
   WAITING: 'waiting',
   DENIED: 'denied',
 } as const
 
-/** Отображаемые названия и стили бейджей для источников появления игрока. */
-export const QUEUE_PLAYER_SOURCE_META: Record<
-  QueuePlayerSource,
-  { label: string; badgeClass: string }
-> = {
+/**
+ * Оформление бейджа для источника появления игрока.
+ */
+interface QueuePlayerSourceMeta {
+  /** Текстовая подпись источника. */
+  label: string;
+  /** CSS-классы бейджа. */
+  badgeClass: string;
+}
+
+/**
+ * Отображаемые названия и стили бейджей для источников появления игрока.
+ */
+export const QUEUE_PLAYER_SOURCE_META: Record<QueuePlayerSource, QueuePlayerSourceMeta> = {
   app: {
     label: 'Приложение',
     badgeClass: 'badge-info text-info-content',
@@ -43,6 +66,9 @@ export const QUEUE_PLAYER_SOURCE_META: Record<
   },
 }
 
+/**
+ * Отображаемые названия поддерживаемых игр.
+ */
 export const QUEUE_GAME_DISPLAY_NAMES: Record<QueueGameKey, string> = {
   RIOT: 'Riot Games',
   STEAM: 'Steam',
@@ -56,6 +82,9 @@ export const QUEUE_GAME_DISPLAY_NAMES: Record<QueueGameKey, string> = {
   AMONG_US: 'Among Us',
 }
 
+/**
+ * Регулярные выражения для проверки игровых никнеймов.
+ */
 export const QUEUE_GAME_NICKNAME_PATTERNS: Record<QueueGameKey, string> = {
   RIOT: '^.{3,16}#[a-zA-Z0-9]{3,5}$',
   STEAM: '^.{2,32}$',
@@ -69,6 +98,9 @@ export const QUEUE_GAME_NICKNAME_PATTERNS: Record<QueueGameKey, string> = {
   AMONG_US: '^.{1,10}$',
 }
 
+/**
+ * Настройки очереди по умолчанию.
+ */
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   maxQueueSize: 4,
   allowPreJoin: false,
@@ -107,6 +139,9 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   maxGamesPerUser: 0,
 }
 
+/**
+ * Подписи настроек очереди для журнала изменений.
+ */
 export const QUEUE_SETTING_LABELS: Record<string, string> = {
   maxQueueSize: 'Лимит участников в очереди',
   allowPreJoin: 'Разрешить запись в список ожидающих',
@@ -120,6 +155,9 @@ export const QUEUE_SETTING_LABELS: Record<string, string> = {
   botMessageCooldown: 'Задержка ответов бота об изменениях в составе очереди (сек)',
 }
 
+/**
+ * Подписи настроек уведомлений для журнала изменений.
+ */
 export const QUEUE_NOTIFICATION_LABELS: Record<string, string> = {
   allowSending: 'Разрешить боту отправку сообщений в чат',
   onQueueOpen: 'Сообщение об открытии очереди',
@@ -132,6 +170,9 @@ export const QUEUE_NOTIFICATION_LABELS: Record<string, string> = {
   onClearWaiting: 'Сообщение об очистке списка ожидающих',
 }
 
+/**
+ * Подписи команд очереди для журнала изменений.
+ */
 export const QUEUE_COMMAND_LABELS: Record<string, string> = {
   join: 'Вступление в очередь',
   leave: 'Выход из очереди',

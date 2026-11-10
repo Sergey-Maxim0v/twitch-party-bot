@@ -1,4 +1,4 @@
-const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
+import { TWITCH_AUTH_STATE_STORAGE_KEY } from '../../../constants/auth.constants.ts'
 
 /**
  * Генерирует случайную строку для параметра `state`, защищающего OAuth-поток от CSRF.

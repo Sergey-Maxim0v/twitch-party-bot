@@ -1,11 +1,9 @@
-import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_COMMANDS, TWITCH_PONG_MESSAGE } from '../../../constants/twitch.constants.ts'
 
 interface HandleIrcPingProps {
   rawMessage: string;
   socket: WebSocket;
 }
-
-const TWITCH_PONG_MESSAGE = 'PONG :tmi.twitch.tv'
 
 /**
  * Проверяет сообщение на PING от сервера Twitch и отправляет PONG для поддержания сессии.

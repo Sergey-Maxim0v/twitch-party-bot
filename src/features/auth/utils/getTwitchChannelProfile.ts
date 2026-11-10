@@ -1,4 +1,4 @@
-import { TWITCH_HELIX_BASE_URL } from '../../../constants/url.constants.ts'
+import { TWITCH_HELIX_BASE_URL } from '../../../constants/twitch.constants.ts'
 import { TWITCH_CLIENT_ID } from '../../../constants/auth.constants.ts'
 import { validateChannelName } from './validateChannelName.ts'
 

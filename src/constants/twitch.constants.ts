@@ -1,14 +1,24 @@
+/**
+ * Базовый URL Twitch Helix API.
+ */
 export const TWITCH_HELIX_BASE_URL = 'https://api.twitch.tv/helix'
 
+/**
+ * URL IRC-сокета Twitch.
+ */
 export const TWITCH_IRC_SOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443'
 
+/**
+ * Максимальная длина сообщения в чате Twitch.
+ */
 export const TWITCH_CHAT_MESSAGE_MAX_LENGTH = 500
 
+/**
+ * Минимальная длина сообщения в чате Twitch.
+ */
 export const TWITCH_CHAT_MESSAGE_MIN_LENGTH = 1
 
-/**
- * Безопасный лимит длины сообщения бота для Twitch PRIVMSG.
- */
+/** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
 export const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
 
 /**
@@ -19,16 +29,21 @@ export const TWITCH_CHAT_HISTORY_MAX_MESSAGES = 300
 /**
  * Интервал отправки PING для контроля «полуоткрытого» соединения.
  */
-export const TWITCH_HEARTBEAT_INTERVAL_MS = 60000
+export const TWITCH_HEARTBEAT_INTERVAL_MS = 60 * 1000
 
 /**
  * Время ожидания ответа PONG перед принудительным переподключением.
  */
-export const TWITCH_PONG_TIMEOUT_MS = 10000
+export const TWITCH_PONG_TIMEOUT_MS = 10 * 1000
 
+/**
+ * Ответ на PING сервера Twitch.
+ */
 export const TWITCH_PONG_MESSAGE = 'PONG :tmi.twitch.tv'
 
 /**
+ * Команды протокола Twitch IRC.
+ *
  * @see https://dev.twitch.tv/docs/chat/irc#irc-command-reference
  */
 export const TWITCH_IRC_COMMANDS = {
@@ -45,11 +60,13 @@ export const TWITCH_IRC_COMMANDS = {
   USER_NOTICE: 'USERNOTICE',
   USER_STATE: 'USERSTATE',
   JOIN: 'JOIN',
-  MOTD_START: '375', // Сигнал начала приветствия сервера
+  /** Сигнал начала приветствия сервера. */
+  MOTD_START: '375',
 } as const
 
 /**
  * Дополнительные возможности (Capabilities) Twitch IRC сокета.
+ *
  * @see https://dev.twitch.tv/docs/chat/irc#twitch-irc-membership-commands
  */
 export const TWITCH_IRC_CAPABILITIES = {
