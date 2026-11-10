@@ -12,12 +12,20 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 
 interface UseQueueSessionArgs {
+  /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Текущий статус очереди. */
   isQueueOpen: boolean;
+  /** Функция изменения статуса очереди. */
   setIsQueueOpen: Dispatch<SetStateAction<boolean>>;
+  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
 }
 
+/**
+ * Хук управления жизненным циклом очереди: открытие, закрытие,
+ * завершение сессии и балансировка списков.
+ */
 export const useQueueSession = ({
   setState,
   isQueueOpen,
@@ -71,13 +79,11 @@ export const useQueueSession = ({
           .map(user => `@${user.displayedUsername ?? user.username}`)
           .join(', ')
 
-        // 1. Отправляем сообщение в чат Twitch
         sendMessage(
           settings.messagePrefix
             ? `${settings.messagePrefix} Очередь завершена. Сейчас играют: ${nicknames}`
             : `Очередь завершена. Сейчас играют: ${nicknames}`,
         )
-        // 2. Логируем завершение состава
         pushLog({
           message: `Состав №${sessionNumber} завершен (игроков: ${playedPlayers.length}).`,
           status: APP_LOG_STATUSES.WARNING,
@@ -85,7 +91,6 @@ export const useQueueSession = ({
           actorUsername: args.actorUsername,
         })
 
-        // 3. Если очередь была открыта, производим системные сайд-эффекты и закрываем её
         if (isQueueOpen) {
           pushLog({
             message: 'Очередь автоматически закрыта в связи с завершением сессии.',
@@ -97,7 +102,6 @@ export const useQueueSession = ({
           setIsQueueOpen(false)
         }
 
-        // 4. Запускаем балансировку при необходимости
         if (settings.moveOnSizeChange) {
           balanceQueues({ source: args.source, actorUsername: args.actorUsername })
         }

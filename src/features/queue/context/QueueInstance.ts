@@ -9,15 +9,15 @@ import {
 import type { LogSource } from '../../app-logs/types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
+/** Публичный API контекста очереди. */
 export interface QueueContextValue {
   /** Текущий статус очереди. */
   isQueueOpen: boolean;
-  /** Открыть прием заявок в очередь */
+  /** Открыть прием заявок в очередь. */
   openQueue: (args: { source: LogSource; actorUsername: string }) => void;
-  /** Приостановить прием заявок в очередь */
+  /** Приостановить прием заявок в очередь. */
   closeQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => void;
 
-  // === Реактивные состояния (Стейты) ===
   /** Игроки в текущей активной очереди */
   activeQueue: QueuePlayer[];
   /** Игроки в списке ожидающих */
@@ -27,7 +27,6 @@ export interface QueueContextValue {
   /** Полный сырой объект состояния очереди (для отладки/сохранения) */
   rawState: QueueState;
 
-  // === Методы очистки (Clear) ===
   /** Очистить текущую активную очередь */
   clearActiveQueue: (args: { source: LogSource; actorUsername: string; }) => void;
   /** Очистить список ожидающих */
@@ -35,7 +34,6 @@ export interface QueueContextValue {
   /** Очистить историю сыгранных сессий */
   clearQueueHistory: (args: { source: LogSource; actorUsername: string; }) => void;
 
-  // === Управление игроками (CRUD) ===
   /** Добавить игрока в очередь (в активную или список ожидающих на основе правил) */
   addPlayerToQueue: (args: {
     playerData: QueuePlayerFormData;
@@ -93,7 +91,7 @@ export interface QueueContextValue {
     actorUsername: string;
   }) => void;
 
-  /** Произвести ручную балансировку игроков между активной очередью и списком ожидания.  */
+  /** Произвести ручную балансировку игроков между активной очередью и списком ожидания. */
   balanceQueues: (args: {
     source: LogSource;
     actorUsername: string;
@@ -102,9 +100,9 @@ export interface QueueContextValue {
     overrideAllowPreJoin?: QueueSettings['allowPreJoin'];
   }) => void;
 
-  // === Жизненный цикл очереди ===
   /** Завершить текущую очередь (активная улетает в историю, из ожидающих переносятся) */
   finishActiveQueue: (args: { source: LogSource; actorUsername: string }) => void;
 }
 
+/** React-контекст очереди. */
 export const QueueContext = createContext<QueueContextValue | undefined>(undefined)

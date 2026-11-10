@@ -5,11 +5,17 @@ import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
 interface QueueHistoryListProps {
+  /** Дополнительные CSS-классы списка. */
   className?: string;
+  /** Открыт ли список. */
   open: boolean;
+  /** Обработчик изменения состояния списка. */
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * История завершённых игровых сессий.
+ */
 export const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', onOpenChange, open }) => {
   const { queueHistory } = useQueue()
 

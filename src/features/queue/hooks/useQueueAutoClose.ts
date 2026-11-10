@@ -31,33 +31,32 @@ interface UseAutocloseQueueProps {
 export const useQueueAutoClose = ({ setIsQueueOpen, isQueueOpen, pushLog }: UseAutocloseQueueProps): void => {
   const { activeChannel, userDisplayName, session } = useAuth()
 
-  // Вычисляем имя текущего инициатора действия для логирования
   const actorUsername = userDisplayName ?? session?.login ?? 'Application'
 
-  // Сценарий 1: Обработка закрытия вкладки, браузера или перезагрузки страницы
+  // Закрытие при выгрузке вкладки, закрытии браузера или перезагрузке страницы.
   useOnWindowUnload(() => {
-    if (isQueueOpen) {
-      setIsQueueOpen(false)
-      pushLog({
-        message: 'Очередь автоматически закрыта из-за перезагрузки страницы или закрытия вкладки приложения.',
-        status: APP_LOG_STATUSES.WARNING,
-        source: APP_LOG_SOURCES.APPLICATION,
-        actorUsername,
-      })
-    }
+    if (!isQueueOpen) return
+
+    setIsQueueOpen(false)
+    pushLog({
+      message: 'Очередь автоматически закрыта из-за перезагрузки страницы или закрытия вкладки приложения.',
+      status: APP_LOG_STATUSES.WARNING,
+      source: APP_LOG_SOURCES.APPLICATION,
+      actorUsername,
+    })
   })
 
-  // Сценарий 2: Обработка смены активного Twitch-канала стримера
+  // Закрытие при смене активного Twitch-канала стримера.
   useEffect(() => {
-    if (isQueueOpen) {
-      setIsQueueOpen(false)
-      pushLog({
-        message: 'Очередь автоматически закрыта в связи с переключением на канала.',
-        status: APP_LOG_STATUSES.WARNING,
-        source: APP_LOG_SOURCES.APPLICATION,
-        actorUsername,
-      })
-    }
+    if (!isQueueOpen) return
+
+    setIsQueueOpen(false)
+    pushLog({
+      message: 'Очередь автоматически закрыта в связи с переключением на канала.',
+      status: APP_LOG_STATUSES.WARNING,
+      source: APP_LOG_SOURCES.APPLICATION,
+      actorUsername,
+    })
     // eslint-disable-next-line
   }, [activeChannel])
 }

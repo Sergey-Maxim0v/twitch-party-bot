@@ -8,11 +8,17 @@ import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
 interface QueueActiveListProps {
+  /** Дополнительные CSS-классы списка. */
   className?: string;
+  /** Открыт ли список. */
   open: boolean;
+  /** Обработчик изменения состояния списка. */
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * Список игроков текущей активной очереди.
+ */
 export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOpenChange, open }) => {
   const { activeQueue } = useQueue()
   const { settings } = useQueueSettings()

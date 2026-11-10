@@ -7,7 +7,8 @@ import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 
 /**
- * Хук для обработки текстовых команд из чата Twitch.
+ * Обрабатывает команды из чата Twitch: вступление в очередь, выход,
+ * показ статуса, очистку списков и управление составом.
  */
 export const useChatCommands = () => {
   const { settings } = useQueueSettings()
@@ -26,23 +27,17 @@ export const useChatCommands = () => {
   const { commands } = settings
 
   useEffect(() => {
-    // 1. Быстрые проверки на валидность сообщения
     if (!lastMessage?.text) return
     const trimmedText = lastMessage.text.trim()
     if (!trimmedText.startsWith('!')) return
 
-    // 2. Формируем контекст пользователя из бейджей
     const isModeratorOrStreamer = lastMessage.user.isBroadcaster || lastMessage.user.isModerator
 
-    // 3. Парсим команду
     const parts = trimmedText.split(/\s+/)
     const commandName = parts[0]
     const commandArg = parts.slice(1).join(' ')
 
-    const hasAccess = (isModeratorOnly: boolean) => {
-      if (!isModeratorOnly) return true
-      return isModeratorOrStreamer
-    }
+    const hasAccess = (isModeratorOnly: boolean): boolean => !isModeratorOnly || Boolean(isModeratorOrStreamer)
 
     const userId = lastMessage.user.userId ?? ''
     const username = lastMessage.user.nick
@@ -55,9 +50,7 @@ export const useChatCommands = () => {
     const rawMessage = trimmedText
     const rawCommand = trimmedText
 
-    // 4. Обработка команд через оператор switch
     switch (commandName) {
-      // JOIN
       case commands.join.name: {
         if (!hasAccess(commands.join.isModeratorOnly)) return
         addPlayerToQueue({
@@ -78,7 +71,6 @@ export const useChatCommands = () => {
         break
       }
 
-      // LEAVE
       case commands.leave.name: {
         if (!hasAccess(commands.leave.isModeratorOnly)) return
         removePlayerFromAllQueues({
@@ -91,7 +83,6 @@ export const useChatCommands = () => {
         break
       }
 
-      // SHOW
       case commands.show.name: {
         if (!hasAccess(commands.show.isModeratorOnly)) return
 
@@ -99,7 +90,6 @@ export const useChatCommands = () => {
         break
       }
 
-      // ADD
       case commands.add.name: {
         if (!hasAccess(commands.add.isModeratorOnly) || !commandArg) return
         const targetUsername = commandArg.replace(/^@/, '').trim()
@@ -121,7 +111,6 @@ export const useChatCommands = () => {
         break
       }
 
-      // DELETE
       case commands.delete.name: {
         if (!hasAccess(commands.delete.isModeratorOnly) || !commandArg) return
         const targetUsername = commandArg.replace(/^@/, '').trim().toLowerCase()
@@ -137,7 +126,6 @@ export const useChatCommands = () => {
         break
       }
 
-      // CLEAR
       case commands.clear.name: {
         if (!hasAccess(commands.clear.isModeratorOnly)) return
         clearWaitingQueue({ source, actorUsername })
@@ -147,21 +135,18 @@ export const useChatCommands = () => {
         break
       }
 
-      // START
       case commands.start.name: {
         if (!hasAccess(commands.start.isModeratorOnly)) return
         openQueue({ source, actorUsername })
         break
       }
 
-      // STOP
       case commands.stop.name: {
         if (!hasAccess(commands.stop.isModeratorOnly)) return
         closeQueue({ source, actorUsername })
         break
       }
 
-      // PLAY
       case commands.play.name: {
         if (!hasAccess(commands.play.isModeratorOnly)) return
         finishActiveQueue({ source, actorUsername })
@@ -172,6 +157,7 @@ export const useChatCommands = () => {
         break
     }
 
+    // Реагируем только на новое сообщение в чате.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastMessage]) // Реагируем ТОЛЬКО на приход нового сообщения
+  }, [lastMessage])
 }

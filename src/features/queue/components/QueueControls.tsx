@@ -4,9 +4,13 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 
 interface QueueControlsProps {
+  /** Дополнительные CSS-классы контейнера. */
   className?: string;
 }
 
+/**
+ * Кнопки открытия и закрытия очереди, а также завершения текущей сессии.
+ */
 export const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
   const { isQueueOpen, openQueue, closeQueue, finishActiveQueue } = useQueue()
   const { session, userDisplayName } = useAuth()

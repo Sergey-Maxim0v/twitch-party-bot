@@ -5,12 +5,19 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { QueuePlayer, QueueState } from '../types.ts'
 
 interface HandleBalanceQueuesArgs {
+  /** Максимальный размер активной очереди. */
   maxQueueSize: QueueSettings['maxQueueSize'];
+  /** Переносить ли игроков при изменении размера очереди. */
   moveOnSizeChange: QueueSettings['moveOnSizeChange'];
+  /** Разрешена ли запись в список ожидающих. */
   allowPreJoin: QueueSettings['allowPreJoin'];
+  /** Источник вызова команды. */
   source: LogSource;
+  /** Никнейм того, кто запустил балансировку. */
   actorUsername: string;
+  /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
   /** Колбэк, возвращающий список имен игроков, перемещенных в активную очередь */
   onPlayersMovedToActive?: (usernames: string[]) => void;
@@ -19,7 +26,8 @@ interface HandleBalanceQueuesArgs {
 }
 
 /**
- * Перенос игроков между текущей очередью и списком ожидания на основе актуального стейта.
+ * Переносит игроков между активной очередью и списком ожидания
+ * на основе актуального состояния.
  */
 export const handleBalanceQueues = ({
   maxQueueSize,
@@ -40,19 +48,16 @@ export const handleBalanceQueues = ({
     const activeLength = prev.activeQueue.length
     const waitingLength = prev.waitingQueue.length
 
-    // === СЦЕНАРИЙ 1: Очередь уменьшилась / переполнена ===
     if (activeLength > maxQueueSize) {
       const count = activeLength - maxQueueSize
       const updatedActive = [...prev.activeQueue]
       const movedPlayers = updatedActive.splice(maxQueueSize)
       const updatedWaiting = [...prev.waitingQueue]
+      const shouldMoveToWaiting = moveOnSizeChange && allowPreJoin
 
-      if (moveOnSizeChange && allowPreJoin) {
+      if (shouldMoveToWaiting) {
         updatedWaiting.unshift(...movedPlayers)
         movedToWaitingList = movedPlayers.map(p => p.displayedUsername ?? p.username)
-      }
-
-      if (moveOnSizeChange && allowPreJoin) {
         logMessageText = `Автоматически перенесено игроков из активной очереди в начало списка ожидающих: ${count}.`
       } else {
         logMessageText = `Лишние игроки удалены из активной очереди: ${count}.`
@@ -65,7 +70,6 @@ export const handleBalanceQueues = ({
       }
     }
 
-    // === СЦЕНАРИЙ 2: Очередь увеличилась / освободились места ===
     if (moveOnSizeChange && activeLength < maxQueueSize && waitingLength > 0) {
       const freeSlots = maxQueueSize - activeLength
       const updatedActive = [...prev.activeQueue]

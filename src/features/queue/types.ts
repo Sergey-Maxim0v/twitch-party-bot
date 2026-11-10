@@ -2,10 +2,11 @@ import { QUEUE_PLAYER_SOURCE, QUEUE_TYPES } from '../../constants/queue.constant
 
 export { QUEUE_PLAYER_SOURCE, QUEUE_TYPES }
 
+/** Источник появления игрока в очереди. */
 export type QueuePlayerSource = typeof QUEUE_PLAYER_SOURCE[keyof typeof QUEUE_PLAYER_SOURCE]
 
 /**
- * Общие данные игрока
+ * Базовые данные игрока, общие для всех сценариев добавления.
  */
 interface BaseQueuePlayer {
   userId: string;
@@ -67,7 +68,7 @@ interface PlayerHistoryStats {
   lastPlayedSessionNumber: number;
   /** Количество сыгранных игр/сессий за текущий стрим */
   gamesPlayed: number;
-  /** Никнейм игрока на платформе (для поиска ручных добавлений) */
+  /** Уникальный ID игрока на платформе */
   userID: string;
   /** Никнейм игрока на платформе (для поиска ручных добавлений) */
   username: string;

@@ -13,6 +13,9 @@ import { QUEUE_TYPES, type QueuePlayer } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
 import { useChatCommands } from '../hooks/useChatCommands.ts'
 
+/**
+ * Главная панель очереди: списки участников, Drag-and-Drop и форма добавления.
+ */
 export const QueuePanel: FC = () => {
   const { settings } = useQueueSettings()
   const { movePlayer, activeQueue, waitingQueue } = useQueue()
@@ -27,7 +30,7 @@ export const QueuePanel: FC = () => {
 
   const disabledWaiting = !settings?.allowPreJoin
 
-  // Настройка сенсоров, чтобы клики по кнопкам внутри карточки не ломали драг
+  // Клики по кнопкам внутри карточки не должны начинать перетаскивание.
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -79,7 +82,7 @@ export const QueuePanel: FC = () => {
           <QueueHistoryList className="w-full" onOpenChange={setIsHistoryListOpen} open={isHistoryListOpen} />
         </div>
 
-        {/* Оверлей, который рендерится поверх всех overflow окон */}
+        {/* Оверлей поверх всех overflow-контейнеров */}
         <DragOverlay dropAnimation={null}>
           {draggingPlayer ? (
             <div className="w-[calc(100%-8px)] pointer-events-none strict-dragging-preview">

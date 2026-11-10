@@ -11,8 +11,8 @@ interface HandleFinishActiveQueueArgs {
 }
 
 /**
- * Хендлер для завершения текущей сессии, её архивации в историю,
- * фиксации кулдаунов участников.
+ * Завершает текущую сессию: архивирует состав в историю
+ * и фиксирует кулдауны участников.
  */
 export const handleFinishActiveQueue = ({
   setState,
@@ -20,7 +20,6 @@ export const handleFinishActiveQueue = ({
   onEmpty,
 }: HandleFinishActiveQueueArgs): void => {
 
-  // Объявляем переменные для хранения результатов транзакции
   let playedPlayers: QueuePlayer[] = []
   let nextSessionNumber = 1
   let isEmpty = false
@@ -67,7 +66,7 @@ export const handleFinishActiveQueue = ({
     }
   })
 
-  // Выполняем колбэки сразу ПОСЛЕ планирования обновления стейта
+  // Колбэки вызываются после планирования обновления состояния.
   if (isEmpty) {
     onEmpty()
   } else {

@@ -14,13 +14,21 @@ import { useQueueNotification } from '../../queue-notification/hooks/useQueueNot
 import { QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
 
 interface UseQueuePlayersArgs {
+  /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Текущий статус очереди. */
   isQueueOpen: boolean;
+  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
+  /** Функция балансировки активной очереди и списка ожидающих. */
   balanceQueues: (args: { source: LogSource; actorUsername: string }) => void;
+  /** Актуальное состояние очереди. */
   rawState: QueueState;
 }
 
+/**
+ * Хук управления игроками: добавление, удаление, бан и перемещение.
+ */
 export const useQueuePlayers = ({
   setState,
   isQueueOpen,
@@ -92,11 +100,13 @@ export const useQueuePlayers = ({
     const { userId = '', source, actorUsername, username, displayedUsername } = args
     const { isBanned } = handleBanPlayer({ ...args, settings, updateSettings, pushLog })
 
-    if (isBanned) {
-      removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
+    if (!isBanned) {
+      return
     }
 
-    if (isBanned && settings.moveOnSizeChange) {
+    removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
+
+    if (settings.moveOnSizeChange) {
       balanceQueues({ source: args.source, actorUsername: args.actorUsername })
     }
   }, [settings, updateSettings, pushLog, removePlayerFromAllQueues, balanceQueues])

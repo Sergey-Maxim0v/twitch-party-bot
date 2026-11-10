@@ -23,7 +23,7 @@ interface HandleRemovePlayerFromAllArgs {
 }
 
 /**
- * Хендлер для полного удаления игрока из ВСЕХ существующих очередей одновременно.
+ * Удаляет игрока из всех существующих очередей одновременно.
  */
 export const handleRemovePlayerFromAll = ({
   userId,
@@ -37,7 +37,6 @@ export const handleRemovePlayerFromAll = ({
 }: HandleRemovePlayerFromAllArgs): void => {
   const targetUsernameLower = username.toLowerCase()
 
-  // Функция-предикат для поиска совпадений по ID или по логину
   const isTargetPlayer = (p: { userId: string; username: string }) =>
     p.userId === userId || p.username.toLowerCase() === targetUsernameLower
 
@@ -61,7 +60,6 @@ export const handleRemovePlayerFromAll = ({
 
     const totalRemoved = removedFromActiveCount + removedFromWaitingCount
 
-    // Если игрок не найден ни по ID, ни по имени
     if (totalRemoved === 0) {
       isError = true
       const nameToLog = displayedUsername || username
@@ -75,10 +73,8 @@ export const handleRemovePlayerFromAll = ({
       logMessageText = `Удаление из всех очередей: ${displayName} удален из активной очереди и списка ожидающих.`
     } else if (removedFromActiveCount > 0) {
       logMessageText = `Удаление из всех очередей: ${displayName} удален из активной очереди.`
-    } else if (removedFromWaitingCount > 0) {
-      logMessageText = `Удаление из всех очередей: ${displayName} удален из списка ожидающих.`
     } else {
-      logMessageText = `Удаление из всех очередей: Ошибка, ${displayName} не найден.`
+      logMessageText = `Удаление из всех очередей: ${displayName} удален из списка ожидающих.`
     }
 
     return {

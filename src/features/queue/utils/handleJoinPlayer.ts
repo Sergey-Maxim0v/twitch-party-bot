@@ -15,19 +15,31 @@ interface JoinQueueResult {
 }
 
 interface HandleJoinPlayerArgs {
+  /** Текущий статус очереди. */
   isQueueOpen: QueueContextValue['isQueueOpen'];
+  /** Данные добавляемого игрока. */
   playerData: QueuePlayerFormData;
+  /** Источник вызова команды. */
   source: AppLogItem['source'];
+  /** Никнейм того, кто добавил игрока. */
   actorUsername: string;
+  /** Исходный текст команды. */
   rawCommand?: string;
+  /** Время добавления (по умолчанию — текущее). */
   customTimestamp?: number;
+  /** Настройки очереди. */
   settings: QueueSettings;
+  /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog']
 }
 
 /**
- * Хендлер для добавления игрока в активную очередь или список ожидающих со всеми бизнес-проверками.
+ * Добавляет игрока в активную очередь или список ожидающих.
+ * Порядок решения: валидация → активная очередь → проверки дублей и лимитов → список ожидающих.
+ *
+ * @returns Статус операции: `joined`, `waiting` или `denied`.
  */
 export const handleJoinPlayer = ({
   isQueueOpen,
@@ -63,6 +75,17 @@ export const handleJoinPlayer = ({
   let finalLogMessage = ''
   let operationStatus: JoinQueueResult['status'] = QUEUE_JOIN_STATUSES.DENIED
 
+  const insertPlayer = (queue: QueuePlayer[]): void => {
+    if (settings.prioritizeSubscribers && isPrivileged) {
+      const firstNonSubIdx = queue.findIndex(p => !p.isSubscriber)
+      const insertIdx = firstNonSubIdx === -1 ? queue.length : firstNonSubIdx
+      queue.splice(insertIdx, 0, fullPlayer)
+      return
+    }
+
+    queue.push(fullPlayer)
+  }
+
   setState(prev => {
     const validationError = validateQueueEntry({
       isQueueOpen,
@@ -87,73 +110,52 @@ export const handleJoinPlayer = ({
     const updatedActive = [...prev.activeQueue]
     const updatedWaiting = [...prev.waitingQueue]
 
-    // Есть место в активной очереди, игрока там еще нет -> Добавляем в активную
     if (isActiveQueueNotFull && !existsInActive) {
-      if (settings.prioritizeSubscribers && isPrivileged) {
-        const firstNonSubIdx = updatedActive.findIndex(p => !p.isSubscriber)
-        const insertIdx = firstNonSubIdx === -1 ? updatedActive.length : firstNonSubIdx
-        updatedActive.splice(insertIdx, 0, fullPlayer)
-      } else {
-        updatedActive.push(fullPlayer)
-      }
+      insertPlayer(updatedActive)
       finalLogMessage = `Добавление в очередь: Игрок ${displayName} добавлен в активную очередь.`
       operationStatus = QUEUE_JOIN_STATUSES.JOINED
       return { ...prev, activeQueue: updatedActive }
     }
 
-    // Есть место в активной, игрок уже там, а список ожидающих отключен -> Отклонено
     if (isActiveQueueNotFull && existsInActive && !settings.allowPreJoin) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже в активной очереди, список ожидающих отключен.`
       operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
-    // Активная очередь полна, игрока там нет, а список ожидающих отключен -> Отклонено
     if (!isActiveQueueNotFull && !existsInActive && !settings.allowPreJoin) {
       finalLogMessage = 'Добавление в очередь: Отклонено, активная очередь заполнена, а список ожидающих отключен.'
       operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
-    // Игрок уже в активной, список ожидающих включен, но повторная запись запрещена -> Отклонено
     if (existsInActive && settings.allowPreJoin && !settings.allowMultipleEntries) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в активной очереди, повторная запись запрещена.`
       operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
-    // Игрок уже и в активной очереди и в списке ожидающих -> Отклонено
     if (existsInActive && settings.allowPreJoin && settings.allowMultipleEntries && existsInWaiting) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится и в активной очереди, и в списке ожидающих.`
       operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
-    // Игрок нет в активной, он уже находится в списке ожидающих (дубликат записи в вейтинг) -> Отклонено
     if (!existsInActive && settings.allowPreJoin && existsInWaiting) {
       finalLogMessage = `Добавление в очередь: Отклонено, игрок ${displayName} уже находится в списке ожидающих.`
       operationStatus = QUEUE_JOIN_STATUSES.DENIED
       return prev
     }
 
-    // Добавление в список ожидающих для оставшихся успешных сценариев
-    if (settings.prioritizeSubscribers && isPrivileged) {
-      const firstNonSubIdx = updatedWaiting.findIndex(p => !p.isSubscriber)
-      const insertIdx = firstNonSubIdx === -1 ? updatedWaiting.length : firstNonSubIdx
-      updatedWaiting.splice(insertIdx, 0, fullPlayer)
-    } else {
-      updatedWaiting.push(fullPlayer)
-    }
+    insertPlayer(updatedWaiting)
 
     operationStatus = QUEUE_JOIN_STATUSES.WAITING
 
-    // Игрок уже в активной очереди, но разрешена мульти-запись -> Добавлен в список ожидания
     if (existsInActive && settings.allowPreJoin && settings.allowMultipleEntries && !existsInWaiting) {
       finalLogMessage = `Добавление в очередь: Игрок ${displayName} уже в активной очереди, добавлен в список ожидания.`
       return { ...prev, waitingQueue: updatedWaiting }
     }
 
-    // Нового игрока нет нигде, активная полна, список ожидающих включен -> Добавлен в список ожидания
     finalLogMessage = `Добавление в очередь: Игрок ${displayName} добавлен в список ожидания.`
     return { ...prev, waitingQueue: updatedWaiting }
   })
@@ -161,7 +163,10 @@ export const handleJoinPlayer = ({
   setTimeout(() => {
     if (operationStatus !== QUEUE_JOIN_STATUSES.DENIED) {
       pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.INFO, source, actorUsername, rawCommand })
-    } else if (finalLogMessage) {
+      return
+    }
+
+    if (finalLogMessage) {
       pushLog({ message: finalLogMessage, status: APP_LOG_STATUSES.ERROR, source, actorUsername, rawCommand })
     }
   }, 0)

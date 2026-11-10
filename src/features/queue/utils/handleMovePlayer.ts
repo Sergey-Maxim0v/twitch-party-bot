@@ -23,7 +23,7 @@ interface HandleMovePlayerArgs {
 }
 
 /**
- * Хендлер для перемещения игрока внутри одной очереди или между ними (Drag-and-Drop).
+ * Перемещает игрока внутри одной очереди или между ними (Drag-and-Drop).
  */
 export const handleMovePlayer = ({
   userId,
@@ -40,7 +40,6 @@ export const handleMovePlayer = ({
   let isMoved = false
 
   setState(prev => {
-    // 1. Ищем игрока в обеих очередях, чтобы понять откуда его забираем
     const activeIdx = prev.activeQueue.findIndex(p => p.userId === userId)
     const waitingIdx = prev.waitingQueue.findIndex(p => p.userId === userId)
 
@@ -58,7 +57,6 @@ export const handleMovePlayer = ({
       updatedWaiting.splice(waitingIdx, 1)
     }
 
-    // Если игрок вообще не найден в текущих списках, ничего не делаем
     if (!playerToMove) return prev
 
     if (!targetPlayerName) {
@@ -66,7 +64,6 @@ export const handleMovePlayer = ({
     }
     isMoved = true
 
-    // 2. Вставляем игрока в целевую очередь
     if (targetQueueType === QUEUE_TYPES.ACTIVE) {
       const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, updatedActive.length) : updatedActive.length
       updatedActive.splice(insertIndex, 0, playerToMove)
@@ -82,10 +79,8 @@ export const handleMovePlayer = ({
     }
   })
 
-  // 3. Логируем результат перемещения
   setTimeout(() => {
     if (isMoved && sourceQueueType) {
-      // 1. Формируем понятные названия для очередей
       const queueLabels = {
         [QUEUE_TYPES.ACTIVE]: 'активной очереди',
         [QUEUE_TYPES.WAITING]: 'списка ожидающих',
@@ -93,11 +88,8 @@ export const handleMovePlayer = ({
 
       const fromLabel = queueLabels[sourceQueueType]
       const toLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активную очередь' : 'список ожидающих'
-
-      // 2. Формируем позицию (человеческий индекс с 1)
       const positionLabel = targetIndex !== undefined ? ` на позицию ${targetIndex + 1}` : ' в конец'
 
-      // 3. Собираем текст сообщения без лишних повторов
       const logMessage = sourceQueueType === targetQueueType
         ? `Игрок ${targetPlayerName} перемещен внутри ${fromLabel}${positionLabel}.`
         : `Игрок ${targetPlayerName} перенесен из ${fromLabel} в ${toLabel}${positionLabel}.`

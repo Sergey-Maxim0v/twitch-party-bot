@@ -6,9 +6,13 @@ import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE, type QueuePlayerFormData } from '../types.ts'
 
 interface QueueFormProps {
+  /** Дополнительные CSS-классы формы. */
   className?: string;
 }
 
+/**
+ * Форма ручного добавления игрока в очередь.
+ */
 export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
   const { addPlayerToQueue } = useQueue()
   const { session, userDisplayName } = useAuth()
@@ -19,7 +23,7 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
   const [isSub, setIsSub] = useState<boolean>(false)
   const [isVip, setIsVip] = useState<boolean>(false)
 
-  const handleAddPlayer = (e: MouseEvent<HTMLButtonElement>) => {
+  const handleAddPlayer = (e: MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault()
 
     const trimmedUsername = username.trim()

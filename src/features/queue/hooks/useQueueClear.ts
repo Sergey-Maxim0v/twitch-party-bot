@@ -9,10 +9,15 @@ import { handleClearQueueHistory } from '../utils/handleClearQueueHistory.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 
 interface UseQueueClearArgs {
+  /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
 }
 
+/**
+ * Хук очистки активной очереди, списка ожидающих и истории сессий.
+ */
 export const useQueueClear = ({ setState, pushLog }: UseQueueClearArgs) => {
   const { sendClearActive, sendClearWaiting } = useQueueNotification()
 

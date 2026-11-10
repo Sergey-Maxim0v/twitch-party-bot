@@ -1,6 +1,7 @@
 import type { QueueGameKey, QueueSettings } from '../features/queue-settings/types.ts'
 import type { QueuePlayerSource } from '../features/queue/types.ts'
 
+/** Ключ localStorage для хранения состояния очереди. */
 export const QUEUE_STORAGE_KEY = 'twitch_queue_data'
 
 export const QUEUE_SETTINGS_STORAGE_KEY = 'twitch_queue_settings'
@@ -23,6 +24,7 @@ export const QUEUE_JOIN_STATUSES = {
   DENIED: 'denied',
 } as const
 
+/** Отображаемые названия и стили бейджей для источников появления игрока. */
 export const QUEUE_PLAYER_SOURCE_META: Record<
   QueuePlayerSource,
   { label: string; badgeClass: string }

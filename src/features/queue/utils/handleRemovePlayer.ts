@@ -23,7 +23,7 @@ interface HandleRemovePlayerArgs {
 }
 
 /**
- * Хендлер для удаления ПЕРВОЙ НАЙДЕННОЙ записи игрока из КОНКРЕТНОЙ очереди.
+ * Удаляет первую найденную запись игрока из указанной очереди.
  */
 export const handleRemovePlayer = ({
   userId,
@@ -70,11 +70,11 @@ export const handleRemovePlayer = ({
       const updatedActive = [...prev.activeQueue]
       updatedActive.splice(index, 1)
       return { ...prev, activeQueue: updatedActive }
-    } else {
-      const updatedWaiting = [...prev.waitingQueue]
-      updatedWaiting.splice(index, 1)
-      return { ...prev, waitingQueue: updatedWaiting }
     }
+
+    const updatedWaiting = [...prev.waitingQueue]
+    updatedWaiting.splice(index, 1)
+    return { ...prev, waitingQueue: updatedWaiting }
   })
 
   setTimeout(() => {

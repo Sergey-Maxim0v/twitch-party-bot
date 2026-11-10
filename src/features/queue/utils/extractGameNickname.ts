@@ -1,5 +1,6 @@
 import type { QueueGameConfig } from '../../queue-settings/types.ts'
 
+/** Аргументы извлечения игрового никнейма из сообщения. */
 interface ExtractGameNicknameArgs {
   /** Полный текст сообщения */
   rawMessage: string;
@@ -8,10 +9,10 @@ interface ExtractGameNicknameArgs {
 }
 
 /**
- * Сканирует сообщение и извлекает первый попавшийся никнейм,
+ * Сканирует сообщение и извлекает первый никнейм,
  * который строго соответствует регулярному выражению игры.
  *
- * @returns {string | null} Найденный никнейм или null
+ * @returns Найденный никнейм или `null`.
  */
 export const extractGameNickname = ({
   rawMessage,

@@ -3,15 +3,25 @@ import { QUEUE_TYPES, type QueueType } from '../types.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 
+/** Аргументы обработки события перетаскивания. */
 interface HandleDragEndArgs {
+  /** Событие завершения Drag-and-Drop. */
   event: DragEndEvent
+  /** Игроки в активной очереди. */
   activeQueue: QueueContextValue['activeQueue']
+  /** Игроки в списке ожидающих. */
   waitingQueue: QueueContextValue['waitingQueue']
+  /** Функция перемещения игрока. */
   movePlayer: QueueContextValue['movePlayer']
+  /** Никнейм того, кто выполнил перемещение. */
   actorUsername: string
+  /** Логин перемещаемого игрока. */
   username: string
 }
 
+/**
+ * Обрабатывает завершение Drag-and-Drop и делегирует перемещение игрока.
+ */
 export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, actorUsername, username }: HandleDragEndArgs): void => {
   const { active, over } = event
   if (!over) return
@@ -19,25 +29,21 @@ export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, ac
   const activeId = active.id as string
   const overId = over.id as string
 
-  // Если бросили на тот же элемент, ничего не делаем
   if (activeId === overId) return
 
-  // Определяем, в какой очереди изначально находился элемент
   const isInActive = activeQueue.some(p => p.userId === activeId)
   const sourceQueue = isInActive ? QUEUE_TYPES.ACTIVE : QUEUE_TYPES.WAITING
 
   let targetQueueType: Exclude<QueueType, 'history'>
   let targetIndex: number | undefined
 
-  // Проверяем, закинули ли элемент напрямую на контейнер очереди
   if (overId === QUEUE_TYPES.ACTIVE) {
     targetQueueType = QUEUE_TYPES.ACTIVE
-    targetIndex = activeQueue.length // В конец списка
+    targetIndex = activeQueue.length
   } else if (overId === QUEUE_TYPES.WAITING) {
     targetQueueType = QUEUE_TYPES.WAITING
-    targetIndex = waitingQueue.length // В конец списка
+    targetIndex = waitingQueue.length
   } else {
-    // Иначе элемент закинули поверх другого игрока
     const isOverActive = activeQueue.some(p => p.userId === overId)
     targetQueueType = isOverActive ? QUEUE_TYPES.ACTIVE : QUEUE_TYPES.WAITING
 
@@ -46,14 +52,12 @@ export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, ac
     targetIndex = index !== -1 ? index : undefined
   }
 
-  // Если тип очереди и индекс не изменились (перенос на самого себя внутри контейнера без смены позиции)
   if (sourceQueue === targetQueueType && targetIndex !== undefined) {
     const sourceList = sourceQueue === QUEUE_TYPES.ACTIVE ? activeQueue : waitingQueue
     const currentIndex = sourceList.findIndex(p => p.userId === activeId)
     if (currentIndex === targetIndex) return
   }
 
-  // Вызываем существующий метод перемещения из QueueProvider
   movePlayer({
     userId: activeId,
     username: username,

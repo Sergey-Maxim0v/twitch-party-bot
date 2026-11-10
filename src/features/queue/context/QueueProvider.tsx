@@ -15,9 +15,13 @@ import { useQueuePlayers } from '../hooks/useQueuePlayers.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
 interface QueueProviderProps {
+  /** Дочерние элементы, получающие доступ к контексту очереди. */
   children: ReactNode;
 }
 
+/**
+ * Провайдер состояния и методов управления очередью.
+ */
 export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const [state, setState] = useLocalStorage<QueueState>(QUEUE_STORAGE_KEY, createInitialState())
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage('twitch_queue_status', false)
@@ -49,15 +53,13 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     wasFullRef.current = isCurrentlyFull
   }, [state.activeQueue.length, settings.maxQueueSize, sendQueueFullMessage])
 
-  // Изолированная обёртка для логирования
+  // Стабильная обёртка над логгером приложения.
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
     pushAppLog({ message, status, source, actorUsername, rawCommand })
   }, [pushAppLog])
 
-  // Автоматическое закрытие очереди
   useQueueAutoClose({ setIsQueueOpen, isQueueOpen, pushLog })
 
-  // Инициализация группы методов сессии
   const { openQueue, closeQueue, finishActiveQueue, balanceQueues } = useQueueSession({
     setState,
     isQueueOpen,
@@ -65,13 +67,11 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     pushLog,
   })
 
-  // Инициализация группы методов очистки списков
   const { clearActiveQueue, clearWaitingQueue, clearQueueHistory } = useQueueClear({
     setState,
     pushLog,
   })
 
-  // Инициализация группы методов управления игроками
   const {
     addPlayerToQueue,
     removePlayerFromQueue,

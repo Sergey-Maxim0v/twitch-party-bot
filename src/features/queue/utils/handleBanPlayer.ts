@@ -25,7 +25,9 @@ interface HandleBanPlayerResult {
 }
 
 /**
- * Хендлер для добавления игрока во внутренний бан-лист настроек очереди.
+ * Добавляет игрока во внутренний бан-лист настроек очереди.
+ *
+ * @returns Признак успешного добавления в бан-лист.
  */
 export const handleBanPlayer = ({
   username,
@@ -39,7 +41,6 @@ export const handleBanPlayer = ({
   const targetLogin = username.toLowerCase()
   const displayName = displayedUsername || username
 
-  // 1. Проверяем, нет ли уже пользователя в бан-листе настроек
   const alreadyBanned = settings.banList.some(b => b.toLowerCase() === targetLogin)
 
   const pushBanlistLog = (message: string) => {
@@ -57,11 +58,9 @@ export const handleBanPlayer = ({
     return { isBanned: false }
   }
 
-  // 2. Обновляем бан-лист в настройках очереди (добавляем оригинальный никнейм)
   const updatedBanList = [...settings.banList, username]
   updateSettings({ banList: updatedBanList })
 
-  // 3. Отправляем лог о внесении пользователя в бан-лист
   pushBanlistLog(`Бан-лист очереди: ${displayName} добавлен.`)
 
   return { isBanned: true }

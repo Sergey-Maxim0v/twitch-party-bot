@@ -18,7 +18,7 @@ interface HandleUnbanPlayerArgs {
 }
 
 /**
- * Хендлер для удаления игрока из внутреннего бан-листа настроек очереди.
+ * Удаляет игрока из внутреннего бан-листа настроек очереди.
  */
 export const handleUnbanPlayer = ({
   username,
@@ -30,7 +30,6 @@ export const handleUnbanPlayer = ({
 }: HandleUnbanPlayerArgs): void => {
   const targetLogin = username.toLowerCase()
 
-  // Проверяем, есть ли вообще пользователь в бан-листе
   const isExist = settings.banList.some(b => b.toLowerCase() === targetLogin)
 
   if (!isExist) {
@@ -43,11 +42,9 @@ export const handleUnbanPlayer = ({
     return
   }
 
-  // Фильтруем массив, убирая этот никнейм
   const updatedBanList = settings.banList.filter(b => b.toLowerCase() !== targetLogin)
   updateSettings({ banList: updatedBanList })
 
-  // Пишем лог
   pushLog({
     message: `Бан-лист очереди: ${username} удален из бан-листа очереди.`,
     status: APP_LOG_STATUSES.WARNING,

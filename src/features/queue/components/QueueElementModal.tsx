@@ -5,16 +5,27 @@ import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX } from 'react-icons/
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
 interface QueueElementModalProps {
+  /** Дополнительные CSS-классы модального окна. */
   className?: string;
+  /** Данные игрока. */
   player: QueuePlayer;
+  /** Закрыть модальное окно. */
   onClose: () => void;
+  /** Удалить игрока из текущей очереди. */
   onDelete?: () => void;
+  /** Удалить игрока из всех очередей. */
   onDeleteEverywhere?: () => void;
+  /** Забанить игрока. */
   onBan?: () => void;
+  /** Скопировать игровой никнейм. */
   onCopy: () => void;
+  /** Очередь, в которой находится игрок. */
   queueType: QueueType;
 }
 
+/**
+ * Модальное окно с подробной карточкой участника очереди.
+ */
 export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModalProps>(({
   className = '',
   player,
@@ -41,7 +52,6 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
 
   const sourceMeta = QUEUE_PLAYER_SOURCE_META[playerSource] || { label: playerSource, badgeClass: 'badge-ghost' }
 
-  // Закрытие при клике на оверлей backdrop
   const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>): void => {
     if (e.target === e.currentTarget) {
       onClose()
@@ -60,7 +70,6 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
         </h3>
 
         <div className="py-4 space-y-3 text-sm">
-          {/* Сетка параметров */}
           <div className="grid grid-cols-3 gap-2 bg-base-200/50 p-3 rounded-lg border border-base-content/5 font-mono text-xs">
             <span className="text-base-content/50">Twitch Login:</span>
             <span className="col-span-2 text-base-content font-bold">{displayedUsername ?? username}</span>
@@ -76,7 +85,6 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
             </span>
           </div>
 
-          {/* Роли и Источник */}
           <div className="flex flex-wrap gap-2 pt-1">
             <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-base-200 border border-base-content/5 text-xs">
               <span className="text-base-content/50">Источник:</span>
@@ -102,7 +110,6 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
             </div>
           </div>
 
-          {/* Полное сообщение */}
           <div className="flex flex-col gap-1 p-3 bg-base-200/30 border border-base-content/5 rounded-lg">
             <span className="text-xs text-base-content/50 flex items-center gap-1">
               <LuMessageSquare className="w-3 h-3" /> Текст сообщения:
@@ -113,7 +120,6 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
           </div>
         </div>
 
-        {/* Действия в модалке */}
         <div className="modal-action border-t border-base-content/10 pt-3 flex flex-wrap gap-2 justify-between">
           <div className="flex gap-2">
             <button

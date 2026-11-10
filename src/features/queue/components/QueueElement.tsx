@@ -10,11 +10,17 @@ import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 interface QueueElementProps {
+  /** Дополнительные CSS-классы карточки. */
   className?: string;
+  /** Данные игрока. */
   player: QueuePlayer;
+  /** Очередь, в которой находится игрок. */
   queueType: QueueType;
 }
 
+/**
+ * Карточка участника очереди с ролями, игровым ником и действиями.
+ */
 export const QueueElement: FC<QueueElementProps> = ({
   className = '',
   player,
@@ -38,7 +44,6 @@ export const QueueElement: FC<QueueElementProps> = ({
     gameNickname,
   } = player
 
-  // Подключаем dnd-kit сортировку для карточки
   const isHistory = queueType === QUEUE_TYPES.HISTORY
   const {
     attributes,
@@ -52,7 +57,6 @@ export const QueueElement: FC<QueueElementProps> = ({
     disabled: isHistory,
   })
 
-  // Стили для трансформации перемещения элемента
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -112,7 +116,6 @@ export const QueueElement: FC<QueueElementProps> = ({
       ref={setNodeRef}
       style={style}
     >
-      {/* Иконка-грип для перетаскивания  */}
       {!isHistory && (
         <div
           {...attributes}
@@ -125,17 +128,13 @@ export const QueueElement: FC<QueueElementProps> = ({
         </div>
       )}
 
-      {/* Основной контент карточки */}
       <div className="flex-1 min-h-0 flex flex-col gap-0.5">
-        {/* СТРОКА 1: Время, Роли, Никнеймы */}
         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0 w-full">
-          {/* Время */}
           <span className="text-[11px] text-base-content/40 font-mono flex items-center gap-0.5 shrink-0 select-none">
             <LuClock className="w-2.5 h-2.5 opacity-70" />
             {formattedTime}
           </span>
 
-          {/* Роли и статус */}
           <div className="flex items-center gap-0.5 h-3.5 shrink-0">
             {isModerator && (
               <span className="badge badge-success text-[9px] font-bold h-3.5 px-1 text-success-content border-none">
@@ -156,12 +155,10 @@ export const QueueElement: FC<QueueElementProps> = ({
             )}
           </div>
 
-          {/* Никнейм */}
           <span className="font-semibold text-xs text-base-content tracking-wide wrap-break-word">
             {displayedUsername || username}
           </span>
 
-          {/* Игровой ник */}
           {settings?.currentGame && gameNickname && (
             <span
               className={'text-[10px] h-3.5 px-1 rounded bg-base-300 text-success font-mono font-bold'
@@ -176,7 +173,6 @@ export const QueueElement: FC<QueueElementProps> = ({
           )}
         </div>
 
-        {/* СТРОКА 2: Сообщение */}
         {rawMessage && (
           <p
             className="text-[11px] text-base-content/40 truncate w-full italic mt-0.5 leading-tight"
@@ -186,7 +182,6 @@ export const QueueElement: FC<QueueElementProps> = ({
           </p>
         )}
 
-        {/* СТРОКА 3: Панель управления кнопками */}
         <div className="flex items-center justify-end gap-1 h-5 mt-1">
           <button
             className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/40 hover:text-info hover:bg-base-300/50 flex items-center gap-1"
@@ -219,7 +214,6 @@ export const QueueElement: FC<QueueElementProps> = ({
         </div>
       </div>
 
-      {/* Модалка деталей */}
       <QueueElementModal
         onBan={handleBan}
         onClose={closeModal}

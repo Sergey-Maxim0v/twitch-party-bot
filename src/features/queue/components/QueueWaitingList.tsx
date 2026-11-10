@@ -8,20 +8,28 @@ import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 
 interface QueueWaitingListProps {
+  /** Дополнительные CSS-классы списка. */
   className?: string;
+  /** Открыт ли список. */
   open: boolean;
+  /** Обработчик изменения состояния списка. */
   onOpenChange: (open: boolean) => void;
+  /** Отключён ли список в настройках. */
   disabled?: boolean
 }
 
+/**
+ * Список игроков, ожидающих своей очереди.
+ */
 export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', onOpenChange, open, disabled }) => {
   const { waitingQueue } = useQueue()
   const { settings } = useQueueSettings()
 
+  // Раскрываем список ожидающих при включении pre-join.
   useEffect(() => {
-    if(settings.allowPreJoin) {
-      onOpenChange(settings.allowPreJoin)
-    }
+    if (!settings.allowPreJoin) return
+
+    onOpenChange(settings.allowPreJoin)
   }, [settings.allowPreJoin, onOpenChange])
 
   const { setNodeRef } = useDroppable({ id: QUEUE_TYPES.WAITING, disabled: !!disabled })
