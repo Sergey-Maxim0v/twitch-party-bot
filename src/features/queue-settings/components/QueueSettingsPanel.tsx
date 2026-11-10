@@ -3,11 +3,14 @@ import { QueueCommandsSection } from './QueueCommandsSection.tsx'
 import { QueueBanListSection } from './QueueBanListSection.tsx'
 import { QueueGameSection } from './QueueGameSection.tsx'
 import { QueueGeneralSettings } from './QueueGeneralSettings.tsx'
-import { QueueResetSettings } from './QueueResetSection.tsx'
+import { QueueResetSection } from './QueueResetSection.tsx'
 import { QueueMessageSection } from './QueueMessageSection.tsx'
 import { QueueClearSection } from './QueueClearSection.tsx'
 import { usePanelSettingsLog } from '../hooks/usePanelSettingsLog.ts'
 
+/**
+ * Панель настроек очереди.
+ */
 export const QueueSettingsPanel: FC = () => {
   usePanelSettingsLog()
 
@@ -21,7 +24,7 @@ export const QueueSettingsPanel: FC = () => {
       <QueueCommandsSection titleClassName={titleClassName} />
       <QueueMessageSection titleClassName={titleClassName} />
       <QueueBanListSection titleClassName={titleClassName} />
-      <QueueResetSettings titleClassName={titleClassName} />
+      <QueueResetSection titleClassName={titleClassName} />
     </div>
   )
 }

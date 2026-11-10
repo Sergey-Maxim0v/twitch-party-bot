@@ -2,14 +2,17 @@ import { useState, type FC, type KeyboardEvent } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { LuPlus, LuTrash2 } from 'react-icons/lu'
-import { useQueueSettings } from '../hooks/useQueueSettings'
-import { useQueue } from '../../queue/hooks/useQueue.ts' // Оставляем только для чтения списка
+import { useQueueSettings } from '../hooks/useQueueSettings.ts'
+import { useQueue } from '../../queue/hooks/useQueue.ts'
 
 interface QueueBanListSectionProps {
   titleClassName?: string;
   className?: string;
 }
 
+/**
+ * Секция управления банлистом очереди.
+ */
 export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
   titleClassName = '',
   className = '',
@@ -60,7 +63,6 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
 
       <div className="p-3 rounded-xl bg-base-200/40 border border-base-300 space-y-2 w-full min-w-0">
 
-        {/* Список добавленных */}
         {banList.length > 0 && (
           <div className="space-y-2 mb-2">
             {banList.map((username, index) => (
@@ -73,7 +75,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
                 />
                 <button
                   className="btn btn-square btn-sm btn-error btn-outline shrink-0"
-                  onClick={() => { handleRemoveRow(username) }} // Передаем username вместо индекса
+                  onClick={() => { handleRemoveRow(username) }}
                   title="Удалить из списка"
                   type="button"
                 >
@@ -84,7 +86,6 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
           </div>
         )}
 
-        {/* Инпут добавления */}
         <div className="flex items-center gap-2 w-full min-w-0 border-t border-base-300/30 pt-2 mt-2">
           <input
             className="input input-bordered input-sm flex-1 min-w-0 text-sm focus:input-primary focus:outline-none"

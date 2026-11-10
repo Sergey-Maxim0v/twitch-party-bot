@@ -4,52 +4,17 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { useQueueSettings } from './useQueueSettings.ts'
 import { useEffect, useRef } from 'react'
 import type { QueueSettings } from '../types.ts'
+import {
+  QUEUE_COMMAND_LABELS,
+  QUEUE_NOTIFICATION_LABELS,
+  QUEUE_SETTING_LABELS,
+} from '../../../constants/queue.constants.ts'
 
-interface logChangeArgs {
+interface LogChangeArgs {
   message: string
   status?: AppLogStatus
   source?: LogSource
   actorUsername?: string
-}
-
-// Словарь названий базовых настроек
-const QUEUE_SETTING_LABELS: Record<string, string> = {
-  maxQueueSize: 'Лимит участников в очереди',
-  allowPreJoin: 'Разрешить запись в список ожидающих',
-  allowMultipleEntries: 'Разрешить запись в список ожидающих участников текущей очереди',
-  moveOnSizeChange: 'Автоперенос игроков из списка ожидающих при изменении размера очереди',
-  sessionHistoryCooldown: 'Через сколько минут игрок может повторно участвовать',
-  gamesPlayedCooldown: 'Через сколько игр игрок может повторно участвовать',
-  maxGamesPerUser: 'Лимит игр для одного игрока',
-  prioritizeSubscribers: 'Приоритет для подписчиков',
-  subscribersOnly: 'Вход только для подписчиков',
-  botMessageCooldown: 'Задержка ответов бота об изменениях в составе очереди (сек)',
-}
-
-// Словарь разрешений сообщений
-const QUEUE_NOTIFICATION_LABELS: Record<string, string> = {
-  allowSending: 'Разрешить боту отправку сообщений в чат',
-  onQueueOpen: 'Сообщение об открытии очереди',
-  onQueueFull: 'Сообщение об заполнении текущей очереди',
-  onQueueClose: 'Сообщение о закрытии очереди',
-  onMemberAdd: 'Сообщение о добавлении игрока в очередь',
-  onMemberRemove: 'Сообщение о удалении игрока из очереди',
-  onMemberMove: 'Сообщение о перемещении игрока между очередями',
-  onClearActive: 'Сообщение об очистке очереди',
-  onClearWaiting: 'Сообщение об очистке списка ожидающих',
-}
-
-// Словарь разрешений сообщений
-const QUEUE_COMMAND_LABELS: Record<string, string> = {
-  join: 'Вступление в очередь',
-  leave: 'Выход из очереди',
-  show: 'Показать текущую очередь',
-  clear: 'Очистить очереди',
-  add: 'Добавить в очередь',
-  delete: 'Удалить из очереди',
-  start: 'Открыть очередь',
-  stop: 'Закрыть очередь',
-  play: 'Завершить текущую очередь',
 }
 
 /**
@@ -60,7 +25,6 @@ export const usePanelSettingsLog = () => {
   const { settings } = useQueueSettings()
   const { pushLog } = useAppLogs()
 
-  // Храним предыдущее состояние настроек, инициализируем текущими при первом рендере
   const prevSettingsRef = useRef<QueueSettings | null>(settings)
 
   const logUserName = userDisplayName ?? session?.login ?? 'Стример'
@@ -70,7 +34,7 @@ export const usePanelSettingsLog = () => {
     status = APP_LOG_STATUSES.WARNING,
     source = APP_LOG_SOURCES.STREAMER_UI,
     actorUsername = logUserName,
-  }: logChangeArgs) => {
+  }: LogChangeArgs) => {
     pushLog({
       message,
       status,
@@ -87,13 +51,11 @@ export const usePanelSettingsLog = () => {
   useEffect(() => {
     const prev = prevSettingsRef.current
 
-    // Если это первый рендер, просто сохраняем текущий объект настроек
     if (!prev || !settings) {
       prevSettingsRef.current = settings
       return
     }
 
-    // 1. Плоские (базовые) настройки
     (Object.keys(QUEUE_SETTING_LABELS) as Array<keyof QueueSettings>).forEach(key => {
       const currentVal = settings[key]
       const prevVal = prev[key]
@@ -105,14 +67,12 @@ export const usePanelSettingsLog = () => {
       }
     })
 
-    // Проверка изменения префикса сообщений
     if (settings.messagePrefix !== prev.messagePrefix && prev.messagePrefix !== undefined) {
       logChange({
         message: `Настройки изменены (Сообщения): Префикс для автоматических сообщений в чат Twitch - ${formatValue(settings.messagePrefix)}`,
       })
     }
 
-    // 2. Разрешения сообщений (chatNotificationPermissions)
     if (settings.chatNotificationPermissions && prev.chatNotificationPermissions) {
       Object.keys(QUEUE_NOTIFICATION_LABELS).forEach(key => {
         const k = key as keyof QueueSettings['chatNotificationPermissions']
@@ -127,7 +87,6 @@ export const usePanelSettingsLog = () => {
       })
     }
 
-    // 3. Изменения команд (commands)
     if (settings.commands && prev.commands) {
       Object.keys(settings.commands).forEach(commandKey => {
         const k = commandKey as keyof QueueSettings['commands']
@@ -135,24 +94,22 @@ export const usePanelSettingsLog = () => {
         const prevCmd = prev.commands[k]
         const commandLabel = QUEUE_COMMAND_LABELS[k] || k
 
-        if (prevCmd) {
-          // Проверка изменения триггера (имени команды)
-          if (currentCmd.name !== prevCmd.name) {
-            logChange({
-              message: `Настройки изменены: Триггер команды "${commandLabel}" изменен с "${prevCmd.name}" на "${currentCmd.name}"`,
-            })
-          }
-          // Проверка изменения прав доступа
-          if (currentCmd.isModeratorOnly !== prevCmd.isModeratorOnly) {
-            logChange({
-              message: `Настройки изменены: Доступ к команде "${currentCmd.name}" (${commandLabel}) только для модераторов - "${formatValue(currentCmd.isModeratorOnly)}"`,
-            })
-          }
+        if (!prevCmd) return
+
+        if (currentCmd.name !== prevCmd.name) {
+          logChange({
+            message: `Настройки изменены: Триггер команды "${commandLabel}" изменен с "${prevCmd.name}" на "${currentCmd.name}"`,
+          })
+        }
+
+        if (currentCmd.isModeratorOnly !== prevCmd.isModeratorOnly) {
+          logChange({
+            message: `Настройки изменены: Доступ к команде "${currentCmd.name}" (${commandLabel}) только для модераторов - "${formatValue(currentCmd.isModeratorOnly)}"`,
+          })
         }
       })
     }
 
-    // 4. Изменение текущей игры (currentGame)
     if (settings.currentGame?.key !== prev.currentGame?.key) {
       const gameName = settings.currentGame?.key ?? 'Не выбрано'
       logChange({
@@ -160,9 +117,8 @@ export const usePanelSettingsLog = () => {
       })
     }
 
-    // Обновляем Реф актуальными настройками для следующего сравнения
     prevSettingsRef.current = settings
 
     // eslint-disable-next-line
-  }, [settings, logUserName]) // Только при изменении объекта настроек или пользователя
+  }, [settings, logUserName])
 }

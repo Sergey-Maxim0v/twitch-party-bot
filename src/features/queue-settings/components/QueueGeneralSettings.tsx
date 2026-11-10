@@ -10,6 +10,9 @@ interface QueueGeneralSettingsProps {
   titleClassName?: string;
 }
 
+/**
+ * Секция основных настроек очереди.
+ */
 export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName }) => {
   const { settings, updateSettings } = useQueueSettings()
   const { clearWaitingQueue, balanceQueues } = useQueue()

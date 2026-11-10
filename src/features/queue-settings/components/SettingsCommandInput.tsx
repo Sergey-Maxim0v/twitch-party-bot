@@ -10,6 +10,9 @@ interface SettingsCommandInputProps {
   className?: string;
 }
 
+/**
+ * Поле ввода команды чата с переключателем доступа для модераторов.
+ */
 export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
   label,
   commandValue,
@@ -19,26 +22,21 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
   disabled = false,
   className = '',
 }) => {
-  // Локальный стейт для текущего ввода
   const [localValue, setLocalValue] = useState(commandValue)
-
-  // Храним предыдущее значение пропса, чтобы поймать момент его изменения
   const [prevCommandValue, setPrevCommandValue] = useState(commandValue)
 
-  // Если проп изменился извне (например, сработал сброс формы)
+  // Синхронизируем локальное значение, если проп изменился извне.
   if (commandValue !== prevCommandValue) {
     setLocalValue(commandValue)
     setPrevCommandValue(commandValue)
   }
 
-  // Функция для сохранения значения во внешний стейт
   const handleSave = () => {
     if (localValue !== commandValue) {
       onCommandChange(localValue)
     }
   }
 
-  // Обработка нажатий клавиш Enter и Escape
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSave()

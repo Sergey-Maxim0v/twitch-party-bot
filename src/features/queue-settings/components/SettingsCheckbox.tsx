@@ -8,6 +8,9 @@ interface SettingsCheckboxProps {
   disabled?: boolean;
 }
 
+/**
+ * Чекбокс настройки с подписью.
+ */
 export const SettingsCheckbox: FC<SettingsCheckboxProps> = ({
   label,
   checked,

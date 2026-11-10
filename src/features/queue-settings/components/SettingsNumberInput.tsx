@@ -10,6 +10,9 @@ interface SettingsNumberInputProps {
   className?: string;
 }
 
+/**
+ * Числовое поле настройки с ограничением диапазона.
+ */
 export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
   label,
   value,
@@ -22,6 +25,7 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
   const [inputValue, setInputValue] = useState<string>(String(value))
   const [prevValue, setPrevValue] = useState<number>(value)
 
+  // Синхронизируем локальное значение, если проп изменился извне.
   if (value !== prevValue) {
     setPrevValue(value)
     setInputValue(String(value))
@@ -36,13 +40,14 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
 
     const parsedValue = parseInt(stringValue, 10)
 
-    if (!isNaN(parsedValue)) {
-      const clampedValue = Math.max(min, Math.min(max, parsedValue))
-      onChange(clampedValue)
-      setInputValue(String(clampedValue))
-    } else {
+    if (isNaN(parsedValue)) {
       setInputValue(String(value))
+      return
     }
+
+    const clampedValue = Math.max(min, Math.min(max, parsedValue))
+    onChange(clampedValue)
+    setInputValue(String(clampedValue))
   }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

@@ -1,3 +1,4 @@
+/** Ключи поддерживаемых игр. */
 export type QueueGameKey =
     | 'RIOT'
     | 'STEAM'
@@ -10,16 +11,19 @@ export type QueueGameKey =
     | 'GOOSE_GOOSE'
     | 'AMONG_US'
 
+/** Конфигурация команды чата. */
 interface QueueCommandConfig {
   name: string;
   isModeratorOnly: boolean;
 }
 
+/** Конфигурация игры: ключ и регулярное выражение для проверки никнейма. */
 export interface QueueGameConfig {
   key: QueueGameKey;
   validationPattern: string;
 }
 
+/** Настройки очереди. */
 export interface QueueSettings {
   /** Лимит участников в очереди. */
   maxQueueSize: number;

@@ -8,8 +8,12 @@ interface QueueMessageSectionProps {
   titleClassName?: string;
 }
 
+/**
+ * Секция разрешений и настроек сообщений бота.
+ */
 export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = '' }) => {
   const { settings, updateSettings } = useQueueSettings()
+  const notificationsDisabled = !settings.chatNotificationPermissions.allowSending
 
   const handlePermissionsChange = (key: keyof typeof settings.chatNotificationPermissions, val: boolean) => {
     updateSettings({
@@ -40,41 +44,41 @@ export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassNa
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onQueueOpen}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение об открытии очереди (мгновенное)"
         onChange={checked => { handlePermissionsChange('onQueueOpen', checked) }}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onQueueFull}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение об заполнении текущей очереди (мгновенное)"
         onChange={checked => { handlePermissionsChange('onQueueFull', checked) }}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onQueueClose}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение об закрытии очереди (мгновенное)"
         onChange={checked => { handlePermissionsChange('onQueueClose', checked) }}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onClearActive}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение об очистке активного состава игроков (мгновенное)"
         onChange={checked => { handlePermissionsChange('onClearActive', checked) }}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onClearWaiting}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение об очистке списка ожидающих (мгновенное)"
         onChange={checked => { handlePermissionsChange('onClearWaiting', checked) }}
       />
 
       <SettingsNumberInput
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Задержка ответов бота об изменениях в составе очереди (сек)"
         max={99}
         min={1}
@@ -84,21 +88,21 @@ export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassNa
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onMemberAdd}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение о добавлении игрока в очередь (с задержкой)"
         onChange={checked => { handlePermissionsChange('onMemberAdd', checked) }}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onMemberRemove}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение о удалении игрока из очереди (с задержкой)"
         onChange={checked => { handlePermissionsChange('onMemberRemove', checked) }}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onMemberMove}
-        disabled={!settings.chatNotificationPermissions.allowSending}
+        disabled={notificationsDisabled}
         label="Сообщение о перемещении игрока между очередями (с задержкой)"
         onChange={checked => { handlePermissionsChange('onMemberMove', checked) }}
       />

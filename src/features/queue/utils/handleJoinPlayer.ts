@@ -6,12 +6,7 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
-
-export const QUEUE_JOIN_STATUSES = {
-  JOINED: 'joined',
-  WAITING: 'waiting',
-  DENIED: 'denied',
-} as const
+import { QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
 
 type JoinQueueResultStatus = typeof QUEUE_JOIN_STATUSES[keyof typeof QUEUE_JOIN_STATUSES]
 

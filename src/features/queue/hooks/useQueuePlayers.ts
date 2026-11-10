@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { type QueueState, type QueuePlayerFormData, type QueueType, QUEUE_TYPES } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-import { handleJoinPlayer, QUEUE_JOIN_STATUSES } from '../utils/handleJoinPlayer.ts'
+import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
 import { handleRemovePlayer } from '../utils/handleRemovePlayer.ts'
 import { handleRemovePlayerFromAll } from '../utils/handleRemovePlayerFromAll.ts'
 import { handleBanPlayer } from '../utils/handleBanPlayer.ts'
@@ -11,6 +11,7 @@ import { handleUnbanPlayer } from '../utils/handleUnbanPlayer.ts'
 import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
+import { QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
 
 interface UseQueuePlayersArgs {
   setState: Dispatch<SetStateAction<QueueState>>;

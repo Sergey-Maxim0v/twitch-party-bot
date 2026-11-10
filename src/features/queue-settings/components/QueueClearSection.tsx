@@ -8,11 +8,14 @@ interface QueueClearSectionProps {
   className?: string;
 }
 
+/**
+ * Секция очистки очереди и истории.
+ */
 export const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleClassName = '' }) => {
   const { clearActiveQueue, clearQueueHistory, clearWaitingQueue } = useQueue()
   const { session, userDisplayName } = useAuth()
 
-  const argsClearFnc = {
+  const clearArgs = {
     source: APP_LOG_SOURCES.STREAMER_UI,
     actorUsername: userDisplayName ?? session?.login ?? '',
   }
@@ -26,21 +29,21 @@ export const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', 
       <div className="form-control w-full flex flex-col gap-2">
         <button
           className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
-          onClick={() => { clearActiveQueue(argsClearFnc) }}
+          onClick={() => { clearActiveQueue(clearArgs) }}
           type="button"
         >
           Очистить текущую очередь
         </button>
         <button
           className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
-          onClick={() => { clearWaitingQueue(argsClearFnc) }}
+          onClick={() => { clearWaitingQueue(clearArgs) }}
           type="button"
         >
           Очистить список ожидающих
         </button>
         <button
           className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
-          onClick={() => { clearQueueHistory(argsClearFnc) }}
+          onClick={() => { clearQueueHistory(clearArgs) }}
           type="button"
         >
           Очистить историю

@@ -8,6 +8,9 @@ interface QueueGameSectionProps {
   titleClassName?: string;
 }
 
+/**
+ * Секция выбора игры и проверки игрового никнейма.
+ */
 export const QueueGameSection: FC<QueueGameSectionProps> = ({
   className = '',
   titleClassName = '',

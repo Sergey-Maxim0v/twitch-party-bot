@@ -1,11 +1,33 @@
 import type { FC } from 'react'
-import { useQueueSettings } from '../hooks/useQueueSettings'
+import { useQueueSettings } from '../hooks/useQueueSettings.ts'
+import type { QueueSettings } from '../types.ts'
 import { SettingsCommandInput } from './SettingsCommandInput.tsx'
 
 interface QueueCommandsSectionProps {
   titleClassName?: string;
 }
 
+/** Описание команды чата для отображения в настройках. */
+interface CommandField {
+  key: keyof QueueSettings['commands'];
+  label: string;
+}
+
+const COMMAND_FIELDS: CommandField[] = [
+  { key: 'join', label: 'Вступление в очередь' },
+  { key: 'leave', label: 'Выход из очереди' },
+  { key: 'show', label: 'Показать текущую очередь' },
+  { key: 'clear', label: 'Очистить очереди' },
+  { key: 'add', label: 'Добавить в очередь' },
+  { key: 'delete', label: 'Удалить из очереди' },
+  { key: 'start', label: 'Открыть очередь' },
+  { key: 'stop', label: 'Закрыть очередь' },
+  { key: 'play', label: 'Завершить текущую очередь' },
+]
+
+/**
+ * Секция команд чата.
+ */
 export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
   titleClassName = '',
 }) => {
@@ -33,77 +55,16 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
     <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
       <h3 className={titleClassName}>Команды чата</h3>
 
-      <SettingsCommandInput
-        commandValue={settings.commands.join.name}
-        isModeratorValue={settings.commands.join.isModeratorOnly}
-        label="Вступление в очередь"
-        onCommandChange={val => { handleCommandChange('join', val) }}
-        onModeratorChange={chk => { handleModChange('join', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.leave.name}
-        isModeratorValue={settings.commands.leave.isModeratorOnly}
-        label="Выход из очереди"
-        onCommandChange={val => { handleCommandChange('leave', val) }}
-        onModeratorChange={chk => { handleModChange('leave', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.show.name}
-        isModeratorValue={settings.commands.show.isModeratorOnly}
-        label="Показать текущую очередь"
-        onCommandChange={val => { handleCommandChange('show', val) }}
-        onModeratorChange={chk => { handleModChange('show', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.clear.name}
-        isModeratorValue={settings.commands.clear.isModeratorOnly}
-        label="Очистить очереди"
-        onCommandChange={val => { handleCommandChange('clear', val) }}
-        onModeratorChange={chk => { handleModChange('clear', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.add.name}
-        isModeratorValue={settings.commands.add.isModeratorOnly}
-        label="Добавить в очередь"
-        onCommandChange={val => { handleCommandChange('add', val) }}
-        onModeratorChange={chk => { handleModChange('add', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.delete.name}
-        isModeratorValue={settings.commands.delete.isModeratorOnly}
-        label="Удалить из очереди"
-        onCommandChange={val => { handleCommandChange('delete', val) }}
-        onModeratorChange={chk => { handleModChange('delete', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.start.name}
-        isModeratorValue={settings.commands.start.isModeratorOnly}
-        label="Открыть очередь"
-        onCommandChange={val => { handleCommandChange('start', val) }}
-        onModeratorChange={chk => { handleModChange('start', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.stop.name}
-        isModeratorValue={settings.commands.stop.isModeratorOnly}
-        label="Закрыть очередь"
-        onCommandChange={val => { handleCommandChange('stop', val) }}
-        onModeratorChange={chk => { handleModChange('stop', chk) }}
-      />
-
-      <SettingsCommandInput
-        commandValue={settings.commands.play.name}
-        isModeratorValue={settings.commands.play.isModeratorOnly}
-        label="Завершить текущую очередь"
-        onCommandChange={val => { handleCommandChange('play', val) }}
-        onModeratorChange={chk => { handleModChange('play', chk) }}
-      />
+      {COMMAND_FIELDS.map(({ key, label }) => (
+        <SettingsCommandInput
+          commandValue={settings.commands[key].name}
+          isModeratorValue={settings.commands[key].isModeratorOnly}
+          key={key}
+          label={label}
+          onCommandChange={val => { handleCommandChange(key, val) }}
+          onModeratorChange={chk => { handleModChange(key, chk) }}
+        />
+      ))}
     </div>
   )
 }

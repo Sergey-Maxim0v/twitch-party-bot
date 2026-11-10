@@ -21,7 +21,7 @@ export const QUEUE_JOIN_STATUSES = {
   JOINED: 'joined',
   WAITING: 'waiting',
   DENIED: 'denied',
-}
+} as const
 
 export const QUEUE_PLAYER_SOURCE_META: Record<
   QueuePlayerSource,

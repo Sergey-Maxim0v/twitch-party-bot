@@ -6,7 +6,10 @@ interface QueueResetSectionProps {
   className?: string;
 }
 
-export const QueueResetSettings: FC<QueueResetSectionProps> = ({ titleClassName = '', className = '' }) => {
+/**
+ * Секция сброса настроек очереди к значениям по умолчанию.
+ */
+export const QueueResetSection: FC<QueueResetSectionProps> = ({ titleClassName = '', className = '' }) => {
   const { resetSettings } = useQueueSettings()
   return (
     <div

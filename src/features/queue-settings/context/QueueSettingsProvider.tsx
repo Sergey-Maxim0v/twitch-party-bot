@@ -1,16 +1,20 @@
 import { type FC, type ReactNode } from 'react'
 import type { QueueSettings } from '../types.ts'
-import { DEFAULT_QUEUE_SETTINGS } from '../../../constants/queue.constants.ts'
-import { QueueSettingsContext } from './QueueSettingsInstance'
-import { QUEUE_SETTINGS_STORAGE_KEY } from '../../../constants/queue.constants.ts'
+import { DEFAULT_QUEUE_SETTINGS, QUEUE_SETTINGS_STORAGE_KEY } from '../../../constants/queue.constants.ts'
+import { QueueSettingsContext } from './QueueSettingsInstance.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
-export const QueueSettingsProvider: FC<{ children: ReactNode }> = ({ children }) => {
+interface QueueSettingsProviderProps {
+  children: ReactNode;
+}
+
+/**
+ * Провайдер настроек очереди с сохранением в localStorage.
+ */
+export const QueueSettingsProvider: FC<QueueSettingsProviderProps> = ({ children }) => {
   const [settings, setSettings] = useLocalStorage<QueueSettings>(QUEUE_SETTINGS_STORAGE_KEY, DEFAULT_QUEUE_SETTINGS)
 
-  /**
-     *  Функция для частичного обновления настроек
-     */
+  /** Частично обновляет настройки очереди. */
   const updateSettings = (newSettings: Partial<QueueSettings>) => {
     setSettings(prev => ({
       ...prev,
@@ -18,9 +22,7 @@ export const QueueSettingsProvider: FC<{ children: ReactNode }> = ({ children })
     }))
   }
 
-  /**
-     *  Функция сброса к дефолтным значениям
-     */
+  /** Сбрасывает настройки очереди к значениям по умолчанию. */
   const resetSettings = () => {
     setSettings(DEFAULT_QUEUE_SETTINGS)
   }

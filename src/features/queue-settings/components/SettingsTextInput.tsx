@@ -10,6 +10,9 @@ interface SettingsTextInputProps {
   className?: string;
 }
 
+/**
+ * Текстовое поле настройки.
+ */
 export const SettingsTextInput: FC<SettingsTextInputProps> = ({
   label,
   value = '',
@@ -22,6 +25,7 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
   const [inputValue, setInputValue] = useState<string>(value)
   const [prevValue, setPrevValue] = useState<string>(value)
 
+  // Синхронизируем локальное значение, если проп изменился извне.
   if (value !== prevValue) {
     setPrevValue(value)
     setInputValue(value)
