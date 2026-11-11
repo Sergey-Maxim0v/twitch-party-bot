@@ -151,7 +151,7 @@ export const createWorkspacePanels = ({
       direction={directions.settings}
       isOpen={isOpenSettings}
       onToggle={toggleSettings}
-      title="Настройки очереди"
+      title="Настройки"
     >
       <QueueSettingsPanel />
     </CollapsiblePanel>
@@ -163,7 +163,7 @@ export const createWorkspacePanels = ({
       direction={directions.logs}
       isOpen={isOpenLogs}
       onToggle={toggleLogs}
-      title="Логи очереди"
+      title="Логи"
     >
       <QueueLogsPanel />
     </CollapsiblePanel>
