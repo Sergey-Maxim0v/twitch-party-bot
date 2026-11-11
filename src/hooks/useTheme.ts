@@ -14,12 +14,11 @@ const isThemeMode = (value: unknown): value is ThemeMode =>
  * Управляет темой оформления приложения и сохраняет выбор в localStorage.
  * Для режима `system` тема следует системным настройкам и обновляется при их изменении.
  *
- * @returns {object} Текущий режим темы и функция для его изменения.
+ * @returns Текущий режим темы и функция для его изменения.
  */
 export const useTheme = () => {
   const [storedThemeMode, setThemeMode] = useLocalStorage<ThemeMode>(THEME_STORAGE_KEY, DEFAULT_THEME.id)
 
-  // Защита от значений, которые существовали в прошлых версиях (например, `light`/`dark`).
   const themeMode = isThemeMode(storedThemeMode) ? storedThemeMode : DEFAULT_THEME.id
 
   useEffect(() => {
