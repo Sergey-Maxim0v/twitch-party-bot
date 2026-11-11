@@ -15,6 +15,8 @@ import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
 import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 import { useNotificationGuard } from '../hooks/useNotificationGuard.ts'
 import { useNotificationActions } from '../hooks/useNotificationActions.ts'
+import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
+import { TWITCH_CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
 
 /**
  * Провайдер автоматических уведомлений о событиях очереди.
@@ -27,6 +29,9 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   const { settings } = useQueueSettings()
   const { pushLog } = useAppLogs()
   const { userDisplayName, session } = useAuth()
+  const socketContext = useSocketContext()
+
+  const chatAccessStatus = socketContext?.chatAccessStatus ?? TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
 
   const { chatNotificationPermissions: permissions, commands, maxQueueSize, botMessageCooldown } = settings
 
@@ -36,6 +41,13 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   const waitingQueueRef = useRef<string[]>([])
   const stateRef = useRef<TwitchNotificationState>(state)
   const permissionsRef = useRef(permissions)
+  const isBannedNotificationLoggedRef = useRef(false)
+
+  useEffect(() => {
+    if (chatAccessStatus !== TWITCH_CHAT_ACCESS_STATUSES.BANNED) {
+      isBannedNotificationLoggedRef.current = false
+    }
+  }, [chatAccessStatus])
 
   useEffect(() => {
     stateRef.current = state
@@ -57,16 +69,26 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     setState(createInitialNotificationState())
   }, [])
 
-  const sendAndLogNotification = useCallback((message: string): void => {
+  const sendAndLogNotification = useCallback((message: string): boolean => {
     const actorUsername = userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR
-    const logText = `Автоматически отправлено сообщение в чат: ${message}`
 
-    sendChatMessage(message)
-    pushLog({
-      message: logText,
-      status: APP_LOG_STATUSES.SUCCESS,
-      source: APP_LOG_SOURCES.APPLICATION,
-      actorUsername,
+    return sendChatMessage(message, {
+      onConfirmed: () => {
+        pushLog({
+          message: `Автоматически отправлено сообщение в чат: ${message}`,
+          status: APP_LOG_STATUSES.SUCCESS,
+          source: APP_LOG_SOURCES.APPLICATION,
+          actorUsername,
+        })
+      },
+      onFailed: reason => {
+        pushLog({
+          message: `Не удалось отправить сообщение в чат: ${message}. Причина: ${reason}`,
+          status: APP_LOG_STATUSES.ERROR,
+          source: APP_LOG_SOURCES.APPLICATION,
+          actorUsername,
+        })
+      },
     })
   }, [sendChatMessage, pushLog, session?.login, userDisplayName])
 
@@ -78,17 +100,33 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     })
   }, [maxQueueSize])
 
-  const sendMessage = useCallback((text: string): void => {
-    if (!isReadyForAutomations || !permissionsRef.current.allowSending) {
-      return
+  const sendMessage = useCallback((text: string): boolean => {
+    // Отправка отключена настройкой
+    if (!permissionsRef.current.allowSending) {
+      return true
+    }
+
+    // Чат недоступен — сохраняем буфер до восстановления
+    if (!isReadyForAutomations) {
+      if (chatAccessStatus === TWITCH_CHAT_ACCESS_STATUSES.BANNED && !isBannedNotificationLoggedRef.current) {
+        pushLog({
+          message: 'Отправка уведомлений приостановлена: аккаунт забанен. Накопленные события будут отправлены после восстановления доступа.',
+          status: APP_LOG_STATUSES.WARNING,
+          source: APP_LOG_SOURCES.APPLICATION,
+          actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
+        })
+        isBannedNotificationLoggedRef.current = true
+      }
+
+      return false
     }
 
     if (text.trim().length === 0) {
-      return
+      return true
     }
 
-    sendAndLogNotification(text)
-  }, [sendAndLogNotification, isReadyForAutomations])
+    return sendAndLogNotification(text)
+  }, [sendAndLogNotification, isReadyForAutomations, chatAccessStatus, pushLog, session?.login, userDisplayName])
 
   const sendMessageOpen = useCallback((): void => {
     setState(createInitialNotificationState())

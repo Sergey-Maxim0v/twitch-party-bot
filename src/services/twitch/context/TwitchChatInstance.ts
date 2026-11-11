@@ -1,12 +1,12 @@
 import { createContext } from 'react'
-import type { ParsedIrcMessage } from '../types.ts'
+import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
 
 /**
  * Интерфейс контекста управления чатом Twitch.
  */
 interface TwitchChatContextType {
   messages: ParsedIrcMessage[]
-  sendChatMessage: (message: string) => void
+  sendChatMessage: (message: string, options?: SendChatMessageOptions) => boolean
   lastMessage: ParsedIrcMessage | null
 }
 

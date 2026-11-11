@@ -4,23 +4,23 @@ import { TWITCH_CHAT_HISTORY_MAX_MESSAGES, TWITCH_IRC_COMMANDS } from '../../../
 import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
-import type { ParsedIrcMessage } from '../types.ts'
+import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 
 interface UseTwitchChatHistoryProps {
   client: TwitchIrcClient | null;
-  pendingTextsRef: RefObject<string[]>;
+  pendingMessagesRef: RefObject<PendingChatMessage[]>;
   roomStateTagsRef: RefObject<Record<string, string>>;
 }
 
 /**
  * Хук для управления историей сообщений чата Twitch и модерацией.
  */
-export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef }: UseTwitchChatHistoryProps) => {
+export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTagsRef }: UseTwitchChatHistoryProps) => {
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
   const lastChannelRef = useRef<string | null>(null)
 
-  // Очистка чата и состояния комнаты при смене канала
+  // Смена канала очищает историю и состояние комнаты
   useEffect(() => {
     if (!client?.onChannelChange) return
 
@@ -56,10 +56,6 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
 
     if (!isModAction && !isChannelEvent && !isNotice && !isSessionControl) return false
 
-    if (isNotice && pendingTextsRef.current) {
-      pendingTextsRef.current.shift()
-    }
-
     const systemLog = createSystemMessage(message)
 
     if (!systemLog) return true
@@ -72,7 +68,7 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
     })
 
     return true
-  }, [pendingTextsRef])
+  }, [])
 
   /**
    * Добавляет стандартные текстовые сообщения в общую историю чата.
@@ -92,10 +88,13 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
     const enrichedTags = { ...message.tags }
 
     if (isUserstate) {
-      const pendingTexts = pendingTextsRef.current
-      savedText = pendingTexts ? pendingTexts.shift() : null
+      // USERSTATE не содержит id и текста — сопоставляем по порядку очереди
+      const pendingMessage = pendingMessagesRef.current.shift()
+      savedText = pendingMessage?.text ?? null
 
       if (!savedText) return undefined
+
+      pendingMessage?.onConfirmed?.()
 
       // В быстрых ответах USER_STATE может не содержать badges — вычисляем роли вручную
       if (!enrichedTags.badges) {
@@ -154,7 +153,7 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
     })
 
     return messageToPush
-  }, [pendingTextsRef])
+  }, [pendingMessagesRef])
 
   return {
     messages,

@@ -9,13 +9,14 @@ import {
   ROOM_STATE_LOG_PRIORITY,
   ROOM_STATE_SUMMARY_PRIORITY,
 } from './roomState.ts'
-import type { ParsedIrcMessage } from '../types.ts'
+import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../../features/app-logs/types.ts'
+import { getChatSendError, isUnknownChatSendError } from './chatSendErrors.ts'
 
 interface UpdateChatAccessProps {
   message: ParsedIrcMessage;
   currentUserLogin?: string;
-  pendingTextsRef: { current: string[] };
+  pendingMessagesRef: RefObject<PendingChatMessage[]>;
   timeoutTimerRef: RefObject<ReturnType<typeof setTimeout> | null>;
   updateChatAccessStatus: (status: ChatAccessStatus) => void;
   pushLog: (log: {
@@ -29,13 +30,13 @@ interface UpdateChatAccessProps {
 }
 
 /**
- * Анализирует входящие IRC-команды Twitch для динамического переключения
- * статуса доступности чата и очистки застрявших очередей сообщений.
+ * Обновляет статус доступа к чату и снимает недоставленные сообщения
+ * по входящим IRC-событиям Twitch.
  */
 export const updateChatAccess = ({
   message,
   currentUserLogin,
-  pendingTextsRef,
+  pendingMessagesRef,
   timeoutTimerRef,
   updateChatAccessStatus,
   pushLog,
@@ -44,6 +45,22 @@ export const updateChatAccess = ({
 
   const pushStatusLog = (logMessage: string) => {
     pushLog({ message: logMessage, status: APP_LOG_STATUSES.ERROR, source: APP_LOG_SOURCES.APPLICATION, actorUsername: 'twitch' })
+  }
+
+  /**
+   * Снимает сообщения из очереди и вызывает `onFailed`.
+   * @param reason - Причина недоставки.
+   * @param rejectAll - Снять всю очередь или только первое сообщение.
+   */
+  const rejectPendingMessages = (reason: string, rejectAll: boolean): void => {
+    const pendingMessages = pendingMessagesRef.current
+    if (pendingMessages.length === 0) return
+
+    const rejectedMessages = rejectAll
+      ? pendingMessages.splice(0, pendingMessages.length)
+      : pendingMessages.splice(0, 1)
+
+    rejectedMessages.forEach(pendingMessage => pendingMessage.onFailed?.(reason))
   }
 
   if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
@@ -70,7 +87,7 @@ export const updateChatAccess = ({
       }
     }
 
-    // Проверяем полную историю ограничений комнаты, а не только текущее сообщение
+    // Учитываем все активные ограничения комнаты, а не только текущее сообщение
     const isRestricted = checkIsRoomRestricted({ ...message, tags: currentRoomTags })
     updateChatAccessStatus(isRestricted ? TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED : TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
     return
@@ -79,20 +96,33 @@ export const updateChatAccess = ({
   // Персональные блокировки из NOTICE (ошибки отправки при муте)
   if (message.command === TWITCH_IRC_COMMANDS.NOTICE) {
     const msgId = message.tags?.[TWITCH_IRC_TAGS.MSG_ID]
+    const sendError = getChatSendError(msgId)
 
-    if (msgId === 'msg_banned') {
-      pushStatusLog('Ошибка отправки сообщения: аккаунт забанен на канале.')
-      updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
-      pendingTextsRef.current = []
-    } else if (msgId === 'msg_subsonly' || msgId === 'msg_followersonly' || msgId === 'msg_timedout') {
-      pushStatusLog(`Ошибка отправки сообщения: чат ограничен (причина: ${msgId}).`)
-      updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED)
-      pendingTextsRef.current = []
+    if (sendError) {
+      pushStatusLog(sendError.logMessage)
+
+      if (sendError.status) {
+        updateChatAccessStatus(sendError.status)
+      }
+
+      rejectPendingMessages(sendError.logMessage, sendError.rejectsAllPending)
+      return
     }
+
+    // Неизвестная ошибка: показываем в журнале и снимаем одно сообщение
+    if (isUnknownChatSendError(msgId)) {
+      const unknownErrorMessage = `Неизвестная ошибка отправки сообщения Twitch (${msgId}).`
+      pushStatusLog(unknownErrorMessage)
+      rejectPendingMessages(unknownErrorMessage, false)
+      return
+    }
+
+    // Прочий NOTICE также снимает одно сообщение из очереди
+    pendingMessagesRef.current.shift()
     return
   }
 
-  // Мгновенный перехват мута/бана нашего аккаунта через CLEARCHAT
+  // Бан или таймаут нашего аккаунта
   if (message.command === TWITCH_IRC_COMMANDS.CLEAR_CHAT) {
     const targetUser = message.text?.trim()?.toLowerCase()
 
@@ -105,19 +135,23 @@ export const updateChatAccess = ({
       timeoutTimerRef.current = null
     }
 
-    // 1. Обработка перманентного бана (тег отсутствует)
+    // Перманентный бан
     if (!durationStr) {
-      pushStatusLog('Аккаунт перманентно забанен на канале.')
+      const reason = 'Аккаунт перманентно забанен на канале.'
+      pushStatusLog(reason)
       updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
+      rejectPendingMessages(reason, true)
       return
     }
 
     const durationSeconds = parseInt(durationStr, 10)
 
-    // 2. Обработка валидного тайм-аута
+    // Таймаут
     if (!isNaN(durationSeconds) && durationSeconds > 0) {
-      pushStatusLog(`Аккаунт получил таймаут на ${durationStr} сек.`)
+      const reason = `Аккаунт получил таймаут на ${durationStr} сек.`
+      pushStatusLog(reason)
       updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED)
+      rejectPendingMessages(reason, true)
 
       timeoutTimerRef.current = setTimeout(() => {
         pushStatusLog('Время таймаута истекло.')
@@ -125,14 +159,16 @@ export const updateChatAccess = ({
         timeoutTimerRef.current = null
       }, durationSeconds * 1000)
     } else {
-      // 3. Фолбек-защита (на случай аномальных данных от API)
-      pushStatusLog('Аккаунт забанен (некорректный формат времени таймаута).')
+      // Некорректная длительность таймаута
+      const reason = 'Аккаунт забанен (некорректный формат времени таймаута).'
+      pushStatusLog(reason)
       updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
+      rejectPendingMessages(reason, true)
     }
     return
   }
 
-  // Успешный USERSTATE — сигнал разбана или успешной отправки
+  // Разбан или успешная отправка
   if (message.command === TWITCH_IRC_COMMANDS.USER_STATE) {
     if (timeoutTimerRef.current) {
       clearTimeout(timeoutTimerRef.current)

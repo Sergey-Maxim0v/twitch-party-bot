@@ -196,13 +196,16 @@ export class TwitchIrcClient {
 
   /**
    * Отправляет текстовое сообщение в текущий канал.
+   *
+   * @returns `true`, если сообщение передано в сокет.
    */
-  public sendMessage(text: string): void {
+  public sendMessage(text: string): boolean {
     if (!this.socketManager.isOpen() || !this.channel) {
       console.error('[TwitchIRC Client] Невозможно отправить сообщение: сокет закрыт или канал не задан')
-      return
+      return false
     }
     this.socketManager.send(`PRIVMSG #${this.channel} :${text}`)
+    return true
   }
 
   /**

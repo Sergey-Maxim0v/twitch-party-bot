@@ -7,8 +7,9 @@ import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
 import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
-import type { ParsedIrcMessage } from '../types.ts'
+import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
 import { useAppLogs } from '../../../features/app-logs/hooks/useAppLogs.ts'
+import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../../features/app-logs/types.ts'
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -24,30 +25,54 @@ export const useTwitchChatManager = () => {
 
   const { handleSocketActivity } = useTwitchHeartbeat()
 
-  const { pendingTextsRef, timeoutTimerRef, registerPendingMessage } = useTwitchPendingMessages()
+  const { pendingMessagesRef, timeoutTimerRef, registerPendingMessage } = useTwitchPendingMessages()
 
   const client = socketContext?.getClient?.() ?? null
 
   const { messages, handleModerationAndEvents, handleStandardMessage } = useTwitchChatHistory({
     client,
-    pendingTextsRef,
+    pendingMessagesRef,
     roomStateTagsRef,
   })
 
   const currentUserLogin = session?.login?.toLowerCase() ?? 'broadcaster'
 
   /**
-   * Отправляет сообщение в Twitch-чат и ставит его в очередь ожидания USER_STATE.
+   * Отправляет сообщение в чат и регистрирует его для подтверждения USERSTATE.
+   *
+   * @returns `true`, если сообщение передано в сокет.
    */
-  const sendChatMessage = useCallback((message: string) => {
-    if (socketContext && !!socketContext.sendMessage && registerPendingMessage && client) {
-      registerPendingMessage(message)
-      client.sendMessage(message)
+  const sendChatMessage = useCallback((message: string, options?: SendChatMessageOptions): boolean => {
+    const fail = (reason: string): false => {
+      if (options?.onFailed) {
+        options.onFailed(reason)
+      } else {
+        pushLog({
+          message: `Не удалось отправить сообщение в чат: ${reason}.`,
+          status: APP_LOG_STATUSES.ERROR,
+          source: APP_LOG_SOURCES.APPLICATION,
+          actorUsername: 'twitch',
+        })
+      }
+
+      return false
     }
-  }, [registerPendingMessage, socketContext, client])
+
+    if (!socketContext || !client) {
+      return fail('соединение с Twitch не инициализировано')
+    }
+
+    if (!client.sendMessage(message)) {
+      return fail('соединение с чатом закрыто')
+    }
+
+    registerPendingMessage(message, options)
+
+    return true
+  }, [registerPendingMessage, socketContext, client, pushLog])
 
   /**
-   * Главный диспетчер обработки каждого входящего IRC-сообщения.
+   * Обрабатывает входящее IRC-сообщение.
    */
   const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
     if (message.command === TWITCH_IRC_COMMANDS.PRIV_MSG) {
@@ -76,7 +101,7 @@ export const useTwitchChatManager = () => {
       updateChatAccess({
         message,
         currentUserLogin,
-        pendingTextsRef,
+        pendingMessagesRef,
         timeoutTimerRef,
         updateChatAccessStatus: socketContext.updateChatAccessStatus,
         pushLog,
@@ -106,7 +131,7 @@ export const useTwitchChatManager = () => {
     handleStandardMessage,
     currentUserLogin,
     client?.currentChannel,
-    pendingTextsRef,
+    pendingMessagesRef,
     timeoutTimerRef,
     pushLog,
   ])

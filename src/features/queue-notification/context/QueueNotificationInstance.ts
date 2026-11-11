@@ -29,8 +29,8 @@ export interface QueueNotificationContextType {
   /** Добавляет участника в список отклонённых. */
   addDeniedUser: (username: string) => void;
 
-  /** Отправляет произвольное сообщение в чат Twitch. */
-  sendMessage: (text: string) => void;
+  /** Отправляет сообщение; `true` — буфер можно очистить. */
+  sendMessage: (text: string) => boolean;
 
   /** Отправляет сообщение об открытии очереди. */
   sendMessageOpen: () => void;

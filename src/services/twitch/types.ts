@@ -68,3 +68,22 @@ export interface IrcUserData {
   /** Является ли пользователь сотрудником Twitch (из тегов badges или user-type: staff/admin) */
   isTwitchStaff?: boolean;
 }
+
+/**
+ * Колбэки отправленного сообщения.
+ */
+export interface SendChatMessageOptions {
+  /** Подтверждено USERSTATE. */
+  onConfirmed?: () => void;
+
+  /** Не отправлено или отклонено Twitch. */
+  onFailed?: (reason: string) => void;
+}
+
+/**
+ * Сообщение, ожидающее подтверждения отправки.
+ */
+export interface PendingChatMessage extends SendChatMessageOptions {
+  /** Текст отправленного сообщения. */
+  text: string;
+}

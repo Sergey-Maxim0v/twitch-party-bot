@@ -68,8 +68,8 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     return client.subscribe(callback)
   }, [client])
 
-  const sendMessage = useCallback((text: string): void => {
-    client.sendMessage(text)
+  const sendMessage = useCallback((text: string): boolean => {
+    return client.sendMessage(text)
   }, [client])
 
   const getClient = useCallback((): TwitchIrcClient => {

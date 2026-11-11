@@ -4,25 +4,23 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
 
 interface UseNotificationCycleParams {
-  /** Задержка между отправками накопленных уведомлений, в секундах. */
+  /** Задержка между отправками, сек. */
   botMessageCooldown: number
-  /** Функция отправки сообщения в чат. */
-  sendMessage: (text: string) => void
-  /** Актуальное состояние буфера уведомлений. */
+  /** Отправляет текст; `true` — буфер можно очистить. */
+  sendMessage: (text: string) => boolean
+  /** Буфер уведомлений. */
   stateRef: RefObject<TwitchNotificationState>
-  /** Функция очистки буфера после отправки. */
+  /** Очищает буфер после успешной отправки. */
   clearBuffer: () => void
 }
 
 interface UseNotificationCycleReturn {
-  /** Запускает цикл отправки уведомлений. */
   startNotificationCycle: () => void
-  /** Останавливает цикл отправки уведомлений. */
   stopNotificationCycle: () => void
 }
 
 /**
- * Хук для управления асинхронным циклом автоматической отправки накопленных уведомлений в чат Twitch.
+ * Цикл отправки накопленных уведомлений в чат Twitch.
  */
 export const useNotificationCycle = ({
   botMessageCooldown,
@@ -81,8 +79,11 @@ export const useNotificationCycle = ({
         : ''
 
       if (messageText.length > 0) {
-        currentSendFn(messageText)
-        currentClearFn()
+        const isConsumed = currentSendFn(messageText)
+
+        if (isConsumed) {
+          currentClearFn()
+        }
       }
 
       scheduleNextTick()

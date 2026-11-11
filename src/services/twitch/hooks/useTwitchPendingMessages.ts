@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef } from 'react'
+import type { PendingChatMessage, SendChatMessageOptions } from '../types.ts'
 
 /**
- * Хук для управления очередью отправленных сообщений, ожидающих USER_STATE,
- * и контроля таймеров блокировок (мутов/таймаутов).
+ * Очередь сообщений, ожидающих подтверждения USERSTATE,
+ * и таймер ограничений чата.
  */
 export const useTwitchPendingMessages = () => {
-  const pendingTextsRef = useRef<string[]>([])
+  const pendingMessagesRef = useRef<PendingChatMessage[]>([])
   const timeoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Автоматическая очистка таймера при размонтировании компонента/хука
   useEffect(() => {
     const timer = timeoutTimerRef.current
 
@@ -20,14 +20,14 @@ export const useTwitchPendingMessages = () => {
   }, [])
 
   /**
-   * Регистрирует текст отправляемого сообщения в очереди ожидания USER_STATE.
+   * Добавляет сообщение в очередь подтверждения.
    */
-  const registerPendingMessage = useCallback((text: string): void => {
-    pendingTextsRef.current.push(text)
+  const registerPendingMessage = useCallback((text: string, options?: SendChatMessageOptions): void => {
+    pendingMessagesRef.current.push({ text, ...options })
   }, [])
 
   return {
-    pendingTextsRef,
+    pendingMessagesRef,
     timeoutTimerRef,
     registerPendingMessage,
   }
