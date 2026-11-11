@@ -2,6 +2,36 @@ import { type RefObject, type Dispatch, type SetStateAction, useCallback } from 
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import type { TwitchNotificationState } from '../types.ts'
 
+/** Все группы событий буфера. */
+const NOTIFICATION_FIELDS = [
+  'joined',
+  'waiting',
+  'deleted',
+  'movedToActive',
+  'movedToWaiting',
+  'denied',
+] as const satisfies readonly (keyof TwitchNotificationState)[]
+
+/**
+ * Удаляет никнейм из группы без учёта регистра.
+ * Возвращает `null`, если совпадений не было, чтобы не создавать лишний `Set`.
+ */
+const removeUsername = (members: Set<string>, normalizedUsername: string): Set<string> | null => {
+  let hasMatch = false
+  const nextMembers = new Set<string>()
+
+  members.forEach(nickname => {
+    if (nickname.toLowerCase() === normalizedUsername) {
+      hasMatch = true
+      return
+    }
+
+    nextMembers.add(nickname)
+  })
+
+  return hasMatch ? nextMembers : null
+}
+
 interface UseNotificationActionsArgs {
   /** Актуальная ссылка на конфигурацию разрешений автоматических уведомлений. */
   permissionsRef: RefObject<QueueSettings['chatNotificationPermissions']>;
@@ -39,15 +69,26 @@ export const useNotificationActions = ({
 
   const appendUsername = useCallback(
     (field: keyof TwitchNotificationState, username: string): void => {
+      const normalizedUsername = username.toLowerCase()
+
       setState(currentState => {
-        if (currentState[field].has(username)) {
-          return currentState
-        }
+        const nextState: TwitchNotificationState = { ...currentState }
 
-        const nextSet = new Set(currentState[field])
-        nextSet.add(username)
+        // Новое событие перекрывает все предыдущие статусы игрока:
+        // в итоговое сообщение попадает только его актуальное положение в очереди.
+        NOTIFICATION_FIELDS.forEach(fieldName => {
+          const filteredMembers = removeUsername(currentState[fieldName], normalizedUsername)
 
-        return { ...currentState, [field]: nextSet }
+          if (filteredMembers) {
+            nextState[fieldName] = filteredMembers
+          }
+        })
+
+        const nextTargetMembers = new Set(nextState[field])
+        nextTargetMembers.add(username)
+        nextState[field] = nextTargetMembers
+
+        return nextState
       })
     },
     [setState],
