@@ -3,6 +3,7 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueuePlayer, QueueState } from '../types.ts'
+import { normalizeQueueUsername } from './queuePlayerIdentity.ts'
 
 interface HandleBalanceQueuesArgs {
   /** Максимальный размер активной очереди. */
@@ -56,9 +57,25 @@ export const handleBalanceQueues = ({
       const shouldMoveToWaiting = moveOnSizeChange && allowPreJoin
 
       if (shouldMoveToWaiting) {
-        updatedWaiting.unshift(...movedPlayers)
-        movedToWaitingList = movedPlayers.map(p => p.displayedUsername ?? p.username)
-        logMessageText = `Автоматически перенесено игроков из активной очереди в начало списка ожидающих: ${count}.`
+        const waitingUsernames = new Set(updatedWaiting.map(p => normalizeQueueUsername(p.username)))
+        const playersToAdd: QueuePlayer[] = []
+
+        movedPlayers.forEach(player => {
+          const normalizedUsername = normalizeQueueUsername(player.username)
+          if (waitingUsernames.has(normalizedUsername)) return
+
+          waitingUsernames.add(normalizedUsername)
+          playersToAdd.push(player)
+        })
+
+        updatedWaiting.unshift(...playersToAdd)
+        movedToWaitingList = playersToAdd.map(p => p.displayedUsername ?? p.username)
+
+        if (playersToAdd.length > 0) {
+          logMessageText = `Автоматически перенесено игроков из активной очереди в начало списка ожидающих: ${playersToAdd.length}.`
+        } else {
+          logMessageText = `Лишние игроки удалены из активной очереди: ${count}.`
+        }
       } else {
         logMessageText = `Лишние игроки удалены из активной очереди: ${count}.`
       }
@@ -79,13 +96,14 @@ export const handleBalanceQueues = ({
       const indicesToRemove: number[] = []
 
       const activeUserIds = new Set(updatedActive.map(p => p.userId))
-      const activeUsernames = new Set(updatedActive.map(p => p.username.toLowerCase()))
+      const activeUsernames = new Set(updatedActive.map(p => normalizeQueueUsername(p.username)))
 
       for (let i = 0; i < sourceWaiting.length; i++) {
         if (playersToMove.length >= freeSlots) break
 
         const player = sourceWaiting[i]
-        const isDuplicate = activeUserIds.has(player.userId) || activeUsernames.has(player.username.toLowerCase())
+        const normalizedUsername = normalizeQueueUsername(player.username)
+        const isDuplicate = activeUserIds.has(player.userId) || activeUsernames.has(normalizedUsername)
 
         if (isDuplicate) continue
 
@@ -93,7 +111,7 @@ export const handleBalanceQueues = ({
         indicesToRemove.push(i)
 
         activeUserIds.add(player.userId)
-        activeUsernames.add(player.username.toLowerCase())
+        activeUsernames.add(normalizedUsername)
       }
 
       if (playersToMove.length === 0) return prev

@@ -12,6 +12,7 @@ import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import { QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
+import { hasQueuePlayerWithUsername } from '../utils/queuePlayerIdentity.ts'
 
 interface UseQueuePlayersArgs {
   /** Функция обновления состояния очереди. */
@@ -130,18 +131,27 @@ export const useQueuePlayers = ({
   }) => {
     let sourceQueueType: Exclude<QueueType, 'history'> | null = null
 
-    const isInActive = rawState.activeQueue.some(p => p.userId === args.userId)
-    const isInWaiting = rawState.waitingQueue.some(p => p.userId === args.userId)
+    const sourcePlayer = rawState.activeQueue.find(p => p.userId === args.userId)
+      ?? rawState.waitingQueue.find(p => p.userId === args.userId)
 
-    if (isInActive) {
-      sourceQueueType = QUEUE_TYPES.ACTIVE
-    } else if (isInWaiting) {
-      sourceQueueType = QUEUE_TYPES.WAITING
+    if (sourcePlayer) {
+      sourceQueueType = rawState.activeQueue.includes(sourcePlayer)
+        ? QUEUE_TYPES.ACTIVE
+        : QUEUE_TYPES.WAITING
     }
+
+    const targetQueue = args.targetQueueType === QUEUE_TYPES.ACTIVE
+      ? rawState.activeQueue
+      : rawState.waitingQueue
+
+    const isCrossQueueMove = sourceQueueType !== null && sourceQueueType !== args.targetQueueType
+    const isBlockedByDuplicate = sourcePlayer && isCrossQueueMove
+      ? hasQueuePlayerWithUsername(targetQueue, sourcePlayer.username)
+      : false
 
     handleMovePlayer({ ...args, setState, pushLog })
 
-    if (sourceQueueType && sourceQueueType !== args.targetQueueType) {
+    if (isCrossQueueMove && !isBlockedByDuplicate) {
       const username = args.displayedUsername ?? args.username
       if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
         addMovedToActiveUser(username)

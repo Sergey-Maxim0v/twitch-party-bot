@@ -7,6 +7,7 @@ import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 import { DEFAULT_QUEUE_SETTINGS, QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
+import { normalizeQueueUsername } from './queuePlayerIdentity.ts'
 
 type JoinQueueResultStatus = typeof QUEUE_JOIN_STATUSES[keyof typeof QUEUE_JOIN_STATUSES]
 
@@ -104,8 +105,13 @@ export const handleJoinPlayer = ({
 
     const maxActiveSize = settings.maxQueueSize || DEFAULT_QUEUE_SETTINGS.maxQueueSize
     const isActiveQueueNotFull = prev.activeQueue.length < maxActiveSize
-    const existsInActive = prev.activeQueue.some(p => p.userId === userId || p.username === username)
-    const existsInWaiting = prev.waitingQueue.some(p => p.userId === userId || p.username === username)
+    const normalizedUsername = normalizeQueueUsername(username)
+    const existsInActive = prev.activeQueue.some(p =>
+      p.userId === userId || normalizeQueueUsername(p.username) === normalizedUsername,
+    )
+    const existsInWaiting = prev.waitingQueue.some(p =>
+      p.userId === userId || normalizeQueueUsername(p.username) === normalizedUsername,
+    )
 
     const updatedActive = [...prev.activeQueue]
     const updatedWaiting = [...prev.waitingQueue]

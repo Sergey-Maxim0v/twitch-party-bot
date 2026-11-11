@@ -1,6 +1,7 @@
 import { QUEUE_TYPES, type QueueHandlerArgs, type QueueType } from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
-import { QUEUE_TYPE_LABELS, QUEUE_TYPE_LABELS_ACCUSATIVE } from '../../../constants/queue.constants.ts'
+import { QUEUE_TYPE_LABELS, QUEUE_TYPE_LABELS_ACCUSATIVE, QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
+import { hasQueuePlayerWithUsername } from './queuePlayerIdentity.ts'
 
 interface HandleMovePlayerArgs extends QueueHandlerArgs {
   /** Уникальный ID пользователя на Twitch для перемещения */
@@ -29,6 +30,7 @@ export const handleMovePlayer = ({
   let targetPlayerName = displayedUsername || ''
   let sourceQueueType: Exclude<QueueType, 'history'> | null = null
   let isMoved = false
+  let isBlockedByDuplicate = false
 
   setState(prev => {
     const activeIdx = prev.activeQueue.findIndex(p => p.userId === userId)
@@ -53,6 +55,15 @@ export const handleMovePlayer = ({
     if (!targetPlayerName) {
       targetPlayerName = playerToMove.displayedUsername || playerToMove.username
     }
+
+    if (sourceQueueType !== targetQueueType) {
+      const targetQueue = targetQueueType === QUEUE_TYPES.ACTIVE ? updatedActive : updatedWaiting
+      if (hasQueuePlayerWithUsername(targetQueue, playerToMove.username)) {
+        isBlockedByDuplicate = true
+        return prev
+      }
+    }
+
     isMoved = true
 
     if (targetQueueType === QUEUE_TYPES.ACTIVE) {
@@ -81,6 +92,13 @@ export const handleMovePlayer = ({
         : `Игрок ${targetPlayerName} перенесен из ${fromLabel} в ${toLabel}${positionLabel}.`
 
       pushLog({ message: logMessage, status: APP_LOG_STATUSES.INFO, source, actorUsername })
+    } else if (isBlockedByDuplicate) {
+      pushLog({
+        message: `Перемещение игрока: Отклонено, игрок ${targetPlayerName || 'игрок'} уже находится в ${QUEUE_TYPE_LABELS_LOCATIVE[targetQueueType]}.`,
+        status: APP_LOG_STATUSES.ERROR,
+        source,
+        actorUsername,
+      })
     } else {
       pushLog({
         message: 'Ошибка перемещения: игрок не найден в списках очередей.',
