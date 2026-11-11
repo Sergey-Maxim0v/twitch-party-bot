@@ -1,6 +1,7 @@
 import { type FC } from 'react'
 import { LuCrown, LuShield, LuMessageSquare, LuCpu } from 'react-icons/lu'
 import { APP_LOG_STATUSES, APP_LOG_SOURCES, type AppLogItem } from '../types.ts'
+import { APP_LOG_SYSTEM_ACTOR } from '../../../constants/app-logs.constants.ts'
 
 interface QueueLogsElementProps {
   log: AppLogItem;
@@ -23,7 +24,7 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
   }
 
   let InitiatorIcon = LuCpu
-  let tooltipText = 'Система'
+  let tooltipText = APP_LOG_SYSTEM_ACTOR
 
   if (log.source === APP_LOG_SOURCES.STREAMER_UI) {
     InitiatorIcon = LuCrown

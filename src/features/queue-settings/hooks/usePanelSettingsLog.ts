@@ -2,10 +2,11 @@ import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { useQueueSettings } from './useQueueSettings.ts'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { QueueSettings } from '../types.ts'
 import {
   QUEUE_COMMAND_LABELS,
+  QUEUE_MESSAGE_PREFIX_LABEL,
   QUEUE_NOTIFICATION_LABELS,
   QUEUE_SETTING_LABELS,
 } from '../../../constants/queue.constants.ts'
@@ -29,7 +30,7 @@ export const usePanelSettingsLog = () => {
 
   const logUserName = userDisplayName ?? session?.login ?? 'Стример'
 
-  const logChange = ({
+  const logChange = useCallback(({
     message,
     status = APP_LOG_STATUSES.WARNING,
     source = APP_LOG_SOURCES.STREAMER_UI,
@@ -41,7 +42,7 @@ export const usePanelSettingsLog = () => {
       source,
       actorUsername,
     })
-  }
+  }, [logUserName, pushLog])
 
   const formatValue = (value: unknown): string => {
     if (typeof value === 'boolean') return value ? 'Вкл' : 'Выкл'
@@ -56,7 +57,7 @@ export const usePanelSettingsLog = () => {
       return
     }
 
-    (Object.keys(QUEUE_SETTING_LABELS) as Array<keyof QueueSettings>).forEach(key => {
+    (Object.keys(QUEUE_SETTING_LABELS) as Array<keyof typeof QUEUE_SETTING_LABELS>).forEach(key => {
       const currentVal = settings[key]
       const prevVal = prev[key]
 
@@ -69,13 +70,12 @@ export const usePanelSettingsLog = () => {
 
     if (settings.messagePrefix !== prev.messagePrefix && prev.messagePrefix !== undefined) {
       logChange({
-        message: `Настройки изменены (Сообщения): Префикс для автоматических сообщений в чат Twitch - ${formatValue(settings.messagePrefix)}`,
+        message: `Настройки изменены (Сообщения): ${QUEUE_MESSAGE_PREFIX_LABEL} - ${formatValue(settings.messagePrefix)}`,
       })
     }
 
     if (settings.chatNotificationPermissions && prev.chatNotificationPermissions) {
-      Object.keys(QUEUE_NOTIFICATION_LABELS).forEach(key => {
-        const k = key as keyof QueueSettings['chatNotificationPermissions']
+      (Object.keys(QUEUE_NOTIFICATION_LABELS) as Array<keyof typeof QUEUE_NOTIFICATION_LABELS>).forEach(k => {
         const currentVal = settings.chatNotificationPermissions[k]
         const prevVal = prev.chatNotificationPermissions[k]
 
@@ -92,7 +92,7 @@ export const usePanelSettingsLog = () => {
         const k = commandKey as keyof QueueSettings['commands']
         const currentCmd = settings.commands[k]
         const prevCmd = prev.commands[k]
-        const commandLabel = QUEUE_COMMAND_LABELS[k] || k
+        const commandLabel = QUEUE_COMMAND_LABELS[k]
 
         if (!prevCmd) return
 
@@ -118,7 +118,5 @@ export const usePanelSettingsLog = () => {
     }
 
     prevSettingsRef.current = settings
-
-    // eslint-disable-next-line
-  }, [settings, logUserName])
+  }, [settings, logChange])
 }

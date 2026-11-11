@@ -1,4 +1,4 @@
-import React, { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   TWITCH_CHAT_ACCESS_STATUSES,
   type ChatAccessStatus,

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
 import { useAppLogs } from './useAppLogs.ts'
 import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES } from '../types.ts'
+import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
 import { SOCKET_CONNECTION_STATUSES, TWITCH_CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
@@ -62,7 +63,7 @@ export const useAppLogsObserver = (): void => {
         message,
         status,
         source: APP_LOG_SOURCES.APPLICATION,
-        actorUsername: userDisplayName ?? session?.login ?? 'Application',
+        actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
       })
     }
   }, [connectionStatus, pushLog, getClient, session?.login, userDisplayName])
@@ -93,7 +94,7 @@ export const useAppLogsObserver = (): void => {
         message,
         status,
         source: APP_LOG_SOURCES.APPLICATION,
-        actorUsername: userDisplayName ?? session?.login ?? 'Application',
+        actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
       })
     }
   }, [chatAccessStatus, getClient, pushLog, session?.login, userDisplayName])

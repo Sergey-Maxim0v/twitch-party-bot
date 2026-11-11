@@ -1,6 +1,8 @@
 import type { FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import type { QueueSettings } from '../types.ts'
+import { QUEUE_COMMAND_LABELS } from '../../../constants/queue.constants.ts'
+import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
 import { SettingsCommandInput } from './SettingsCommandInput.tsx'
 
 interface QueueCommandsSectionProps {
@@ -13,17 +15,9 @@ interface CommandField {
   label: string;
 }
 
-const COMMAND_FIELDS: CommandField[] = [
-  { key: 'join', label: 'Вступление в очередь' },
-  { key: 'leave', label: 'Выход из очереди' },
-  { key: 'show', label: 'Показать текущую очередь' },
-  { key: 'clear', label: 'Очистить очереди' },
-  { key: 'add', label: 'Добавить в очередь' },
-  { key: 'delete', label: 'Удалить из очереди' },
-  { key: 'start', label: 'Открыть очередь' },
-  { key: 'stop', label: 'Закрыть очередь' },
-  { key: 'play', label: 'Завершить текущую очередь' },
-]
+const COMMAND_FIELDS: CommandField[] = (
+  Object.keys(QUEUE_COMMAND_LABELS) as Array<keyof QueueSettings['commands']>
+).map(key => ({ key, label: QUEUE_COMMAND_LABELS[key] }))
 
 /**
  * Секция команд чата.
@@ -52,7 +46,7 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
   }
 
   return (
-    <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
+    <div className={SETTINGS_SECTION_CLASS}>
       <h3 className={titleClassName}>Команды чата</h3>
 
       {COMMAND_FIELDS.map(({ key, label }) => (

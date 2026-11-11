@@ -1,5 +1,6 @@
 import type { FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
+import { DANGER_ACTION_BUTTON_CLASS, SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueResetSectionProps {
   titleClassName?: string;
@@ -13,12 +14,12 @@ export const QueueResetSection: FC<QueueResetSectionProps> = ({ titleClassName =
   const { resetSettings } = useQueueSettings()
   return (
     <div
-      className={`p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0 ${className}`}
+      className={`${SETTINGS_SECTION_CLASS} ${className}`}
     >
       <h3 className={titleClassName}>Восстановить настройки по умолчанию</h3>
 
       <button
-        className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
+        className={DANGER_ACTION_BUTTON_CLASS}
         onClick={() => { resetSettings() }}
         type="button"
       >

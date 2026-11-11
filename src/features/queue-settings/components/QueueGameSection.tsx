@@ -2,6 +2,7 @@ import type { ChangeEvent, FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import { QUEUE_GAME_DISPLAY_NAMES, QUEUE_GAME_NICKNAME_PATTERNS } from '../../../constants/queue.constants.ts'
 import type { QueueGameKey } from '../types.ts'
+import { SETTINGS_SECTION_SPACED_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueGameSectionProps {
   className?: string;
@@ -35,7 +36,7 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
 
   return (
     <div
-      className={`w-full min-w-0 space-y-3 p-3 rounded-xl bg-base-200/50 border border-base-300/60 ${className}`}
+      className={`${SETTINGS_SECTION_SPACED_CLASS} ${className}`}
     >
       <h3 className={titleClassName}>
         Валидация никнеймов для игры

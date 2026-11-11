@@ -1,4 +1,5 @@
 import { validateChannelName } from './validateChannelName.ts'
+import { TWITCH_CHANNEL_ERRORS } from '../../../constants/auth.constants.ts'
 
 interface GetChannelErrorParams {
   channelError: string | null;
@@ -21,13 +22,13 @@ export const getChannelSelectCurrentError = ({
   isNotFound,
 }: GetChannelErrorParams): string | null => {
   if (channelError) return channelError
-  if (isNotFound) return 'Канал не найден на Twitch.'
+  if (isNotFound) return TWITCH_CHANNEL_ERRORS.NOT_FOUND
   if (!isValidationTriggered) return null
 
   const trimmed = value.trim()
 
-  if (!trimmed) return 'Имя канала не может быть пустым.'
-  if (!validateChannelName(trimmed)) return 'Некорректное имя канала Twitch.'
+  if (!trimmed) return TWITCH_CHANNEL_ERRORS.EMPTY
+  if (!validateChannelName(trimmed)) return TWITCH_CHANNEL_ERRORS.INVALID
 
   return null
 }

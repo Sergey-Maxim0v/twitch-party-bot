@@ -1,4 +1,6 @@
 import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
+import { formatTimeWithSeconds } from '../../../utils/dateTime.ts'
 import type { IrcUserData, ParsedIrcMessage, TwitchIrcCommandType } from '../types.ts'
 
 /**
@@ -74,14 +76,13 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     text = commandParts[2]
   }
 
-  const id = tags.id || tags['msg-id'] || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+  const id = tags.id || tags[TWITCH_IRC_TAGS.MSG_ID] || `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
   const rawTimestamp = tags['tmi-sent-ts'] ? parseInt(tags['tmi-sent-ts'], 10) : Date.now()
-  const date = new Date(rawTimestamp)
-  const timestamp = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const timestamp = formatTimeWithSeconds(rawTimestamp)
 
   const isSystem =
-    tags['is-system'] === '1' ||
+    tags[TWITCH_IRC_TAGS.IS_SYSTEM] === '1' ||
       command === TWITCH_IRC_COMMANDS.NOTICE ||
       command === TWITCH_IRC_COMMANDS.ROOM_STATE ||
       command === TWITCH_IRC_COMMANDS.USER_NOTICE ||
@@ -109,7 +110,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
   const user: ParsedIrcMessage['user'] = {
     userId,
     nick: userNickName,
-    displayName: tags['display-name'] || undefined,
+    displayName: tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || undefined,
     isBroadcaster,
     isModerator,
     isVip,
@@ -118,8 +119,8 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     color,
   }
 
-  const isDeleted = tags['is-deleted'] === '1'
-  const isHighlightedMessage = tags['msg-id'] === 'highlighted-message'
+  const isDeleted = tags[TWITCH_IRC_TAGS.IS_DELETED] === '1'
+  const isHighlightedMessage = tags[TWITCH_IRC_TAGS.MSG_ID] === 'highlighted-message'
 
   return { id, user, text, command, timestamp, isSystem, isChannelEvent, tags, isDeleted, isHighlightedMessage }
 }

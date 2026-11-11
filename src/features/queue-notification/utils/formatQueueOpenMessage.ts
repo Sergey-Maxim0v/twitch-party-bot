@@ -1,4 +1,5 @@
 import type { QueueSettings } from '../../queue-settings/types.ts'
+import { QUEUE_CHAT_NOTIFICATION_MESSAGES } from '../../../constants/queue.constants.ts'
 
 interface FormatQueueOpenMessageArgs {
   /** Настройки команд чата. */
@@ -28,7 +29,9 @@ export const formatQueueOpenMessage = ({
     .filter(({ command }) => !command.isModeratorOnly)
     .map(({ command, description }) => `${command.name} ${description}`)
 
-  const baseMessage = prefix ? `${prefix} Очередь открыта!` : 'Очередь открыта!'
+  const baseMessage = prefix
+    ? `${prefix} ${QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_OPENED}`
+    : QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_OPENED
 
   if (availableCommands.length === 0) {
     return baseMessage

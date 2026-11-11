@@ -1,6 +1,7 @@
 import { forwardRef, type MouseEvent } from 'react'
 import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
 import { QUEUE_PLAYER_SOURCE_META } from '../../../constants/queue.constants.ts'
+import { formatDateTime } from '../../../utils/dateTime.ts'
 import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX } from 'react-icons/lu'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
@@ -81,7 +82,7 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
 
             <span className="text-base-content/50">Добавлен в:</span>
             <span className="col-span-2 text-base-content">
-              {new Date(timestamp).toLocaleString('ru-RU')}
+              {formatDateTime(timestamp)}
             </span>
           </div>
 

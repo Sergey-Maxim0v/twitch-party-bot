@@ -1,4 +1,5 @@
 import { type FC } from 'react'
+import { STATUS_BADGE_TYPES } from '../../../constants/ui.constants.ts'
 import type { StatusBadgeType } from './types'
 
 interface StatusIndicatorProps {
@@ -13,11 +14,11 @@ interface StatusIndicatorProps {
 }
 
 const BADGE_COLORS: Record<StatusBadgeType, string> = {
-  success: 'bg-success',
-  warning: 'bg-warning',
-  error: 'bg-error',
-  info: 'bg-info',
-  neutral: 'bg-neutral-content',
+  [STATUS_BADGE_TYPES.SUCCESS]: 'bg-success',
+  [STATUS_BADGE_TYPES.WARNING]: 'bg-warning',
+  [STATUS_BADGE_TYPES.ERROR]: 'bg-error',
+  [STATUS_BADGE_TYPES.INFO]: 'bg-info',
+  [STATUS_BADGE_TYPES.NEUTRAL]: 'bg-neutral-content',
 }
 
 /**
@@ -29,7 +30,7 @@ export const StatusIndicator: FC<StatusIndicatorProps> = ({
   badgeType,
   tooltipText,
 }) => {
-  const isPulsing = badgeType !== 'error' && badgeType !== 'neutral'
+  const isPulsing = badgeType !== STATUS_BADGE_TYPES.ERROR && badgeType !== STATUS_BADGE_TYPES.NEUTRAL
 
   return (
     <div

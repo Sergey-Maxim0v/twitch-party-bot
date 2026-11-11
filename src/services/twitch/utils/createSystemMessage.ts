@@ -1,5 +1,7 @@
 import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
+import { isRoomStateInitialization, parseRoomStateRestrictions, ROOM_STATE_MESSAGE_PRIORITY } from './roomState.ts'
 
 /**
  * Создает структурированное системное сообщение на основе служебных команд Twitch.
@@ -18,7 +20,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     text: systemText,
     command,
     timestamp,
-    tags: { 'is-system': '1', ...tags },
+    tags: { [TWITCH_IRC_TAGS.IS_SYSTEM]: '1', ...tags },
     isSystem: true,
     isChannelEvent: true,
   })
@@ -30,7 +32,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
       return buildSystemPayload('Чат был очищен модератором.')
     }
 
-    const duration = tags['ban-duration']
+    const duration = tags[TWITCH_IRC_TAGS.BAN_DURATION]
     const actionText = duration
       ? `Пользователь @${bannedUser} заблокирован на ${duration} сек.`
       : `Пользователь @${bannedUser} забанен навсегда.`
@@ -45,8 +47,8 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
 
   // Подписки, рейды, подарки и важные события канала
   if (command === TWITCH_IRC_COMMANDS.USER_NOTICE) {
-    const msgId = tags['msg-id']
-    const login = tags['display-name'] || tags.login || 'Пользователь'
+    const msgId = tags[TWITCH_IRC_TAGS.MSG_ID]
+    const login = tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || tags.login || 'Пользователь'
     const userMessage = text?.trim() ? `: "${text.trim()}"` : ''
 
     if (msgId === 'sub' || msgId === 'resub') {
@@ -91,7 +93,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
         isSystem: true,
         isChannelEvent: true,
         isAnnouncement: true,
-        tags: { 'is-system': '1', 'system-type': 'announcement', ...tags },
+        tags: { [TWITCH_IRC_TAGS.IS_SYSTEM]: '1', [TWITCH_IRC_TAGS.IS_ANNOUNCEMENT]: 'announcement', ...tags },
       }
     }
 
@@ -102,34 +104,23 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
 
   if (command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
     // Стартовый пакет инициализации комнаты не выводим в чат
-    const hasAllTags = tags['subs-only'] !== undefined && tags.slow !== undefined && tags['emote-only'] !== undefined
-
-    if (hasAllTags) {
+    if (isRoomStateInitialization(tags)) {
       return null
     }
 
-    if (tags['subs-only'] === '1') return buildSystemPayload('Включен режим "Только для подписчиков".')
-    if (tags['subs-only'] === '0') return buildSystemPayload('Режим "Только для подписчиков" отключен.')
+    const restrictions = parseRoomStateRestrictions(tags)
 
-    if (tags['emote-only'] === '1') return buildSystemPayload('Включен режим "Только смайлы".')
-    if (tags['emote-only'] === '0') return buildSystemPayload('Режим "Только смайлы" отключен.')
+    const changedRestriction = ROOM_STATE_MESSAGE_PRIORITY
+      .map(tag => restrictions[tag])
+      .find(restriction => restriction !== undefined)
 
-    if (tags['r9k'] === '1') return buildSystemPayload('Включен режим уникальных сообщений.')
-    if (tags['r9k'] === '0') return buildSystemPayload('Режим уникальных сообщений отключен.')
-
-    if (tags['followers-only'] && tags['followers-only'] !== '-1') {
-      const minutes = parseInt(tags['followers-only'], 10)
-      const followersText = minutes === 0 ? 'Включен режим "Только для фолловеров".' : `Включен режим "Только для фолловеров" (минимум ${minutes} мин.).`
-      return buildSystemPayload(followersText)
+    if (changedRestriction) {
+      return buildSystemPayload(changedRestriction.message)
     }
-    if (tags['followers-only'] === '-1') return buildSystemPayload('Режим "Только для фолловеров" отключен.')
-
-    if (tags.slow && tags.slow !== '0') return buildSystemPayload(`Включен медленный режим (${tags.slow} сек.).`)
-    if (tags.slow === '0') return buildSystemPayload('Медленный режим отключен.')
   }
 
   if (command === TWITCH_IRC_COMMANDS.NOTICE) {
-    const msgId = tags['msg-id'] || ''
+    const msgId = tags[TWITCH_IRC_TAGS.MSG_ID] || ''
     const cleanText = text?.trim() || ''
 
     // Дублирующие английские уведомления о режимах комнаты игнорируем

@@ -52,3 +52,12 @@ export const TWITCH_AUTH_STAGES = {
  * Интервал фоновой проверки токена (45 минут).
  */
 export const TWITCH_TOKEN_VALIDATION_INTERVAL_MS = 45 * 60 * 1000
+
+/**
+ * Тексты ошибок валидации имени Twitch-канала.
+ */
+export const TWITCH_CHANNEL_ERRORS = {
+  EMPTY: 'Имя канала не может быть пустым.',
+  INVALID: 'Некорректное имя канала Twitch.',
+  NOT_FOUND: 'Канал не найден на Twitch.',
+} as const

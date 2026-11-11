@@ -3,7 +3,9 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { LuPlus, LuTrash2 } from 'react-icons/lu'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
+import { SETTINGS_SECTION_SPACED_CLASS } from '../../../constants/ui.constants.ts'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
+import { SETTINGS_INPUT_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueBanListSectionProps {
   titleClassName?: string;
@@ -57,7 +59,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
 
   return (
     <div
-      className={`w-full min-w-0 space-y-3 p-3 rounded-xl bg-base-200/50 border border-base-300/60 ${className}`}
+      className={`${SETTINGS_SECTION_SPACED_CLASS} ${className}`}
     >
       <h3 className={titleClassName}>Банлист очереди</h3>
 
@@ -88,7 +90,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
 
         <div className="flex items-center gap-2 w-full min-w-0 border-t border-base-300/30 pt-2 mt-2">
           <input
-            className="input input-bordered input-sm flex-1 min-w-0 text-sm focus:input-primary focus:outline-none"
+            className={SETTINGS_INPUT_CLASS}
             onChange={e => setNewUsername(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Добавить никнейм на Twitch..."

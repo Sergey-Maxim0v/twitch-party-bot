@@ -1,18 +1,6 @@
-import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState } from '../types'
-import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-
-interface HandleClearActiveQueueArgs {
-  /** Функция обновления состояния */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Источник вызова команды (чат/интерфейс) */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто очистил очередь */
-  actorUsername: string;
-  /** Хелпер провайдера для записи логов */
-  pushLog: AppLogsContextValue['pushLog'];
-}
+import type { QueueHandlerArgs } from '../types'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import { QUEUE_CLEAR_MESSAGES } from '../../../constants/queue.constants.ts'
 
 /**
  * Хендлер для полной очистки списка игроков в текущей активной очереди.
@@ -22,14 +10,14 @@ export const handleClearActiveQueue = ({
   source,
   actorUsername,
   pushLog,
-}: HandleClearActiveQueueArgs): void => {
+}: QueueHandlerArgs): void => {
   setState(prev => ({
     ...prev,
     activeQueue: [],
   }))
 
   pushLog({
-    message: 'Текущая очередь очищена.',
+    message: QUEUE_CLEAR_MESSAGES.ACTIVE,
     status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,

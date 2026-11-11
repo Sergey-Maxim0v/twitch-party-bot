@@ -6,6 +6,7 @@ import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
+import { QUEUE_BADGE_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueWaitingListProps {
   /** Дополнительные CSS-классы списка. */
@@ -45,7 +46,7 @@ export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', on
   return (
     <QueueCollapse
       badge={
-        <span className="badge badge-neutral text-xs font-semibold">{badgeText}</span>
+        <span className={QUEUE_BADGE_CLASS}>{badgeText}</span>
       }
       className={className}
       disabled={disabled}

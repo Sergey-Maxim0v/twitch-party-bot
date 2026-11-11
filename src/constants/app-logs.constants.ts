@@ -21,3 +21,13 @@ export const APP_LOG_SOURCES = {
   /** Система. */
   APPLICATION: 'application',
 }
+
+/**
+ * Имя актора по умолчанию, когда никнейм пользователя недоступен.
+ */
+export const APP_LOG_FALLBACK_ACTOR = 'Application'
+
+/**
+ * Отображаемое имя системного актора.
+ */
+export const APP_LOG_SYSTEM_ACTOR = 'Система'

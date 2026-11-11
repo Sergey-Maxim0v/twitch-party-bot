@@ -5,6 +5,8 @@ import { SettingsCheckbox } from './SettingsCheckbox.tsx'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { QUEUE_SETTING_LABELS } from '../../../constants/queue.constants.ts'
+import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueGeneralSettingsProps {
   titleClassName?: string;
@@ -41,13 +43,13 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
   }, [actorUsername, balanceQueues, updateSettings])
 
   return (
-    <div className="p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0">
+    <div className={SETTINGS_SECTION_CLASS}>
       <h3 className={titleClassName}>
         Основные настройки
       </h3>
 
       <SettingsNumberInput
-        label="Лимит участников в очереди"
+        label={QUEUE_SETTING_LABELS.maxQueueSize}
         max={99}
         min={1}
         onChange={handleChangeQueueLimit}
@@ -56,7 +58,7 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
 
       <SettingsCheckbox
         checked={settings.allowPreJoin}
-        label="Разрешить запись в список ожидающих"
+        label={QUEUE_SETTING_LABELS.allowPreJoin}
         onChange={checked => {
           updateSettings({ allowPreJoin: checked })
 
@@ -70,19 +72,19 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
       <SettingsCheckbox
         checked={settings.allowMultipleEntries}
         disabled={!settings.allowPreJoin}
-        label="Разрешить запись в список ожидающих участников текущей очереди"
+        label={QUEUE_SETTING_LABELS.allowMultipleEntries}
         onChange={checked => { updateSettings({ allowMultipleEntries: checked }) }}
       />
 
       <SettingsCheckbox
         checked={settings.moveOnSizeChange}
         disabled={!settings.allowPreJoin}
-        label="Разрешить автоперенос игроков из списка ожидающих при изменении размера очереди"
+        label={QUEUE_SETTING_LABELS.moveOnSizeChange}
         onChange={ handleChangeMoveOnSizeChange}
       />
 
       <SettingsNumberInput
-        label="Через сколько игр игрок может повторно участвовать"
+        label={QUEUE_SETTING_LABELS.gamesPlayedCooldown}
         max={99}
         min={0}
         onChange={val => { updateSettings({ gamesPlayedCooldown: Number(val) || 0 }) }}
@@ -90,7 +92,7 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
       />
 
       <SettingsNumberInput
-        label="Через сколько минут игрок может повторно участвовать"
+        label={QUEUE_SETTING_LABELS.sessionHistoryCooldown}
         max={1440}
         min={0}
         onChange={val => { updateSettings({ sessionHistoryCooldown: Number(val) || 0 }) }}
@@ -98,7 +100,7 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
       />
 
       <SettingsNumberInput
-        label="Лимит игр для одного игрока"
+        label={QUEUE_SETTING_LABELS.maxGamesPerUser}
         max={99}
         min={0}
         onChange={val => { updateSettings({ maxGamesPerUser: Number(val) || 0 }) }}
@@ -108,13 +110,13 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
       <SettingsCheckbox
         checked={settings.prioritizeSubscribers || false}
         disabled={settings.subscribersOnly}
-        label="Приоритет для подписчиков"
+        label={QUEUE_SETTING_LABELS.prioritizeSubscribers}
         onChange={checked => { updateSettings({ prioritizeSubscribers: checked }) }}
       />
 
       <SettingsCheckbox
         checked={settings.subscribersOnly || false}
-        label="Вход только для подписчиков"
+        label={QUEUE_SETTING_LABELS.subscribersOnly}
         onChange={checked => { updateSettings({ subscribersOnly: checked }) }}
       />
     </div>

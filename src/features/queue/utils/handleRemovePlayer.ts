@@ -1,25 +1,16 @@
-import type { Dispatch, SetStateAction } from 'react'
-import { QUEUE_TYPES, type QueueState, type QueueType } from '../types'
-import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import { QUEUE_TYPES, type QueueHandlerArgs, type QueueType } from '../types'
+import { APP_LOG_STATUSES, APP_LOG_SOURCES } from '../../app-logs/types.ts'
+import { QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
 
-interface HandleRemovePlayerArgs {
+interface HandleRemovePlayerArgs extends QueueHandlerArgs {
   /** Уникальный ID пользователя на Twitch для удаления */
   userId: string;
   /** Из какой именно очереди нужно удалить игрока */
   targetQueueType: QueueType;
   /** Имя игрока для отображения */
   displayedUsername?: string;
-  /** Источник вызова команды (чат/интерфейс) */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто выполнил удаление */
-  actorUsername: string;
   /** Исходный текст команды (если вызвано из чата) */
   rawCommand?: string;
-  /** Функция обновления состояния */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Хелпер провайдера для записи логов */
-  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -45,7 +36,9 @@ export const handleRemovePlayer = ({
     return
   }
 
-  const queueLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активной очереди' : 'списке ожидающих'
+  const queueLabel = targetQueueType === QUEUE_TYPES.ACTIVE
+    ? QUEUE_TYPE_LABELS_LOCATIVE.active
+    : QUEUE_TYPE_LABELS_LOCATIVE.waiting
   const isTargetActive = targetQueueType === QUEUE_TYPES.ACTIVE
 
   let logMessageText: string = ''

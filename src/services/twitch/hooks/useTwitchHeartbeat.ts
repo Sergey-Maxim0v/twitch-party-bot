@@ -3,7 +3,11 @@ import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { SOCKET_CONNECTION_STATUSES } from '../../socket/types.ts'
 import {
   TWITCH_HEARTBEAT_INTERVAL_MS,
-  TWITCH_HEARTBEAT_WORKER_COMMANDS, TWITCH_HEARTBEAT_WORKER_EVENTS, TWITCH_IRC_COMMANDS, TWITCH_PONG_TIMEOUT_MS,
+  TWITCH_HEARTBEAT_WORKER_COMMANDS,
+  TWITCH_HEARTBEAT_WORKER_EVENTS,
+  TWITCH_IRC_COMMANDS,
+  TWITCH_PING_MESSAGE,
+  TWITCH_PONG_TIMEOUT_MS,
 } from '../../../constants/twitch.constants.ts'
 
 import HeartbeatWorker from '../workers/heartbeat.worker.ts?worker'
@@ -42,7 +46,7 @@ export const useTwitchHeartbeat = () => {
 
     const client = socketContext.getClient()
 
-    client.sendRaw('PING :twitch_party_queue')
+    client.sendRaw(TWITCH_PING_MESSAGE)
 
     workerRef.current?.postMessage({
       type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER,

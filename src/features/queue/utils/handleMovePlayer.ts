@@ -1,9 +1,8 @@
-import type { Dispatch, SetStateAction } from 'react'
-import { QUEUE_TYPES, type QueueState, type QueueType } from '../types'
-import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import { QUEUE_TYPES, type QueueHandlerArgs, type QueueType } from '../types'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import { QUEUE_TYPE_LABELS, QUEUE_TYPE_LABELS_ACCUSATIVE } from '../../../constants/queue.constants.ts'
 
-interface HandleMovePlayerArgs {
+interface HandleMovePlayerArgs extends QueueHandlerArgs {
   /** Уникальный ID пользователя на Twitch для перемещения */
   userId: string;
   /** Целевой тип очереди, куда перетаскивают игрока */
@@ -12,14 +11,6 @@ interface HandleMovePlayerArgs {
   targetIndex: number | undefined;
   /** Никнейм для отображения */
   displayedUsername?: string;
-  /** Источник вызова команды (чат/интерфейс) */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто выполнил перемещение */
-  actorUsername: string;
-  /** Функция обновления состояния */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Хелпер провайдера для записи логов */
-  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -81,13 +72,8 @@ export const handleMovePlayer = ({
 
   setTimeout(() => {
     if (isMoved && sourceQueueType) {
-      const queueLabels = {
-        [QUEUE_TYPES.ACTIVE]: 'активной очереди',
-        [QUEUE_TYPES.WAITING]: 'списка ожидающих',
-      }
-
-      const fromLabel = queueLabels[sourceQueueType]
-      const toLabel = targetQueueType === QUEUE_TYPES.ACTIVE ? 'активную очередь' : 'список ожидающих'
+      const fromLabel = QUEUE_TYPE_LABELS[sourceQueueType]
+      const toLabel = QUEUE_TYPE_LABELS_ACCUSATIVE[targetQueueType]
       const positionLabel = targetIndex !== undefined ? ` на позицию ${targetIndex + 1}` : ' в конец'
 
       const logMessage = sourceQueueType === targetQueueType

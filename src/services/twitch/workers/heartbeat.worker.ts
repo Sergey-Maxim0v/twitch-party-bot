@@ -1,7 +1,12 @@
 /**
  * Изолированный Web Worker для ведения точных фоновых таймеров.
  */
-import { TWITCH_HEARTBEAT_WORKER_COMMANDS, TWITCH_HEARTBEAT_WORKER_EVENTS } from '../../../constants/twitch.constants.ts'
+import {
+  TWITCH_HEARTBEAT_INTERVAL_MS,
+  TWITCH_HEARTBEAT_WORKER_COMMANDS,
+  TWITCH_HEARTBEAT_WORKER_EVENTS,
+  TWITCH_PONG_TIMEOUT_MS,
+} from '../../../constants/twitch.constants.ts'
 
 let pingTimeoutId: ReturnType<typeof setTimeout> | null = null
 let pongTimeoutId: ReturnType<typeof setTimeout> | null = null
@@ -28,7 +33,7 @@ self.onmessage = (event: MessageEvent) => {
     case TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER: {
       clearAllTimers()
 
-      const interval = payload || 60000
+      const interval = payload || TWITCH_HEARTBEAT_INTERVAL_MS
 
       pingTimeoutId = setTimeout(() => {
         self.postMessage({ type: TWITCH_HEARTBEAT_WORKER_EVENTS.PING_TICK })
@@ -40,7 +45,7 @@ self.onmessage = (event: MessageEvent) => {
     case TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER: {
       clearAllTimers()
 
-      const timeout = payload || 10000
+      const timeout = payload || TWITCH_PONG_TIMEOUT_MS
 
       pongTimeoutId = setTimeout(() => {
         self.postMessage({ type: TWITCH_HEARTBEAT_WORKER_EVENTS.PONG_TIMEOUT })

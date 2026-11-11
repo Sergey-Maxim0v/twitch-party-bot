@@ -1,7 +1,14 @@
 import type { RefObject } from 'react'
 import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import { TWITCH_CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../../socket/types.ts'
 import { checkIsRoomRestricted } from './checkIsRoomRestricted'
+import {
+  isRoomStateInitialization,
+  parseRoomStateRestrictions,
+  ROOM_STATE_LOG_PRIORITY,
+  ROOM_STATE_SUMMARY_PRIORITY,
+} from './roomState.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../../features/app-logs/types.ts'
 
@@ -41,38 +48,25 @@ export const updateChatAccess = ({
 
   if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
     const tags = message.tags || {}
+    const restrictions = parseRoomStateRestrictions(tags)
 
     // Стартовый пакет инициализации комнаты содержит все теги сразу
-    const hasAllTags = tags['subs-only'] !== undefined && tags.slow !== undefined && tags['emote-only'] !== undefined
-
-    if (hasAllTags) {
-      const activeRestrictions: string[] = []
-
-      if (tags['subs-only'] === '1') activeRestrictions.push('только для подписчиков')
-      if (tags['emote-only'] === '1') activeRestrictions.push('только смайлы')
-      if (tags.slow && tags.slow !== '0') activeRestrictions.push(`медленный режим (${tags.slow} сек.)`)
-      if (tags['followers-only'] && tags['followers-only'] !== '-1') activeRestrictions.push('только для фолловеров')
+    if (isRoomStateInitialization(tags)) {
+      const activeRestrictions = ROOM_STATE_SUMMARY_PRIORITY
+        .map(tag => restrictions[tag])
+        .filter(restriction => restriction?.isActive)
+        .map(restriction => restriction?.description ?? '')
 
       if (activeRestrictions.length > 0) {
         pushStatusLog(`Активные ограничения чата: ${activeRestrictions.join(', ')}.`)
       }
     } else {
-      if (tags['subs-only'] === '1') {
-        pushStatusLog('Включен режим "Только для подписчиков".')
-      } else if (tags['subs-only'] === '0') {
-        pushStatusLog('Режим "Только для подписчиков" отключен.')
-      }
+      for (const tag of ROOM_STATE_LOG_PRIORITY) {
+        const restriction = restrictions[tag]
 
-      if (tags['emote-only'] === '1') {
-        pushStatusLog('Включен режим "Только смайлы".')
-      } else if (tags['emote-only'] === '0') {
-        pushStatusLog('Режим "Только смайлы" отключен.')
-      }
-
-      if (tags.slow && tags.slow !== '0') {
-        pushStatusLog(`Включен медленный режим (${tags.slow} сек.).`)
-      } else if (tags.slow === '0') {
-        pushStatusLog('Медленный режим отключен.')
+        if (restriction) {
+          pushStatusLog(restriction.message)
+        }
       }
     }
 
@@ -84,7 +78,7 @@ export const updateChatAccess = ({
 
   // Персональные блокировки из NOTICE (ошибки отправки при муте)
   if (message.command === TWITCH_IRC_COMMANDS.NOTICE) {
-    const msgId = message.tags?.['msg-id']
+    const msgId = message.tags?.[TWITCH_IRC_TAGS.MSG_ID]
 
     if (msgId === 'msg_banned') {
       pushStatusLog('Ошибка отправки сообщения: аккаунт забанен на канале.')
@@ -104,7 +98,7 @@ export const updateChatAccess = ({
 
     if (!targetUser || targetUser !== currentUserLogin) return
 
-    const durationStr = message.tags?.['ban-duration']
+    const durationStr = message.tags?.[TWITCH_IRC_TAGS.BAN_DURATION]
 
     if (timeoutTimerRef.current) {
       clearTimeout(timeoutTimerRef.current)

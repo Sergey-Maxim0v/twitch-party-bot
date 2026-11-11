@@ -7,6 +7,9 @@ import { QueueElementModal } from './QueueElementModal.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from '../hooks/useQueue.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
+import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
+import { QUEUE_COMMAND_LABELS } from '../../../constants/queue.constants.ts'
+import { formatTimeWithSeconds } from '../../../utils/dateTime.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 interface QueueElementProps {
@@ -62,11 +65,7 @@ export const QueueElement: FC<QueueElementProps> = ({
     transition,
   }
 
-  const formattedTime = new Date(timestamp).toLocaleTimeString('ru-RU', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+  const formattedTime = formatTimeWithSeconds(timestamp)
 
   const handleCopyNickname = (): void => {
     const nameToCopy = gameNickname || displayedUsername || username
@@ -80,7 +79,7 @@ export const QueueElement: FC<QueueElementProps> = ({
       userId,
       username,
       displayedUsername: displayedUsername,
-      actorUsername: userDisplayName ?? 'Application',
+      actorUsername: userDisplayName ?? APP_LOG_FALLBACK_ACTOR,
       source: APP_LOG_SOURCES.STREAMER_UI,
     })
   }
@@ -90,7 +89,7 @@ export const QueueElement: FC<QueueElementProps> = ({
       userId,
       username,
       source: APP_LOG_SOURCES.STREAMER_UI,
-      actorUsername: userDisplayName ?? 'Application',
+      actorUsername: userDisplayName ?? APP_LOG_FALLBACK_ACTOR,
       targetQueueType: queueType,
     })
   }
@@ -100,7 +99,7 @@ export const QueueElement: FC<QueueElementProps> = ({
       userId,
       username,
       source: APP_LOG_SOURCES.STREAMER_UI,
-      actorUsername: userDisplayName ?? 'Application',
+      actorUsername: userDisplayName ?? APP_LOG_FALLBACK_ACTOR,
     })
   }
 
@@ -205,7 +204,7 @@ export const QueueElement: FC<QueueElementProps> = ({
             <button
               className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/20 hover:text-error hover:bg-error/10 flex items-center gap-1"
               onClick={handleDelete}
-              title="Удалить из очереди"
+              title={QUEUE_COMMAND_LABELS.delete}
             >
               <LuTrash2 className="w-3 h-3" />
               <span>Удалить</span>

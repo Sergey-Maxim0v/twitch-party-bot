@@ -1,4 +1,5 @@
 import { type FC, useState, type KeyboardEvent } from 'react'
+import { SETTINGS_INPUT_CLASS } from '../../../constants/ui.constants.ts'
 
 interface SettingsCommandInputProps {
   label: string;
@@ -57,7 +58,7 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
       </span>
       <div className="flex items-center gap-2 w-full min-w-0">
         <input
-          className="input input-bordered input-sm flex-1 min-w-0 text-sm focus:input-primary focus:outline-none"
+          className={SETTINGS_INPUT_CLASS}
           disabled={disabled}
           onBlur={handleSave}
           onChange={e => setLocalValue(e.target.value)}

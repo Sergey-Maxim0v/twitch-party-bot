@@ -1,4 +1,5 @@
 import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 
 interface MarkDeletedMessagesProps {
@@ -21,7 +22,7 @@ export const markDeletedMessages = (
     return currentMessages.map(msg => ({
       ...msg,
       isDeleted: true,
-      tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'clearchat' },
+      tags: { ...msg.tags, [TWITCH_IRC_TAGS.IS_DELETED]: '1', 'mod-action': 'clearchat' },
     }))
   }
 
@@ -30,7 +31,7 @@ export const markDeletedMessages = (
     const bannedUser = text.trim().toLowerCase()
     return currentMessages.map(msg =>
       msg.user.nick.toLowerCase() === bannedUser
-        ? { ...msg, isDeleted: true, tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'ban' } }
+        ? { ...msg, isDeleted: true, tags: { ...msg.tags, [TWITCH_IRC_TAGS.IS_DELETED]: '1', 'mod-action': 'ban' } }
         : msg,
     )
   }
@@ -42,7 +43,7 @@ export const markDeletedMessages = (
 
     return currentMessages.map(msg =>
       msg.id === targetMsgId
-        ? { ...msg, isDeleted: true, tags: { ...msg.tags, 'is-deleted': '1', 'mod-action': 'clearmsg' } }
+        ? { ...msg, isDeleted: true, tags: { ...msg.tags, [TWITCH_IRC_TAGS.IS_DELETED]: '1', 'mod-action': 'clearmsg' } }
         : msg,
     )
   }

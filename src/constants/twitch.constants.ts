@@ -42,6 +42,11 @@ export const TWITCH_PONG_TIMEOUT_MS = 10 * 1000
 export const TWITCH_PONG_MESSAGE = 'PONG :tmi.twitch.tv'
 
 /**
+ * Запрос PING для контроля «полуоткрытого» соединения.
+ */
+export const TWITCH_PING_MESSAGE = 'PING :twitch_party_queue'
+
+/**
  * Команды протокола Twitch IRC.
  *
  * @see https://dev.twitch.tv/docs/chat/irc#irc-command-reference
@@ -91,4 +96,45 @@ export const TWITCH_HEARTBEAT_WORKER_COMMANDS = {
 export const TWITCH_HEARTBEAT_WORKER_EVENTS = {
   PING_TICK: 'PING_TICK',
   PONG_TIMEOUT: 'PONG_TIMEOUT',
-}
+} as const
+
+/**
+ * Теги состояния комнаты, приходящие в команде ROOMSTATE.
+ */
+export const TWITCH_ROOM_STATE_TAGS = {
+  SUBS_ONLY: 'subs-only',
+  EMOTE_ONLY: 'emote-only',
+  FOLLOWERS_ONLY: 'followers-only',
+  SLOW: 'slow',
+  R9K: 'r9k',
+} as const
+
+/**
+ * Ключи IRC-тегов, используемых при разборе сообщений Twitch.
+ */
+export const TWITCH_IRC_TAGS = {
+  MSG_ID: 'msg-id',
+  BAN_DURATION: 'ban-duration',
+  DISPLAY_NAME: 'display-name',
+  IS_SYSTEM: 'is-system',
+  IS_DELETED: 'is-deleted',
+  IS_ANNOUNCEMENT: 'system-type',
+} as const
+
+/**
+ * Системные сообщения о режимах ограничения доступа к чату Twitch.
+ */
+export const TWITCH_ROOM_STATE_MESSAGES = {
+  SUBS_ONLY_ENABLED: 'Включен режим "Только для подписчиков".',
+  SUBS_ONLY_DISABLED: 'Режим "Только для подписчиков" отключен.',
+  EMOTE_ONLY_ENABLED: 'Включен режим "Только смайлы".',
+  EMOTE_ONLY_DISABLED: 'Режим "Только смайлы" отключен.',
+  FOLLOWERS_ONLY_ENABLED: (minutes: number): string => minutes === 0
+    ? 'Включен режим "Только для фолловеров".'
+    : `Включен режим "Только для фолловеров" (минимум ${minutes} мин.).`,
+  FOLLOWERS_ONLY_DISABLED: 'Режим "Только для фолловеров" отключен.',
+  SLOW_ENABLED: (seconds: string): string => `Включен медленный режим (${seconds} сек.).`,
+  SLOW_DISABLED: 'Медленный режим отключен.',
+  R9K_ENABLED: 'Включен режим уникальных сообщений.',
+  R9K_DISABLED: 'Режим уникальных сообщений отключен.',
+} as const

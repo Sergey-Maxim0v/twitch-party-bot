@@ -6,6 +6,7 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
+import { QUEUE_BADGE_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueActiveListProps {
   /** Дополнительные CSS-классы списка. */
@@ -35,7 +36,7 @@ export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOp
   return (
     <QueueCollapse
       badge={
-        <span className="badge badge-neutral text-xs font-semibold ">{badgeText}</span>
+        <span className={QUEUE_BADGE_CLASS}>{badgeText}</span>
       }
       className={className}
       onOpenChange={onOpenChange}

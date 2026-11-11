@@ -2,6 +2,7 @@ import type { FC } from 'react'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
+import { DANGER_ACTION_BUTTON_CLASS, SETTINGS_SECTION_SPACED_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueClearSectionProps {
   titleClassName?: string;
@@ -22,27 +23,27 @@ export const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', 
 
   return (
     <div
-      className={`w-full min-w-0 space-y-3 p-3 rounded-xl bg-base-200/50 border border-base-300/60 ${className}`}
+      className={`${SETTINGS_SECTION_SPACED_CLASS} ${className}`}
     >
       <h3 className={titleClassName}>Очистить очередь</h3>
 
       <div className="form-control w-full flex flex-col gap-2">
         <button
-          className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
+          className={DANGER_ACTION_BUTTON_CLASS}
           onClick={() => { clearActiveQueue(clearArgs) }}
           type="button"
         >
           Очистить текущую очередь
         </button>
         <button
-          className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
+          className={DANGER_ACTION_BUTTON_CLASS}
           onClick={() => { clearWaitingQueue(clearArgs) }}
           type="button"
         >
           Очистить список ожидающих
         </button>
         <button
-          className="btn btn-block btn-error btn-outline btn-sm shadow-sm font-semibold truncate"
+          className={DANGER_ACTION_BUTTON_CLASS}
           onClick={() => { clearQueueHistory(clearArgs) }}
           type="button"
         >

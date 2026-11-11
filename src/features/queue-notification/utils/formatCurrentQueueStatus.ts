@@ -1,5 +1,4 @@
-/** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
-const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
+import { TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH } from '../../../constants/twitch.constants.ts'
 
 interface FormatQueueStatusOptions {
   /** Массив никнеймов в активной очереди */

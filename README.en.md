@@ -141,6 +141,7 @@ npm run preview
 │   ├── services/                # Low-level infrastructure services
 │   │   ├── socket/              # WebSocket integration layer and event bus
 │   │   └── twitch/              # TwitchIrcClient class and background Web Worker
+│   ├── utils/                   # Shared data formatting utilities
 │   ├── App.tsx                  # Root application component
 │   ├── index.css                # Global styles (Tailwind CSS v4 entry point)
 │   └── main.tsx                 # React DOM mount entry point

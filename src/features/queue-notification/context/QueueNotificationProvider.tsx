@@ -6,6 +6,8 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_STATUSES, APP_LOG_SOURCES } from '../../app-logs/types.ts'
+import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
+import { QUEUE_CHAT_NOTIFICATION_MESSAGES } from '../../../constants/queue.constants.ts'
 import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
 import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
 import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
@@ -56,7 +58,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
   }, [])
 
   const sendAndLogNotification = useCallback((message: string): void => {
-    const actorUsername = userDisplayName ?? session?.login ?? 'Application'
+    const actorUsername = userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR
     const logText = `Автоматически отправлено сообщение в чат: ${message}`
 
     sendChatMessage(message)
@@ -119,8 +121,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
 
     sendMessage(
       settings.messagePrefix
-        ? `${settings.messagePrefix} Очередь заполнена. Текущий состав: ${statusText}`
-        : `Очередь заполнена. Текущий состав: ${statusText}`,
+        ? `${settings.messagePrefix} ${QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_FULL} Текущий состав: ${statusText}`
+        : `${QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_FULL} Текущий состав: ${statusText}`,
     )
   }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
 
@@ -137,8 +139,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
 
     sendMessage(
       settings.messagePrefix
-        ? `${settings.messagePrefix} Очередь очищена.`
-        : 'Очередь очищена.',
+        ? `${settings.messagePrefix} ${QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ACTIVE}`
+        : QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ACTIVE,
     )
   }, [sendMessage, settings.messagePrefix])
 
@@ -155,8 +157,8 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
 
     sendMessage(
       settings.messagePrefix
-        ? `${settings.messagePrefix} Список ожидающих очищен.`
-        : 'Список ожидающих очищен.',
+        ? `${settings.messagePrefix} ${QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_WAITING}`
+        : QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_WAITING,
     )
   }, [sendMessage, settings.messagePrefix])
 

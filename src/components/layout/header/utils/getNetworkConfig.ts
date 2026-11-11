@@ -1,4 +1,5 @@
 import { SOCKET_CONNECTION_STATUSES, type ConnectionStatus } from '../../../../services/socket/types.ts'
+import { STATUS_BADGE_TYPES, STATUS_TEXTS } from '../../../../constants/ui.constants.ts'
 import type { StatusConfig } from '../types'
 
 /**
@@ -11,21 +12,21 @@ export const getNetworkConfig = (connectionStatus: ConnectionStatus): StatusConf
   switch (connectionStatus) {
     case SOCKET_CONNECTION_STATUSES.CONNECTED:
       return {
-        statusText: 'Подключен',
-        badgeType: 'success',
+        statusText: STATUS_TEXTS.CONNECTED,
+        badgeType: STATUS_BADGE_TYPES.SUCCESS,
         tooltipText: 'Сеть: Стабильное WebSocket-соединение с сервером Twitch IRC установлено. Ошибок нет.',
       }
     case SOCKET_CONNECTION_STATUSES.CONNECTING:
       return {
-        statusText: 'Ожидание',
-        badgeType: 'warning',
+        statusText: STATUS_TEXTS.CONNECTING,
+        badgeType: STATUS_BADGE_TYPES.WARNING,
         tooltipText: 'Сеть: Выполняется подключение к серверам Twitch... Пожалуйста, подождите.',
       }
     case SOCKET_CONNECTION_STATUSES.DISCONNECTED:
     default:
       return {
-        statusText: 'Отключен',
-        badgeType: 'error',
+        statusText: STATUS_TEXTS.DISCONNECTED,
+        badgeType: STATUS_BADGE_TYPES.ERROR,
         tooltipText: 'Сеть: Соединение с сервером отсутствует. Проверьте интернет или статус авторизации.',
       }
   }

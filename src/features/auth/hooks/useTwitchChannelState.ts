@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
+import { TWITCH_CHANNEL_ERRORS } from '../../../constants/auth.constants.ts'
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
@@ -41,12 +42,12 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
     const trimmed = channelName.trim().toLowerCase()
 
     if (!trimmed) {
-      setChannelError('Имя канала не может быть пустым.')
+      setChannelError(TWITCH_CHANNEL_ERRORS.EMPTY)
       return
     }
 
     if (!validateChannelName(trimmed)) {
-      setChannelError('Некорректное имя канала Twitch.')
+      setChannelError(TWITCH_CHANNEL_ERRORS.INVALID)
       return
     }
 

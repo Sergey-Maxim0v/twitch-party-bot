@@ -1,18 +1,6 @@
-import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState } from '../types'
-import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-
-interface HandleClearWaitingQueueArgs {
-  /** Функция обновления состояния */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Источник вызова команды (чат/интерфейс) */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто очистил очередь */
-  actorUsername: string;
-  /** Хелпер провайдера для записи логов */
-  pushLog: AppLogsContextValue['pushLog'];
-}
+import type { QueueHandlerArgs } from '../types'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import { QUEUE_CLEAR_MESSAGES } from '../../../constants/queue.constants.ts'
 
 /**
  * Хендлер для полной очистки списка игроков в списке ожидающих.
@@ -22,21 +10,19 @@ export const handleClearWaitingQueue = ({
   source,
   actorUsername,
   pushLog,
-}: HandleClearWaitingQueueArgs): void => {
-  let waitingCount:number = 0
+}: QueueHandlerArgs): void => {
+  let waitingCount = 0
 
   setState(prev => {
     waitingCount = prev.waitingQueue.length
 
     return {
-      ...
-      prev,
-      waitingQueue:
-      [],
+      ...prev,
+      waitingQueue: [],
     }
   })
 
-  const logMessage = 'Список ожидающих очищен.' + (waitingCount ? ` Удалено ${waitingCount} игроков.` : '')
+  const logMessage = QUEUE_CLEAR_MESSAGES.WAITING + (waitingCount ? ` Удалено ${waitingCount} игроков.` : '')
 
   pushLog({
     message: logMessage,

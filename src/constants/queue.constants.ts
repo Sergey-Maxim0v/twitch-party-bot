@@ -8,7 +8,7 @@ export const QUEUE_PLAYER_SOURCE = {
   APP: 'app',
   MOD_CMD: 'mod_cmd',
   USER_CMD: 'user_cmd',
-}
+} as const
 
 /**
  * Типы очередей в приложении.
@@ -17,7 +17,7 @@ export const QUEUE_TYPES = {
   ACTIVE: 'active',
   WAITING: 'waiting',
   HISTORY: 'history',
-}
+} as const
 
 /**
  * Результат попытки присоединения игрока к очереди.
@@ -130,40 +130,45 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
 }
 
 /**
- * Подписи настроек очереди для журнала изменений.
+ * Подписи настроек очереди для журнала изменений и панели настроек.
  */
-export const QUEUE_SETTING_LABELS: Record<string, string> = {
+export const QUEUE_SETTING_LABELS = {
   maxQueueSize: 'Лимит участников в очереди',
   allowPreJoin: 'Разрешить запись в список ожидающих',
   allowMultipleEntries: 'Разрешить запись в список ожидающих участников текущей очереди',
-  moveOnSizeChange: 'Автоперенос игроков из списка ожидающих при изменении размера очереди',
+  moveOnSizeChange: 'Разрешить автоперенос игроков из списка ожидающих при изменении размера очереди',
   sessionHistoryCooldown: 'Через сколько минут игрок может повторно участвовать',
   gamesPlayedCooldown: 'Через сколько игр игрок может повторно участвовать',
   maxGamesPerUser: 'Лимит игр для одного игрока',
   prioritizeSubscribers: 'Приоритет для подписчиков',
   subscribersOnly: 'Вход только для подписчиков',
   botMessageCooldown: 'Задержка ответов бота об изменениях в составе очереди (сек)',
-}
+} as const satisfies Partial<Record<keyof QueueSettings, string>>
 
 /**
- * Подписи настроек уведомлений для журнала изменений.
+ * Подпись настройки префикса автоматических сообщений.
  */
-export const QUEUE_NOTIFICATION_LABELS: Record<string, string> = {
+export const QUEUE_MESSAGE_PREFIX_LABEL = 'Префикс для автоматических сообщений в чат Twitch'
+
+/**
+ * Подписи разрешений на отправку уведомлений для журнала изменений и панели настроек.
+ */
+export const QUEUE_NOTIFICATION_LABELS = {
   allowSending: 'Разрешить боту отправку сообщений в чат',
-  onQueueOpen: 'Сообщение об открытии очереди',
-  onQueueFull: 'Сообщение о заполнении текущей очереди',
-  onQueueClose: 'Сообщение о закрытии очереди',
-  onMemberAdd: 'Сообщение о добавлении игрока в очередь',
-  onMemberRemove: 'Сообщение об удалении игрока из очереди',
-  onMemberMove: 'Сообщение о перемещении игрока между очередями',
-  onClearActive: 'Сообщение об очистке очереди',
-  onClearWaiting: 'Сообщение об очистке списка ожидающих',
-}
+  onQueueOpen: 'Сообщение об открытии очереди (мгновенное)',
+  onQueueFull: 'Сообщение об заполнении текущей очереди (мгновенное)',
+  onQueueClose: 'Сообщение о закрытии очереди (мгновенное)',
+  onMemberAdd: 'Сообщение о добавлении игрока в очередь (с задержкой)',
+  onMemberRemove: 'Сообщение о удалении игрока из очереди (с задержкой)',
+  onMemberMove: 'Сообщение о перемещении игрока между очередями (с задержкой)',
+  onClearActive: 'Сообщение об очистке активного состава игроков (мгновенное)',
+  onClearWaiting: 'Сообщение об очистке списка ожидающих (мгновенное)',
+} as const satisfies Record<keyof QueueSettings['chatNotificationPermissions'], string>
 
 /**
- * Подписи команд очереди для журнала изменений.
+ * Подписи команд очереди для журнала изменений и панели настроек.
  */
-export const QUEUE_COMMAND_LABELS: Record<string, string> = {
+export const QUEUE_COMMAND_LABELS = {
   join: 'Вступление в очередь',
   leave: 'Выход из очереди',
   show: 'Показать текущую очередь',
@@ -173,4 +178,52 @@ export const QUEUE_COMMAND_LABELS: Record<string, string> = {
   start: 'Открыть очередь',
   stop: 'Закрыть очередь',
   play: 'Завершить текущую очередь',
-}
+} as const satisfies Record<keyof QueueSettings['commands'], string>
+
+/**
+ * Типы очередей, участвующих в операциях над списками игроков.
+ */
+type MutableQueueType = Exclude<typeof QUEUE_TYPES[keyof typeof QUEUE_TYPES], 'history'>
+
+/**
+ * Подписи типов очередей в родительном падеже для сообщений журнала.
+ */
+export const QUEUE_TYPE_LABELS = {
+  active: 'активной очереди',
+  waiting: 'списка ожидающих',
+} as const satisfies Record<MutableQueueType, string>
+
+/**
+ * Подписи типов очередей в предложном падеже для сообщений журнала.
+ */
+export const QUEUE_TYPE_LABELS_LOCATIVE = {
+  active: 'активной очереди',
+  waiting: 'списке ожидающих',
+} as const satisfies Record<MutableQueueType, string>
+
+/**
+ * Подписи типов очередей в винительном падеже для сообщений журнала.
+ */
+export const QUEUE_TYPE_LABELS_ACCUSATIVE = {
+  active: 'активную очередь',
+  waiting: 'список ожидающих',
+} as const satisfies Record<MutableQueueType, string>
+
+/**
+ * Тексты системных сообщений об очистке очередей для журнала приложения.
+ */
+export const QUEUE_CLEAR_MESSAGES = {
+  ACTIVE: 'Текущая очередь очищена.',
+  WAITING: 'Список ожидающих очищен.',
+} as const
+
+/**
+ * Тексты автоматических уведомлений в чат Twitch.
+ */
+export const QUEUE_CHAT_NOTIFICATION_MESSAGES = {
+  CLEARED_ACTIVE: 'Очередь очищена.',
+  CLEARED_WAITING: 'Список ожидающих очищен.',
+  QUEUE_FULL: 'Очередь заполнена.',
+  QUEUE_OPENED: 'Очередь открыта!',
+  QUEUE_CLOSED: 'Очередь закрыта!',
+} as const

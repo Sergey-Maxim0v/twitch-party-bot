@@ -3,6 +3,8 @@ import { useQueue } from '../hooks/useQueue.ts'
 import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
+import { formatTime } from '../../../utils/dateTime.ts'
+import { QUEUE_BADGE_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueHistoryListProps {
   /** Дополнительные CSS-классы списка. */
@@ -24,7 +26,7 @@ export const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', on
   return (
     <QueueCollapse
       badge={
-        <span className="badge badge-neutral text-xs font-semibold">{queueLength}</span>
+        <span className={QUEUE_BADGE_CLASS}>{queueLength}</span>
       }
       className={className}
       onOpenChange={onOpenChange}
@@ -34,7 +36,7 @@ export const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', on
       <div className="flex flex-col gap-3">
         {queueHistory.map(session => {
           const formattedTime = session.playedAt
-            ? new Date(session.playedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            ? formatTime(session.playedAt)
             : '--:--'
 
           return (

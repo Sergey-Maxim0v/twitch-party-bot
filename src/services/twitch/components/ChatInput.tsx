@@ -4,17 +4,11 @@ import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import * as React from 'react'
 import { TWITCH_CHAT_MESSAGE_MAX_LENGTH, TWITCH_CHAT_MESSAGE_MIN_LENGTH } from '../../../constants/twitch.constants.ts'
 import { TWITCH_CHAT_ACCESS_STATUSES } from '../../socket/types.ts'
+import { TWITCH_CHAT_STATUS_BUTTON_CLASSES } from '../../../constants/ui.constants.ts'
 
 interface ChatInputProps {
   onSendMessage: (text: string) => void;
   actions?: ReactNode;
-}
-
-const TWITCH_CHAT_STATUS_BUTTON_CLASSES: Record<string, string> = {
-  [TWITCH_CHAT_ACCESS_STATUSES.CONNECTED]: 'btn-primary',
-  [TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED]: 'btn-warning text-black',
-  [TWITCH_CHAT_ACCESS_STATUSES.OFFLINE]: 'btn-error text-white',
-  [TWITCH_CHAT_ACCESS_STATUSES.BANNED]: 'btn-neutral',
 }
 
 /**

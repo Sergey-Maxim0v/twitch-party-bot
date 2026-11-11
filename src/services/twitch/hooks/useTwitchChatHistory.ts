@@ -1,6 +1,7 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import type { TwitchIrcClient } from '../twitchIrcClient.ts'
 import { TWITCH_CHAT_HISTORY_MAX_MESSAGES, TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
 import type { ParsedIrcMessage } from '../types.ts'
@@ -111,7 +112,7 @@ export const useTwitchChatHistory = ({ client, pendingTextsRef, roomStateTagsRef
     }
 
     const authorName = isUserstate
-      ? (message.tags['display-name'] || currentUserLogin || 'Broadcaster')
+      ? (message.tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || currentUserLogin || 'Broadcaster')
       : (message.user.displayName || message.user.nick)
 
     const uniqueId = `msg-${message.id}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`

@@ -1,25 +1,16 @@
-import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState } from '../types'
-import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import type { QueueHandlerArgs } from '../types'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import { QUEUE_TYPE_LABELS } from '../../../constants/queue.constants.ts'
 
-interface HandleRemovePlayerFromAllArgs {
+interface HandleRemovePlayerFromAllArgs extends QueueHandlerArgs {
   /** Уникальный ID пользователя на Twitch */
   userId: string;
   /** Логин пользователя на Twitch */
   username: string;
   /** Отображаемое имя игрока */
   displayedUsername?: string;
-  /** Источник вызова команды (чат/интерфейс) */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто выполнил удаление */
-  actorUsername: string;
   /** Исходный текст команды (если вызвано из чата) */
   rawCommand?: string;
-  /** Функция обновления состояния */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Хелпер провайдера для записи логов */
-  pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
@@ -70,11 +61,11 @@ export const handleRemovePlayerFromAll = ({
     const displayName = targetPlayerName || displayedUsername || username
 
     if (removedFromActiveCount > 0 && removedFromWaitingCount > 0) {
-      logMessageText = `Удаление из всех очередей: ${displayName} удален из активной очереди и списка ожидающих.`
+      logMessageText = `Удаление из всех очередей: ${displayName} удален из ${QUEUE_TYPE_LABELS.active} и ${QUEUE_TYPE_LABELS.waiting}.`
     } else if (removedFromActiveCount > 0) {
-      logMessageText = `Удаление из всех очередей: ${displayName} удален из активной очереди.`
+      logMessageText = `Удаление из всех очередей: ${displayName} удален из ${QUEUE_TYPE_LABELS.active}.`
     } else {
-      logMessageText = `Удаление из всех очередей: ${displayName} удален из списка ожидающих.`
+      logMessageText = `Удаление из всех очередей: ${displayName} удален из ${QUEUE_TYPE_LABELS.waiting}.`
     }
 
     return {

@@ -8,6 +8,7 @@ import { QueueForm } from './QueueForm.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES, type QueuePlayer } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
@@ -57,7 +58,7 @@ export const QueuePanel: FC = () => {
       activeQueue,
       waitingQueue: waitingQueue,
       movePlayer,
-      actorUsername: userDisplayName ?? session?.login ?? 'Application',
+      actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
       username: currentUsername,
     })
 

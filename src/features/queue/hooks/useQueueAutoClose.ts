@@ -2,6 +2,7 @@ import { type Dispatch, type SetStateAction, useEffect } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { useOnWindowUnload } from '../../../hooks/useOnWindowUnload.ts'
 import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
+import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
 
 /**
  * Аргументы для лог-сообщения, передаваемого в функцию pushLog.
@@ -31,7 +32,7 @@ interface UseAutocloseQueueProps {
 export const useQueueAutoClose = ({ setIsQueueOpen, isQueueOpen, pushLog }: UseAutocloseQueueProps): void => {
   const { activeChannel, userDisplayName, session } = useAuth()
 
-  const actorUsername = userDisplayName ?? session?.login ?? 'Application'
+  const actorUsername = userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR
 
   // Закрытие при выгрузке вкладки, закрытии браузера или перезагрузке страницы.
   useOnWindowUnload(() => {
@@ -57,6 +58,6 @@ export const useQueueAutoClose = ({ setIsQueueOpen, isQueueOpen, pushLog }: UseA
       source: APP_LOG_SOURCES.APPLICATION,
       actorUsername,
     })
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Нужно реагировать только на смену активного канала
   }, [activeChannel])
 }

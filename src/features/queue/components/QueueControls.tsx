@@ -2,6 +2,7 @@ import { type FC, useCallback } from 'react'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
+import { QUEUE_COMMAND_LABELS } from '../../../constants/queue.constants.ts'
 
 interface QueueControlsProps {
   /** Дополнительные CSS-классы контейнера. */
@@ -36,7 +37,7 @@ export const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
         onClick={handleQueueToggle}
         type="button"
       >
-        {isQueueOpen ? 'Закрыть очередь' : 'Открыть очередь'}
+        {isQueueOpen ? QUEUE_COMMAND_LABELS.stop : QUEUE_COMMAND_LABELS.start}
       </button>
 
       <button
@@ -44,7 +45,7 @@ export const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
         onClick={handleFinishActiveQueue}
         type="button"
       >
-        Завершить текущую очередь
+        {QUEUE_COMMAND_LABELS.play}
       </button>
     </div>
   )

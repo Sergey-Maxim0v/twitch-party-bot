@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { LuLogOut, LuUser } from 'react-icons/lu'
+import { Avatar } from '../../../components/Avatar.tsx'
 
 /**
  * Кнопка выхода из аккаунта с отображением имени и аватара пользователя.
@@ -22,16 +23,7 @@ export const LogoutToggle: FC = () => {
 
         <div className="flex items-center gap-1.5 min-w-0 truncate">
           {userAvatar && (
-            <div className="avatar shrink-0">
-              <div className="w-4 h-4 rounded-full ring-1 ring-base-content/20 overflow-hidden">
-                <img
-                  alt={userDisplayName || session?.login || 'Аватар'}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                  src={userAvatar}
-                />
-              </div>
-            </div>
+            <Avatar alt={userDisplayName || session?.login || 'Аватар'} src={userAvatar} />
           )}
           <span className="font-bold truncate max-w-27.5">
             {userDisplayName || session?.login}

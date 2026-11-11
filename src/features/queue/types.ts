@@ -1,4 +1,7 @@
+import type { Dispatch, SetStateAction } from 'react'
 import { QUEUE_PLAYER_SOURCE, QUEUE_TYPES } from '../../constants/queue.constants.ts'
+import type { AppLogItem } from '../app-logs/types.ts'
+import type { AppLogsContextValue } from '../app-logs/context/AppLogsInstance.ts'
 
 export { QUEUE_PLAYER_SOURCE, QUEUE_TYPES }
 
@@ -88,4 +91,18 @@ export interface QueueState {
   globalSessionCounter: number;
   /** Быстрый индекс истории игроков для проверки временных и сессионных кулдаунов */
   playerHistory: Record<BaseQueuePlayer['username'], PlayerHistoryStats>;
+}
+
+/**
+ * Базовые аргументы обработчиков очереди, работающих со списками игроков.
+ */
+export interface QueueHandlerArgs {
+  /** Функция обновления состояния очереди. */
+  setState: Dispatch<SetStateAction<QueueState>>;
+  /** Источник вызова команды (чат/интерфейс). */
+  source: AppLogItem['source'];
+  /** Никнейм того, кто выполнил действие. */
+  actorUsername: string;
+  /** Хелпер провайдера для записи логов. */
+  pushLog: AppLogsContextValue['pushLog'];
 }
