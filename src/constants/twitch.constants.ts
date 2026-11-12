@@ -145,6 +145,11 @@ export const TWITCH_IRC_LINE_SEPARATOR_REGEX = /\r?\n/
 export const TWITCH_IRC_PARSER_LOG_PREFIX = '[IRC Parser]'
 
 /**
+ * Префикс сообщений IRC-клиента в консоли.
+ */
+export const TWITCH_IRC_CLIENT_LOG_PREFIX = '[TwitchIRC Client]'
+
+/**
  * Ключи IRC-тегов, используемых при разборе сообщений Twitch.
  */
 export const TWITCH_IRC_TAGS = {

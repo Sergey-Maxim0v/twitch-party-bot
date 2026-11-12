@@ -108,7 +108,7 @@ export const useQueueSession = ({
       },
       onEmpty: () => {
         pushLog({
-          message: 'Не удалось завершить сессию: activeQueue пуста.',
+          message: 'Не удалось завершить сессию: Очередь пуста.',
           status: APP_LOG_STATUSES.WARNING,
           source: args.source,
           actorUsername: args.actorUsername,

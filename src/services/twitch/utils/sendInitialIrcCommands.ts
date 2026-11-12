@@ -1,22 +1,23 @@
 import { TWITCH_IRC_CAPABILITIES } from '../../../constants/twitch.constants.ts'
+import type { SocketSender } from '../types.ts'
 
 interface SendInitialIrcCommandsProps {
-  socket: WebSocket,
-  token: string,
-  userLogin: string,
-  channel: string
+  send: SocketSender;
+  token: string;
+  userLogin: string;
+  channel: string;
 }
 
 /**
  * Отправляет стартовый пакет команд для авторизации и подключения к каналу Twitch IRC.
- * @param socket - Открытое WebSocket-соединение.
+ * @param send - Функция отправки данных в сокет.
  * @param token - OAuth-токен пользователя.
  * @param userLogin - Логин пользователя.
  * @param channel - Канал, к которому нужно подключиться.
  */
 export const sendInitialIrcCommands = (
   {
-    socket,
+    send,
     token,
     userLogin,
     channel,
@@ -31,8 +32,8 @@ export const sendInitialIrcCommands = (
     TWITCH_IRC_CAPABILITIES.COMMANDS,
   ].join(' ')
 
-  socket.send(`PASS oauth:${token}`)
-  socket.send(`NICK ${lowerLogin}`)
-  socket.send(`CAP REQ :${capabilities}`)
-  socket.send(`JOIN #${lowerChannel}`)
+  send(`PASS oauth:${token}`)
+  send(`NICK ${lowerLogin}`)
+  send(`CAP REQ :${capabilities}`)
+  send(`JOIN #${lowerChannel}`)
 }

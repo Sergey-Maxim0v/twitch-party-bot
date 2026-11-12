@@ -11,25 +11,29 @@ import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
 import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
 import type { ParsedIrcMessage } from './types.ts'
-import { TWITCH_IRC_COMMANDS, TWITCH_SOCKET_CONNECT_DELAY_MS } from '../../constants/twitch.constants.ts'
+import { TWITCH_IRC_CLIENT_LOG_PREFIX, TWITCH_IRC_COMMANDS, TWITCH_SOCKET_CONNECT_DELAY_MS } from '../../constants/twitch.constants.ts'
+
+interface TwitchSession {
+  channel: string;
+  token: string;
+  userLogin: string;
+}
 
 /**
  * Класс управления WebSocket-соединением с Twitch IRC.
  */
 export class TwitchIrcClient {
-  private channel: string | null = null
+  private session: TwitchSession | null = null
   private emitter: MessageEmitter = createMessageEmitter()
   private onChannelChangeCallback: (() => void) | null = null
 
   private stateManager = new ConnectionStateManager()
   private socketManager = new SocketLifecycleManager()
+  private readonly sendToSocket = (text: string): boolean => this.socketManager.send(text)
   private reconnectManager = new TwitchReconnectManager({
     maxAttempts: 5,
     onReconnectTriggered: () => { this.retryConnection() },
   })
-
-  private lastToken: string | null = null
-  private lastUserLogin: string | null = null
 
   // Задержка гасит двойную инициализацию сокета в React Strict Mode
   private connectTimeoutId: ReturnType<typeof setTimeout> | null = null
@@ -42,7 +46,7 @@ export class TwitchIrcClient {
   }
 
   /**
-   * Подписывает на поток распарсенных входящих IRC-сообщений.
+   * Подписывается на поток распарсенных входящих IRC-сообщений.
    * @returns Функция отписки.
    */
   public subscribe(callback: MessageCallback): () => void {
@@ -50,7 +54,7 @@ export class TwitchIrcClient {
   }
 
   /**
-   * Подписывает на изменение статуса соединения.
+   * Подписывается на изменение статуса соединения.
    * @returns Функция отписки.
    */
   public onStatusChange(callback: (status: ConnectionStatus) => void): () => void {
@@ -58,7 +62,7 @@ export class TwitchIrcClient {
   }
 
   public get currentChannel(): string | null {
-    return this.channel
+    return this.session?.channel ?? null
   }
 
   /**
@@ -105,26 +109,27 @@ export class TwitchIrcClient {
     if (!channel || !token || !userLogin) return TWITCH_CONNECT_OUTCOMES.IGNORED
 
     const targetChannel = channel.toLowerCase()
+    const currentSession = this.session
 
-    const isSameSession = this.channel === targetChannel
-      && this.lastToken === token
-      && this.lastUserLogin === userLogin
+    const isSameSession = currentSession !== null
+      && currentSession.channel === targetChannel
+      && currentSession.token === token
+      && currentSession.userLogin === userLogin
 
     if (isSameSession && this.socketManager.isConnectingOrOpen()) {
       this.syncStatus()
       return TWITCH_CONNECT_OUTCOMES.ALREADY_CONNECTED
     }
 
-    if (this.connectTimeoutId) {
-      clearTimeout(this.connectTimeoutId)
-    }
+    this.clearConnectTimeout()
 
-    if (this.channel !== targetChannel) {
+    if (currentSession?.channel !== targetChannel) {
       this.reconnectManager.clearTimer()
       this.reconnectManager.resetAttempts()
     }
 
-    this.saveSession(targetChannel, token, userLogin)
+    this.session = { channel: targetChannel, token, userLogin }
+    this.reconnectManager.setIntentionallyDisconnected(false)
     this.onChannelChangeCallback?.()
 
     this.socketManager.destroy()
@@ -135,7 +140,7 @@ export class TwitchIrcClient {
         onOpen: () => { this.handleSocketOpen() },
         onMessage: event => { this.handleSocketMessage(event) },
         onClose: () => { this.handleSocketClose() },
-        onError: error => { console.error('[TwitchIRC Client] Ошибка сокета:', error) },
+        onError: error => { console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} Ошибка сокета:`, error) },
       })
       this.connectTimeoutId = null
     }, TWITCH_SOCKET_CONNECT_DELAY_MS)
@@ -143,75 +148,17 @@ export class TwitchIrcClient {
     return TWITCH_CONNECT_OUTCOMES.RECONNECTED
   }
 
-  private handleSocketOpen(): void {
-    if (!this.channel || !this.lastToken || !this.lastUserLogin) return
-
-    this.reconnectManager.resetAttempts()
-    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTED)
-
-    const socket = this.socketManager.rawSocket
-    if (!socket) return
-
-    sendInitialIrcCommands({
-      socket,
-      token: this.lastToken,
-      userLogin: this.lastUserLogin,
-      channel: this.channel,
-    })
-  }
-
-  private handleSocketMessage(event: MessageEvent): void {
-    const socket = this.socketManager.rawSocket
-    if (!socket) return
-
-    handleIrcMessage({
-      event,
-      socket,
-      emitMessage: (message: ParsedIrcMessage) => {
-        this.emitter.emit(message)
-
-        if (message.command === TWITCH_IRC_COMMANDS.RECONNECT) {
-          this.forceCloseAndReconnect()
-        }
-      },
-    })
-  }
-
-  private handleSocketClose(): void {
-    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
-    this.reconnectManager.trigger(this.hasSessionParams())
-  }
-
-  /**
-   * Сбрасывает параметры сессии в памяти.
-   */
-  private clearSession(): void {
-    this.channel = null
-    this.lastToken = null
-    this.lastUserLogin = null
-  }
-
-  private saveSession(channel: string, token: string, userLogin: string): void {
-    this.channel = channel
-    this.lastToken = token
-    this.lastUserLogin = userLogin
-    this.reconnectManager.setIntentionallyDisconnected(false)
-  }
-
   /**
    * Намеренно закрывает соединение, останавливает переподключения
    * и сбрасывает параметры сессии.
    */
   public disconnect(): void {
-    if (this.connectTimeoutId) {
-      clearTimeout(this.connectTimeoutId)
-      this.connectTimeoutId = null
-    }
+    this.clearConnectTimeout()
     this.reconnectManager.setIntentionallyDisconnected(true)
     this.reconnectManager.clearTimer()
     this.reconnectManager.resetAttempts()
     this.socketManager.destroy()
-    this.clearSession()
+    this.session = null
   }
 
   /**
@@ -219,13 +166,9 @@ export class TwitchIrcClient {
    * После ручного выхода игнорируется.
    */
   public forceCloseAndReconnect(): void {
-    if (this.reconnectManager.isIntentionally || !this.hasSessionParams()) return
+    if (this.reconnectManager.isIntentionally || !this.session) return
 
-    if (this.connectTimeoutId) {
-      clearTimeout(this.connectTimeoutId)
-      this.connectTimeoutId = null
-    }
-
+    this.clearConnectTimeout()
     this.socketManager.destroy()
     this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
 
@@ -239,35 +182,73 @@ export class TwitchIrcClient {
    * @returns `true`, если сообщение передано в сокет.
    */
   public sendMessage(text: string): boolean {
-    if (!this.socketManager.isOpen() || !this.channel) {
-      console.error('[TwitchIRC Client] Невозможно отправить сообщение: сокет закрыт или канал не задан')
+    const channel = this.session?.channel
+
+    if (!channel) {
+      console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} Невозможно отправить сообщение: канал не задан`)
       return false
     }
-    this.socketManager.send(`PRIVMSG #${this.channel} :${text}`)
-    return true
+
+    return this.socketManager.send(`PRIVMSG #${channel} :${text}`)
   }
 
   /**
    * Отправляет низкоуровневую системную строку в сокет.
    */
   public sendRaw(text: string): void {
-    if (!this.socketManager.isOpen()) {
-      console.error('[TwitchIRC Client] Невозможно отправить данные: сокет закрыт')
-      return
-    }
     this.socketManager.send(text)
   }
 
-  private retryConnection(): void {
-    if (this.reconnectManager.isIntentionally) return
+  private handleSocketOpen(): void {
+    const session = this.session
 
-    if (this.channel && this.lastToken && this.lastUserLogin) {
-      this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTING)
-      this.connect(this.channel, this.lastToken, this.lastUserLogin)
-    }
+    if (!session) return
+
+    this.reconnectManager.resetAttempts()
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTED)
+
+    if (!this.socketManager.isOpen()) return
+
+    sendInitialIrcCommands({
+      send: this.sendToSocket,
+      token: session.token,
+      userLogin: session.userLogin,
+      channel: session.channel,
+    })
   }
 
-  private hasSessionParams(): boolean {
-    return Boolean(this.channel && this.lastToken && this.lastUserLogin)
+  private handleSocketMessage(event: MessageEvent): void {
+    handleIrcMessage({
+      event,
+      send: this.sendToSocket,
+      emitMessage: (message: ParsedIrcMessage) => {
+        this.emitter.emit(message)
+
+        if (message.command === TWITCH_IRC_COMMANDS.RECONNECT) {
+          this.forceCloseAndReconnect()
+        }
+      },
+    })
+  }
+
+  private handleSocketClose(): void {
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
+    this.reconnectManager.trigger(this.session !== null)
+  }
+
+  private retryConnection(): void {
+    const session = this.session
+
+    if (this.reconnectManager.isIntentionally || !session) return
+
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTING)
+    this.connect(session.channel, session.token, session.userLogin)
+  }
+
+  private clearConnectTimeout(): void {
+    if (!this.connectTimeoutId) return
+
+    clearTimeout(this.connectTimeoutId)
+    this.connectTimeoutId = null
   }
 }

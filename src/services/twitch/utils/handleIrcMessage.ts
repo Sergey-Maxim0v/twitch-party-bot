@@ -1,22 +1,22 @@
 import { TWITCH_IRC_LINE_SEPARATOR_REGEX, TWITCH_IRC_PARSER_LOG_PREFIX } from '../../../constants/twitch.constants.ts'
 import { handleIrcPingPong } from './handleIrcPingPong.ts'
 import { parseIrcMessage } from './parseIrcMessage.ts'
-import type { ParsedIrcMessage } from '../types.ts'
+import type { ParsedIrcMessage, SocketSender } from '../types.ts'
 
 interface HandleIrcMessageProps {
   event: MessageEvent<unknown>;
-  socket: WebSocket;
+  send: SocketSender;
   emitMessage: (message: ParsedIrcMessage) => void;
 }
 
 /**
- * Разбирает входящие IRC-сообщения и передает распарсенные данные подписчикам.
+ * Разбирает входящие IRC-сообщения и передает разобранные данные подписчикам.
  * Данные, отличные от строки, игнорируются.
  * @param event - Событие сообщения WebSocket.
- * @param socket - Открытое WebSocket-соединение.
- * @param emitMessage - Колбэк для передачи распарсенного сообщения.
+ * @param send - Функция отправки данных в сокет.
+ * @param emitMessage - Колбэк для передачи разобранного сообщения.
  */
-export const handleIrcMessage = ({ event, socket, emitMessage }: HandleIrcMessageProps): void => {
+export const handleIrcMessage = ({ event, send, emitMessage }: HandleIrcMessageProps): void => {
   const rawMessage = event.data
 
   if (typeof rawMessage !== 'string') {
@@ -28,8 +28,7 @@ export const handleIrcMessage = ({ event, socket, emitMessage }: HandleIrcMessag
     const trimmedLine = line.trim()
 
     if (!trimmedLine) continue
-
-    if (handleIrcPingPong({ rawMessage: trimmedLine, socket })) continue
+    if (handleIrcPingPong({ rawMessage: trimmedLine, send })) continue
 
     const parsed = parseIrcMessage(trimmedLine)
 

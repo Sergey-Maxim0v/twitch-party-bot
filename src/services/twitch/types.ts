@@ -2,6 +2,12 @@ import { TWITCH_IRC_COMMANDS } from '../../constants/twitch.constants.ts'
 
 export type TwitchIrcCommandType = typeof TWITCH_IRC_COMMANDS[keyof typeof TWITCH_IRC_COMMANDS]
 
+/**
+ * Функция отправки данных в сокет.
+ * @returns `true`, если данные переданы сокету.
+ */
+export type SocketSender = (text: string) => boolean
+
 export interface ParsedIrcMessage {
   /** Уникальный идентификатор сообщения (msg-id из тегов Twitch) */
   id: string;

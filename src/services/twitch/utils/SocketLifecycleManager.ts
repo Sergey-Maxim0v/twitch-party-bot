@@ -1,5 +1,5 @@
+import { SOCKET_CONNECTION_STATUSES, SOCKET_LOG_PREFIX } from '../../../constants/socket.constants.ts'
 import { TWITCH_IRC_SOCKET_URL } from '../../../constants/twitch.constants.ts'
-import { SOCKET_CONNECTION_STATUSES } from '../../../constants/socket.constants.ts'
 import type { ConnectionStatus } from '../../socket/types.ts'
 
 interface SocketListeners {
@@ -11,13 +11,10 @@ interface SocketListeners {
 
 /**
  * Менеджер жизненного цикла нативного WebSocket.
+ * Единственная точка отправки данных в сокет.
  */
 export class SocketLifecycleManager {
   private socket: WebSocket | null = null
-
-  public get rawSocket(): WebSocket | null {
-    return this.socket
-  }
 
   public get readyState(): WebSocket['readyState'] | null {
     return this.socket ? this.socket.readyState : null
@@ -27,18 +24,17 @@ export class SocketLifecycleManager {
    * Возвращает статус соединения по фактическому состоянию сокета.
    */
   public get connectionStatus(): ConnectionStatus {
-    if (this.socket?.readyState === WebSocket.OPEN) return SOCKET_CONNECTION_STATUSES.CONNECTED
-    if (this.socket?.readyState === WebSocket.CONNECTING) return SOCKET_CONNECTION_STATUSES.CONNECTING
+    if (this.isOpen()) return SOCKET_CONNECTION_STATUSES.CONNECTED
+    if (this.isConnecting()) return SOCKET_CONNECTION_STATUSES.CONNECTING
 
     return SOCKET_CONNECTION_STATUSES.DISCONNECTED
   }
 
   /**
-   * Проверяет, находится ли сокет в процессе подключения или уже открыт.
+   * Проверяет, находится ли сокет в процессе подключения.
    */
-  public isConnectingOrOpen(): boolean {
-    if (!this.socket) return false
-    return this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN
+  public isConnecting(): boolean {
+    return this.socket?.readyState === WebSocket.CONNECTING
   }
 
   /**
@@ -49,10 +45,16 @@ export class SocketLifecycleManager {
   }
 
   /**
-   * Создает новый сокет и навешивает на него обработчики.
-   * @returns Созданный экземпляр сокета.
+   * Проверяет, находится ли сокет в процессе подключения или уже открыт.
    */
-  public create(listeners: SocketListeners): WebSocket {
+  public isConnectingOrOpen(): boolean {
+    return this.isConnecting() || this.isOpen()
+  }
+
+  /**
+   * Создает новый сокет и навешивает на него обработчики.
+   */
+  public create(listeners: SocketListeners): void {
     this.destroy()
 
     this.socket = new WebSocket(TWITCH_IRC_SOCKET_URL)
@@ -61,15 +63,28 @@ export class SocketLifecycleManager {
     this.socket.onmessage = listeners.onMessage
     this.socket.onclose = listeners.onClose
     this.socket.onerror = listeners.onError
-
-    return this.socket
   }
 
   /**
-   * Отправляет данные через открытый сокет.
+   * Отправляет данные через сокет.
+   *
+   * @returns `true`, если данные переданы сокету.
    */
-  public send(text: string): void {
-    this.socket?.send(text)
+  public send(text: string): boolean {
+    const socket = this.socket
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.error(`${SOCKET_LOG_PREFIX} Отправка пропущена: сокет не открыт`)
+      return false
+    }
+
+    try {
+      socket.send(text)
+      return true
+    } catch (error) {
+      console.error(`${SOCKET_LOG_PREFIX} Ошибка отправки данных:`, error)
+      return false
+    }
   }
 
   /**
@@ -85,8 +100,8 @@ export class SocketLifecycleManager {
 
     try {
       this.socket.close()
-    } catch (e) {
-      console.error('[SocketLifecycleManager] Ошибка при закрытии сокета:', e)
+    } catch (error) {
+      console.error(`${SOCKET_LOG_PREFIX} Ошибка при закрытии сокета:`, error)
     } finally {
       this.socket = null
     }

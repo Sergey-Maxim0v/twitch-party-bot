@@ -30,3 +30,8 @@ export const TWITCH_CONNECT_OUTCOMES = {
  * Тайм-аут сторожа статуса соединения.
  */
 export const SOCKET_STATUS_WATCHDOG_TIMEOUT_MS = 5 * 1000
+
+/**
+ * Префикс сообщений менеджера сокета в консоли.
+ */
+export const SOCKET_LOG_PREFIX = '[SocketLifecycleManager]'
