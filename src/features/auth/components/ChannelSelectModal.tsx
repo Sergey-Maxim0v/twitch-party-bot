@@ -6,6 +6,7 @@ import { LuX } from 'react-icons/lu'
 import { getChannelSelectCurrentError } from '../utils/getChannelSelectCurrentError.ts'
 import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { getTwitchChannelProfile } from '../utils/getTwitchChannelProfile.ts'
+import { isChannelConnectRequired } from '../utils/isChannelConnectRequired.ts'
 
 /**
  * Модальное окно выбора канала чата: свой канал или ручной ввод.
@@ -23,7 +24,7 @@ export const ChannelSelectModal: FC = () => {
     userDisplayName,
   } = useAuth()
 
-  const { connect } = useSocketContext()
+  const { connect, getClient } = useSocketContext()
 
   const [inputValue, setInputValue] = useState('')
   const [isChecking, setIsChecking] = useState(false)
@@ -62,6 +63,26 @@ export const ChannelSelectModal: FC = () => {
   }
 
   /**
+   * Подключает бота к каналу, если это действительно требуется.
+   *
+   * @param targetChannel - Канал, к которому подключаемся.
+   */
+  const connectToChannel = (targetChannel: string): void => {
+    if (!session?.accessToken || !session?.login) return
+
+    const client = getClient()
+    const shouldConnect = isChannelConnectRequired({
+      currentChannel: client.currentChannel,
+      targetChannel,
+      socketReadyState: client.readyState,
+    })
+
+    if (!shouldConnect) return
+
+    connect(targetChannel, session.accessToken, session.login)
+  }
+
+  /**
    * Подключает бота к собственному каналу пользователя.
    */
   const handleOwnChannelClick = async () => {
@@ -74,7 +95,7 @@ export const ChannelSelectModal: FC = () => {
 
     if (channelProfile) {
       selectOwnChannel()
-      connect(session.login, session.accessToken, session.login)
+      connectToChannel(session.login)
     } else {
       setIsNotFound(true)
     }
@@ -102,7 +123,7 @@ export const ChannelSelectModal: FC = () => {
 
       if (channelProfile) {
         selectCustomChannel(trimmed)
-        connect(trimmed, session.accessToken, session.login)
+        connectToChannel(trimmed)
       } else {
         setIsNotFound(true)
       }

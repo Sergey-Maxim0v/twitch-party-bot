@@ -16,3 +16,17 @@ export const TWITCH_CHAT_ACCESS_STATUSES = {
   RESTRICTED: 'restricted',
   BANNED: 'banned',
 }
+
+/**
+ * Результаты попытки подключения к IRC-сокету Twitch.
+ */
+export const TWITCH_CONNECT_OUTCOMES = {
+  RECONNECTED: 'reconnected',
+  ALREADY_CONNECTED: 'already-connected',
+  IGNORED: 'ignored',
+} as const
+
+/**
+ * Тайм-аут сторожа статуса соединения.
+ */
+export const SOCKET_STATUS_WATCHDOG_TIMEOUT_MS = 5 * 1000

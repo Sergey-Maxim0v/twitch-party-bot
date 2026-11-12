@@ -1,12 +1,17 @@
 import { sendInitialIrcCommands } from './utils/sendInitialIrcCommands.ts'
 import { handleIrcMessage } from './utils/handleIrcMessage.ts'
 import { createMessageEmitter, type MessageCallback, type MessageEmitter } from './utils/createMessageEmitter.ts'
-import { SOCKET_CONNECTION_STATUSES, type ConnectionStatus } from '../socket/types.ts'
+import {
+  SOCKET_CONNECTION_STATUSES,
+  TWITCH_CONNECT_OUTCOMES,
+  type ConnectionStatus,
+  type TwitchConnectOutcome,
+} from '../socket/types.ts'
 import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
 import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
 import type { ParsedIrcMessage } from './types.ts'
-import { TWITCH_IRC_COMMANDS } from '../../constants/twitch.constants.ts'
+import { TWITCH_IRC_COMMANDS, TWITCH_SOCKET_CONNECT_DELAY_MS } from '../../constants/twitch.constants.ts'
 
 /**
  * Класс управления WebSocket-соединением с Twitch IRC.
@@ -64,6 +69,20 @@ export class TwitchIrcClient {
   }
 
   /**
+   * Возвращает фактический статус соединения по состоянию сокета.
+   */
+  public get status(): ConnectionStatus {
+    return this.socketManager.connectionStatus
+  }
+
+  /**
+   * Синхронизирует статус соединения с фактическим состоянием сокета.
+   */
+  public syncStatus(): void {
+    this.stateManager.emit(this.status)
+  }
+
+  /**
    * Возвращает текущее количество попыток переподключения.
    */
   public get reconnectAttempts(): number {
@@ -79,19 +98,21 @@ export class TwitchIrcClient {
 
   /**
    * Подключается к IRC-каналу Twitch, пересоздавая сокет при необходимости.
+   *
+   * @returns Результат попытки подключения.
    */
-  public connect(channel: string, token: string, userLogin: string): void {
-    if (!channel || !token || !userLogin) return
+  public connect(channel: string, token: string, userLogin: string): TwitchConnectOutcome {
+    if (!channel || !token || !userLogin) return TWITCH_CONNECT_OUTCOMES.IGNORED
 
     const targetChannel = channel.toLowerCase()
 
-    if (
-      this.channel === targetChannel &&
-            this.lastToken === token &&
-            this.lastUserLogin === userLogin &&
-            this.socketManager.isConnectingOrOpen()
-    ) {
-      return
+    const isSameSession = this.channel === targetChannel
+      && this.lastToken === token
+      && this.lastUserLogin === userLogin
+
+    if (isSameSession && this.socketManager.isConnectingOrOpen()) {
+      this.syncStatus()
+      return TWITCH_CONNECT_OUTCOMES.ALREADY_CONNECTED
     }
 
     if (this.connectTimeoutId) {
@@ -117,7 +138,9 @@ export class TwitchIrcClient {
         onError: error => { console.error('[TwitchIRC Client] Ошибка сокета:', error) },
       })
       this.connectTimeoutId = null
-    }, 16)
+    }, TWITCH_SOCKET_CONNECT_DELAY_MS)
+
+    return TWITCH_CONNECT_OUTCOMES.RECONNECTED
   }
 
   private handleSocketOpen(): void {

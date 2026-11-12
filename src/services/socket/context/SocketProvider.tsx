@@ -4,11 +4,13 @@ import {
   type ChatAccessStatus,
   SOCKET_CONNECTION_STATUSES,
   type ConnectionStatus,
+  TWITCH_CONNECT_OUTCOMES,
   type SocketStorage,
 } from '../types'
 import { SocketInstance } from './SocketInstance'
 import { TwitchIrcClient } from '../../twitch/twitchIrcClient'
 import { useSocketNetworkSync } from '../hooks/useSocketNetworkSync'
+import { useSocketWatchdog } from '../hooks/useSocketWatchdog'
 import type { MessageCallback } from '../../twitch/utils/createMessageEmitter'
 
 interface SocketProviderProps {
@@ -50,12 +52,23 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   /** Инициализируем синхронизацию сети. */
   useSocketNetworkSync({ client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus })
 
+  /** Следим за рассинхронизацией статуса соединения. */
+  useSocketWatchdog({ client, connectionStatus, lastActiveChatStatusRef, setChatAccessStatus })
+
   const connect = useCallback((channel: string, token: string, userLogin: string): void => {
+    const outcome = client.connect(channel, token, userLogin)
+
+    if (outcome === TWITCH_CONNECT_OUTCOMES.IGNORED) return
+
+    if (outcome === TWITCH_CONNECT_OUTCOMES.ALREADY_CONNECTED) {
+      setConnectionStatus(client.status)
+      setChatAccessStatus(lastActiveChatStatusRef.current)
+      return
+    }
+
     lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
     setConnectionStatus(SOCKET_CONNECTION_STATUSES.CONNECTING)
     setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
-
-    client.connect(channel, token, userLogin)
   }, [client])
 
   const disconnect = useCallback(() => {

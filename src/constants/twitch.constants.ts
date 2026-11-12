@@ -47,6 +47,11 @@ export const TWITCH_CHAT_MESSAGE_ID = {
 } as const
 
 /**
+ * Задержка создания сокета после смены канала.
+ */
+export const TWITCH_SOCKET_CONNECT_DELAY_MS = 16
+
+/**
  * Интервал отправки PING для контроля «полуоткрытого» соединения.
  */
 export const TWITCH_HEARTBEAT_INTERVAL_MS = 60 * 1000

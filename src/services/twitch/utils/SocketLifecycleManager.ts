@@ -1,4 +1,6 @@
 import { TWITCH_IRC_SOCKET_URL } from '../../../constants/twitch.constants.ts'
+import { SOCKET_CONNECTION_STATUSES } from '../../../constants/socket.constants.ts'
+import type { ConnectionStatus } from '../../socket/types.ts'
 
 interface SocketListeners {
   onOpen: () => void;
@@ -19,6 +21,16 @@ export class SocketLifecycleManager {
 
   public get readyState(): WebSocket['readyState'] | null {
     return this.socket ? this.socket.readyState : null
+  }
+
+  /**
+   * Возвращает статус соединения по фактическому состоянию сокета.
+   */
+  public get connectionStatus(): ConnectionStatus {
+    if (this.socket?.readyState === WebSocket.OPEN) return SOCKET_CONNECTION_STATUSES.CONNECTED
+    if (this.socket?.readyState === WebSocket.CONNECTING) return SOCKET_CONNECTION_STATUSES.CONNECTING
+
+    return SOCKET_CONNECTION_STATUSES.DISCONNECTED
   }
 
   /**
