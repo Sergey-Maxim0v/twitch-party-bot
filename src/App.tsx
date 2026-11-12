@@ -5,6 +5,7 @@ import { WelcomeScreen } from './components/layout/WelcomeScreen.tsx'
 import { StreamerWorkspace } from './components/layout/workspace/StreamerWorkspace.tsx'
 import { AuthProvider } from './features/auth/context/AuthProvider.tsx'
 import { ProtectedView } from './features/auth/components/ProtectedView.tsx'
+import { ChannelInfoProvider } from './features/channel-info/context/ChannelInfoProvider.tsx'
 import { AppLogsProvider } from './features/app-logs/context/AppLogsProvider.tsx'
 import { QueueSettingsProvider } from './features/queue-settings/context/QueueSettingsProvider.tsx'
 import { QueueProvider } from './features/queue/context/QueueProvider.tsx'
@@ -15,6 +16,8 @@ import { QueueNotificationProvider } from './features/queue-notification/context
 //   проверить:
 //   -  авторизации
 //   -  каналы
+//   -  индикаторы
+//   -  статусы канала в модалке
 //   -  дисконекты
 //   -  логика автосворачивания панелей от размера
 //   -  выделение игрового никнейма (регуляркой)
@@ -37,21 +40,23 @@ function App() {
       <AuthProvider>
         <SocketInitializer />
 
-        <PageLayout>
-          <ProtectedView fallback={<WelcomeScreen />}>
-            <AppLogsProvider>
-              <QueueSettingsProvider>
-                <TwitchChatProvider>
-                  <QueueNotificationProvider>
-                    <QueueProvider>
-                      <StreamerWorkspace />
-                    </QueueProvider>
-                  </QueueNotificationProvider>
-                </TwitchChatProvider>
-              </QueueSettingsProvider>
-            </AppLogsProvider>
-          </ProtectedView>
-        </PageLayout>
+        <ChannelInfoProvider>
+          <PageLayout>
+            <ProtectedView fallback={<WelcomeScreen />}>
+              <AppLogsProvider>
+                <QueueSettingsProvider>
+                  <TwitchChatProvider>
+                    <QueueNotificationProvider>
+                      <QueueProvider>
+                        <StreamerWorkspace />
+                      </QueueProvider>
+                    </QueueNotificationProvider>
+                  </TwitchChatProvider>
+                </QueueSettingsProvider>
+              </AppLogsProvider>
+            </ProtectedView>
+          </PageLayout>
+        </ChannelInfoProvider>
       </AuthProvider>
     </SocketProvider>
   )

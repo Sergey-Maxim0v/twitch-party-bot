@@ -7,6 +7,7 @@ import { getChannelSelectCurrentError } from '../utils/getChannelSelectCurrentEr
 import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { getTwitchChannelProfile } from '../utils/getTwitchChannelProfile.ts'
 import { isChannelConnectRequired } from '../utils/isChannelConnectRequired.ts'
+import { ChannelInfoCard } from '../../channel-info/components/ChannelInfoCard.tsx'
 
 /**
  * Модальное окно выбора канала чата: свой канал или ручной ввод.
@@ -157,6 +158,8 @@ export const ChannelSelectModal: FC = () => {
             Укажите канал, сообщения которого бот должен начать отслеживать.
           </p>
         </div>
+
+        <ChannelInfoCard />
 
         <button
           className="btn btn-primary w-full flex flex-col h-auto py-2.5 gap-0.5"
