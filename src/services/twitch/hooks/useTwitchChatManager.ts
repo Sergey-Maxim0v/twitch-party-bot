@@ -3,13 +3,20 @@ import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
 import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
 import { updateChatAccess } from '../utils/updateChatAccess.ts'
+import { rejectPendingMessages } from '../utils/rejectPendingMessages.ts'
 import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
-import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import {
+  CHAT_SEND_FAIL_REASONS,
+  TWITCH_CHAT_FALLBACK_LOGIN,
+  TWITCH_IRC_COMMANDS,
+} from '../../../constants/twitch.constants.ts'
+import { SOCKET_CONNECTION_STATUSES, type ConnectionStatus } from '../../socket/types.ts'
 import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
 import { useAppLogs } from '../../../features/app-logs/hooks/useAppLogs.ts'
 import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../../features/app-logs/types.ts'
+import { APP_LOG_TWITCH_ACTOR } from '../../../constants/app-logs.constants.ts'
 
 /**
  * Единый хук управления состоянием чата Twitch.
@@ -35,7 +42,7 @@ export const useTwitchChatManager = () => {
     roomStateTagsRef,
   })
 
-  const currentUserLogin = session?.login?.toLowerCase() ?? 'broadcaster'
+  const currentUserLogin = session?.login?.toLowerCase() ?? TWITCH_CHAT_FALLBACK_LOGIN
 
   /**
    * Отправляет сообщение в чат и регистрирует его для подтверждения USERSTATE.
@@ -46,30 +53,43 @@ export const useTwitchChatManager = () => {
     const fail = (reason: string): false => {
       if (options?.onFailed) {
         options.onFailed(reason)
-      } else {
-        pushLog({
-          message: `Не удалось отправить сообщение в чат: ${reason}.`,
-          status: APP_LOG_STATUSES.ERROR,
-          source: APP_LOG_SOURCES.APPLICATION,
-          actorUsername: 'twitch',
-        })
+        return false
       }
+
+      pushLog({
+        message: `Не удалось отправить сообщение в чат: ${reason}.`,
+        status: APP_LOG_STATUSES.ERROR,
+        source: APP_LOG_SOURCES.APPLICATION,
+        actorUsername: APP_LOG_TWITCH_ACTOR,
+      })
 
       return false
     }
 
     if (!socketContext || !client) {
-      return fail('соединение с Twitch не инициализировано')
+      return fail(CHAT_SEND_FAIL_REASONS.NOT_INITIALIZED)
     }
 
     if (!client.sendMessage(message)) {
-      return fail('соединение с чатом закрыто')
+      return fail(CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED)
     }
 
     registerPendingMessage(message, options)
 
     return true
   }, [registerPendingMessage, socketContext, client, pushLog])
+
+  // Потеря соединения сбрасывает очередь подтверждения, чтобы ответы сервера
+  // не подтверждали сообщения, отправленные до обрыва
+  useEffect(() => {
+    if (!client) return
+
+    return client.onStatusChange((status: ConnectionStatus) => {
+      if (status !== SOCKET_CONNECTION_STATUSES.DISCONNECTED) return
+
+      rejectPendingMessages(pendingMessagesRef, CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED, true)
+    })
+  }, [client, pendingMessagesRef])
 
   /**
    * Обрабатывает входящее IRC-сообщение.
@@ -90,14 +110,14 @@ export const useTwitchChatManager = () => {
 
     handleSocketActivity(message.command)
 
-    if (socketContext && socketContext.updateChatAccessStatus) {
-      if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
-        roomStateTagsRef.current = {
-          ...roomStateTagsRef.current,
-          ...(message.tags || {}),
-        }
+    if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
+      roomStateTagsRef.current = {
+        ...roomStateTagsRef.current,
+        ...(message.tags || {}),
       }
+    }
 
+    if (socketContext?.updateChatAccessStatus) {
       updateChatAccess({
         message,
         currentUserLogin,
@@ -116,13 +136,13 @@ export const useTwitchChatManager = () => {
 
     const processedMessage = handleStandardMessage(message, currentUserLogin, client?.currentChannel ?? null)
 
-    if (processedMessage && processedMessage.command === TWITCH_IRC_COMMANDS.PRIV_MSG) {
-      const isCommand = processedMessage.text.trim().startsWith('!')
-      const isFromOtherUser = processedMessage.user.nick !== currentUserLogin
+    if (!processedMessage || processedMessage.command !== TWITCH_IRC_COMMANDS.PRIV_MSG) return
 
-      if (isCommand || isFromOtherUser) {
-        setLastMessage(processedMessage)
-      }
+    const isCommand = processedMessage.text.trim().startsWith('!')
+    const isFromOtherUser = processedMessage.user.nick !== currentUserLogin
+
+    if (isCommand || isFromOtherUser) {
+      setLastMessage(processedMessage)
     }
   }, [
     handleSocketActivity,

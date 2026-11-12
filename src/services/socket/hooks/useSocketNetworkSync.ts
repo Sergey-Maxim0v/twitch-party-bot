@@ -1,12 +1,9 @@
-import { useEffect, useRef, type RefObject } from 'react'
-import { TWITCH_CHAT_ACCESS_STATUSES, SOCKET_CONNECTION_STATUSES } from '../types.ts'
-import type { ChatAccessStatus, ConnectionStatus } from '../types.ts'
+import { useEffect } from 'react'
+import { TWITCH_CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../types.ts'
 import type { TwitchIrcClient } from '../../twitch/twitchIrcClient.ts'
 
 interface UseSocketNetworkSyncProps {
   client: TwitchIrcClient;
-  lastActiveChatStatusRef: RefObject<ChatAccessStatus>;
-  setConnectionStatus: (status: ConnectionStatus) => void;
   setChatAccessStatus: (status: ChatAccessStatus) => void;
 }
 
@@ -15,34 +12,16 @@ interface UseSocketNetworkSyncProps {
  */
 export const useSocketNetworkSync = ({
   client,
-  lastActiveChatStatusRef,
-  setConnectionStatus,
   setChatAccessStatus,
 }: UseSocketNetworkSyncProps): void => {
-  const setConnectionStatusRef = useRef(setConnectionStatus)
-  const setChatAccessStatusRef = useRef(setChatAccessStatus)
-
-  useEffect(() => {
-    setConnectionStatusRef.current = setConnectionStatus
-    setChatAccessStatusRef.current = setChatAccessStatus
-  }, [setConnectionStatus, setChatAccessStatus])
-
   useEffect(() => {
     const handleOffline = (): void => {
-      setConnectionStatusRef.current(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
-      setChatAccessStatusRef.current(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
+      client.handleNetworkOffline()
+      setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
     }
 
     const handleOnline = (): void => {
-      if (client.isIntentionallyDisconnected || client.readyState === WebSocket.CONNECTING) return
-
-      if (client.readyState === WebSocket.OPEN) {
-        setConnectionStatusRef.current(SOCKET_CONNECTION_STATUSES.CONNECTED)
-        setChatAccessStatusRef.current(lastActiveChatStatusRef.current)
-        return
-      }
-
-      client.forceCloseAndReconnect()
+      client.handleNetworkOnline()
     }
 
     window.addEventListener('offline', handleOffline)
@@ -52,5 +31,5 @@ export const useSocketNetworkSync = ({
       window.removeEventListener('offline', handleOffline)
       window.removeEventListener('online', handleOnline)
     }
-  }, [client, lastActiveChatStatusRef])
+  }, [client, setChatAccessStatus])
 }

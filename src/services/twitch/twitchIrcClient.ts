@@ -7,11 +7,17 @@ import {
   type ConnectionStatus,
   type TwitchConnectOutcome,
 } from '../socket/types.ts'
+import { SOCKET_RECONNECT_MAX_ATTEMPTS } from '../../constants/socket.constants.ts'
 import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
 import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
 import type { ParsedIrcMessage } from './types.ts'
-import { TWITCH_IRC_CLIENT_LOG_PREFIX, TWITCH_IRC_COMMANDS, TWITCH_SOCKET_CONNECT_DELAY_MS } from '../../constants/twitch.constants.ts'
+import {
+  TWITCH_IRC_CLIENT_LOG_MESSAGES,
+  TWITCH_IRC_CLIENT_LOG_PREFIX,
+  TWITCH_IRC_COMMANDS,
+  TWITCH_SOCKET_CONNECT_DELAY_MS,
+} from '../../constants/twitch.constants.ts'
 
 interface TwitchSession {
   channel: string;
@@ -26,12 +32,13 @@ export class TwitchIrcClient {
   private session: TwitchSession | null = null
   private emitter: MessageEmitter = createMessageEmitter()
   private onChannelChangeCallback: (() => void) | null = null
+  private isNetworkOffline = false
 
   private stateManager = new ConnectionStateManager()
   private socketManager = new SocketLifecycleManager()
   private readonly sendToSocket = (text: string): boolean => this.socketManager.send(text)
   private reconnectManager = new TwitchReconnectManager({
-    maxAttempts: 5,
+    maxAttempts: SOCKET_RECONNECT_MAX_ATTEMPTS,
     onReconnectTriggered: () => { this.retryConnection() },
   })
 
@@ -140,7 +147,7 @@ export class TwitchIrcClient {
         onOpen: () => { this.handleSocketOpen() },
         onMessage: event => { this.handleSocketMessage(event) },
         onClose: () => { this.handleSocketClose() },
-        onError: error => { console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} Ошибка сокета:`, error) },
+        onError: error => { console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} ${TWITCH_IRC_CLIENT_LOG_MESSAGES.SOCKET_ERROR}:`, error) },
       })
       this.connectTimeoutId = null
     }, TWITCH_SOCKET_CONNECT_DELAY_MS)
@@ -159,6 +166,32 @@ export class TwitchIrcClient {
     this.reconnectManager.resetAttempts()
     this.socketManager.destroy()
     this.session = null
+    this.isNetworkOffline = false
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
+  }
+
+  /**
+   * Фиксирует потерю сетевого соединения: сокет закрывается,
+   * а переподключение откладывается до восстановления сети.
+   */
+  public handleNetworkOffline(): void {
+    if (this.reconnectManager.isIntentionally) return
+
+    this.isNetworkOffline = true
+    this.clearConnectTimeout()
+    this.reconnectManager.clearTimer()
+    this.socketManager.destroy()
+    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
+  }
+
+  /**
+   * Фиксирует восстановление сетевого соединения и переподключает сокет.
+   */
+  public handleNetworkOnline(): void {
+    if (!this.isNetworkOffline) return
+
+    this.isNetworkOffline = false
+    this.forceCloseAndReconnect()
   }
 
   /**
@@ -168,9 +201,14 @@ export class TwitchIrcClient {
   public forceCloseAndReconnect(): void {
     if (this.reconnectManager.isIntentionally || !this.session) return
 
+    const isSocketAlive = this.socketManager.isConnectingOrOpen()
+
     this.clearConnectTimeout()
     this.socketManager.destroy()
-    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
+
+    if (isSocketAlive) {
+      this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
+    }
 
     this.reconnectManager.resetAttempts()
     this.reconnectManager.trigger(true)
@@ -185,7 +223,7 @@ export class TwitchIrcClient {
     const channel = this.session?.channel
 
     if (!channel) {
-      console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} Невозможно отправить сообщение: канал не задан`)
+      console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} ${TWITCH_IRC_CLIENT_LOG_MESSAGES.CHANNEL_NOT_SET}`)
       return false
     }
 
@@ -241,7 +279,6 @@ export class TwitchIrcClient {
 
     if (this.reconnectManager.isIntentionally || !session) return
 
-    this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTING)
     this.connect(session.channel, session.token, session.userLogin)
   }
 

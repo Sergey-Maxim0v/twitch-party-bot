@@ -1,13 +1,12 @@
-import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useRef, useEffect, type ChangeEvent, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
 import { LuSend } from 'react-icons/lu'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
-import * as React from 'react'
 import { TWITCH_CHAT_MESSAGE_MAX_LENGTH, TWITCH_CHAT_MESSAGE_MIN_LENGTH } from '../../../constants/twitch.constants.ts'
 import { TWITCH_CHAT_ACCESS_STATUSES } from '../../socket/types.ts'
-import { TWITCH_CHAT_STATUS_BUTTON_CLASSES } from '../../../constants/ui.constants.ts'
+import { CHAT_INPUT_STYLES, TWITCH_CHAT_STATUS_BUTTON_CLASSES } from '../../../constants/ui.constants.ts'
 
 interface ChatInputProps {
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string) => boolean;
   actions?: ReactNode;
 }
 
@@ -26,7 +25,7 @@ export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
     if (!textarea) return
 
     if (!value.trim()) {
-      textarea.style.height = '2rem' // 32px
+      textarea.style.height = CHAT_INPUT_STYLES.MIN_HEIGHT
       return
     }
 
@@ -34,7 +33,7 @@ export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
     textarea.style.height = `${textarea.scrollHeight}px`
   }, [value])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value
     setValue(text)
 
@@ -43,28 +42,35 @@ export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
 
     if (!text.trim()) {
       setIsOverflowed(false)
-    } else {
-      const currentHeight = textarea.scrollHeight
-      setIsOverflowed(currentHeight > 128)
+      return
     }
+
+    setIsOverflowed(textarea.scrollHeight > CHAT_INPUT_STYLES.MAX_HEIGHT_PX)
   }
 
-  const handleSubmit = (e: React.SubmitEvent) => {
-    e.preventDefault()
+  const sendMessage = (): void => {
     const trimmedValue = value.trim()
     if (!trimmedValue) return
 
-    onSendMessage(trimmedValue)
+    const isSent = onSendMessage(trimmedValue)
+
+    // Неудачная отправка сохраняет текст, чтобы сообщение не потерялось
+    if (!isSent) return
 
     setValue('')
     setIsOverflowed(false)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit(e as unknown as React.SubmitEvent)
-    }
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    sendMessage()
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== 'Enter' || e.shiftKey) return
+
+    e.preventDefault()
+    sendMessage()
   }
 
   const currentStatus = socketContext?.chatAccessStatus || TWITCH_CHAT_ACCESS_STATUSES.OFFLINE

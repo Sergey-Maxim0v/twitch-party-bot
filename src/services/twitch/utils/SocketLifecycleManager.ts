@@ -1,4 +1,4 @@
-import { SOCKET_CONNECTION_STATUSES, SOCKET_LOG_PREFIX } from '../../../constants/socket.constants.ts'
+import { SOCKET_CONNECTION_STATUSES, SOCKET_LOG_MESSAGES, SOCKET_LOG_PREFIX } from '../../../constants/socket.constants.ts'
 import { TWITCH_IRC_SOCKET_URL } from '../../../constants/twitch.constants.ts'
 import type { ConnectionStatus } from '../../socket/types.ts'
 
@@ -67,6 +67,7 @@ export class SocketLifecycleManager {
 
   /**
    * Отправляет данные через сокет.
+   * Данные не передаются, если сокет закрыт или ещё не открыт.
    *
    * @returns `true`, если данные переданы сокету.
    */
@@ -74,7 +75,7 @@ export class SocketLifecycleManager {
     const socket = this.socket
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.error(`${SOCKET_LOG_PREFIX} Отправка пропущена: сокет не открыт`)
+      console.error(`${SOCKET_LOG_PREFIX} ${SOCKET_LOG_MESSAGES.SEND_SKIPPED}`)
       return false
     }
 
@@ -82,7 +83,7 @@ export class SocketLifecycleManager {
       socket.send(text)
       return true
     } catch (error) {
-      console.error(`${SOCKET_LOG_PREFIX} Ошибка отправки данных:`, error)
+      console.error(`${SOCKET_LOG_PREFIX} ${SOCKET_LOG_MESSAGES.SEND_FAILED}:`, error)
       return false
     }
   }
@@ -101,7 +102,7 @@ export class SocketLifecycleManager {
     try {
       this.socket.close()
     } catch (error) {
-      console.error(`${SOCKET_LOG_PREFIX} Ошибка при закрытии сокета:`, error)
+      console.error(`${SOCKET_LOG_PREFIX} ${SOCKET_LOG_MESSAGES.CLOSE_FAILED}:`, error)
     } finally {
       this.socket = null
     }

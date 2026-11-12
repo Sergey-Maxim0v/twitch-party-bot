@@ -1,7 +1,7 @@
 import { TWITCH_ROOM_STATE_MESSAGES, TWITCH_ROOM_STATE_TAGS } from '../../../constants/twitch.constants.ts'
 
 /** Ограничение доступа к чату, разобранное из тегов ROOMSTATE. */
-interface RoomStateRestriction {
+export interface RoomStateRestriction {
   /** Признак активности ограничения. */
   isActive: boolean;
   /** Человекочитаемое описание ограничения для сводки активных режимов. */
@@ -14,7 +14,7 @@ interface RoomStateRestriction {
  * Ограничения доступа к чату, разобранные из тегов ROOMSTATE.
  * Ключ — тег, по которому пришло ограничение.
  */
-type RoomStateRestrictions = Partial<Record<string, RoomStateRestriction>>
+export type RoomStateRestrictions = Partial<Record<string, RoomStateRestriction>>
 
 /**
  * Порядок ограничений для выбора единственного сообщения в чат.

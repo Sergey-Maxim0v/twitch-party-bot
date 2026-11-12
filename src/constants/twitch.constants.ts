@@ -37,6 +37,11 @@ export const TWITCH_CHAT_CHANNEL_PREFIX = '#'
 export const TWITCH_CHAT_FALLBACK_AUTHOR_NAME = 'Broadcaster'
 
 /**
+ * Логин автора, когда данные сессии недоступны.
+ */
+export const TWITCH_CHAT_FALLBACK_LOGIN = 'broadcaster'
+
+/**
  * Параметры генерации локального ID сообщения чата.
  */
 export const TWITCH_CHAT_MESSAGE_ID = {
@@ -148,6 +153,35 @@ export const TWITCH_IRC_PARSER_LOG_PREFIX = '[IRC Parser]'
  * Префикс сообщений IRC-клиента в консоли.
  */
 export const TWITCH_IRC_CLIENT_LOG_PREFIX = '[TwitchIRC Client]'
+
+/**
+ * Тексты сообщений IRC-клиента в консоли.
+ */
+export const TWITCH_IRC_CLIENT_LOG_MESSAGES = {
+  CHANNEL_NOT_SET: 'Невозможно отправить сообщение: канал не задан',
+  SOCKET_ERROR: 'Ошибка сокета',
+} as const
+
+/**
+ * Причины недоставки сообщений в чат Twitch.
+ */
+export const CHAT_SEND_FAIL_REASONS = {
+  NOT_INITIALIZED: 'соединение с Twitch не инициализировано',
+  SOCKET_CLOSED: 'соединение с чатом закрыто',
+} as const
+
+/**
+ * Тексты сообщений журнала приложения о доступе к чату Twitch.
+ */
+export const TWITCH_CHAT_ACCESS_LOG_MESSAGES = {
+  ACTIVE_RESTRICTIONS: (restrictions: string[]): string => `Активные ограничения чата: ${restrictions.join(', ')}.`,
+  BAN_INVALID_TIMEOUT: 'Аккаунт забанен (некорректный формат времени таймаута).',
+  BAN_PERMANENT: 'Аккаунт перманентно забанен на канале.',
+  RESTRICTION_REMOVED: 'Ограничение чата досрочно снято.',
+  TIMEOUT: (duration: string): string => `Аккаунт получил таймаут на ${duration} сек.`,
+  TIMEOUT_EXPIRED: 'Время таймаута истекло.',
+  UNKNOWN_SEND_ERROR: (msgId?: string): string => `Неизвестная ошибка отправки сообщения Twitch (${msgId}).`,
+} as const
 
 /**
  * Ключи IRC-тегов, используемых при разборе сообщений Twitch.

@@ -31,3 +31,8 @@ export const APP_LOG_FALLBACK_ACTOR = 'Application'
  * Отображаемое имя системного актора.
  */
 export const APP_LOG_SYSTEM_ACTOR = 'Система'
+
+/**
+ * Никнейм актора для событий, связанных с чатом Twitch.
+ */
+export const APP_LOG_TWITCH_ACTOR = 'twitch'

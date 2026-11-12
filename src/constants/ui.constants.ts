@@ -69,3 +69,13 @@ export const SETTINGS_INPUT_CLASS = 'input input-bordered input-sm flex-1 min-w-
  * CSS-классы счётчика списка игроков.
  */
 export const QUEUE_BADGE_CLASS = 'badge badge-neutral text-xs font-semibold'
+
+/**
+ * Параметры поля ввода сообщения в чат.
+ */
+export const CHAT_INPUT_STYLES = {
+  /** Максимальная высота поля в пикселях, после которой появляется прокрутка. */
+  MAX_HEIGHT_PX: 128,
+  /** Минимальная высота поля ввода. */
+  MIN_HEIGHT: '2rem',
+} as const

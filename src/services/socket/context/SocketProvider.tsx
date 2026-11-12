@@ -50,7 +50,7 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   }, [client])
 
   /** Инициализируем синхронизацию сети. */
-  useSocketNetworkSync({ client, lastActiveChatStatusRef, setConnectionStatus, setChatAccessStatus })
+  useSocketNetworkSync({ client, setChatAccessStatus })
 
   /** Следим за рассинхронизацией статуса соединения. */
   useSocketWatchdog({ client, connectionStatus, lastActiveChatStatusRef, setChatAccessStatus })
@@ -67,13 +67,10 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     }
 
     lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
-    setConnectionStatus(SOCKET_CONNECTION_STATUSES.CONNECTING)
     setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
   }, [client])
 
   const disconnect = useCallback(() => {
-    lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
-    setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
     client.disconnect()
   }, [client])
 

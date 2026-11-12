@@ -68,6 +68,7 @@ You can run the application in two ways:
     * The `TwitchIrcClient` class encapsulates the Twitch IRC protocol handshake sequence.
     * Handles native `PING / PONG` heartbeats to maintain a stable connection.
     * Supports switching channels on the fly without memory leaks or duplicated asynchronous events. When switching channels, the UI clears the previous screen and chat history.
+    * Network outages are handled explicitly: the socket is closed, outgoing messages are rejected with a clear error instead of being silently lost, and the app reconnects on its own once the network is back.
 * **Cross-Tab Synchronization:** Real-time application state synchronization across multiple tabs. A custom `useLocalStorage` hook listens to the browser's native `storage` event, automatically updating the state in all open tabs when data changes in any of them.
 * **Background Timers (Web Worker):** Heartbeat timers (PING/PONG) run in a dedicated Web Worker so that the browser does not throttle them in an inactive tab and the bot detects a half-open connection in time. The IRC client itself runs on the main thread.
 
