@@ -8,7 +8,7 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
  * а при `defaults === null` возвращается сохранённое значение.
  *
  * @param defaults - Эталон структуры и значения по умолчанию.
- * @param stored - Значение, прочитанное из localStorage.
+ * @param stored - Значение, прочитанное из Web Storage.
  * @returns Значение, соответствующее структуре `defaults`.
  */
 export const mergeWithDefaults = <T>(defaults: T, stored: unknown): T => {
@@ -39,3 +39,13 @@ export const mergeWithDefaults = <T>(defaults: T, stored: unknown): T => {
 
   return result as T
 }
+
+/**
+ * Разбирает JSON из Web Storage и приводит его к структуре `defaults`.
+ *
+ * @param raw - Сериализованное значение.
+ * @param defaults - Эталон структуры и значения по умолчанию.
+ * @returns Значение, соответствующее структуре `defaults`.
+ */
+export const parseStoredValue = <T>(raw: string, defaults: T): T =>
+  mergeWithDefaults(defaults, JSON.parse(raw))

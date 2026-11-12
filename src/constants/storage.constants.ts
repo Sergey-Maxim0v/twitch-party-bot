@@ -34,9 +34,12 @@ export const QUEUE_STORAGE_KEYS = {
 } as const
 
 /**
- * Ключи localStorage для состояния авторизации Twitch.
+ * Ключи Web Storage для состояния авторизации Twitch.
  */
 export const AUTH_STORAGE_KEYS = {
-  SESSION: 'tqp_twitch_session',
+  /** Сессия текущей вкладки в sessionStorage. */
+  SESSION: 'tqp_twitch_session_v2',
+  /** Устаревшая сессия в localStorage, которую удаляет миграция. */
+  LEGACY_SESSION: 'tqp_twitch_session',
   ACTIVE_CHANNEL: 'tqp_active_channel',
 } as const

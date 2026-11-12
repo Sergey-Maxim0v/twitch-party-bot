@@ -1,4 +1,6 @@
-type TwitchAuthMessageType = 'TWITCH_AUTH_RESULT'
+import { TWITCH_AUTH_MESSAGE_TYPE } from '../../../constants/auth.constants.ts'
+
+export type TwitchAuthMessageType = typeof TWITCH_AUTH_MESSAGE_TYPE
 
 /**
  * Сообщение, которое всплывающее окно авторизации отправляет родительскому окну.

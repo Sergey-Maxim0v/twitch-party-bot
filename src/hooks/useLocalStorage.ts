@@ -1,26 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { mergeWithDefaults } from './utils/storage.utils.ts'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { parseStoredValue } from './utils/storage.utils.ts'
 
 /**
- * Приводит сохранённое значение к актуальной структуре.
+ * Хранит состояние в localStorage и синхронизирует его между вкладками.
  *
- * @param raw - Сериализованное значение из localStorage.
- * @param initialValue - Актуальная структура и дефолтные значения.
- * @returns Значение, приведённое к структуре `initialValue`.
- */
-const parseStoredValue = <T>(raw: string, initialValue: T): T =>
-  mergeWithDefaults(initialValue, JSON.parse(raw))
-
-/**
- * Хранит состояние в localStorage и синхронизирует его между вкладками браузера.
- *
- * Работает как `useState`, но значение переживает перезагрузку. Сохранённые данные
- * приводятся к структуре `initialValue`; при изменении структуры элемента массива
- * смените ключ (например, на `..._v2`).
- *
- * Запись выполняется в эффекте: исключение из функции-апдейтера React не
- * перехватывает и роняет рендер, поэтому ошибки хранилища (например,
- * `QuotaExceededError`) только логируются.
+ * Сохранённые данные приводятся к структуре `initialValue`; при изменении
+ * структуры элемента массива смените ключ (например, на `..._v2`).
  *
  * @template T - Тип сохраняемого значения.
  * @param key - Ключ в localStorage.
@@ -52,7 +37,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       const isFirstRun = isFirstRunRef.current
       isFirstRunRef.current = false
 
-      // На монтировании не создаём запись, если её не было; одинаковое значение не перезаписываем.
+      // Не создаём запись на монтировании и не перезаписываем одинаковое значение.
       if ((isFirstRun && item === null) || item === serialized) return
 
       window.localStorage.setItem(key, serialized)

@@ -33,6 +33,24 @@ export const TWITCH_AUTH_ERRORS = {
 }
 
 /**
+ * Тип сообщения, которое popup отправляет родительскому окну.
+ */
+export const TWITCH_AUTH_MESSAGE_TYPE = 'TWITCH_AUTH_RESULT'
+
+/**
+ * Тексты ошибок процесса авторизации.
+ */
+export const TWITCH_AUTH_UI_MESSAGES = {
+  CSRF_FAILED: 'Ошибка безопасности (CSRF): верификация контекста не пройдена.',
+  DENIED: 'Авторизация отклонена Twitch:',
+  POPUP_CLOSED: 'Авторизация отменена: всплывающее окно было закрыто.',
+  URL_BUILD_FAILED: 'Ошибка при формировании URL авторизации.',
+  UNKNOWN_VALIDATION: 'Неизвестная ошибка валидации токена.',
+  VALIDATION_UNAVAILABLE: 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.',
+  VALIDATION_FAILED: 'Не удалось подтвердить валидность токена через Twitch API.',
+}
+
+/**
  * Статусы проверки OAuth-токена.
  */
 export const TWITCH_TOKEN_VALIDATION_STATUSES = {
@@ -61,6 +79,26 @@ export const TWITCH_AUTH_STAGES = {
  * Интервал фоновой проверки токена (45 минут).
  */
 export const TWITCH_TOKEN_VALIDATION_INTERVAL_MS = 45 * 60 * 1000
+
+/**
+ * Задержка закрытия модального окна после успешной авторизации.
+ */
+export const TWITCH_AUTH_SUCCESS_CLOSE_DELAY_MS = 1000
+
+/**
+ * Интервал проверки ручного закрытия popup-окна.
+ */
+export const TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS = 500
+
+/**
+ * Имя, размеры и возможности окна Twitch-авторизации.
+ */
+export const TWITCH_AUTH_POPUP = {
+  NAME: 'TwitchAuthPopup',
+  WIDTH: 500,
+  HEIGHT: 650,
+  FEATURES: 'scrollbars=yes,resizable=yes',
+}
 
 /**
  * Тексты ошибок валидации имени Twitch-канала.

@@ -2,21 +2,25 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { TWITCH_AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession } from '../types'
 import { useTwitchPopup } from './useTwitchPopup.ts'
 import { useTwitchChannelState } from './useTwitchChannelState.ts'
-import { TWITCH_TOKEN_VALIDATION_INTERVAL_MS, TWITCH_TOKEN_VALIDATION_STATUSES } from '../../../constants/auth.constants.ts'
+import {
+  TWITCH_AUTH_UI_MESSAGES,
+  TWITCH_TOKEN_VALIDATION_INTERVAL_MS,
+  TWITCH_TOKEN_VALIDATION_STATUSES,
+} from '../../../constants/auth.constants.ts'
 import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useChannelProfile } from './useChannelProfile.ts'
-import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
+import { useSessionStorage } from '../../../hooks/useSessionStorage.ts'
 import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
 import { extractTwitchToken } from '../utils/extractTwitchToken.ts'
 
 /**
- * Основной хук авторизации Twitch: хранит сессию, валидирует токен
- * и связывает между собой popup-авторизацию и выбор канала чата.
+ * Основной хук авторизации Twitch: хранит сессию текущей вкладки,
+ * валидирует токен и связывает popup-авторизацию с выбором канала чата.
  *
  * @returns Полный набор данных и действий для работы с авторизацией.
  */
 export const useTwitchAuth = (): TwitchAuthHookResult => {
-  const [session, setSession] = useLocalStorage<TwitchUserSession | null>(AUTH_STORAGE_KEYS.SESSION, null)
+  const [session, setSession] = useSessionStorage<TwitchUserSession | null>(AUTH_STORAGE_KEYS.SESSION, null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,8 +66,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     if (result.status !== TWITCH_TOKEN_VALIDATION_STATUSES.VALID) {
       throw new Error(
         result.status === TWITCH_TOKEN_VALIDATION_STATUSES.UNAVAILABLE
-          ? 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.'
-          : 'Не удалось подтвердить валидность токена через Twitch API.',
+          ? TWITCH_AUTH_UI_MESSAGES.VALIDATION_UNAVAILABLE
+          : TWITCH_AUTH_UI_MESSAGES.VALIDATION_FAILED,
       )
     }
 
@@ -114,12 +118,16 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
       setIsLoading(true)
       extractTwitchToken()
 
-      if (!window.opener && session?.accessToken) {
-        const { session: validated, shouldLogout } = await validateSession(session.accessToken)
+      const accessToken = session?.accessToken
 
-        if (shouldLogout) logout()
+      if (!window.opener && accessToken) {
+        const { session: validated, shouldLogout } = await validateSession(accessToken)
 
-        if (validated) setSession(validated)
+        if (shouldLogout) {
+          logout()
+        } else if (validated) {
+          setSession(validated)
+        }
       }
 
       setIsLoading(false)
