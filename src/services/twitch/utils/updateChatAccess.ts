@@ -1,6 +1,5 @@
 import type { RefObject } from 'react'
-import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
-import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_COMMANDS, TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import { TWITCH_CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../../socket/types.ts'
 import { checkIsRoomRestricted } from './checkIsRoomRestricted'
 import {

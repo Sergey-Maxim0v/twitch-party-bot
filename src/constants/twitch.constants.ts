@@ -135,16 +135,170 @@ export const TWITCH_ROOM_STATE_TAGS = {
 } as const
 
 /**
+ * Разделитель строк в сообщениях Twitch IRC.
+ */
+export const TWITCH_IRC_LINE_SEPARATOR_REGEX = /\r?\n/
+
+/**
+ * Префикс сообщений парсера IRC в консоли.
+ */
+export const TWITCH_IRC_PARSER_LOG_PREFIX = '[IRC Parser]'
+
+/**
  * Ключи IRC-тегов, используемых при разборе сообщений Twitch.
  */
 export const TWITCH_IRC_TAGS = {
-  MSG_ID: 'msg-id',
+  BADGES: 'badges',
   BAN_DURATION: 'ban-duration',
+  COLOR: 'color',
   DISPLAY_NAME: 'display-name',
-  IS_SYSTEM: 'is-system',
-  IS_DELETED: 'is-deleted',
+  ID: 'id',
   IS_ANNOUNCEMENT: 'system-type',
+  IS_DELETED: 'is-deleted',
+  IS_SYSTEM: 'is-system',
+  MOD: 'mod',
+  MOD_ACTION: 'mod-action',
+  MSG_ID: 'msg-id',
+  SENT_TIMESTAMP: 'tmi-sent-ts',
+  SUBSCRIBER: 'subscriber',
+  TARGET_MSG_ID: 'target-msg-id',
+  USER_ID: 'user-id',
+  USER_TYPE: 'user-type',
+  VIP: 'vip',
 } as const
+
+/**
+ * Параметры генерации локального ID сообщения, если Twitch не прислал тег.
+ */
+export const TWITCH_IRC_FALLBACK_ID = {
+  RANDOM_END: 11,
+  RANDOM_RADIX: 36,
+  RANDOM_START: 2,
+} as const
+
+/**
+ * Значения тега mod-action, описывающего действие модератора.
+ */
+export const TWITCH_IRC_MOD_ACTIONS = {
+  BAN: 'ban',
+  CLEAR_CHAT: 'clearchat',
+  CLEAR_MSG: 'clearmsg',
+} as const
+
+/**
+ * Значение IRC-тега, означающее истину.
+ */
+export const TWITCH_IRC_TAG_ENABLED = '1'
+
+/**
+ * Идентификатор сообщения, выделенного баллами канала.
+ */
+export const TWITCH_IRC_HIGHLIGHTED_MSG_ID = 'highlighted-message'
+
+/**
+ * Префиксы бейджей Twitch, определяющие роли аккаунта в канале.
+ */
+export const TWITCH_IRC_BADGE_PREFIXES = {
+  BROADCASTER: 'broadcaster/',
+  MODERATOR: 'moderator/',
+  VIP: 'vip/',
+  SUBSCRIBER: 'subscriber/',
+  FOUNDER: 'founder/',
+  STAFF: 'staff/',
+  ADMIN: 'admin/',
+} as const
+
+/**
+ * Типы пользователей Twitch, дающие права модератора.
+ */
+export const TWITCH_IRC_USER_TYPES = {
+  STAFF: 'staff',
+  ADMIN: 'admin',
+} as const
+
+/**
+ * Идентификаторы параметров тегов USERNOTICE.
+ */
+export const TWITCH_IRC_MSG_PARAMS = {
+  CUMULATIVE_MONTHS: 'msg-param-cumulative-months',
+  MASS_GIFT_COUNT: 'msg-param-mass-gift-count',
+  RECIPIENT_DISPLAY_NAME: 'msg-param-recipient-display-name',
+  RECIPIENT_USER_NAME: 'msg-param-recipient-user-name',
+  VALUE: 'msg-param-value',
+  VIEWER_COUNT: 'msg-param-viewerCount',
+} as const
+
+/**
+ * Параметры генерации локального ID системного сообщения.
+ */
+export const TWITCH_SYSTEM_MESSAGE_ID = {
+  PREFIX: 'sys-',
+  RANDOM_END: 9,
+  RANDOM_RADIX: 36,
+  RANDOM_START: 2,
+} as const
+
+/**
+ * Никнейм и отображаемое имя системных сообщений.
+ */
+export const TWITCH_SYSTEM_MESSAGE_AUTHOR = {
+  NICK: 'система',
+  DISPLAY_NAME: 'Система',
+} as const
+
+/**
+ * Никнейм и отображаемое имя сообщений-объявлений.
+ */
+export const TWITCH_ANNOUNCEMENT_AUTHOR = {
+  NICK: 'объявление',
+  DISPLAY_NAME: 'Объявление',
+} as const
+
+/**
+ * Идентификаторы IRC-сообщений, определяющие тип системного события.
+ */
+export const TWITCH_IRC_MSG_IDS = {
+  ANNOUNCEMENT: 'announcement',
+  ANONSUBGIFT: 'anonsubgift',
+  BITSBADGETIER: 'bitsbadgetier',
+  RAID: 'raid',
+  RESUB: 'resub',
+  SUB: 'sub',
+  SUBGIFT: 'subgift',
+  SUBMYSTERYGIFT: 'submysterygift',
+  VIEWERMILESTONE: 'viewermilestone',
+} as const
+
+/**
+ * Идентификаторы NOTICE о переключении режимов комнаты.
+ * Дублирующие английские уведомления игнорируются.
+ */
+export const TWITCH_ROOM_STATE_NOTICE_IDS: readonly string[] = [
+  'room_subs_on', 'room_subs_off',
+  'room_emoteonly_on', 'room_emoteonly_off',
+  'msg_emote_only', 'msg_emote_only_off',
+  'room_r9k_on', 'room_r9k_off',
+  'msg_r9k_on', 'msg_r9k_off',
+  'followers_on', 'followers_off',
+  'msg_followers_on', 'msg_followers_off',
+  'slow_on', 'slow_off',
+  'msg_slow_on', 'msg_slow_off',
+] as const
+
+/**
+ * Английские тексты NOTICE о переключении режимов комнаты.
+ * Используются как резервный фильтр при пустом msg-id.
+ */
+export const TWITCH_ROOM_STATE_NOTICE_TEXTS = [
+  'This room is now in emote-only mode',
+  'This room is no longer in emote-only mode',
+  'This room is now in subscribers-only mode',
+  'This room is no longer in subscribers-only mode',
+  'This room is now in followers-only mode',
+  'This room is no longer in followers-only mode',
+  'This room is now in slow mode',
+  'This room is no longer in slow mode',
+] as const
 
 /**
  * Системные сообщения о режимах ограничения доступа к чату Twitch.

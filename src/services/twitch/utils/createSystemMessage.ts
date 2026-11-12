@@ -1,10 +1,31 @@
-import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
-import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
+import {
+  TWITCH_ANNOUNCEMENT_AUTHOR,
+  TWITCH_IRC_COMMANDS,
+  TWITCH_IRC_MSG_IDS,
+  TWITCH_IRC_MSG_PARAMS,
+  TWITCH_IRC_TAG_ENABLED,
+  TWITCH_IRC_TAGS,
+  TWITCH_ROOM_STATE_NOTICE_IDS,
+  TWITCH_ROOM_STATE_NOTICE_TEXTS,
+  TWITCH_SYSTEM_MESSAGE_AUTHOR,
+  TWITCH_SYSTEM_MESSAGE_ID,
+} from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 import { isRoomStateInitialization, parseRoomStateRestrictions, ROOM_STATE_MESSAGE_PRIORITY } from './roomState.ts'
 
 /**
+ * Создает локальный ID системного сообщения.
+ *
+ * @returns Уникальный идентификатор системного сообщения.
+ */
+const generateSystemMessageId = (): string => {
+  const { PREFIX, RANDOM_END, RANDOM_RADIX, RANDOM_START } = TWITCH_SYSTEM_MESSAGE_ID
+  return `${PREFIX}${Date.now()}-${Math.random().toString(RANDOM_RADIX).substring(RANDOM_START, RANDOM_END)}`
+}
+
+/**
  * Создает структурированное системное сообщение на основе служебных команд Twitch.
+ *
  * @param message - Входящее IRC-сообщение.
  * @returns Системное сообщение или null, если команда не является системной.
  */
@@ -12,15 +33,15 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   const { command, text, tags, timestamp } = message
 
   const buildSystemPayload = (systemText: string): ParsedIrcMessage => ({
-    id: `sys-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+    id: generateSystemMessageId(),
     user: {
-      nick: 'система',
-      displayName: 'Система',
+      nick: TWITCH_SYSTEM_MESSAGE_AUTHOR.NICK,
+      displayName: TWITCH_SYSTEM_MESSAGE_AUTHOR.DISPLAY_NAME,
     },
     text: systemText,
     command,
     timestamp,
-    tags: { [TWITCH_IRC_TAGS.IS_SYSTEM]: '1', ...tags },
+    tags: { [TWITCH_IRC_TAGS.IS_SYSTEM]: TWITCH_IRC_TAG_ENABLED, ...tags },
     isSystem: true,
     isChannelEvent: true,
   })
@@ -45,61 +66,8 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     return buildSystemPayload(`Сообщение от @${targetUser} удалено.`)
   }
 
-  // Подписки, рейды, подарки и важные события канала
   if (command === TWITCH_IRC_COMMANDS.USER_NOTICE) {
-    const msgId = tags[TWITCH_IRC_TAGS.MSG_ID]
-    const login = tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || tags.login || 'Пользователь'
-    const userMessage = text?.trim() ? `: "${text.trim()}"` : ''
-
-    if (msgId === 'sub' || msgId === 'resub') {
-      const months = tags['msg-param-cumulative-months'] || '1'
-      return buildSystemPayload(`@${login} оформляет подписку! Всего месяцев: ${months}${userMessage}`)
-    }
-
-    if (msgId === 'subgift' || msgId === 'anonsubgift') {
-      const recipient = tags['msg-param-recipient-display-name'] || tags['msg-param-recipient-user-name'] || 'зрителю'
-      return buildSystemPayload(`@${login} дарит подписку пользователю @${recipient}!`)
-    }
-
-    if (msgId === 'submysterygift') {
-      const massGiftCount = tags['msg-param-mass-gift-count'] || '1'
-      return buildSystemPayload(`@${login} дарит ${massGiftCount} подписок сообществу канала!`)
-    }
-
-    if (msgId === 'bitsbadgetier') {
-      return buildSystemPayload(`@${login} получил новый значок за общее количество потраченных Bits!`)
-    }
-
-    if (msgId === 'raid') {
-      const viewerCount = tags['msg-param-viewerCount'] || '0'
-      return buildSystemPayload(`Канал @${login} устраивает рейд и приводит ${viewerCount} зрителей!`)
-    }
-
-    if (msgId === 'viewermilestone') {
-      const value = tags['msg-param-value'] || '1'
-      return buildSystemPayload(`@${login} отмечает серию просмотров: ${value} трансляций подряд!`)
-    }
-
-    if (msgId === 'announcement') {
-      return {
-        id: `sys-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        user: {
-          nick: 'объявление',
-          displayName: 'Объявление',
-        },
-        text: `@${login}: ${text}`,
-        command,
-        timestamp,
-        isSystem: true,
-        isChannelEvent: true,
-        isAnnouncement: true,
-        tags: { [TWITCH_IRC_TAGS.IS_SYSTEM]: '1', [TWITCH_IRC_TAGS.IS_ANNOUNCEMENT]: 'announcement', ...tags },
-      }
-    }
-
-    if (text) {
-      return buildSystemPayload(`Уведомление от @${login}: ${text}`)
-    }
+    return createUserNoticeMessage(message, buildSystemPayload)
   }
 
   if (command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
@@ -123,31 +91,9 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     const msgId = tags[TWITCH_IRC_TAGS.MSG_ID] || ''
     const cleanText = text?.trim() || ''
 
-    // Дублирующие английские уведомления о режимах комнаты игнорируем
-    const roomStateNoticeIds = [
-      'room_subs_on', 'room_subs_off',
-      'room_emoteonly_on', 'room_emoteonly_off',
-      'msg_emote_only', 'msg_emote_only_off',
-      'room_r9k_on', 'room_r9k_off',
-      'msg_r9k_on', 'msg_r9k_off',
-      'followers_on', 'followers_off',
-      'msg_followers_on', 'msg_followers_off',
-      'slow_on', 'slow_off',
-      'msg_slow_on', 'msg_slow_off',
-    ]
+    const isEnglishDuplicate = TWITCH_ROOM_STATE_NOTICE_TEXTS.some(notice => cleanText.includes(notice))
 
-    // Резервная фильтрация по тексту на случай пустого msg-id
-    const isEnglishDuplicate =
-      cleanText.includes('This room is now in emote-only mode') ||
-        cleanText.includes('This room is no longer in emote-only mode') ||
-        cleanText.includes('This room is now in subscribers-only mode') ||
-        cleanText.includes('This room is no longer in subscribers-only mode') ||
-        cleanText.includes('This room is now in followers-only mode') ||
-        cleanText.includes('This room is no longer in followers-only mode') ||
-        cleanText.includes('This room is now in slow mode') ||
-        cleanText.includes('This room is no longer in slow mode')
-
-    if (roomStateNoticeIds.includes(msgId) || isEnglishDuplicate) {
+    if (TWITCH_ROOM_STATE_NOTICE_IDS.includes(msgId) || isEnglishDuplicate) {
       return null
     }
 
@@ -163,4 +109,72 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   }
 
   return null
+}
+
+/**
+ * Создает системное сообщение для команды USERNOTICE.
+ *
+ * @param message - Входящее IRC-сообщение.
+ * @param buildSystemPayload - Сборщик системного сообщения.
+ * @returns Системное сообщение или null, если событие не требует вывода в чат.
+ */
+const createUserNoticeMessage = (
+  message: ParsedIrcMessage,
+  buildSystemPayload: (systemText: string) => ParsedIrcMessage,
+): ParsedIrcMessage | null => {
+  const { command, text, tags, timestamp } = message
+
+  const msgId = tags[TWITCH_IRC_TAGS.MSG_ID]
+  const login = tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || tags.login || 'Пользователь'
+  const userMessage = text?.trim() ? `: "${text.trim()}"` : ''
+
+  if (msgId === TWITCH_IRC_MSG_IDS.SUB || msgId === TWITCH_IRC_MSG_IDS.RESUB) {
+    const months = tags[TWITCH_IRC_MSG_PARAMS.CUMULATIVE_MONTHS] || TWITCH_IRC_TAG_ENABLED
+    return buildSystemPayload(`@${login} оформляет подписку! Всего месяцев: ${months}${userMessage}`)
+  }
+
+  if (msgId === TWITCH_IRC_MSG_IDS.SUBGIFT || msgId === TWITCH_IRC_MSG_IDS.ANONSUBGIFT) {
+    const recipient = tags[TWITCH_IRC_MSG_PARAMS.RECIPIENT_DISPLAY_NAME] || tags[TWITCH_IRC_MSG_PARAMS.RECIPIENT_USER_NAME] || 'зрителю'
+    return buildSystemPayload(`@${login} дарит подписку пользователю @${recipient}!`)
+  }
+
+  if (msgId === TWITCH_IRC_MSG_IDS.SUBMYSTERYGIFT) {
+    const massGiftCount = tags[TWITCH_IRC_MSG_PARAMS.MASS_GIFT_COUNT] || TWITCH_IRC_TAG_ENABLED
+    return buildSystemPayload(`@${login} дарит ${massGiftCount} подписок сообществу канала!`)
+  }
+
+  if (msgId === TWITCH_IRC_MSG_IDS.BITSBADGETIER) {
+    return buildSystemPayload(`@${login} получил новый значок за общее количество потраченных Bits!`)
+  }
+
+  if (msgId === TWITCH_IRC_MSG_IDS.RAID) {
+    const viewerCount = tags[TWITCH_IRC_MSG_PARAMS.VIEWER_COUNT] || '0'
+    return buildSystemPayload(`Канал @${login} устраивает рейд и приводит ${viewerCount} зрителей!`)
+  }
+
+  if (msgId === TWITCH_IRC_MSG_IDS.VIEWERMILESTONE) {
+    const value = tags[TWITCH_IRC_MSG_PARAMS.VALUE] || TWITCH_IRC_TAG_ENABLED
+    return buildSystemPayload(`@${login} отмечает серию просмотров: ${value} трансляций подряд!`)
+  }
+
+  if (msgId === TWITCH_IRC_MSG_IDS.ANNOUNCEMENT) {
+    return {
+      id: generateSystemMessageId(),
+      user: {
+        nick: TWITCH_ANNOUNCEMENT_AUTHOR.NICK,
+        displayName: TWITCH_ANNOUNCEMENT_AUTHOR.DISPLAY_NAME,
+      },
+      text: `@${login}: ${text}`,
+      command,
+      timestamp,
+      isSystem: true,
+      isChannelEvent: true,
+      isAnnouncement: true,
+      tags: { [TWITCH_IRC_TAGS.IS_SYSTEM]: TWITCH_IRC_TAG_ENABLED, [TWITCH_IRC_TAGS.IS_ANNOUNCEMENT]: TWITCH_IRC_MSG_IDS.ANNOUNCEMENT, ...tags },
+    }
+  }
+
+  if (!text) return null
+
+  return buildSystemPayload(`Уведомление от @${login}: ${text}`)
 }

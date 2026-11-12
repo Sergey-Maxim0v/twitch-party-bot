@@ -1,34 +1,40 @@
+import { TWITCH_IRC_LINE_SEPARATOR_REGEX, TWITCH_IRC_PARSER_LOG_PREFIX } from '../../../constants/twitch.constants.ts'
 import { handleIrcPingPong } from './handleIrcPingPong.ts'
 import { parseIrcMessage } from './parseIrcMessage.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 
 interface HandleIrcMessageProps {
-  event: MessageEvent;
+  event: MessageEvent<unknown>;
   socket: WebSocket;
   emitMessage: (message: ParsedIrcMessage) => void;
 }
 
 /**
- * Главный диспетчер входящих сообщений.
- * Маршрутизирует сырые данные по специализированным обработчикам.
+ * Разбирает входящие IRC-сообщения и передает распарсенные данные подписчикам.
+ * Данные, отличные от строки, игнорируются.
+ * @param event - Событие сообщения WebSocket.
+ * @param socket - Открытое WebSocket-соединение.
+ * @param emitMessage - Колбэк для передачи распарсенного сообщения.
  */
 export const handleIrcMessage = ({ event, socket, emitMessage }: HandleIrcMessageProps): void => {
-  const rawMessage = event.data as string
+  const rawMessage = event.data
 
-  const lines = rawMessage.split(/\r?\n/)
+  if (typeof rawMessage !== 'string') {
+    console.warn(`${TWITCH_IRC_PARSER_LOG_PREFIX} Ожидалась строка, получено: ${typeof rawMessage}`)
+    return
+  }
 
-  for (const line of lines) {
+  for (const line of rawMessage.split(TWITCH_IRC_LINE_SEPARATOR_REGEX)) {
     const trimmedLine = line.trim()
 
     if (!trimmedLine) continue
 
-    const isPing = handleIrcPingPong({ rawMessage: trimmedLine, socket })
-    if (isPing) continue
+    if (handleIrcPingPong({ rawMessage: trimmedLine, socket })) continue
 
     const parsed = parseIrcMessage(trimmedLine)
 
     if (!parsed) {
-      console.info(`[IRC Parser] Failed to parse message at ${new Date().toISOString()}:`, {
+      console.info(`${TWITCH_IRC_PARSER_LOG_PREFIX} Не удалось разобрать сообщение:`, {
         rawLength: trimmedLine.length,
         text: trimmedLine,
       })

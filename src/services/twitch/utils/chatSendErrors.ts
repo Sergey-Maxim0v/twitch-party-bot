@@ -1,4 +1,5 @@
 import { TWITCH_CHAT_ACCESS_STATUSES } from '../../../constants/socket.constants.ts'
+import { TWITCH_ROOM_STATE_NOTICE_IDS } from '../../../constants/twitch.constants.ts'
 import type { ChatAccessStatus } from '../../socket/types.ts'
 
 /**
@@ -116,20 +117,13 @@ export const TWITCH_CHAT_SEND_ERRORS: Record<string, ChatSendErrorInfo> = {
 /**
  * Служебные NOTICE, не являющиеся ошибками отправки.
  */
-const TWITCH_INFO_NOTICE_IDS = new Set([
-  'room_subs_on', 'room_subs_off',
-  'room_emoteonly_on', 'room_emoteonly_off',
-  'msg_emote_only', 'msg_emote_only_off',
-  'room_r9k_on', 'room_r9k_off',
-  'msg_r9k_on', 'msg_r9k_off',
-  'followers_on', 'followers_off',
-  'msg_followers_on', 'msg_followers_off',
-  'slow_on', 'slow_off',
-  'msg_slow_on', 'msg_slow_off',
-])
+const TWITCH_INFO_NOTICE_IDS = new Set<string>(TWITCH_ROOM_STATE_NOTICE_IDS)
 
 /**
  * Возвращает описание известной ошибки отправки.
+ *
+ * @param msgId - Идентификатор NOTICE из тега msg-id.
+ * @returns Описание ошибки или undefined, если NOTICE не является ошибкой отправки.
  */
 export const getChatSendError = (msgId?: string): ChatSendErrorInfo | undefined => (
   msgId ? TWITCH_CHAT_SEND_ERRORS[msgId] : undefined
@@ -137,6 +131,9 @@ export const getChatSendError = (msgId?: string): ChatSendErrorInfo | undefined 
 
 /**
  * Проверяет, является ли NOTICE неизвестной ошибкой отправки.
+ *
+ * @param msgId - Идентификатор NOTICE из тега msg-id.
+ * @returns `true`, если NOTICE не относится к известным служебным или ошибкам отправки.
  */
 export const isUnknownChatSendError = (msgId?: string): boolean => (
   Boolean(msgId?.startsWith('msg_')) && !TWITCH_INFO_NOTICE_IDS.has(msgId as string)
