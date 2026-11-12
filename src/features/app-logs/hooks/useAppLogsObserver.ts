@@ -3,7 +3,13 @@ import { useSocketContext } from '../../../services/socket/hooks/useSocketContex
 import { useAppLogs } from './useAppLogs.ts'
 import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES } from '../types.ts'
 import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
-import { SOCKET_CONNECTION_STATUSES, TWITCH_CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
+import {
+  SOCKET_CONNECTION_STATUSES,
+  SOCKET_FAILURE_LOG_MESSAGES,
+  SOCKET_FAILURE_REASONS,
+  SOCKET_RECONNECT_MAX_ATTEMPTS,
+  TWITCH_CHAT_ACCESS_STATUSES,
+} from '../../../services/socket/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 
 /**
@@ -50,6 +56,12 @@ export const useAppLogsObserver = (): void => {
     } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.CONNECTED) {
       message = `Подключение к каналу ${targetChannel} установлено.`
       status = APP_LOG_STATUSES.SUCCESS
+    } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.FAILED) {
+      const attempts = client?.reconnectAttempts ?? SOCKET_RECONNECT_MAX_ATTEMPTS
+      message = client?.failureReason === SOCKET_FAILURE_REASONS.AUTH
+        ? SOCKET_FAILURE_LOG_MESSAGES.AUTH
+        : SOCKET_FAILURE_LOG_MESSAGES.LIMIT(attempts)
+      status = APP_LOG_STATUSES.ERROR
     } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
       const isIntentionally = client?.isIntentionallyDisconnected ?? false
       message = isIntentionally

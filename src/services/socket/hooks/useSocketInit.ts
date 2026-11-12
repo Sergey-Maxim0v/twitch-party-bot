@@ -6,8 +6,8 @@ import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
  * Изолированный хук для синхронизации состояния авторизации с WebSocket-соединением.
  */
 export const useSocketInit = (): void => {
-  const { isAuthenticated, session, activeChannel } = useAuth()
-  const { connect, disconnect } = useSocketContext()
+  const { isAuthenticated, session, activeChannel, logout } = useAuth()
+  const { connect, disconnect, onAuthFailure } = useSocketContext()
 
   useEffect(() => {
     if (isAuthenticated && session?.accessToken && activeChannel && session?.login) {
@@ -18,4 +18,10 @@ export const useSocketInit = (): void => {
       disconnect()
     }
   }, [isAuthenticated, session?.accessToken, session?.login, connect, disconnect, activeChannel])
+
+  useEffect(() => {
+    return onAuthFailure(() => {
+      logout()
+    })
+  }, [onAuthFailure, logout])
 }

@@ -22,6 +22,12 @@ export const getNetworkConfig = (connectionStatus: ConnectionStatus): StatusConf
         badgeType: STATUS_BADGE_TYPES.WARNING,
         tooltipText: 'Сеть: Выполняется подключение к серверам Twitch... Пожалуйста, подождите.',
       }
+    case SOCKET_CONNECTION_STATUSES.FAILED:
+      return {
+        statusText: STATUS_TEXTS.FAILED,
+        badgeType: STATUS_BADGE_TYPES.ERROR,
+        tooltipText: 'Сеть: Подключение к Twitch не восстановлено. Причина указана в журнале приложения.',
+      }
     case SOCKET_CONNECTION_STATUSES.DISCONNECTED:
     default:
       return {

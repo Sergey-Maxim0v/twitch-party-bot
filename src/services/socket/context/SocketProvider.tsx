@@ -1,9 +1,9 @@
 import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  TWITCH_CHAT_ACCESS_STATUSES,
-  type ChatAccessStatus,
   SOCKET_CONNECTION_STATUSES,
   type ConnectionStatus,
+  type ChatAccessStatus,
+  TWITCH_CHAT_ACCESS_STATUSES,
   TWITCH_CONNECT_OUTCOMES,
   type SocketStorage,
 } from '../types'
@@ -38,10 +38,13 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     const unsubscribe = client.onStatusChange((status: ConnectionStatus) => {
       setConnectionStatus(status)
 
-      if (status === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
-        lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
-        setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
-      }
+      const isConnectionLost = status === SOCKET_CONNECTION_STATUSES.DISCONNECTED
+        || status === SOCKET_CONNECTION_STATUSES.FAILED
+
+      if (!isConnectionLost) return
+
+      lastActiveChatStatusRef.current = TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
+      setChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
     })
 
     return () => {
@@ -90,6 +93,14 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     setChatAccessStatus(status)
   }, [])
 
+  const onAuthFailure = useCallback((callback: () => void): (() => void) => {
+    return client.onAuthFailure(callback)
+  }, [client])
+
+  const reconnect = useCallback((): void => {
+    client.reconnect()
+  }, [client])
+
   const value: SocketStorage = useMemo(() => ({
     connect,
     disconnect,
@@ -99,7 +110,9 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     connectionStatus,
     chatAccessStatus,
     updateChatAccessStatus,
-  }), [connect, disconnect, subscribe, sendMessage, getClient, connectionStatus, chatAccessStatus, updateChatAccessStatus])
+    onAuthFailure,
+    reconnect,
+  }), [connect, disconnect, subscribe, sendMessage, getClient, connectionStatus, chatAccessStatus, updateChatAccessStatus, onAuthFailure, reconnect])
 
   return (
     <SocketInstance.Provider value={value}>

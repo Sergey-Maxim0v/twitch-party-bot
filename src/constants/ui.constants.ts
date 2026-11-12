@@ -33,7 +33,20 @@ export const STATUS_TEXTS = {
   OFFLINE: 'Не подключен',
   CONNECTING: 'Ожидание',
   DISCONNECTED: 'Отключен',
+  FAILED: 'Ошибка',
 } as const
+
+/**
+ * Тексты кнопок управления соединением.
+ */
+export const CONNECTION_ACTION_TEXTS = {
+  RECONNECT: 'Переподключить',
+} as const
+
+/**
+ * CSS-классы кнопки ручного переподключения.
+ */
+export const RECONNECT_BUTTON_CLASS = 'btn btn-error btn-xs font-semibold'
 
 /**
  * CSS-классы кнопки отправки сообщения в зависимости от доступности чата.

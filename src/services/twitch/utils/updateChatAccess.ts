@@ -2,6 +2,7 @@ import type { RefObject } from 'react'
 import { TWITCH_CHAT_ACCESS_LOG_MESSAGES, TWITCH_IRC_COMMANDS, TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import { TWITCH_CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../../socket/types.ts'
 import { checkIsRoomRestricted } from './checkIsRoomRestricted'
+import { isTwitchAuthFailureNotice } from './isTwitchAuthFailureNotice.ts'
 import {
   isRoomStateInitialization,
   parseRoomStateRestrictions,
@@ -11,7 +12,7 @@ import {
 } from './roomState.ts'
 import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../../features/app-logs/types.ts'
-import { getChatSendError, isUnknownChatSendError } from './chatSendErrors.ts'
+import { getChatSendError, isUnknownChatSendError, type ChatSendErrorInfo } from './chatSendErrors.ts'
 import { rejectPendingMessages } from './rejectPendingMessages.ts'
 import { APP_LOG_TWITCH_ACTOR } from '../../../constants/app-logs.constants.ts'
 
@@ -83,6 +84,24 @@ const handleRoomState = (
 }
 
 /**
+ * Обрабатывает NOTICE с ошибкой отправки сообщения.
+ */
+const handleSendErrorNotice = (
+  sendError: ChatSendErrorInfo,
+  pendingMessagesRef: RefObject<PendingChatMessage[]>,
+  updateChatAccessStatus: (status: ChatAccessStatus) => void,
+  pushStatusLog: PushStatusLog,
+): void => {
+  pushStatusLog(sendError.logMessage)
+
+  if (sendError.status) {
+    updateChatAccessStatus(sendError.status)
+  }
+
+  rejectPendingMessages(pendingMessagesRef, sendError.logMessage, sendError.rejectsAllPending)
+}
+
+/**
  * Обрабатывает NOTICE: ошибки отправки, неизвестные ошибки и служебные уведомления.
  */
 const handleNotice = (
@@ -95,13 +114,7 @@ const handleNotice = (
   const sendError = getChatSendError(msgId)
 
   if (sendError) {
-    pushStatusLog(sendError.logMessage)
-
-    if (sendError.status) {
-      updateChatAccessStatus(sendError.status)
-    }
-
-    rejectPendingMessages(pendingMessagesRef, sendError.logMessage, sendError.rejectsAllPending)
+    handleSendErrorNotice(sendError, pendingMessagesRef, updateChatAccessStatus, pushStatusLog)
     return
   }
 
@@ -110,6 +123,11 @@ const handleNotice = (
 
     pushStatusLog(unknownErrorMessage)
     rejectPendingMessages(pendingMessagesRef, unknownErrorMessage, false)
+    return
+  }
+
+  if (isTwitchAuthFailureNotice(message)) {
+    rejectPendingMessages(pendingMessagesRef, TWITCH_CHAT_ACCESS_LOG_MESSAGES.AUTH_FAILED, true)
     return
   }
 

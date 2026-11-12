@@ -100,6 +100,17 @@ export const TWITCH_IRC_COMMANDS = {
 } as const
 
 /**
+ * Тексты NOTICE Twitch об отказе авторизации IRC.
+ * Сервер не присылает для них тег msg-id, поэтому они опознаются по тексту.
+ *
+ * @see https://dev.twitch.tv/docs/chat/irc#authenticating-with-the-twitch-irc-server
+ */
+export const TWITCH_AUTH_FAILURE_NOTICE_TEXTS: readonly string[] = [
+  'Login authentication failed',
+  'Improperly formatted auth',
+]
+
+/**
  * Дополнительные возможности (Capabilities) Twitch IRC сокета.
  *
  * @see https://dev.twitch.tv/docs/chat/irc#twitch-irc-membership-commands
@@ -175,6 +186,7 @@ export const CHAT_SEND_FAIL_REASONS = {
  */
 export const TWITCH_CHAT_ACCESS_LOG_MESSAGES = {
   ACTIVE_RESTRICTIONS: (restrictions: string[]): string => `Активные ограничения чата: ${restrictions.join(', ')}.`,
+  AUTH_FAILED: 'Twitch отклонил авторизацию, подключение к чату невозможно.',
   BAN_INVALID_TIMEOUT: 'Аккаунт забанен (некорректный формат времени таймаута).',
   BAN_PERMANENT: 'Аккаунт перманентно забанен на канале.',
   RESTRICTION_REMOVED: 'Ограничение чата досрочно снято.',
