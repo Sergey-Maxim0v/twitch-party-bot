@@ -1,7 +1,13 @@
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import type { TwitchIrcClient } from '../twitchIrcClient.ts'
-import { TWITCH_CHAT_HISTORY_MAX_MESSAGES, TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
-import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
+import {
+  TWITCH_CHAT_CHANNEL_PREFIX,
+  TWITCH_CHAT_FALLBACK_AUTHOR_NAME,
+  TWITCH_CHAT_HISTORY_MAX_MESSAGES,
+  TWITCH_CHAT_MESSAGE_ID,
+  TWITCH_IRC_COMMANDS,
+  TWITCH_IRC_TAGS,
+} from '../../../constants/twitch.constants.ts'
 import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
 import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
@@ -20,7 +26,6 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
 
   const lastChannelRef = useRef<string | null>(null)
 
-  // Смена канала очищает историю и состояние комнаты
   useEffect(() => {
     if (!client?.onChannelChange) return
 
@@ -30,16 +35,14 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
 
     client.onChannelChange(() => {
       const nextChannel = client.currentChannel
-
-      if (nextChannel !== lastChannelRef.current) {
-        setMessages([])
-
-        if (roomStateTagsRef.current) {
-          roomStateTagsRef.current = {}
-        }
-      }
+      const isChannelChanged = nextChannel !== lastChannelRef.current
 
       lastChannelRef.current = nextChannel
+
+      if (!isChannelChanged) return
+
+      setMessages([])
+      roomStateTagsRef.current = {}
     })
   }, [client, roomStateTagsRef])
 
@@ -72,7 +75,7 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
 
   /**
    * Добавляет стандартные текстовые сообщения в общую историю чата.
-   * @returns Добавленное сообщение или `undefined`, если сообщение обработано не было.
+   * @returns Добавленное сообщение или `undefined`, если сообщение не обработано.
    */
   const handleStandardMessage = useCallback((
     message: ParsedIrcMessage,
@@ -84,48 +87,31 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
 
     if (!isUserstate && !isPrivmsg) return undefined
 
-    let savedText: string | null | undefined = null
-    const enrichedTags = { ...message.tags }
+    // USERSTATE не содержит текста — берём его из очереди отправленных сообщений
+    const pendingMessage = isUserstate ? pendingMessagesRef.current.shift() : undefined
+    const savedText = pendingMessage?.text
 
-    if (isUserstate) {
-      // USERSTATE не содержит id и текста — сопоставляем по порядку очереди
-      const pendingMessage = pendingMessagesRef.current.shift()
-      savedText = pendingMessage?.text ?? null
+    if (isUserstate && !savedText) return undefined
 
-      if (!savedText) return undefined
-
-      pendingMessage?.onConfirmed?.()
-
-      // В быстрых ответах USER_STATE может не содержать badges — вычисляем роли вручную
-      if (!enrichedTags.badges) {
-        const cleanChannel = currentChannel?.toLowerCase().replace('#', '')
-        const isCurrentBroadcaster = cleanChannel && currentUserLogin.toLowerCase() === cleanChannel
-
-        if (isCurrentBroadcaster) {
-          enrichedTags.badges = 'broadcaster/1,moderator/1'
-        } else {
-          enrichedTags.badges = 'moderator/1'
-        }
-        enrichedTags.mod = '1'
-      }
-    }
+    pendingMessage?.onConfirmed?.()
 
     const authorName = isUserstate
-      ? (message.tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || currentUserLogin || 'Broadcaster')
+      ? (message.tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || currentUserLogin || TWITCH_CHAT_FALLBACK_AUTHOR_NAME)
       : (message.user.displayName || message.user.nick)
 
-    const uniqueId = `msg-${message.id}-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`
+    const { PREFIX, RANDOM_END, RANDOM_RADIX, RANDOM_START } = TWITCH_CHAT_MESSAGE_ID
+    const randomSuffix = Math.random().toString(RANDOM_RADIX).slice(RANDOM_START, RANDOM_END)
+    const uniqueId = `${PREFIX}${message.id}-${Date.now()}-${randomSuffix}`
 
-    const badgesStr = enrichedTags.badges || ''
-    const isBroadcaster = badgesStr.includes('broadcaster/')
-    const isModerator = badgesStr.includes('moderator/') || enrichedTags.mod === '1'
-    const isVip = badgesStr.includes('vip/')
+    const cleanChannel = currentChannel?.toLowerCase().replace(TWITCH_CHAT_CHANNEL_PREFIX, '')
+    const isBroadcaster = Boolean(cleanChannel) && currentUserLogin.toLowerCase() === cleanChannel
+    const isModerator = isBroadcaster || Boolean(message.user.isModerator)
 
     const messageToPush: ParsedIrcMessage = {
       ...message,
       id: uniqueId,
       command: TWITCH_IRC_COMMANDS.PRIV_MSG,
-      text: isUserstate ? (savedText ?? '') : message.text,
+      text: savedText ?? message.text,
       user: isPrivmsg
         ? message.user
         : {
@@ -134,10 +120,7 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
           displayName: authorName,
           isBroadcaster,
           isModerator,
-          isVip,
-          color: enrichedTags.color || message.user?.color || '',
         },
-      tags: enrichedTags,
     }
 
     setMessages(prev => {

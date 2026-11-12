@@ -27,6 +27,26 @@ export const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
 export const TWITCH_CHAT_HISTORY_MAX_MESSAGES = 300
 
 /**
+ * Префикс имени канала в IRC.
+ */
+export const TWITCH_CHAT_CHANNEL_PREFIX = '#'
+
+/**
+ * Имя автора для сообщений USERSTATE без display-name.
+ */
+export const TWITCH_CHAT_FALLBACK_AUTHOR_NAME = 'Broadcaster'
+
+/**
+ * Параметры генерации локального ID сообщения чата.
+ */
+export const TWITCH_CHAT_MESSAGE_ID = {
+  PREFIX: 'msg-',
+  RANDOM_END: 5,
+  RANDOM_RADIX: 36,
+  RANDOM_START: 2,
+} as const
+
+/**
  * Интервал отправки PING для контроля «полуоткрытого» соединения.
  */
 export const TWITCH_HEARTBEAT_INTERVAL_MS = 60 * 1000
