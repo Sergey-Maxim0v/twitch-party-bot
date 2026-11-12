@@ -18,6 +18,10 @@ const parseStoredValue = <T>(raw: string, initialValue: T): T =>
  * приводятся к структуре `initialValue`; при изменении структуры элемента массива
  * смените ключ (например, на `..._v2`).
  *
+ * Запись выполняется в эффекте: исключение из функции-апдейтера React не
+ * перехватывает и роняет рендер, поэтому ошибки хранилища (например,
+ * `QuotaExceededError`) только логируются.
+ *
  * @template T - Тип сохраняемого значения.
  * @param key - Ключ в localStorage.
  * @param initialValue - Значение по умолчанию и эталон структуры.
@@ -39,33 +43,27 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     }
   })
 
-  const setValue = useCallback((value: T | ((val: T) => T)) => {
-    try {
-      setStoredValue(valueToStore => {
-        const newValue = value instanceof Function ? value(valueToStore) : value
-        window.localStorage.setItem(key, JSON.stringify(newValue))
-        return newValue
-      })
-    } catch (error) {
-      console.error(`Ошибка записи в localStorage по ключу "${key}":`, error)
-    }
-  }, [key])
+  const isFirstRunRef = useRef(true)
 
   useEffect(() => {
     try {
+      const serialized = JSON.stringify(storedValue)
       const item = window.localStorage.getItem(key)
-      if (item === null) return
+      const isFirstRun = isFirstRunRef.current
+      isFirstRunRef.current = false
 
-      const healed = parseStoredValue(item, initialValueRef.current)
-      const serialized = JSON.stringify(healed)
+      // На монтировании не создаём запись, если её не было; одинаковое значение не перезаписываем.
+      if ((isFirstRun && item === null) || item === serialized) return
 
-      if (serialized !== item) {
-        window.localStorage.setItem(key, serialized)
-      }
+      window.localStorage.setItem(key, serialized)
     } catch (error) {
-      console.error(`Ошибка обновления localStorage по ключу "${key}":`, error)
+      console.error(`Ошибка записи в localStorage по ключу "${key}":`, error)
     }
-  }, [key])
+  }, [key, storedValue])
+
+  const setValue = useCallback((value: T | ((val: T) => T)) => {
+    setStoredValue(currentValue => (value instanceof Function ? value(currentValue) : value))
+  }, [])
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {

@@ -1,5 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueueSession, QueueState, QueuePlayer } from '../types'
+import { limitQueueHistory } from './limitQueueHistory.ts'
+import { limitPlayerHistory } from './limitPlayerHistory.ts'
 
 interface HandleFinishActiveQueueArgs {
   /** Функция обновления состояния */
@@ -11,15 +13,14 @@ interface HandleFinishActiveQueueArgs {
 }
 
 /**
- * Завершает текущую сессию: архивирует состав в историю
- * и фиксирует кулдауны участников.
+ * Завершает текущую сессию: архивирует состав в историю (не более
+ * `QUEUE_HISTORY_LIMIT` записей) и фиксирует кулдауны участников.
  */
 export const handleFinishActiveQueue = ({
   setState,
   onSuccess,
   onEmpty,
 }: HandleFinishActiveQueueArgs): void => {
-
   let playedPlayers: QueuePlayer[] = []
   let nextSessionNumber = 1
   let isEmpty = false
@@ -60,9 +61,9 @@ export const handleFinishActiveQueue = ({
     return {
       ...prev,
       activeQueue: [],
-      queueHistory: [finishedSession, ...prev.queueHistory],
+      queueHistory: limitQueueHistory([finishedSession, ...prev.queueHistory]),
       globalSessionCounter: nextSessionNumber,
-      playerHistory: updatedPlayerHistory,
+      playerHistory: limitPlayerHistory(updatedPlayerHistory),
     }
   })
 

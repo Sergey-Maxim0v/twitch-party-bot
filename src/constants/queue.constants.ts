@@ -19,6 +19,12 @@ export const QUEUE_TYPES = {
   HISTORY: 'history',
 } as const
 
+/** Максимум игровых сессий в истории — ограничивает рост `twitch_queue_data`. */
+export const QUEUE_HISTORY_LIMIT = 100
+
+/** Максимум игроков в истории кулдаунов — ограничивает рост `twitch_queue_data`. */
+export const PLAYER_HISTORY_LIMIT = 100
+
 /**
  * Результат попытки присоединения игрока к очереди.
  */

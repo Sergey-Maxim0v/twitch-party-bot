@@ -13,6 +13,9 @@ import { useQueueSession } from '../hooks/useQueueSession.ts'
 import { useQueueClear } from '../hooks/useQueueClear.ts'
 import { useQueuePlayers } from '../hooks/useQueuePlayers.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
+import { QUEUE_HISTORY_LIMIT, PLAYER_HISTORY_LIMIT } from '../../../constants/queue.constants.ts'
+import { limitQueueHistory } from '../utils/limitQueueHistory.ts'
+import { limitPlayerHistory } from '../utils/limitPlayerHistory.ts'
 
 interface QueueProviderProps {
   /** Дочерние элементы, получающие доступ к контексту очереди. */
@@ -35,6 +38,27 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   } = useQueueNotification()
 
   const wasFullRef = useRef<boolean>(false)
+
+  const playerHistorySize = Object.keys(state.playerHistory).length
+
+  // Подрезает историю сессий и игроков, если в localStorage остались данные сверх лимита
+  // или другая вкладка прислала больше лимита.
+  useEffect(() => {
+    if (state.queueHistory.length <= QUEUE_HISTORY_LIMIT && playerHistorySize <= PLAYER_HISTORY_LIMIT) return
+
+    setState(prev => {
+      const limitedQueueHistory = limitQueueHistory(prev.queueHistory)
+      const limitedPlayerHistory = limitPlayerHistory(prev.playerHistory)
+
+      if (limitedQueueHistory === prev.queueHistory && limitedPlayerHistory === prev.playerHistory) return prev
+
+      return {
+        ...prev,
+        queueHistory: limitedQueueHistory,
+        playerHistory: limitedPlayerHistory,
+      }
+    })
+  }, [setState, state.queueHistory.length, playerHistorySize])
 
   // Синхронизация списков никнеймов для Twitch-уведомлений
   useEffect(() => {
