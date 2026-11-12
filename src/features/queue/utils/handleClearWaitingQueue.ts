@@ -6,21 +6,18 @@ import { QUEUE_CLEAR_MESSAGES } from '../../../constants/queue.constants.ts'
  * Хендлер для полной очистки списка игроков в списке ожидающих.
  */
 export const handleClearWaitingQueue = ({
+  getState,
   setState,
   source,
   actorUsername,
   pushLog,
 }: QueueHandlerArgs): void => {
-  let waitingCount = 0
+  const waitingCount = getState().waitingQueue.length
 
-  setState(prev => {
-    waitingCount = prev.waitingQueue.length
-
-    return {
-      ...prev,
-      waitingQueue: [],
-    }
-  })
+  setState(prev => ({
+    ...prev,
+    waitingQueue: [],
+  }))
 
   const logMessage = QUEUE_CLEAR_MESSAGES.WAITING + (waitingCount ? ` Удалено ${waitingCount} игроков.` : '')
 

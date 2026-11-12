@@ -14,6 +14,8 @@ import { useQueueNotification } from '../../queue-notification/hooks/useQueueNot
 interface UseQueueSessionArgs {
   /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Чтение актуального состояния очереди. */
+  getState: () => QueueState;
   /** Текущий статус очереди. */
   isQueueOpen: boolean;
   /** Функция изменения статуса очереди. */
@@ -28,6 +30,7 @@ interface UseQueueSessionArgs {
  */
 export const useQueueSession = ({
   setState,
+  getState,
   isQueueOpen,
   setIsQueueOpen,
   pushLog,
@@ -46,6 +49,7 @@ export const useQueueSession = ({
       maxQueueSize: args.overrideMaxQueueSize ?? settings.maxQueueSize,
       moveOnSizeChange: args.overrideMoveOnSizeChange ?? settings.moveOnSizeChange,
       allowPreJoin: args.overrideAllowPreJoin ?? settings.allowPreJoin,
+      getState,
       setState,
       pushLog,
       source: args.source,
@@ -57,7 +61,7 @@ export const useQueueSession = ({
         usernames.forEach(username => addMovedToWaitingUser(username))
       },
     })
-  }, [settings, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser])
+  }, [settings, getState, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser])
 
   const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
@@ -73,6 +77,7 @@ export const useQueueSession = ({
 
   const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
     handleFinishActiveQueue({
+      getState,
       setState,
       onSuccess: (playedPlayers, sessionNumber) => {
         const nicknames = playedPlayers
@@ -115,7 +120,7 @@ export const useQueueSession = ({
         })
       },
     })
-  }, [setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, stopNotificationCycle, setIsQueueOpen, balanceQueues])
+  }, [getState, setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, stopNotificationCycle, setIsQueueOpen, balanceQueues])
 
   return { openQueue, closeQueue, finishActiveQueue, balanceQueues }
 }

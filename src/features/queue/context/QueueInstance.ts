@@ -24,8 +24,8 @@ export interface QueueContextValue {
   waitingQueue: QueuePlayer[];
   /** История завершенных игровых сессий (составов) */
   queueHistory: QueueSession[];
-  /** Полный сырой объект состояния очереди (для отладки/сохранения) */
-  rawState: QueueState;
+  /** Чтение актуального состояния очереди без подписки на изменения */
+  getState: () => QueueState;
 
   /** Очистить текущую активную очередь */
   clearActiveQueue: (args: { source: LogSource; actorUsername: string; }) => void;

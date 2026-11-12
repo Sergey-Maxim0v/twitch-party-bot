@@ -2,6 +2,7 @@ import { type FC, type ReactNode, useState, useCallback, useMemo } from 'react'
 import { AppLogsContext } from './AppLogsInstance.ts'
 import { APP_LOG_STATUSES, type AppLogItem } from '../types.ts'
 import { AppLogsConsumerWrapper } from '../components/AppLogsConsumerWrapper.tsx'
+import { createId } from '../../../utils/createId.ts'
 
 interface AppLogsProviderProps {
   children: ReactNode;
@@ -28,7 +29,7 @@ export const AppLogsProvider: FC<AppLogsProviderProps> = ({ children }) => {
     rawCommand?: AppLogItem['rawCommand'];
   }) => {
     const newLog: AppLogItem = {
-      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      id: createId('log'),
       timestamp: Date.now(),
       source,
       actorUsername,

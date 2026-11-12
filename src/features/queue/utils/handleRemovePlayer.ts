@@ -1,6 +1,6 @@
-import { QUEUE_TYPES, type QueueHandlerArgs, type QueueType } from '../types'
+import { QUEUE_TYPES, type QueueHandlerArgs, type QueueState, type QueueType } from '../types'
 import { APP_LOG_STATUSES, APP_LOG_SOURCES } from '../../app-logs/types.ts'
-import { QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
+import { QUEUE_LOG_PREFIXES, QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
 
 interface HandleRemovePlayerArgs extends QueueHandlerArgs {
   /** Уникальный ID пользователя на Twitch для удаления */
@@ -13,6 +13,69 @@ interface HandleRemovePlayerArgs extends QueueHandlerArgs {
   rawCommand?: string;
 }
 
+/** Решение по удалению игрока: новое состояние и текст журнала. */
+interface RemoveDecision {
+  /** Состояние очереди после удаления. */
+  nextState: QueueState;
+  /** Текст для журнала приложения. */
+  logMessage: string;
+  /** Была ли операция ошибочной. */
+  isError: boolean;
+}
+
+/** Аргументы расчёта решения по удалению игрока. */
+interface DecideRemoveArgs {
+  /** Состояние очереди до удаления. */
+  prev: QueueState;
+  /** Уникальный ID пользователя на Twitch для удаления. */
+  userId: string;
+  /** Очередь, из которой удаляется игрок. */
+  targetQueueType: QueueType;
+  /** Имя игрока для отображения. */
+  displayedUsername?: string;
+}
+
+/**
+ * Рассчитывает результат удаления игрока из указанной очереди.
+ *
+ * @returns Новое состояние очереди и текст для журнала.
+ */
+const decideRemove = ({
+  prev,
+  userId,
+  targetQueueType,
+  displayedUsername,
+}: DecideRemoveArgs): RemoveDecision => {
+  const isTargetActive = targetQueueType === QUEUE_TYPES.ACTIVE
+  const queue = isTargetActive ? prev.activeQueue : prev.waitingQueue
+  const queueLabel = isTargetActive
+    ? QUEUE_TYPE_LABELS_LOCATIVE.active
+    : QUEUE_TYPE_LABELS_LOCATIVE.waiting
+  const index = queue.findIndex(p => p.userId === userId)
+
+  if (index === -1) {
+    const nameOrId = displayedUsername || `ID ${userId}`
+
+    return {
+      nextState: prev,
+      logMessage: `${QUEUE_LOG_PREFIXES.REMOVE}: Ошибка, игрок ${nameOrId} не найден в ${queueLabel}.`,
+      isError: true,
+    }
+  }
+
+  const player = queue[index]
+  const playerName = displayedUsername || player.displayedUsername || player.username
+  const nextQueue = queue.filter((_, playerIndex) => playerIndex !== index)
+
+  return {
+    nextState: isTargetActive
+      ? { ...prev, activeQueue: nextQueue }
+      : { ...prev, waitingQueue: nextQueue },
+    logMessage: `${QUEUE_LOG_PREFIXES.REMOVE}: ${playerName} удален из ${queueLabel}.`,
+    isError: false,
+  }
+}
+
 /**
  * Удаляет первую найденную запись игрока из указанной очереди.
  */
@@ -23,12 +86,13 @@ export const handleRemovePlayer = ({
   source,
   actorUsername,
   rawCommand,
+  getState,
   setState,
   pushLog,
 }: HandleRemovePlayerArgs): void => {
   if (targetQueueType === QUEUE_TYPES.HISTORY) {
     pushLog({
-      message: 'Удаление из очереди: Ошибка, из истории нельзя удалить игрока',
+      message: `${QUEUE_LOG_PREFIXES.REMOVE}: Ошибка, из истории нельзя удалить игрока`,
       source: APP_LOG_SOURCES.APPLICATION,
       status: APP_LOG_STATUSES.ERROR,
       actorUsername,
@@ -36,47 +100,20 @@ export const handleRemovePlayer = ({
     return
   }
 
-  const queueLabel = targetQueueType === QUEUE_TYPES.ACTIVE
-    ? QUEUE_TYPE_LABELS_LOCATIVE.active
-    : QUEUE_TYPE_LABELS_LOCATIVE.waiting
-  const isTargetActive = targetQueueType === QUEUE_TYPES.ACTIVE
-
-  let logMessageText: string = ''
-  let isError = false
-
-  setState(prev => {
-    const queueToSearch = isTargetActive ? prev.activeQueue : prev.waitingQueue
-    const index = queueToSearch.findIndex(p => p.userId === userId)
-
-    if (index === -1) {
-      isError = true
-      const nameOrId = displayedUsername || `ID ${userId}`
-      logMessageText = `Удаление из очереди: Ошибка, игрок ${nameOrId} не найден в ${queueLabel}.`
-      return prev
-    }
-
-    const player = queueToSearch[index]
-    const targetPlayerName = displayedUsername || player.displayedUsername || player.username
-    logMessageText = `Удаление из очереди: ${targetPlayerName} удален из ${queueLabel}.`
-
-    if (isTargetActive) {
-      const updatedActive = [...prev.activeQueue]
-      updatedActive.splice(index, 1)
-      return { ...prev, activeQueue: updatedActive }
-    }
-
-    const updatedWaiting = [...prev.waitingQueue]
-    updatedWaiting.splice(index, 1)
-    return { ...prev, waitingQueue: updatedWaiting }
+  const decision = decideRemove({
+    prev: getState(),
+    userId,
+    targetQueueType,
+    displayedUsername,
   })
 
-  setTimeout(() => {
-    pushLog({
-      message: logMessageText,
-      status: isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
-      source,
-      actorUsername,
-      rawCommand,
-    })
-  }, 0)
+  setState(decision.nextState)
+
+  pushLog({
+    message: decision.logMessage,
+    status: decision.isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
+    source,
+    actorUsername,
+    rawCommand,
+  })
 }

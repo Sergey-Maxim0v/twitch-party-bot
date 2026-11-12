@@ -12,19 +12,30 @@ import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import { QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
-import { hasQueuePlayerWithUsername } from '../utils/queuePlayerIdentity.ts'
 
 interface UseQueuePlayersArgs {
   /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Чтение актуального состояния очереди. */
+  getState: () => QueueState;
   /** Текущий статус очереди. */
   isQueueOpen: boolean;
   /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
   /** Функция балансировки активной очереди и списка ожидающих. */
   balanceQueues: (args: { source: LogSource; actorUsername: string }) => void;
-  /** Актуальное состояние очереди. */
-  rawState: QueueState;
+}
+
+/** Аргументы операций над игроками очереди. */
+interface QueuePlayerCommandArgs {
+  /** Никнейм игрока. */
+  username: string;
+  /** Отображаемое имя игрока. */
+  displayedUsername?: string;
+  /** Источник вызова команды. */
+  source: LogSource;
+  /** Никнейм того, кто выполнил операцию. */
+  actorUsername: string;
 }
 
 /**
@@ -32,13 +43,20 @@ interface UseQueuePlayersArgs {
  */
 export const useQueuePlayers = ({
   setState,
+  getState,
   isQueueOpen,
   pushLog,
   balanceQueues,
-  rawState,
 }: UseQueuePlayersArgs) => {
   const { settings, updateSettings } = useQueueSettings()
   const { addJoinedUser, addWaitingUser, addDeletedUser, addMovedToActiveUser, addMovedToWaitingUser, addDeniedUser } = useQueueNotification()
+
+  /** Синхронизирует списки очередей после изменения состава. */
+  const balanceAfterChange = useCallback((args: { source: LogSource; actorUsername: string }) => {
+    if (!settings.moveOnSizeChange) return
+
+    balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+  }, [settings.moveOnSizeChange, balanceQueues])
 
   const addPlayerToQueue = useCallback((args: {
     playerData: QueuePlayerFormData;
@@ -47,70 +65,50 @@ export const useQueuePlayers = ({
     rawCommand?: string;
     customTimestamp?: number;
   }) => {
-    const result = handleJoinPlayer({ ...args, isQueueOpen, settings, setState, pushLog })
+    const result = handleJoinPlayer({ ...args, isQueueOpen, settings, getState, setState, pushLog })
 
     if (result.status === QUEUE_JOIN_STATUSES.JOINED) {
       addJoinedUser(args.playerData.username)
-    } else if (result.status === QUEUE_JOIN_STATUSES.WAITING) {
+      return
+    }
+
+    if (result.status === QUEUE_JOIN_STATUSES.WAITING) {
       addWaitingUser(args.playerData.username)
-    } else if (result.status === QUEUE_JOIN_STATUSES.DENIED) {
-      addDeniedUser(args.playerData.username)
+      return
     }
-  }, [isQueueOpen, settings, setState, pushLog, addJoinedUser, addWaitingUser, addDeniedUser])
 
-  const removePlayerFromQueue = useCallback((args: {
+    addDeniedUser(args.playerData.username)
+  }, [isQueueOpen, settings, getState, setState, pushLog, addJoinedUser, addWaitingUser, addDeniedUser])
+
+  const removePlayerFromQueue = useCallback((args: QueuePlayerCommandArgs & {
     userId: string;
-    username: string;
     targetQueueType: QueueType;
-    displayedUsername?: string;
-    source: LogSource;
-    actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayer({ ...args, setState, pushLog })
+    handleRemovePlayer({ ...args, getState, setState, pushLog })
     addDeletedUser(args.displayedUsername ?? args.username)
+    balanceAfterChange(args)
+  }, [getState, setState, pushLog, addDeletedUser, balanceAfterChange])
 
-    if (settings.moveOnSizeChange) {
-      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-    }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addDeletedUser])
-
-  const removePlayerFromAllQueues = useCallback((args: {
+  const removePlayerFromAllQueues = useCallback((args: QueuePlayerCommandArgs & {
     userId: string;
-    username: string;
-    displayedUsername?: string;
-    source: LogSource;
-    actorUsername: string;
     rawCommand?: string;
   }) => {
-    handleRemovePlayerFromAll({ ...args, setState, pushLog })
+    handleRemovePlayerFromAll({ ...args, getState, setState, pushLog })
     addDeletedUser(args.displayedUsername ?? args.username)
+    balanceAfterChange(args)
+  }, [getState, setState, pushLog, addDeletedUser, balanceAfterChange])
 
-    if (settings.moveOnSizeChange) {
-      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-    }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addDeletedUser])
-
-  const banPlayerFromQueue = useCallback((args: {
+  const banPlayerFromQueue = useCallback((args: QueuePlayerCommandArgs & {
     userId?: string;
-    username: string;
-    displayedUsername?: string;
-    source: LogSource;
-    actorUsername: string;
   }) => {
     const { userId = '', source, actorUsername, username, displayedUsername } = args
     const { isBanned } = handleBanPlayer({ ...args, settings, updateSettings, pushLog })
 
-    if (!isBanned) {
-      return
-    }
+    if (!isBanned) return
 
     removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
-
-    if (settings.moveOnSizeChange) {
-      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-    }
-  }, [settings, updateSettings, pushLog, removePlayerFromAllQueues, balanceQueues])
+  }, [settings, updateSettings, pushLog, removePlayerFromAllQueues])
 
   const unbanPlayerFromQueue = useCallback((args: {
     username: string;
@@ -120,50 +118,25 @@ export const useQueuePlayers = ({
     handleUnbanPlayer({ ...args, settings, updateSettings, pushLog })
   }, [settings, updateSettings, pushLog])
 
-  const movePlayer = useCallback((args: {
+  const movePlayer = useCallback((args: QueuePlayerCommandArgs & {
     userId: string;
-    username: string;
     targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;
-    displayedUsername?: string;
-    source: LogSource;
-    actorUsername: string;
   }) => {
-    let sourceQueueType: Exclude<QueueType, 'history'> | null = null
+    const decision = handleMovePlayer({ ...args, getState, setState, pushLog })
 
-    const sourcePlayer = rawState.activeQueue.find(p => p.userId === args.userId)
-      ?? rawState.waitingQueue.find(p => p.userId === args.userId)
-
-    if (sourcePlayer) {
-      sourceQueueType = rawState.activeQueue.includes(sourcePlayer)
-        ? QUEUE_TYPES.ACTIVE
-        : QUEUE_TYPES.WAITING
-    }
-
-    const targetQueue = args.targetQueueType === QUEUE_TYPES.ACTIVE
-      ? rawState.activeQueue
-      : rawState.waitingQueue
-
-    const isCrossQueueMove = sourceQueueType !== null && sourceQueueType !== args.targetQueueType
-    const isBlockedByDuplicate = sourcePlayer && isCrossQueueMove
-      ? hasQueuePlayerWithUsername(targetQueue, sourcePlayer.username)
-      : false
-
-    handleMovePlayer({ ...args, setState, pushLog })
-
-    if (isCrossQueueMove && !isBlockedByDuplicate) {
+    if (decision.isMoved && decision.sourceQueueType !== args.targetQueueType) {
       const username = args.displayedUsername ?? args.username
+
       if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
         addMovedToActiveUser(username)
-      } else if (args.targetQueueType === QUEUE_TYPES.WAITING) {
+      } else {
         addMovedToWaitingUser(username)
       }
     }
 
-    if (settings.moveOnSizeChange) {
-      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-    }
-  }, [setState, pushLog, settings.moveOnSizeChange, balanceQueues, addMovedToActiveUser, addMovedToWaitingUser, rawState.activeQueue, rawState.waitingQueue])
+    balanceAfterChange(args)
+  }, [getState, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser, balanceAfterChange])
 
   return {
     addPlayerToQueue,

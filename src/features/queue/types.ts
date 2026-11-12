@@ -99,6 +99,8 @@ export interface QueueState {
 export interface QueueHandlerArgs {
   /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
+  /** Чтение актуального состояния очереди. */
+  getState: () => QueueState;
   /** Источник вызова команды (чат/интерфейс). */
   source: AppLogItem['source'];
   /** Никнейм того, кто выполнил действие. */

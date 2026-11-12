@@ -1,8 +1,6 @@
 import { type ReactNode, type FC, useMemo, useCallback, useEffect, useRef } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
-import type { QueueState } from '../types'
-import { createInitialState } from '../utils/createInitialState'
 import { QUEUE_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
@@ -12,6 +10,7 @@ import { useQueueAutoClose } from '../hooks/useQueueAutoClose.ts'
 import { useQueueSession } from '../hooks/useQueueSession.ts'
 import { useQueueClear } from '../hooks/useQueueClear.ts'
 import { useQueuePlayers } from '../hooks/useQueuePlayers.ts'
+import { useQueueStore } from '../hooks/useQueueStore.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { QUEUE_HISTORY_LIMIT, PLAYER_HISTORY_LIMIT } from '../../../constants/queue.constants.ts'
 import { limitQueueHistory } from '../utils/limitQueueHistory.ts'
@@ -26,7 +25,7 @@ interface QueueProviderProps {
  * Провайдер состояния и методов управления очередью.
  */
 export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
-  const [state, setState] = useLocalStorage<QueueState>(QUEUE_STORAGE_KEYS.DATA, createInitialState())
+  const { state, setState, getState } = useQueueStore()
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage(QUEUE_STORAGE_KEYS.STATUS, false)
 
   const { pushLog: pushAppLog } = useAppLogs()
@@ -86,6 +85,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const { openQueue, closeQueue, finishActiveQueue, balanceQueues } = useQueueSession({
     setState,
+    getState,
     isQueueOpen,
     setIsQueueOpen,
     pushLog,
@@ -93,6 +93,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const { clearActiveQueue, clearWaitingQueue, clearQueueHistory } = useQueueClear({
     setState,
+    getState,
     pushLog,
   })
 
@@ -105,10 +106,10 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     movePlayer,
   } = useQueuePlayers({
     setState,
+    getState,
     isQueueOpen,
     pushLog,
     balanceQueues,
-    rawState: state,
   })
 
   const contextValue = useMemo<QueueContextValue>(() => ({
@@ -118,7 +119,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     activeQueue: state.activeQueue,
     waitingQueue: state.waitingQueue,
     queueHistory: state.queueHistory,
-    rawState: state,
+    getState,
     clearActiveQueue,
     clearWaitingQueue,
     clearQueueHistory,
@@ -135,6 +136,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     openQueue,
     closeQueue,
     state,
+    getState,
     clearActiveQueue,
     clearWaitingQueue,
     clearQueueHistory,
