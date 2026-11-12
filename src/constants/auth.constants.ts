@@ -60,6 +60,18 @@ export const TWITCH_TOKEN_VALIDATION_STATUSES = {
 } as const
 
 /**
+ * HTTP-статусы, при которых Twitch отклоняет переданный токен.
+ */
+export const TWITCH_TOKEN_REJECTED_STATUSES: readonly number[] = [400, 401]
+
+/**
+ * Тексты ошибок восстановления сессии из хранилища.
+ */
+export const TWITCH_SESSION_ERRORS = {
+  CORRUPTED: 'Повреждённая сессия Twitch удалена из хранилища.',
+} as const
+
+/**
  * Ключ sessionStorage для хранения `state`, защищающего OAuth-поток от CSRF.
  */
 export const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
@@ -79,6 +91,13 @@ export const TWITCH_AUTH_STAGES = {
  * Интервал фоновой проверки токена (45 минут).
  */
 export const TWITCH_TOKEN_VALIDATION_INTERVAL_MS = 45 * 60 * 1000
+
+/**
+ * Таймаут запроса проверки токена (10 секунд).
+ *
+ * Без него «зависший» ответ Twitch навсегда блокирует авторизацию.
+ */
+export const TWITCH_TOKEN_VALIDATION_TIMEOUT_MS = 10 * 1000
 
 /**
  * Задержка закрытия модального окна после успешной авторизации.

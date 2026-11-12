@@ -1,4 +1,10 @@
-import { TWITCH_AUTH_BASE_URL, TWITCH_TOKEN_VALIDATION_STATUSES } from '../../../constants/auth.constants.ts'
+import {
+  TWITCH_AUTH_BASE_URL,
+  TWITCH_TOKEN_REJECTED_STATUSES,
+  TWITCH_TOKEN_VALIDATION_STATUSES,
+  TWITCH_TOKEN_VALIDATION_TIMEOUT_MS,
+} from '../../../constants/auth.constants.ts'
+import { isFilledString } from '../../../utils/strings.ts'
 import type { TwitchUserData } from '../types'
 
 /**
@@ -24,9 +30,10 @@ export const validateTwitchToken = async (token: string): Promise<TwitchTokenVal
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+      signal: AbortSignal.timeout(TWITCH_TOKEN_VALIDATION_TIMEOUT_MS),
     })
 
-    if (response.status === 400 || response.status === 401) {
+    if (TWITCH_TOKEN_REJECTED_STATUSES.includes(response.status)) {
       return { status: TWITCH_TOKEN_VALIDATION_STATUSES.INVALID }
     }
 
@@ -35,9 +42,10 @@ export const validateTwitchToken = async (token: string): Promise<TwitchTokenVal
       return { status: TWITCH_TOKEN_VALIDATION_STATUSES.UNAVAILABLE }
     }
 
-    const data = await response.json() as { user_id?: unknown; login?: unknown }
+    const data = await response.json() as { user_id?: unknown; login?: unknown } | null
 
-    if (typeof data.user_id !== 'string' || typeof data.login !== 'string') {
+    // Пустой логин делает сессию бесполезной: сокет не подключится.
+    if (!isFilledString(data?.user_id) || !isFilledString(data?.login)) {
       return { status: TWITCH_TOKEN_VALIDATION_STATUSES.INVALID }
     }
 
