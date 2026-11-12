@@ -38,12 +38,24 @@ export const TWITCH_AUTH_ERRORS = {
 export const TWITCH_AUTH_MESSAGE_TYPE = 'TWITCH_AUTH_RESULT'
 
 /**
+ * Имена параметров URL, которые Twitch возвращает после редиректа.
+ */
+export const TWITCH_AUTH_URL_PARAMS = {
+  ACCESS_TOKEN: 'access_token',
+  ERROR: 'error',
+  ERROR_DESCRIPTION: 'error_description',
+  STATE: 'state',
+} as const
+
+/**
  * Тексты ошибок процесса авторизации.
  */
 export const TWITCH_AUTH_UI_MESSAGES = {
   CSRF_FAILED: 'Ошибка безопасности (CSRF): верификация контекста не пройдена.',
   DENIED: 'Авторизация отклонена Twitch:',
+  POPUP_BLOCKED: 'Всплывающее окно заблокировано браузером. Войдите в текущей вкладке.',
   POPUP_CLOSED: 'Авторизация отменена: всплывающее окно было закрыто.',
+  POPUP_TIMEOUT: 'Авторизация не завершена вовремя. Попробуйте снова.',
   URL_BUILD_FAILED: 'Ошибка при формировании URL авторизации.',
   UNKNOWN_VALIDATION: 'Неизвестная ошибка валидации токена.',
   VALIDATION_UNAVAILABLE: 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.',
@@ -65,10 +77,11 @@ export const TWITCH_TOKEN_VALIDATION_STATUSES = {
 export const TWITCH_TOKEN_REJECTED_STATUSES: readonly number[] = [400, 401]
 
 /**
- * Тексты ошибок восстановления сессии из хранилища.
+ * Тексты ошибок сессии и инициализации авторизации.
  */
 export const TWITCH_SESSION_ERRORS = {
   CORRUPTED: 'Повреждённая сессия Twitch удалена из хранилища.',
+  INIT_FAILED: 'Не удалось инициализировать авторизацию Twitch:',
 } as const
 
 /**
@@ -108,6 +121,11 @@ export const TWITCH_AUTH_SUCCESS_CLOSE_DELAY_MS = 1000
  * Интервал проверки ручного закрытия popup-окна.
  */
 export const TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS = 500
+
+/**
+ * Таймаут ожидания завершения авторизации во всплывающем окне (5 минут).
+ */
+export const TWITCH_AUTH_POPUP_WAIT_TIMEOUT_MS = 5 * 60 * 1000
 
 /**
  * Имя, размеры и возможности окна Twitch-авторизации.

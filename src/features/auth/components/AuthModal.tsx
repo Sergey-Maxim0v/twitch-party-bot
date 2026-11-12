@@ -6,7 +6,7 @@ import { TWITCH_AUTH_STAGES } from '../types'
  * Модальное окно, отражающее текущую стадию авторизации Twitch.
  */
 export const AuthModal: FC = () => {
-  const { isModalOpen, authStage, error, login, closeModal } = useAuth()
+  const { isModalOpen, authStage, error, login, loginInCurrentTab, closeModal } = useAuth()
 
   if (!isModalOpen) return null
 
@@ -26,6 +26,9 @@ export const AuthModal: FC = () => {
                 Отмена
               </button>
             </div>
+            <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
+              Войти в текущей вкладке
+            </button>
           </>
         )}
 
@@ -78,6 +81,9 @@ export const AuthModal: FC = () => {
                 Закрыть
               </button>
             </div>
+            <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
+              Войти в текущей вкладке
+            </button>
           </>
         )}
 

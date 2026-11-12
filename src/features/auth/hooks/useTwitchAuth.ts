@@ -12,12 +12,14 @@ import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useChannelProfile } from './useChannelProfile.ts'
 import { useSessionStorage } from '../../../hooks/useSessionStorage.ts'
 import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
-import { extractTwitchToken } from '../utils/extractTwitchToken.ts'
-import { isValidTwitchSession, getTwitchAccessToken } from '../utils/twitchSession.ts'
+import { parseTwitchAuthResponse } from '../utils/parseTwitchAuthResponse.ts'
+import { clearAuthRedirectUrl, isAuthPopupWindow, sendAuthResultToOpener } from '../utils/authRedirect.ts'
+import { formatAuthError } from '../utils/formatAuthError.ts'
+import { buildTwitchSession, isValidTwitchSession, getTwitchAccessToken } from '../utils/twitchSession.ts'
 
 /**
  * Основной хук авторизации Twitch: хранит сессию текущей вкладки,
- * валидирует токен и связывает popup-авторизацию с выбором канала чата.
+ * валидирует токен и обрабатывает результат возврата из Twitch.
  *
  * @returns Полный набор данных и действий для работы с авторизацией.
  */
@@ -55,22 +57,18 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     }
 
     return {
-      session: {
-        accessToken: token,
-        userId: result.user.userId,
-        login: result.user.login,
-      },
+      session: buildTwitchSession(token, result.user),
       shouldLogout: false,
     }
   }, [])
 
   /**
-   * Обрабатывает результат popup-авторизации.
+   * Проверяет токен и сохраняет сессию.
    *
    * @param token - Токен доступа OAuth.
    * @throws {Error} Если токен недействителен или Twitch недоступен.
    */
-  const handlePopupSuccess = useCallback(async (token: string): Promise<void> => {
+  const saveSession = useCallback(async (token: string): Promise<void> => {
     const result = await validateTwitchToken(token)
 
     if (result.status !== TWITCH_TOKEN_VALIDATION_STATUSES.VALID) {
@@ -81,19 +79,15 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
       )
     }
 
-    setSession({
-      accessToken: token,
-      userId: result.user.userId,
-      login: result.user.login,
-    })
+    setSession(buildTwitchSession(token, result.user))
   }, [setSession])
 
   const popupManager = useTwitchPopup({
-    onSuccess: handlePopupSuccess,
+    onSuccess: saveSession,
     setError,
   })
 
-  const { setAuthStage, setIsModalOpen } = popupManager
+  const { setAuthStage, setIsModalOpen, authorizeToken } = popupManager
 
   const channelManager = useTwitchChannelState(session?.login)
 
@@ -152,9 +146,27 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
       isProcessingHash.current = true
 
       setIsLoading(true)
-      extractTwitchToken()
 
-      if (!window.opener && accessToken) {
+      const response = parseTwitchAuthResponse()
+
+      // Во всплывающем окне результат уходит родительскому окну, а не обрабатывается здесь.
+      if (isAuthPopupWindow()) {
+        sendAuthResultToOpener(response)
+        window.close()
+        return
+      }
+
+      clearAuthRedirectUrl()
+
+      if (response.error) {
+        setAuthStage(TWITCH_AUTH_STAGES.ERROR)
+        setError(formatAuthError(response.error))
+        setIsModalOpen(true)
+      }
+
+      if (response.token) {
+        await authorizeToken(response.token)
+      } else if (accessToken) {
         await syncSession(accessToken)
       }
 
@@ -162,9 +174,9 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     }
 
     handleAuthInit().catch(err => {
-      console.error('useTwitchAuth / handleAuthInit error:', err)
+      console.error(TWITCH_SESSION_ERRORS.INIT_FAILED, err)
     })
-  }, [syncSession, accessToken])
+  }, [accessToken, authorizeToken, syncSession, setAuthStage, setError, setIsModalOpen])
 
   useEffect(() => {
     if (!accessToken) return
@@ -186,6 +198,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     channelError: channelManager.channelError,
     logout,
     login: popupManager.login,
+    loginInCurrentTab: popupManager.loginInCurrentTab,
     isModalOpen: popupManager.isModalOpen,
     authStage: popupManager.authStage,
     closeModal: popupManager.closeModal,

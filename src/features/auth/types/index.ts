@@ -11,6 +11,14 @@ export interface TwitchUserData {
 }
 
 /**
+ * Результат разбора ответа Twitch OAuth.
+ */
+export interface TwitchAuthResponse {
+  token: string | null;
+  error: string | null;
+}
+
+/**
  * Сохранённая сессия авторизованного пользователя.
  */
 export interface TwitchUserSession extends TwitchUserData {
@@ -32,6 +40,7 @@ export interface TwitchAuthHookResult {
   error: string | null;
   channelError: string | null;
   login: () => void;
+  loginInCurrentTab: () => void;
   logout: () => void;
   isModalOpen: boolean;
   authStage: AuthStage;

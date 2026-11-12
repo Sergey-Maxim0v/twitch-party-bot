@@ -1,5 +1,28 @@
-import type { TwitchUserSession } from '../types'
+import type { TwitchUserData, TwitchUserSession } from '../types'
 import { isFilledString } from '../../../utils/strings.ts'
+
+/**
+ * Проверяет, что значение похоже на запись сессии.
+ *
+ * @param session - Значение из хранилища.
+ * @returns `true`, если значение является объектом с полями.
+ */
+const isSessionObject = (session: unknown): session is Record<string, unknown> => (
+  typeof session === 'object' && session !== null && !Array.isArray(session)
+)
+
+/**
+ * Собирает сессию пользователя из токена и данных Twitch.
+ *
+ * @param token - Токен доступа OAuth.
+ * @param user - Данные пользователя, полученные от Twitch.
+ * @returns Сессия для сохранения в хранилище.
+ */
+export const buildTwitchSession = (token: string, user: TwitchUserData): TwitchUserSession => ({
+  accessToken: token,
+  userId: user.userId,
+  login: user.login,
+})
 
 /**
  * Проверяет, что значение из хранилища является полноценной сессией Twitch.
@@ -12,11 +35,9 @@ import { isFilledString } from '../../../utils/strings.ts'
  * @returns `true`, если все обязательные поля заполнены.
  */
 export const isValidTwitchSession = (session: unknown): session is TwitchUserSession => {
-  if (typeof session !== 'object' || session === null || Array.isArray(session)) {
-    return false
-  }
+  if (!isSessionObject(session)) return false
 
-  const { accessToken, userId, login } = session as Record<string, unknown>
+  const { accessToken, userId, login } = session
 
   return isFilledString(accessToken) && isFilledString(userId) && isFilledString(login)
 }
@@ -31,11 +52,9 @@ export const isValidTwitchSession = (session: unknown): session is TwitchUserSes
  * @returns Токен доступа либо `null`, если токена нет.
  */
 export const getTwitchAccessToken = (session: unknown): string | null => {
-  if (typeof session !== 'object' || session === null || Array.isArray(session)) {
-    return null
-  }
+  if (!isSessionObject(session)) return null
 
-  const { accessToken } = session as Record<string, unknown>
+  const { accessToken } = session
 
   return isFilledString(accessToken) ? accessToken : null
 }
