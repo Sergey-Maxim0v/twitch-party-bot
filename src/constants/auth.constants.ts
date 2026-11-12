@@ -33,6 +33,15 @@ export const TWITCH_AUTH_ERRORS = {
 }
 
 /**
+ * Статусы проверки OAuth-токена.
+ */
+export const TWITCH_TOKEN_VALIDATION_STATUSES = {
+  VALID: 'valid',
+  INVALID: 'invalid',
+  UNAVAILABLE: 'unavailable',
+} as const
+
+/**
  * Ключ sessionStorage для хранения `state`, защищающего OAuth-поток от CSRF.
  */
 export const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
