@@ -35,6 +35,8 @@ export const useTwitchHeartbeat = () => {
     workerRef.current?.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL })
 
     const client = socketContext.getClient()
+    if (client.isIntentionallyDisconnected) return
+
     client.forceCloseAndReconnect()
   }, [socketContext])
 

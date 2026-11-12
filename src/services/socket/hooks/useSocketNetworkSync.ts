@@ -34,13 +34,11 @@ export const useSocketNetworkSync = ({
     }
 
     const handleOnline = (): void => {
+      if (client.isIntentionallyDisconnected || client.readyState === WebSocket.CONNECTING) return
+
       if (client.readyState === WebSocket.OPEN) {
         setConnectionStatusRef.current(SOCKET_CONNECTION_STATUSES.CONNECTED)
         setChatAccessStatusRef.current(lastActiveChatStatusRef.current)
-        return
-      }
-
-      if (client.readyState === WebSocket.CONNECTING) {
         return
       }
 

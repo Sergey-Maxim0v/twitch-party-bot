@@ -159,6 +159,15 @@ export class TwitchIrcClient {
     this.reconnectManager.trigger(this.hasSessionParams())
   }
 
+  /**
+   * Сбрасывает параметры сессии в памяти.
+   */
+  private clearSession(): void {
+    this.channel = null
+    this.lastToken = null
+    this.lastUserLogin = null
+  }
+
   private saveSession(channel: string, token: string, userLogin: string): void {
     this.channel = channel
     this.lastToken = token
@@ -167,7 +176,8 @@ export class TwitchIrcClient {
   }
 
   /**
-   * Намеренно закрывает соединение и останавливает автоматические переподключения.
+   * Намеренно закрывает соединение, останавливает переподключения
+   * и сбрасывает параметры сессии.
    */
   public disconnect(): void {
     if (this.connectTimeoutId) {
@@ -178,20 +188,26 @@ export class TwitchIrcClient {
     this.reconnectManager.clearTimer()
     this.reconnectManager.resetAttempts()
     this.socketManager.destroy()
+    this.clearSession()
   }
 
   /**
-   * Принудительно разрывает соединение и запускает переподключение.
+   * Переподключается после сетевого сбоя, начиная новый цикл попыток.
+   * После ручного выхода игнорируется.
    */
   public forceCloseAndReconnect(): void {
+    if (this.reconnectManager.isIntentionally || !this.hasSessionParams()) return
+
     if (this.connectTimeoutId) {
       clearTimeout(this.connectTimeoutId)
+      this.connectTimeoutId = null
     }
-    this.reconnectManager.setIntentionallyDisconnected(false)
 
     this.socketManager.destroy()
     this.stateManager.emit(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
-    this.reconnectManager.trigger(this.hasSessionParams())
+
+    this.reconnectManager.resetAttempts()
+    this.reconnectManager.trigger(true)
   }
 
   /**
@@ -220,6 +236,8 @@ export class TwitchIrcClient {
   }
 
   private retryConnection(): void {
+    if (this.reconnectManager.isIntentionally) return
+
     if (this.channel && this.lastToken && this.lastUserLogin) {
       this.stateManager.emit(SOCKET_CONNECTION_STATUSES.CONNECTING)
       this.connect(this.channel, this.lastToken, this.lastUserLogin)

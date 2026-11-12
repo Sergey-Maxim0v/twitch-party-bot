@@ -24,20 +24,12 @@ export class TwitchReconnectManager {
     return this.attempts
   }
 
-  public get isLimitReached(): boolean {
-    return this.attempts >= this.maxAttempts
-  }
-
   public get isIntentionally(): boolean {
     return this.isIntentionallyDisconnected
   }
 
   public setIntentionallyDisconnected(value: boolean): void {
     this.isIntentionallyDisconnected = value
-  }
-
-  public incrementAttempts(): void {
-    this.attempts++
   }
 
   public resetAttempts(): void {
@@ -55,8 +47,10 @@ export class TwitchReconnectManager {
   }
 
   /**
-   * Запускает таймер переподключения с экспоненциальной задержкой.
-   * @param hasSessionParams - Есть ли сохраненные данные сессии для повторного подключения.
+   * Запускает таймер переподключения. После достижения лимита попытки
+   * продолжаются с максимальной задержкой.
+   *
+   * @param hasSessionParams - Есть ли данные сессии для повторного подключения.
    */
   public trigger(hasSessionParams: boolean): void {
     if (this.isIntentionallyDisconnected) return
@@ -66,12 +60,7 @@ export class TwitchReconnectManager {
       return
     }
 
-    if (this.isLimitReached) {
-      this.resetAttempts()
-      return
-    }
-
-    this.incrementAttempts()
+    this.attempts = Math.min(this.attempts + 1, this.maxAttempts)
 
     const delay = getReconnectDelay(this.attempts)
 

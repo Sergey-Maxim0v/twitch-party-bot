@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { TWITCH_AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession } from '../types'
 import { useTwitchPopup } from './useTwitchPopup.ts'
 import { useTwitchChannelState } from './useTwitchChannelState.ts'
-import { TWITCH_TOKEN_VALIDATION_INTERVAL_MS } from '../../../constants/auth.constants.ts'
+import { TWITCH_TOKEN_VALIDATION_INTERVAL_MS, TWITCH_TOKEN_VALIDATION_STATUSES } from '../../../constants/auth.constants.ts'
 import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useChannelProfile } from './useChannelProfile.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
@@ -23,38 +23,54 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   const isProcessingHash = useRef(false)
 
   /**
-   * Проверяет токен и собирает на его основе объект сессии.
+   * Проверяет токен и формирует сессию. Сетевые ошибки не требуют выхода.
    *
    * @param token - Токен доступа OAuth.
-   * @returns Сессия пользователя или `null`, если токен недействителен.
    */
-  const validateSession = useCallback(async (token: string): Promise<TwitchUserSession | null> => {
-    const userData = await validateTwitchToken(token)
-    if (!userData) return null
+  const validateSession = useCallback(async (token: string): Promise<{
+    session: TwitchUserSession | null;
+    shouldLogout: boolean;
+  }> => {
+    const result = await validateTwitchToken(token)
+
+    if (result.status === TWITCH_TOKEN_VALIDATION_STATUSES.VALID) {
+      return {
+        session: {
+          accessToken: token,
+          userId: result.user.userId,
+          login: result.user.login,
+        },
+        shouldLogout: false,
+      }
+    }
+
     return {
-      accessToken: token,
-      userId: userData.userId,
-      login: userData.login,
+      session: null,
+      shouldLogout: result.status === TWITCH_TOKEN_VALIDATION_STATUSES.INVALID,
     }
   }, [])
 
   /**
-   * Обрабатывает успешное получение токена из всплывающего окна.
+   * Обрабатывает результат popup-авторизации.
    *
    * @param token - Токен доступа OAuth.
-   * @throws {Error} Если Twitch не подтвердил валидность токена.
+   * @throws {Error} Если токен недействителен или Twitch недоступен.
    */
   const handlePopupSuccess = useCallback(async (token: string): Promise<void> => {
-    const userData = await validateTwitchToken(token)
+    const result = await validateTwitchToken(token)
 
-    if (!userData) {
-      throw new Error('Не удалось подтвердить валидность токена через Twitch API.')
+    if (result.status !== TWITCH_TOKEN_VALIDATION_STATUSES.VALID) {
+      throw new Error(
+        result.status === TWITCH_TOKEN_VALIDATION_STATUSES.UNAVAILABLE
+          ? 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.'
+          : 'Не удалось подтвердить валидность токена через Twitch API.',
+      )
     }
 
     setSession({
       accessToken: token,
-      userId: userData.userId,
-      login: userData.login,
+      userId: result.user.userId,
+      login: result.user.login,
     })
   }, [setSession])
 
@@ -62,6 +78,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     onSuccess: handlePopupSuccess,
     setError,
   })
+
+  const { setAuthStage, setIsModalOpen } = popupManager
 
   const channelManager = useTwitchChannelState(session?.login)
 
@@ -79,14 +97,14 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   })
 
   /**
-   * Синхронно сбрасывает состояние авторизации.
+   * Сбрасывает состояние авторизации.
    */
   const logout = useCallback((): void => {
     setSession(null)
     setError(null)
-    popupManager.setAuthStage(TWITCH_AUTH_STAGES.IDLE)
-    popupManager.setIsModalOpen(false)
-  }, [setSession, popupManager])
+    setAuthStage(TWITCH_AUTH_STAGES.IDLE)
+    setIsModalOpen(false)
+  }, [setSession, setAuthStage, setIsModalOpen])
 
   useEffect(() => {
     const handleAuthInit = async (): Promise<void> => {
@@ -97,12 +115,11 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
       extractTwitchToken()
 
       if (!window.opener && session?.accessToken) {
-        const validated = await validateSession(session.accessToken)
-        if (!validated) {
-          logout()
-        } else {
-          setSession(validated)
-        }
+        const { session: validated, shouldLogout } = await validateSession(session.accessToken)
+
+        if (shouldLogout) logout()
+
+        if (validated) setSession(validated)
       }
 
       setIsLoading(false)
@@ -117,8 +134,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     if (!session?.accessToken) return
 
     const interval = setInterval(async () => {
-      const validated = await validateSession(session.accessToken)
-      if (!validated) {
+      const { shouldLogout } = await validateSession(session.accessToken)
+      if (shouldLogout) {
         logout()
       }
     }, TWITCH_TOKEN_VALIDATION_INTERVAL_MS)
