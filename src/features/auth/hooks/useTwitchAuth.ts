@@ -14,8 +14,8 @@ import { useChannelProfile } from './useChannelProfile.ts'
 import { useSessionStorage } from '../../../hooks/useSessionStorage.ts'
 import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
 import { parseTwitchAuthResponse } from '../utils/parseTwitchAuthResponse.ts'
-import { clearAuthRedirectUrl, isAuthPopupWindow, sendAuthResultToOpener } from '../utils/authRedirect.ts'
-import { consumeAuthState } from '../utils/crypto.ts'
+import { clearAuthRedirectUrl, isAuthPopupWindow, openAuthBroadcastChannel, postAuthResult } from '../utils/authRedirect.ts'
+import { consumeAuthAttempt } from '../utils/crypto.ts'
 import { formatAuthError } from '../utils/formatAuthError.ts'
 import { buildTwitchSession, isValidTwitchSession, getTwitchAccessToken } from '../utils/twitchSession.ts'
 import { isWebStorageAvailable } from '../../../hooks/utils/webStorage.utils.ts'
@@ -27,7 +27,7 @@ import { isWebStorageAvailable } from '../../../hooks/utils/webStorage.utils.ts'
  * @returns Текст ошибки или `null`, если проверка пройдена.
  */
 const getAuthStateError = (state: string | null): string | null => {
-  const result = consumeAuthState(state)
+  const { result } = consumeAuthAttempt(state)
 
   if (result === AUTH_STATE_VALIDATION_RESULTS.UNAVAILABLE) return TWITCH_AUTH_UI_MESSAGES.AUTH_STATE_UNAVAILABLE
   if (result === AUTH_STATE_VALIDATION_RESULTS.INVALID) return TWITCH_AUTH_UI_MESSAGES.CSRF_FAILED
@@ -179,12 +179,21 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         const response = parseTwitchAuthResponse()
 
         if (isPopup) {
-          sendAuthResultToOpener(response)
+          const stateError = getAuthStateError(response.state)
+
+          if (stateError) {
+            showAuthError(stateError)
+          } else {
+            const channel = openAuthBroadcastChannel()
+            postAuthResult(channel, response)
+            channel.close()
+          }
+
           return
         }
 
         if (response.error) {
-          consumeAuthState(response.state)
+          consumeAuthAttempt(response.state)
           showAuthError(formatAuthError(response.error))
           return
         }

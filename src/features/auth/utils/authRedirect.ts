@@ -1,4 +1,4 @@
-import { TWITCH_AUTH_MESSAGE_TYPE, TWITCH_SESSION_ERRORS } from '../../../constants/auth.constants.ts'
+import { TWITCH_AUTH_BROADCAST_CHANNEL, TWITCH_AUTH_MESSAGE_TYPE, TWITCH_SESSION_ERRORS } from '../../../constants/auth.constants.ts'
 import type { TwitchAuthMessageData } from '../types/messages.types.ts'
 import type { TwitchAuthResponse } from '../types'
 
@@ -12,15 +12,22 @@ let isCleanupErrorReported = false
 export const isAuthPopupWindow = (): boolean => Boolean(window.opener) && window.opener !== window
 
 /**
- * Передаёт результат авторизации родительскому окну.
+ * Создаёт BroadcastChannel для передачи результата авторизации между окнами
+ * одного источника. Не зависит от window.opener/WindowProxy.
  *
+ * @returns Канал авторизации.
+ */
+export const openAuthBroadcastChannel = (): BroadcastChannel => (
+  new BroadcastChannel(TWITCH_AUTH_BROADCAST_CHANNEL)
+)
+
+/**
+ * Отправляет результат авторизации через BroadcastChannel.
+ *
+ * @param channel - Канал авторизации.
  * @param response - Результат разбора ответа Twitch.
  */
-export const sendAuthResultToOpener = (response: TwitchAuthResponse): void => {
-  const opener = window.opener
-
-  if (!opener || opener === window) return
-
+export const postAuthResult = (channel: BroadcastChannel, response: TwitchAuthResponse): void => {
   const message: TwitchAuthMessageData = {
     type: TWITCH_AUTH_MESSAGE_TYPE,
     token: response.token,
@@ -28,7 +35,7 @@ export const sendAuthResultToOpener = (response: TwitchAuthResponse): void => {
     state: response.state,
   }
 
-  opener.postMessage(message, window.location.origin)
+  channel.postMessage(message)
 }
 
 /**

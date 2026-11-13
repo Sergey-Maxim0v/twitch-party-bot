@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { TwitchAuthMessageData } from '../types/messages.types.ts'
-import { TWITCH_AUTH_STAGES, type AuthStage } from '../types'
+import { type AuthStage, TWITCH_AUTH_STAGES } from '../types'
 import {
+  AUTH_CONTEXT_TYPE,
+  TWITCH_AUTH_BROADCAST_CHANNEL,
   TWITCH_AUTH_MESSAGE_TYPE,
   TWITCH_AUTH_POPUP,
   TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS,
@@ -11,7 +13,7 @@ import {
   TWITCH_SESSION_ERRORS,
 } from '../../../constants/auth.constants.ts'
 import { createTwitchAuthRequest } from '../utils/getTwitchAuthUrl.ts'
-import { saveAuthState } from '../utils/crypto.ts'
+import { saveAuthAttempt } from '../utils/crypto.ts'
 import { isWebStorageAvailable } from '../../../hooks/utils/webStorage.utils.ts'
 import { formatAuthError, getAuthErrorMessage } from '../utils/formatAuthError.ts'
 
@@ -43,18 +45,20 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
   const [authStage, setAuthStage] = useState<AuthStage>(TWITCH_AUTH_STAGES.IDLE)
 
   const popupRef = useRef<Window | null>(null)
-  const pendingAuthStateRef = useRef<string | null>(null)
+  const channelRef = useRef<BroadcastChannel | null>(null)
 
   const canLoginInCurrentTab = isWebStorageAvailable('sessionStorage')
 
   /**
-   * Закрывает всплывающее окно и сбрасывает ожидающий `state`.
+   * Закрывает всплывающее окно, BroadcastChannel и сбрасывает ожидающий `state`.
    */
   const closePopup = useCallback((): void => {
     const popup = popupRef.current
 
     popupRef.current = null
-    pendingAuthStateRef.current = null
+
+    channelRef.current?.close()
+    channelRef.current = null
 
     if (!popup || popup.closed) return
 
@@ -74,12 +78,16 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
       const left = window.screen.width / 2 - width / 2
       const top = window.screen.height / 2 - height / 2
 
-      pendingAuthStateRef.current = state
+      if (!saveAuthAttempt(state, AUTH_CONTEXT_TYPE.POPUP)) {
+        setAuthStage(TWITCH_AUTH_STAGES.ERROR)
+        setError(TWITCH_AUTH_UI_MESSAGES.AUTH_STATE_UNAVAILABLE)
+        setIsModalOpen(true)
+        return
+      }
 
       const popup = window.open(url, NAME, `width=${width},height=${height},top=${top},left=${left},${FEATURES}`)
 
       if (!popup) {
-        pendingAuthStateRef.current = null
         setAuthStage(TWITCH_AUTH_STAGES.ERROR)
         setError(getPopupBlockedMessage(canLoginInCurrentTab))
         setIsModalOpen(true)
@@ -90,7 +98,6 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
       setAuthStage(TWITCH_AUTH_STAGES.WAITING)
       setIsModalOpen(true)
     } catch (error) {
-      pendingAuthStateRef.current = null
       console.error(TWITCH_SESSION_ERRORS.AUTH_URL_FAILED, error)
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
       setError(getAuthErrorMessage(error, TWITCH_AUTH_UI_MESSAGES.URL_BUILD_FAILED))
@@ -108,7 +115,7 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
     try {
       const { url, state } = createTwitchAuthRequest()
 
-      if (!saveAuthState(state)) {
+      if (!saveAuthAttempt(state, AUTH_CONTEXT_TYPE.TAB)) {
         setAuthStage(TWITCH_AUTH_STAGES.ERROR)
         setError(TWITCH_AUTH_UI_MESSAGES.CURRENT_TAB_LOGIN_UNAVAILABLE)
         setIsModalOpen(true)
@@ -152,14 +159,16 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
   }, [onSuccess, setError])
 
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent): Promise<void> => {
-      if (event.origin !== window.location.origin || event.source !== popupRef.current) return
+    const channel = new BroadcastChannel(TWITCH_AUTH_BROADCAST_CHANNEL)
+    channelRef.current = channel
+
+    channel.onmessage = async (event: MessageEvent): Promise<void> => {
+      if (authStage !== TWITCH_AUTH_STAGES.WAITING) return
 
       const data = event.data as Partial<TwitchAuthMessageData>
       if (!data || data.type !== TWITCH_AUTH_MESSAGE_TYPE) return
 
       if (data.error) {
-        pendingAuthStateRef.current = null
         setAuthStage(TWITCH_AUTH_STAGES.ERROR)
         setError(formatAuthError(data.error))
         return
@@ -167,22 +176,15 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
 
       if (!data.token) return
 
-      if (!data.state || data.state !== pendingAuthStateRef.current) {
-        pendingAuthStateRef.current = null
-        setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-        setError(TWITCH_AUTH_UI_MESSAGES.CSRF_FAILED)
-        return
-      }
-
-      pendingAuthStateRef.current = null
       await authorizeToken(data.token)
     }
 
-    window.addEventListener('message', handleMessage)
     return () => {
-      window.removeEventListener('message', handleMessage)
+      channel.onmessage = null
+      channel.close()
+      channelRef.current = null
     }
-  }, [authorizeToken, setError])
+  }, [authStage, authorizeToken, setError])
 
   useEffect(() => {
     if (!isModalOpen || authStage !== TWITCH_AUTH_STAGES.WAITING) return
@@ -192,14 +194,17 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
 
       if (popup && !popup.closed) return
 
-      pendingAuthStateRef.current = null
       clearInterval(pollTimer)
+
+      if (authStage !== TWITCH_AUTH_STAGES.WAITING) return
+
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
       setError(popup ? TWITCH_AUTH_UI_MESSAGES.POPUP_CLOSED : getPopupBlockedMessage(canLoginInCurrentTab))
     }, TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS)
 
     const timeoutTimer = setTimeout(() => {
-      pendingAuthStateRef.current = null
+      if (authStage !== TWITCH_AUTH_STAGES.WAITING) return
+
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
       setError(TWITCH_AUTH_UI_MESSAGES.POPUP_TIMEOUT)
     }, TWITCH_AUTH_POPUP_WAIT_TIMEOUT_MS)

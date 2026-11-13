@@ -104,9 +104,25 @@ export const TWITCH_SESSION_ERRORS = {
 } as const
 
 /**
- * Ключ sessionStorage для хранения `state`, защищающего OAuth-поток от CSRF.
+ * Ключ sessionStorage для хранения попытки входа (state + тип контекста),
+ * защищающего OAuth-поток от CSSF. Единый источник правды для проверки.
  */
 export const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
+
+/**
+ * Канал BroadcastChannel для передачи результата авторизации из возвращённого
+ * окна в родительское. Работает только в пределах одного источника, не
+ * зависит от window.opener/WindowProxy.
+ */
+export const TWITCH_AUTH_BROADCAST_CHANNEL = 'twitch_auth_result'
+
+/**
+ * Тип контекста входа: всплывающее окно или текущая вкладка.
+ */
+export const AUTH_CONTEXT_TYPE = {
+  POPUP: 'popup',
+  TAB: 'tab',
+} as const
 
 /**
  * Этапы процесса авторизации.

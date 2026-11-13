@@ -62,7 +62,7 @@ You can run the application in two ways:
 
 ## Architecture & Technical Highlights
 
-* **Authentication (Twitch OAuth):** OAuth authentication using the **Implicit Flow** (requested scopes: `chat:read` and `chat:edit`). Sign-in happens in a popup window, with a fallback to authorizing in the current tab when the browser blocks popups. The access token and session profile are stored in the tab's `sessionStorage`; when storage is unavailable, the session lives in memory and the popup verifies `state` in the opener window without writing to storage.
+* **Authentication (Twitch OAuth):** OAuth authentication using the **Implicit Flow** (requested scopes: `chat:read` and `chat:edit`). Sign-in happens in a popup window, with a fallback to authorizing in the current tab when the browser blocks popups. Before opening the window, the sign-in attempt (`state` + context type) is stored in `sessionStorage` as the single source of truth. The returned window verifies `state` in `sessionStorage` and passes the result to the opener window through `BroadcastChannel` (origin-bound, independent of `window.opener`). The access token and session profile are stored in the tab's `sessionStorage`; when storage is unavailable, the session lives in memory.
 * **Network Layer (Twitch IRC WebSocket):** The app uses a custom lightweight client built on the standard IRC text protocol over WebSockets (`wss://irc-ws.chat.twitch.tv:443`) instead of a third-party chat library.
 * **Socket Stability Management:**
     * The `TwitchIrcClient` class encapsulates the Twitch IRC protocol handshake sequence.
@@ -78,7 +78,7 @@ You can run the application in two ways:
 
 * **No backend.** The app runs entirely in the browser: the bot reads and sends messages directly through Twitch IRC. No third-party servers are involved, and no analytics or trackers are used.
 * **Local data only.** The OAuth token is stored in the tab's `sessionStorage` (or in memory when storage is blocked), while the queue and settings are kept in the browser's `localStorage`. Clearing site data resets everything, while logging out only clears the session.
-* **Blocked storage.** If the browser denies Web Storage access (for example, in a sandboxed iframe or with storage disabled in settings), the UI still loads without errors and keeps working in memory. Popup sign-in remains available when popups are allowed, because `state` is verified in the opener window without writing to storage. Signing in from the current tab and persisting data across reloads are unavailable in this environment, and the app shows a warning.
+* **Blocked storage.** If the browser denies Web Storage access (for example, in a sandboxed iframe or with storage disabled in settings), the UI still loads without errors and keeps working in memory. Popup sign-in remains available when popups are allowed, because `state` is verified in the returned window through `sessionStorage`. When storage is unavailable, the session lives in memory until reload. Signing in from the current tab and persisting data across reloads are unavailable in this environment, and the app shows a warning.
 * **The bot runs only while the tab is open.** Closing the tab or browser stops chat responses. Keep the tab open while streaming.
 * **No cross-device sync.** The queue and settings are shared only between tabs of the same browser.
 * **Token lifetime.** With Implicit Flow, the Twitch token expires after a limited time and is not refreshed automatically; you will need to log in again.
