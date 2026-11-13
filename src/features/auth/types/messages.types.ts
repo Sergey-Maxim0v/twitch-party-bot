@@ -9,4 +9,5 @@ export interface TwitchAuthMessageData {
   type: TwitchAuthMessageType;
   token: string | null;
   error: string | null;
+  state: string | null;
 }

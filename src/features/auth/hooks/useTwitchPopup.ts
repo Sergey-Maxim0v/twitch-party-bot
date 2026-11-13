@@ -8,14 +8,29 @@ import {
   TWITCH_AUTH_POPUP_WAIT_TIMEOUT_MS,
   TWITCH_AUTH_SUCCESS_CLOSE_DELAY_MS,
   TWITCH_AUTH_UI_MESSAGES,
+  TWITCH_SESSION_ERRORS,
 } from '../../../constants/auth.constants.ts'
-import { getTwitchAuthUrl } from '../utils/getTwitchAuthUrl.ts'
-import { formatAuthError } from '../utils/formatAuthError.ts'
+import { createTwitchAuthRequest } from '../utils/getTwitchAuthUrl.ts'
+import { saveAuthState } from '../utils/crypto.ts'
+import { isWebStorageAvailable } from '../../../hooks/utils/webStorage.utils.ts'
+import { formatAuthError, getAuthErrorMessage } from '../utils/formatAuthError.ts'
 
 interface UseTwitchPopupProps {
   onSuccess: (token: string) => Promise<void>;
   setError: (err: string | null) => void;
 }
+
+/**
+ * Выбирает текст ошибки блокировки popup с учётом доступности запасного входа.
+ *
+ * @param canFallback - Доступен ли вход в текущей вкладке.
+ * @returns Текст ошибки для модального окна.
+ */
+const getPopupBlockedMessage = (canFallback: boolean): string => (
+  canFallback
+    ? TWITCH_AUTH_UI_MESSAGES.POPUP_BLOCKED
+    : TWITCH_AUTH_UI_MESSAGES.POPUP_BLOCKED_WITHOUT_FALLBACK
+)
 
 /**
  * Управляет авторизацией Twitch: всплывающим окном, приёмом результата и стадиями.
@@ -28,15 +43,22 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
   const [authStage, setAuthStage] = useState<AuthStage>(TWITCH_AUTH_STAGES.IDLE)
 
   const popupRef = useRef<Window | null>(null)
+  const pendingAuthStateRef = useRef<string | null>(null)
+
+  const canLoginInCurrentTab = isWebStorageAvailable('sessionStorage')
 
   /**
-   * Закрывает всплывающее окно, если оно ещё открыто.
+   * Закрывает всплывающее окно и сбрасывает ожидающий `state`.
    */
   const closePopup = useCallback((): void => {
-    if (!popupRef.current || popupRef.current.closed) return
+    const popup = popupRef.current
 
-    popupRef.current.close()
     popupRef.current = null
+    pendingAuthStateRef.current = null
+
+    if (!popup || popup.closed) return
+
+    popup.close()
   }, [])
 
   /**
@@ -47,16 +69,19 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
     closePopup()
 
     try {
-      const url = getTwitchAuthUrl()
+      const { url, state } = createTwitchAuthRequest()
       const { WIDTH: width, HEIGHT: height, NAME, FEATURES } = TWITCH_AUTH_POPUP
       const left = window.screen.width / 2 - width / 2
       const top = window.screen.height / 2 - height / 2
 
+      pendingAuthStateRef.current = state
+
       const popup = window.open(url, NAME, `width=${width},height=${height},top=${top},left=${left},${FEATURES}`)
 
       if (!popup) {
+        pendingAuthStateRef.current = null
         setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-        setError(TWITCH_AUTH_UI_MESSAGES.POPUP_BLOCKED)
+        setError(getPopupBlockedMessage(canLoginInCurrentTab))
         setIsModalOpen(true)
         return
       }
@@ -64,12 +89,14 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
       popupRef.current = popup
       setAuthStage(TWITCH_AUTH_STAGES.WAITING)
       setIsModalOpen(true)
-    } catch (err) {
+    } catch (error) {
+      pendingAuthStateRef.current = null
+      console.error(TWITCH_SESSION_ERRORS.AUTH_URL_FAILED, error)
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-      setError(err instanceof Error ? err.message : TWITCH_AUTH_UI_MESSAGES.URL_BUILD_FAILED)
+      setError(getAuthErrorMessage(error, TWITCH_AUTH_UI_MESSAGES.URL_BUILD_FAILED))
       setIsModalOpen(true)
     }
-  }, [closePopup, setError])
+  }, [canLoginInCurrentTab, closePopup, setError])
 
   /**
    * Запускает авторизацию в текущей вкладке — запасной путь при заблокированном popup.
@@ -79,10 +106,20 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
     closePopup()
 
     try {
-      window.location.assign(getTwitchAuthUrl())
-    } catch (err) {
+      const { url, state } = createTwitchAuthRequest()
+
+      if (!saveAuthState(state)) {
+        setAuthStage(TWITCH_AUTH_STAGES.ERROR)
+        setError(TWITCH_AUTH_UI_MESSAGES.CURRENT_TAB_LOGIN_UNAVAILABLE)
+        setIsModalOpen(true)
+        return
+      }
+
+      window.location.assign(url)
+    } catch (error) {
+      console.error(TWITCH_SESSION_ERRORS.AUTH_URL_FAILED, error)
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-      setError(err instanceof Error ? err.message : TWITCH_AUTH_UI_MESSAGES.URL_BUILD_FAILED)
+      setError(getAuthErrorMessage(error, TWITCH_AUTH_UI_MESSAGES.URL_BUILD_FAILED))
       setIsModalOpen(true)
     }
   }, [closePopup, setError])
@@ -108,9 +145,9 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
       await onSuccess(token)
       setAuthStage(TWITCH_AUTH_STAGES.SUCCESS)
       setTimeout(() => setIsModalOpen(false), TWITCH_AUTH_SUCCESS_CLOSE_DELAY_MS)
-    } catch (err) {
+    } catch (error) {
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-      setError(err instanceof Error ? err.message : TWITCH_AUTH_UI_MESSAGES.UNKNOWN_VALIDATION)
+      setError(getAuthErrorMessage(error, TWITCH_AUTH_UI_MESSAGES.UNKNOWN_VALIDATION))
     }
   }, [onSuccess, setError])
 
@@ -122,6 +159,7 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
       if (!data || data.type !== TWITCH_AUTH_MESSAGE_TYPE) return
 
       if (data.error) {
+        pendingAuthStateRef.current = null
         setAuthStage(TWITCH_AUTH_STAGES.ERROR)
         setError(formatAuthError(data.error))
         return
@@ -129,6 +167,14 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
 
       if (!data.token) return
 
+      if (!data.state || data.state !== pendingAuthStateRef.current) {
+        pendingAuthStateRef.current = null
+        setAuthStage(TWITCH_AUTH_STAGES.ERROR)
+        setError(TWITCH_AUTH_UI_MESSAGES.CSRF_FAILED)
+        return
+      }
+
+      pendingAuthStateRef.current = null
       await authorizeToken(data.token)
     }
 
@@ -146,12 +192,14 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
 
       if (popup && !popup.closed) return
 
+      pendingAuthStateRef.current = null
       clearInterval(pollTimer)
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-      setError(popup ? TWITCH_AUTH_UI_MESSAGES.POPUP_CLOSED : TWITCH_AUTH_UI_MESSAGES.POPUP_BLOCKED)
+      setError(popup ? TWITCH_AUTH_UI_MESSAGES.POPUP_CLOSED : getPopupBlockedMessage(canLoginInCurrentTab))
     }, TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS)
 
     const timeoutTimer = setTimeout(() => {
+      pendingAuthStateRef.current = null
       setAuthStage(TWITCH_AUTH_STAGES.ERROR)
       setError(TWITCH_AUTH_UI_MESSAGES.POPUP_TIMEOUT)
     }, TWITCH_AUTH_POPUP_WAIT_TIMEOUT_MS)
@@ -160,13 +208,14 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
       clearInterval(pollTimer)
       clearTimeout(timeoutTimer)
     }
-  }, [isModalOpen, authStage, setError])
+  }, [canLoginInCurrentTab, isModalOpen, authStage, setError])
 
   return {
     isModalOpen,
     setIsModalOpen,
     authStage,
     setAuthStage,
+    canLoginInCurrentTab,
     login,
     loginInCurrentTab,
     closeModal,

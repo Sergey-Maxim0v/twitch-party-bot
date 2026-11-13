@@ -1,12 +1,13 @@
 import { type FC } from 'react'
 import { LuTwitch } from 'react-icons/lu'
 import { useAuth } from '../../features/auth/hooks/useAuth.ts'
+import { TWITCH_AUTH_UI_MESSAGES } from '../../constants/auth.constants.ts'
 
 /**
  * Экран-приглашение к авторизации через Twitch.
  */
 export const WelcomeScreen: FC = () => {
-  const { login } = useAuth()
+  const { login, isStoragePersistent } = useAuth()
 
   return (
     <div className="flex h-full items-center justify-center p-6 bg-base-100">
@@ -31,6 +32,12 @@ export const WelcomeScreen: FC = () => {
           <LuTwitch className="text-lg" />
           Авторизоваться через Twitch
         </button>
+
+        {!isStoragePersistent && (
+          <p className="text-xs text-warning max-w-sm">
+            {TWITCH_AUTH_UI_MESSAGES.STORAGE_PERSISTENCE_UNAVAILABLE}
+          </p>
+        )}
       </div>
     </div>
   )

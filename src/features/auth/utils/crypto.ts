@@ -1,4 +1,9 @@
-import { TWITCH_AUTH_STATE_STORAGE_KEY } from '../../../constants/auth.constants.ts'
+import {
+  AUTH_STATE_VALIDATION_RESULTS,
+  TWITCH_AUTH_STATE_STORAGE_KEY,
+} from '../../../constants/auth.constants.ts'
+import type { AuthStateValidationResult } from '../types'
+import { readWebStorage, removeWebStorage, writeWebStorage } from '../../../hooks/utils/webStorage.utils.ts'
 
 /**
  * Генерирует случайную строку для параметра `state`, защищающего OAuth-поток от CSRF.
@@ -15,21 +20,26 @@ export const generateRandomState = (): string => {
  * Сохраняет `state` в sessionStorage перед редиректом на Twitch.
  *
  * @param state - Сгенерированное значение `state`.
+ * @returns `true`, если состояние удалось сохранить.
  */
-export const saveAuthState = (state: string): void => {
-  sessionStorage.setItem(TWITCH_AUTH_STATE_STORAGE_KEY, state)
-}
+export const saveAuthState = (state: string): boolean => (
+  writeWebStorage('sessionStorage', TWITCH_AUTH_STATE_STORAGE_KEY, state)
+)
 
 /**
  * Сверяет вернувшийся `state` с сохранённым и удаляет его из sessionStorage.
- * Значение удаляется всегда, поэтому повторная проверка невозможна.
  *
  * @param receivedState - Значение `state` из URL после редиректа.
- * @returns `true`, если `state` совпадает с сохранённым.
+ * @returns Результат проверки: валиден, не совпал или хранилище недоступно.
  */
-export const isValidState = (receivedState: string | null): boolean => {
-  const savedState = sessionStorage.getItem(TWITCH_AUTH_STATE_STORAGE_KEY)
-  sessionStorage.removeItem(TWITCH_AUTH_STATE_STORAGE_KEY)
+export const consumeAuthState = (receivedState: string | null): AuthStateValidationResult => {
+  const { value: savedState, isAvailable } = readWebStorage('sessionStorage', TWITCH_AUTH_STATE_STORAGE_KEY)
 
-  return Boolean(savedState) && savedState === receivedState
+  if (!isAvailable) return AUTH_STATE_VALIDATION_RESULTS.UNAVAILABLE
+
+  removeWebStorage('sessionStorage', TWITCH_AUTH_STATE_STORAGE_KEY)
+
+  return savedState && savedState === receivedState
+    ? AUTH_STATE_VALIDATION_RESULTS.VALID
+    : AUTH_STATE_VALIDATION_RESULTS.INVALID
 }

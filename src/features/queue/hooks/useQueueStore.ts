@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueueState } from '../types.ts'
 import { QUEUE_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
-import { parseStoredValue } from '../../../hooks/utils/storage.utils.ts'
+import { readStoredValue, serializeStoredValue } from '../../../hooks/utils/storage.utils.ts'
+import { readWebStorage, writeWebStorage } from '../../../hooks/utils/webStorage.utils.ts'
 import { createInitialState } from '../utils/createInitialState.ts'
 import { createQueueStore, type QueueStore } from '../store/queueStore.ts'
 
@@ -20,18 +21,9 @@ interface UseQueueStoreResult {
  *
  * @returns Состояние очереди, восстановленное из хранилища.
  */
-const readStoredState = (): QueueState => {
-  try {
-    const item = window.localStorage.getItem(QUEUE_STORAGE_KEYS.DATA)
-
-    if (item === null) return createInitialState()
-
-    return parseStoredValue(item, createInitialState())
-  } catch (error) {
-    console.error(`Ошибка чтения localStorage по ключу "${QUEUE_STORAGE_KEYS.DATA}":`, error)
-    return createInitialState()
-  }
-}
+const readStoredState = (): QueueState => (
+  readStoredValue('localStorage', QUEUE_STORAGE_KEYS.DATA, createInitialState())
+)
 
 /**
  * Хранит состояние очереди в синхронном хранилище: обновления применяются
@@ -47,19 +39,15 @@ export const useQueueStore = (): UseQueueStoreResult => {
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState)
 
   useEffect(() => {
-    try {
-      const serialized = JSON.stringify(state)
-      const item = window.localStorage.getItem(QUEUE_STORAGE_KEYS.DATA)
-      const isFirstRun = isFirstRunRef.current
-      isFirstRunRef.current = false
+    const serialized = serializeStoredValue('localStorage', QUEUE_STORAGE_KEYS.DATA, state)
+    const { value: item } = readWebStorage('localStorage', QUEUE_STORAGE_KEYS.DATA)
+    const isFirstRun = isFirstRunRef.current
+    isFirstRunRef.current = false
 
-      // Не создаём запись на монтировании и не перезаписываем одинаковое значение.
-      if ((isFirstRun && item === null) || item === serialized) return
+    // Не создаём запись на монтировании и не перезаписываем одинаковое значение.
+    if (serialized === null || (isFirstRun && item === null) || item === serialized) return
 
-      window.localStorage.setItem(QUEUE_STORAGE_KEYS.DATA, serialized)
-    } catch (error) {
-      console.error(`Ошибка записи localStorage по ключу "${QUEUE_STORAGE_KEYS.DATA}":`, error)
-    }
+    writeWebStorage('localStorage', QUEUE_STORAGE_KEYS.DATA, serialized)
   }, [state])
 
   useEffect(() => {

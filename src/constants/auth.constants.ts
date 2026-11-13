@@ -33,6 +33,15 @@ export const TWITCH_AUTH_ERRORS = {
 }
 
 /**
+ * Результаты проверки OAuth-параметра `state`.
+ */
+export const AUTH_STATE_VALIDATION_RESULTS = {
+  VALID: 'valid',
+  INVALID: 'invalid',
+  UNAVAILABLE: 'unavailable',
+} as const
+
+/**
  * Тип сообщения, которое popup отправляет родительскому окну.
  */
 export const TWITCH_AUTH_MESSAGE_TYPE = 'TWITCH_AUTH_RESULT'
@@ -54,9 +63,16 @@ export const TWITCH_AUTH_UI_MESSAGES = {
   CSRF_FAILED: 'Ошибка безопасности (CSRF): верификация контекста не пройдена.',
   DENIED: 'Авторизация отклонена Twitch:',
   POPUP_BLOCKED: 'Всплывающее окно заблокировано браузером. Войдите в текущей вкладке.',
+  POPUP_BLOCKED_WITHOUT_FALLBACK: 'Всплывающее окно заблокировано, а вход в текущей вкладке недоступен из-за блокировки хранилища. Разрешите хранение данных сайта и попробуйте снова.',
   POPUP_CLOSED: 'Авторизация отменена: всплывающее окно было закрыто.',
   POPUP_TIMEOUT: 'Авторизация не завершена вовремя. Попробуйте снова.',
   URL_BUILD_FAILED: 'Ошибка при формировании URL авторизации.',
+  CLIENT_ID_MISSING: 'Twitch Client ID не найден в конфигурации приложения. Проверьте настройки CI/CD.',
+  INIT_FAILED: 'Не удалось обработать ответ Twitch. Попробуйте войти снова.',
+  UNKNOWN_AUTH: 'Неизвестная ошибка при авторизации.',
+  AUTH_STATE_UNAVAILABLE: 'Браузер блокирует хранилище, поэтому не удалось проверить состояние авторизации. Разрешите хранение данных сайта и попробуйте снова.',
+  CURRENT_TAB_LOGIN_UNAVAILABLE: 'Вход в текущей вкладке недоступен: браузер блокирует хранилище. Войдите во всплывающем окне или разрешите хранение данных сайта.',
+  STORAGE_PERSISTENCE_UNAVAILABLE: 'Браузер ограничивает хранилище: часть данных и настроек не сохранится после перезагрузки.',
   UNKNOWN_VALIDATION: 'Неизвестная ошибка валидации токена.',
   VALIDATION_UNAVAILABLE: 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.',
   VALIDATION_FAILED: 'Не удалось подтвердить валидность токена через Twitch API.',
@@ -83,6 +99,8 @@ export const TWITCH_TOKEN_REJECTED_STATUSES: readonly number[] = [400, 401]
 export const TWITCH_SESSION_ERRORS = {
   CORRUPTED: 'Повреждённая сессия Twitch удалена из хранилища.',
   INIT_FAILED: 'Не удалось инициализировать авторизацию Twitch:',
+  AUTH_URL_FAILED: 'Не удалось сформировать URL авторизации Twitch:',
+  REDIRECT_CLEANUP_FAILED: 'Не удалось очистить OAuth-параметры из адресной строки:',
 } as const
 
 /**

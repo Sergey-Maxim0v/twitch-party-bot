@@ -3,6 +3,7 @@ import { TWITCH_AUTH_STAGES, type TwitchAuthHookResult, type TwitchUserSession }
 import { useTwitchPopup } from './useTwitchPopup.ts'
 import { useTwitchChannelState } from './useTwitchChannelState.ts'
 import {
+  AUTH_STATE_VALIDATION_RESULTS,
   TWITCH_AUTH_UI_MESSAGES,
   TWITCH_SESSION_ERRORS,
   TWITCH_TOKEN_VALIDATION_INTERVAL_MS,
@@ -14,8 +15,25 @@ import { useSessionStorage } from '../../../hooks/useSessionStorage.ts'
 import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
 import { parseTwitchAuthResponse } from '../utils/parseTwitchAuthResponse.ts'
 import { clearAuthRedirectUrl, isAuthPopupWindow, sendAuthResultToOpener } from '../utils/authRedirect.ts'
+import { consumeAuthState } from '../utils/crypto.ts'
 import { formatAuthError } from '../utils/formatAuthError.ts'
 import { buildTwitchSession, isValidTwitchSession, getTwitchAccessToken } from '../utils/twitchSession.ts'
+import { isWebStorageAvailable } from '../../../hooks/utils/webStorage.utils.ts'
+
+/**
+ * Проверяет одноразовый `state` и возвращает текст ошибки при неудаче.
+ *
+ * @param state - Значение `state` из ответа Twitch.
+ * @returns Текст ошибки или `null`, если проверка пройдена.
+ */
+const getAuthStateError = (state: string | null): string | null => {
+  const result = consumeAuthState(state)
+
+  if (result === AUTH_STATE_VALIDATION_RESULTS.UNAVAILABLE) return TWITCH_AUTH_UI_MESSAGES.AUTH_STATE_UNAVAILABLE
+  if (result === AUTH_STATE_VALIDATION_RESULTS.INVALID) return TWITCH_AUTH_UI_MESSAGES.CSRF_FAILED
+
+  return null
+}
 
 /**
  * Основной хук авторизации Twitch: хранит сессию текущей вкладки,
@@ -30,12 +48,10 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
   const isProcessingHash = useRef(false)
 
-  // Хранилище не проверяет структуру записи, поэтому повреждённая сессия
-  // не должна выглядеть как авторизация: пустой логин не подключит сокет.
   const session = isValidTwitchSession(storedSession) ? storedSession : null
-
-  // Токен берём из сырых данных: повреждённую сессию ещё можно восстановить.
   const accessToken = getTwitchAccessToken(storedSession)
+  const canLoginInCurrentTab = isWebStorageAvailable('sessionStorage')
+  const isStoragePersistent = canLoginInCurrentTab && isWebStorageAvailable('localStorage')
 
   /**
    * Проверяет токен и формирует сессию. Сетевые ошибки не требуют выхода.
@@ -89,6 +105,17 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
   const { setAuthStage, setIsModalOpen, authorizeToken } = popupManager
 
+  /**
+   * Показывает ошибку авторизации в модальном окне.
+   *
+   * @param message - Текст ошибки.
+   */
+  const showAuthError = useCallback((message: string): void => {
+    setAuthStage(TWITCH_AUTH_STAGES.ERROR)
+    setError(message)
+    setIsModalOpen(true)
+  }, [setAuthStage, setError, setIsModalOpen])
+
   const channelManager = useTwitchChannelState(session?.login)
 
   const { displayName: activeChannelDisplayName, avatarUrl: activeChannelAvatar } = useChannelProfile({
@@ -133,7 +160,6 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   }, [validateSession, setSession, logout])
 
   useEffect(() => {
-    // Запись без токена восстановить нечем — удаляем её.
     if (storedSession === null || accessToken) return
 
     console.error(TWITCH_SESSION_ERRORS.CORRUPTED)
@@ -147,36 +173,52 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
       setIsLoading(true)
 
-      const response = parseTwitchAuthResponse()
+      const isPopup = isAuthPopupWindow()
 
-      // Во всплывающем окне результат уходит родительскому окну, а не обрабатывается здесь.
-      if (isAuthPopupWindow()) {
-        sendAuthResultToOpener(response)
-        window.close()
-        return
+      try {
+        const response = parseTwitchAuthResponse()
+
+        if (isPopup) {
+          sendAuthResultToOpener(response)
+          return
+        }
+
+        if (response.error) {
+          consumeAuthState(response.state)
+          showAuthError(formatAuthError(response.error))
+          return
+        }
+
+        if (response.token) {
+          const stateError = getAuthStateError(response.state)
+
+          if (stateError) {
+            showAuthError(stateError)
+            return
+          }
+
+          await authorizeToken(response.token)
+          return
+        }
+
+        if (accessToken) {
+          await syncSession(accessToken)
+        }
+      } finally {
+        clearAuthRedirectUrl()
+        setIsLoading(false)
+
+        if (isPopup) {
+          window.close()
+        }
       }
-
-      clearAuthRedirectUrl()
-
-      if (response.error) {
-        setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-        setError(formatAuthError(response.error))
-        setIsModalOpen(true)
-      }
-
-      if (response.token) {
-        await authorizeToken(response.token)
-      } else if (accessToken) {
-        await syncSession(accessToken)
-      }
-
-      setIsLoading(false)
     }
 
     handleAuthInit().catch(err => {
       console.error(TWITCH_SESSION_ERRORS.INIT_FAILED, err)
+      showAuthError(TWITCH_AUTH_UI_MESSAGES.INIT_FAILED)
     })
-  }, [accessToken, authorizeToken, syncSession, setAuthStage, setError, setIsModalOpen])
+  }, [accessToken, authorizeToken, syncSession, showAuthError])
 
   useEffect(() => {
     if (!accessToken) return
@@ -199,6 +241,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     logout,
     login: popupManager.login,
     loginInCurrentTab: popupManager.loginInCurrentTab,
+    canLoginInCurrentTab,
+    isStoragePersistent,
     isModalOpen: popupManager.isModalOpen,
     authStage: popupManager.authStage,
     closeModal: popupManager.closeModal,

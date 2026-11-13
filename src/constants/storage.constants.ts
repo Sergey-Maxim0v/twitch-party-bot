@@ -43,3 +43,23 @@ export const AUTH_STORAGE_KEYS = {
   LEGACY_SESSION: 'tqp_twitch_session',
   ACTIVE_CHANNEL: 'tqp_active_channel',
 } as const
+
+/**
+ * Ключ и значение для проверки доступности Web Storage.
+ */
+export const WEB_STORAGE_PROBE = {
+  KEY: '__tqp_web_storage_probe__',
+  VALUE: '1',
+} as const
+
+/**
+ * Тексты ошибок доступа к Web Storage.
+ */
+export const WEB_STORAGE_ERRORS = {
+  ACCESS: 'Web Storage недоступен',
+  READ: 'Ошибка чтения Web Storage',
+  WRITE: 'Ошибка записи в Web Storage',
+  REMOVE: 'Ошибка удаления из Web Storage',
+  PARSE: 'Ошибка разбора значения Web Storage',
+  SERIALIZE: 'Ошибка сериализации значения для Web Storage',
+} as const

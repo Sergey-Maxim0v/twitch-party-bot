@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { parseStoredValue } from './utils/storage.utils.ts'
+import { parseStoredValueSafe, readStoredValue, serializeStoredValue } from './utils/storage.utils.ts'
+import { readWebStorage, writeWebStorage } from './utils/webStorage.utils.ts'
 
 /**
  * Хранит состояние в localStorage и синхронизирует его между вкладками.
@@ -18,32 +19,19 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     initialValueRef.current = initialValue
   }, [initialValue])
 
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = window.localStorage.getItem(key)
-      return item === null ? initialValue : parseStoredValue(item, initialValue)
-    } catch (error) {
-      console.error(`Ошибка чтения localStorage по ключу "${key}":`, error)
-      return initialValue
-    }
-  })
+  const [storedValue, setStoredValue] = useState<T>(() => readStoredValue('localStorage', key, initialValue))
 
   const isFirstRunRef = useRef(true)
 
   useEffect(() => {
-    try {
-      const serialized = JSON.stringify(storedValue)
-      const item = window.localStorage.getItem(key)
-      const isFirstRun = isFirstRunRef.current
-      isFirstRunRef.current = false
+    const serialized = serializeStoredValue('localStorage', key, storedValue)
+    const { value: item } = readWebStorage('localStorage', key)
+    const isFirstRun = isFirstRunRef.current
+    isFirstRunRef.current = false
 
-      // Не создаём запись на монтировании и не перезаписываем одинаковое значение.
-      if ((isFirstRun && item === null) || item === serialized) return
+    if (serialized === null || (isFirstRun && item === null) || item === serialized) return
 
-      window.localStorage.setItem(key, serialized)
-    } catch (error) {
-      console.error(`Ошибка записи в localStorage по ключу "${key}":`, error)
-    }
+    writeWebStorage('localStorage', key, serialized)
   }, [key, storedValue])
 
   const setValue = useCallback((value: T | ((val: T) => T)) => {
@@ -54,15 +42,11 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key !== key) return
 
-      try {
-        const newValue = event.newValue === null
-          ? initialValueRef.current
-          : parseStoredValue(event.newValue, initialValueRef.current)
+      const newValue = event.newValue === null
+        ? initialValueRef.current
+        : parseStoredValueSafe('localStorage', key, event.newValue, initialValueRef.current)
 
-        setStoredValue(newValue)
-      } catch (error) {
-        console.error(`Ошибка парсинга синхронизированных данных по ключу "${key}":`, error)
-      }
+      setStoredValue(newValue)
     }
 
     window.addEventListener('storage', handleStorageChange)

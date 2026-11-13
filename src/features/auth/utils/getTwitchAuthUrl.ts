@@ -1,19 +1,28 @@
-import { TWITCH_AUTH_BASE_URL, TWITCH_CLIENT_ID, TWITCH_AUTH_REDIRECT_URI, TWITCH_AUTH_SCOPES } from '../../../constants/auth.constants.ts'
-import { generateRandomState, saveAuthState } from './crypto.ts'
+import {
+  TWITCH_AUTH_BASE_URL,
+  TWITCH_AUTH_REDIRECT_URI,
+  TWITCH_AUTH_SCOPES,
+  TWITCH_AUTH_UI_MESSAGES,
+  TWITCH_CLIENT_ID,
+} from '../../../constants/auth.constants.ts'
+import { generateRandomState } from './crypto.ts'
+
+export interface TwitchAuthRequest {
+  url: string;
+  state: string;
+}
 
 /**
- * Генерирует URL-адрес для авторизации пользователя на стороне клиента.
+ * Собирает URL страницы авторизации Twitch.
  *
- * @returns URL страницы авторизации Twitch с параметрами приложения.
+ * @param state - Одноразовое значение для защиты OAuth-потока от CSRF.
+ * @returns URL страницы авторизации.
  * @throws {Error} Если Twitch Client ID не задан в переменных окружения.
  */
-export const getTwitchAuthUrl = (): string => {
+export const buildTwitchAuthUrl = (state: string): string => {
   if (!TWITCH_CLIENT_ID || TWITCH_CLIENT_ID === 'undefined') {
-    throw new Error('Twitch Client ID не найден в конфигурации приложения. Проверьте настройки CI/CD.')
+    throw new Error(TWITCH_AUTH_UI_MESSAGES.CLIENT_ID_MISSING)
   }
-
-  const state = generateRandomState()
-  saveAuthState(state)
 
   const scopesString = `${TWITCH_AUTH_SCOPES.READ_CHAT} ${TWITCH_AUTH_SCOPES.WRITE_CHAT}`
 
@@ -23,4 +32,18 @@ export const getTwitchAuthUrl = (): string => {
       '&response_type=token' +
       `&scope=${encodeURIComponent(scopesString)}` +
       `&state=${state}`
+}
+
+/**
+ * Создаёт одноразовый `state` и URL авторизации Twitch.
+ *
+ * @returns URL авторизации и сгенерированное значение `state`.
+ */
+export const createTwitchAuthRequest = (): TwitchAuthRequest => {
+  const state = generateRandomState()
+
+  return {
+    state,
+    url: buildTwitchAuthUrl(state),
+  }
 }

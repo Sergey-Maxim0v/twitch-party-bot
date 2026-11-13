@@ -1,12 +1,22 @@
 import { type FC } from 'react'
 import { useAuth } from '../hooks/useAuth.ts'
 import { TWITCH_AUTH_STAGES } from '../types'
+import { TWITCH_AUTH_UI_MESSAGES } from '../../../constants/auth.constants.ts'
 
 /**
  * Модальное окно, отражающее текущую стадию авторизации Twitch.
  */
 export const AuthModal: FC = () => {
-  const { isModalOpen, authStage, error, login, loginInCurrentTab, closeModal } = useAuth()
+  const {
+    isModalOpen,
+    authStage,
+    error,
+    login,
+    loginInCurrentTab,
+    canLoginInCurrentTab,
+    isStoragePersistent,
+    closeModal,
+  } = useAuth()
 
   if (!isModalOpen) return null
 
@@ -26,9 +36,15 @@ export const AuthModal: FC = () => {
                 Отмена
               </button>
             </div>
-            <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
-              Войти в текущей вкладке
-            </button>
+            {canLoginInCurrentTab ? (
+              <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
+                Войти в текущей вкладке
+              </button>
+            ) : (
+              <p className="text-xs text-base-content/60">
+                {TWITCH_AUTH_UI_MESSAGES.CURRENT_TAB_LOGIN_UNAVAILABLE}
+              </p>
+            )}
           </>
         )}
 
@@ -55,6 +71,11 @@ export const AuthModal: FC = () => {
             <p className="text-sm text-base-content/70">
               Добро пожаловать. Окно сейчас закроется автоматически.
             </p>
+            {!isStoragePersistent && (
+              <p className="text-xs text-warning">
+                {TWITCH_AUTH_UI_MESSAGES.STORAGE_PERSISTENCE_UNAVAILABLE}
+              </p>
+            )}
           </>
         )}
 
@@ -71,7 +92,7 @@ export const AuthModal: FC = () => {
             </div>
             <h3 className="font-bold text-lg text-error">Ошибка входа</h3>
             <p className="text-sm text-error/90 max-w-xs wrap-break-word">
-              {error || 'Неизвестная ошибка при авторизации.'}
+              {error || TWITCH_AUTH_UI_MESSAGES.UNKNOWN_AUTH}
             </p>
             <div className="modal-action grid grid-cols-2 gap-2 w-full mt-2">
               <button className="btn btn-primary btn-sm" onClick={login}>
@@ -81,9 +102,15 @@ export const AuthModal: FC = () => {
                 Закрыть
               </button>
             </div>
-            <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
-              Войти в текущей вкладке
-            </button>
+            {canLoginInCurrentTab ? (
+              <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
+                Войти в текущей вкладке
+              </button>
+            ) : (
+              <p className="text-xs text-base-content/60">
+                {TWITCH_AUTH_UI_MESSAGES.CURRENT_TAB_LOGIN_UNAVAILABLE}
+              </p>
+            )}
           </>
         )}
 

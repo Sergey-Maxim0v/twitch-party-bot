@@ -1,6 +1,8 @@
-import { TWITCH_AUTH_MESSAGE_TYPE } from '../../../constants/auth.constants.ts'
+import { TWITCH_AUTH_MESSAGE_TYPE, TWITCH_SESSION_ERRORS } from '../../../constants/auth.constants.ts'
 import type { TwitchAuthMessageData } from '../types/messages.types.ts'
 import type { TwitchAuthResponse } from '../types'
+
+let isCleanupErrorReported = false
 
 /**
  * Проверяет, что текущее окно открыто как всплывающее окно авторизации.
@@ -23,6 +25,7 @@ export const sendAuthResultToOpener = (response: TwitchAuthResponse): void => {
     type: TWITCH_AUTH_MESSAGE_TYPE,
     token: response.token,
     error: response.error,
+    state: response.state,
   }
 
   opener.postMessage(message, window.location.origin)
@@ -34,5 +37,12 @@ export const sendAuthResultToOpener = (response: TwitchAuthResponse): void => {
 export const clearAuthRedirectUrl = (): void => {
   if (!window.location.hash && !window.location.search) return
 
-  window.history.replaceState(null, '', window.location.pathname)
+  try {
+    window.history.replaceState(null, '', window.location.pathname)
+  } catch (error) {
+    if (isCleanupErrorReported) return
+
+    isCleanupErrorReported = true
+    console.error(TWITCH_SESSION_ERRORS.REDIRECT_CLEANUP_FAILED, error)
+  }
 }
