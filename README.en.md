@@ -32,7 +32,7 @@
 2. **You get a convenient dashboard** where you can see all interested viewers. You can easily add, reorder, or remove players directly via the UI.
 3. **Waiting list:** You can open a pre-registration queue so that viewers can secure their spot in advance for the next game.
 4. **Automated chat messages:** The bot posts updates when the queue opens, closes, gets full, or changes its lineup. Sending must be enabled in the settings — it is turned off by default.
-5. **Flexible configuration:** Customize queue limits, chat commands, toggle automated chat messaging, and more.
+5. **Flexible configuration:** Customize queue limits, chat commands, moderator permissions, and more.
 
 ---
 
@@ -44,8 +44,7 @@
 * **Three UI themes:** Nord, Dim, and System.
 * **Flexible settings:** player limit, custom commands, moderator permissions, cooldowns, and a ban list.
 * **Subscriber modes:** subscribers-only access and subscriber priority.
-* **Nickname validation for 10 games and platforms:** Riot Games, Steam, Ubisoft Connect, Battle.net, Apex Legends, PUBG, Fortnite, Naraka: Bladepoint, Goose Goose Duck, and Among Us.
-* **Automated chat messages:** sending can be enabled and fine-tuned in the settings panel.
+* **Nickname validation:** checks nicknames for popular games and platforms — Steam, Battle.net, Riot Games, Epic Games, and more.
 * **Cross-tab synchronization:** queue and settings changes appear instantly in every open browser tab.
 
 ---
@@ -60,29 +59,23 @@ You can run the application in two ways:
 
 ---
 
-## Architecture & Technical Highlights
+## Architecture & Design Principles
 
-* **Authentication (Twitch OAuth):** OAuth authentication using the **Implicit Flow** (requested scopes: `chat:read` and `chat:edit`). Sign-in happens in a popup window, with a fallback to authorizing in the current tab when the browser blocks popups. Before opening the window, the sign-in attempt (`state` + context type) is stored in `sessionStorage` as the single source of truth. The returned window verifies `state` in `sessionStorage` and passes the result to the opener window through `BroadcastChannel` (origin-bound, independent of `window.opener`). The access token and session profile are stored in the tab's `sessionStorage`; when storage is unavailable, the session lives in memory.
-* **Network Layer (Twitch IRC WebSocket):** The app uses a custom lightweight client built on the standard IRC text protocol over WebSockets (`wss://irc-ws.chat.twitch.tv:443`) instead of a third-party chat library.
-* **Socket Stability Management:**
-    * The `TwitchIrcClient` class encapsulates the Twitch IRC protocol handshake sequence.
-    * Handles native `PING / PONG` heartbeats to maintain a stable connection.
-    * Supports switching channels on the fly without memory leaks or duplicated asynchronous events. When switching channels, the UI clears the previous screen and chat history.
-    * Network outages are handled explicitly: the socket is closed, outgoing messages are rejected with a clear error instead of being silently lost, and the app reconnects on its own once the network is back.
-* **Chat Access Restrictions:** The timeout timer is cleared when the chat component unmounts and when the connection is lost, so an expired timer cannot revive a stale chat access status. An expired timer only lifts the restriction it set itself: room modes and bans keep their status. After a reconnect, the chat access status is derived from fresh `ROOMSTATE / USERSTATE` packets.
-* **Cross-Tab Synchronization:** Real-time application state synchronization across multiple tabs. A custom `useLocalStorage` hook listens to the browser's native `storage` event, automatically updating the state in all open tabs when data changes in any of them.
-* **Background Timers (Web Worker):** Heartbeat timers (PING/PONG) run in a dedicated Web Worker so that the browser does not throttle them in an inactive tab. If no messages arrive for about 60 seconds, the bot sends a PING and waits another 10 seconds for a PONG; if no response arrives, the socket is forcibly recreated, so a half-open connection does not go unnoticed. The IRC client itself runs on the main thread.
+* **Custom IRC client:** a lightweight Twitch IRC implementation instead of third-party libraries — handshake, connection keep-alive, switching channels on the fly, and automatic reconnection after a network drop.
+* **Stable connection:** heartbeat timers run in a Web Worker so the browser does not throttle them in an inactive tab, and a half-open connection is detected and recreated automatically.
+* **Twitch OAuth sign-in:** the sign-in happens in a separate window, with a fallback to the current tab when the browser blocks popups. The token and session profile are stored inside the tab only.
+* **Modular codebase:** the logic is split into independent parts (auth, queue, notifications, settings), with infrastructure services (sockets, Twitch IRC) kept separate.
 
 ---
 
 ## Limitations & Privacy
 
 * **No backend.** The app runs entirely in the browser: the bot reads and sends messages directly through Twitch IRC. No third-party servers are involved, and no analytics or trackers are used.
-* **Local data only.** The OAuth token is stored in the tab's `sessionStorage` (or in memory when storage is blocked), while the queue and settings are kept in the browser's `localStorage`. Clearing site data resets everything, while logging out only clears the session.
-* **Blocked storage.** If the browser denies Web Storage access (for example, in a sandboxed iframe or with storage disabled in settings), the UI still loads without errors and keeps working in memory. Popup sign-in remains available when popups are allowed, because `state` is verified in the returned window through `sessionStorage`. When storage is unavailable, the session lives in memory until reload. Signing in from the current tab and persisting data across reloads are unavailable in this environment, and the app shows a warning.
+* **Local data only.** The OAuth token is stored in the current tab's session, while the queue and settings are kept in the browser's `localStorage`. Clearing site data resets everything, while logging out only clears the session.
+* **If the browser blocks Web Storage** (for example, in a sandboxed iframe), the app keeps working in memory: data is not preserved between reloads, and a warning is shown.
 * **The bot runs only while the tab is open.** Closing the tab or browser stops chat responses. Keep the tab open while streaming.
 * **No cross-device sync.** The queue and settings are shared only between tabs of the same browser.
-* **Token lifetime.** With Implicit Flow, the Twitch token expires after a limited time and is not refreshed automatically; you will need to log in again.
+* **Token lifetime.** The Twitch token expires after a limited time and is not refreshed automatically; you will need to log in again.
 
 ---
 
@@ -137,6 +130,7 @@ npm run preview
 │   ├── features/                # Isolated business logic modules
 │   │   ├── app-logs/            # Components for logging network events, app state, and queue changes
 │   │   ├── auth/                # OAuth authentication module and streamer context
+│   │   ├── chanel-info/         # Streamer channel information
 │   │   ├── queue/               # Queue state management and player lists
 │   │   ├── queue-notification/  # Dispatcher for sending trigger notifications to chat
 │   │   └── queue-settings/      # QueueSettings configuration interface
@@ -151,7 +145,11 @@ npm run preview
 ├── eslint.config.js             # Flat ESLint configuration file
 ├── tsconfig.app.json            # TypeScript compiler specifications for the client app
 ├── vite.config.ts               # Vite bundler configuration and plugins setup
-└── package.json                 # Project manifest, scripts, and dependency tree
+├── package.json                 # Project manifest, scripts, and dependency tree
+├── README.md                    # Project description in Russian
+├── README.en.md                 # Project description in English
+├── TESTING.md                   # Project testing instructions
+├── LICENSE                      # Project license (MIT)
 ```
 
 ---
