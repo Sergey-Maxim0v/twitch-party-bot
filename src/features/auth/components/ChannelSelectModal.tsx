@@ -4,7 +4,6 @@ import { useSocketContext } from '../../../services/socket/hooks/useSocketContex
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { LuX } from 'react-icons/lu'
 import { getChannelSelectCurrentError } from '../utils/getChannelSelectCurrentError.ts'
-import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { getTwitchChannelProfile } from '../utils/getTwitchChannelProfile.ts'
 import { isChannelConnectRequired } from '../utils/isChannelConnectRequired.ts'
 import { ChannelInfoCard } from '../../channel-info/components/ChannelInfoCard.tsx'
@@ -32,9 +31,6 @@ export const ChannelSelectModal: FC = () => {
   const [isNotFound, setIsNotFound] = useState(false)
   const [isValidationTriggered, setIsValidationTriggered] = useState(false)
 
-  const storedChannel = localStorage.getItem(AUTH_STORAGE_KEYS.ACTIVE_CHANNEL)
-  const isChannelSelectedInSystem = storedChannel && storedChannel !== 'null'
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && hasSelectedChannel) {
@@ -60,7 +56,7 @@ export const ChannelSelectModal: FC = () => {
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
-    if (isNotFound) setIsNotFound(false)
+    setIsNotFound(false)
   }
 
   /**
@@ -84,6 +80,29 @@ export const ChannelSelectModal: FC = () => {
   }
 
   /**
+   * Проверяет канал на Twitch и, если он существует, выбирает его и подключает бота.
+   *
+   * @param channel - Имя канала.
+   * @param accessToken - Токен доступа авторизованного пользователя.
+   * @param select - Обработчик сохранения выбранного канала.
+   */
+  const verifyAndConnect = async (
+    channel: string,
+    accessToken: string,
+    select: (value: string) => void,
+  ): Promise<void> => {
+    const channelProfile = await getTwitchChannelProfile(channel, accessToken)
+
+    if (!channelProfile) {
+      setIsNotFound(true)
+      return
+    }
+
+    select(channel)
+    connectToChannel(channel)
+  }
+
+  /**
    * Подключает бота к собственному каналу пользователя.
    */
   const handleOwnChannelClick = async () => {
@@ -92,14 +111,7 @@ export const ChannelSelectModal: FC = () => {
     setIsChecking(true)
     setIsNotFound(false)
 
-    const channelProfile = await getTwitchChannelProfile(session.login, session.accessToken)
-
-    if (channelProfile) {
-      selectOwnChannel()
-      connectToChannel(session.login)
-    } else {
-      setIsNotFound(true)
-    }
+    await verifyAndConnect(session.login, session.accessToken, selectOwnChannel)
     setIsChecking(false)
   }
 
@@ -117,19 +129,12 @@ export const ChannelSelectModal: FC = () => {
 
     const trimmed = inputValue.trim()
 
-    if (trimmed && validateChannelName(trimmed) && session?.accessToken && session?.login) {
-      setIsChecking(true)
+    if (!trimmed || !validateChannelName(trimmed) || !session?.login || !session?.accessToken) return
 
-      const channelProfile = await getTwitchChannelProfile(trimmed, session.accessToken)
+    setIsChecking(true)
 
-      if (channelProfile) {
-        selectCustomChannel(trimmed)
-        connectToChannel(trimmed)
-      } else {
-        setIsNotFound(true)
-      }
-      setIsChecking(false)
-    }
+    await verifyAndConnect(trimmed, session.accessToken, selectCustomChannel)
+    setIsChecking(false)
   }
 
   if (!isAuthenticated || !isChannelModalOpen) return null
@@ -142,7 +147,7 @@ export const ChannelSelectModal: FC = () => {
     <div className="modal modal-open z-100">
       <div className="modal-box max-w-sm flex flex-col p-6 gap-4 relative">
 
-        {isChannelSelectedInSystem && !isChecking && (
+        {hasSelectedChannel && !isChecking && (
           <button
             aria-label="Закрыть модальное окно"
             className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 text-base-content/70 hover:text-base-content"
@@ -225,7 +230,7 @@ export const ChannelSelectModal: FC = () => {
 
       <div
         className={`modal-backdrop bg-black/40 backdrop-blur-xs ${hasSelectedChannel && !isChecking ? 'cursor-pointer' : ''}`}
-        onClick={(isChannelSelectedInSystem && !isChecking) ? closeChannelModal : undefined}
+        onClick={hasSelectedChannel && !isChecking ? closeChannelModal : undefined}
       />
     </div>
   )

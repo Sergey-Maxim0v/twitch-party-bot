@@ -78,6 +78,7 @@ You can run the application in two ways:
 
 * **No backend.** The app runs entirely in the browser: the bot reads and sends messages directly through Twitch IRC. No third-party servers are involved, and no analytics or trackers are used.
 * **Local data only.** The OAuth token is stored in the tab's `sessionStorage`, while the queue and settings are kept in the browser's `localStorage`. Clearing site data resets everything, while logging out only clears the session.
+* **Blocked storage.** If the browser denies Web Storage access (for example, in a sandboxed iframe or with storage disabled in settings), the UI still loads without errors, but the session and settings cannot be persisted — sign-in may be unavailable.
 * **The bot runs only while the tab is open.** Closing the tab or browser stops chat responses. Keep the tab open while streaming.
 * **No cross-device sync.** The queue and settings are shared only between tabs of the same browser.
 * **Token lifetime.** With Implicit Flow, the Twitch token expires after a limited time and is not refreshed automatically; you will need to log in again.

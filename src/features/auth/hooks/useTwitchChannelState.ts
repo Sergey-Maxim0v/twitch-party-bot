@@ -1,21 +1,20 @@
 import { useCallback, useState } from 'react'
 import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
-import { TWITCH_CHANNEL_ERRORS } from '../../../constants/auth.constants.ts'
+import { TWITCH_AUTH_UI_MESSAGES, TWITCH_CHANNEL_ERRORS } from '../../../constants/auth.constants.ts'
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
 /**
  * Управляет выбранным каналом чата и состоянием модального окна его выбора.
+ * Видимость окна выводится из канала, восстановленного `useLocalStorage`,
+ * поэтому прямых обращений к хранилищу во время рендера нет.
  *
  * @param sessionLogin - Логин авторизованного пользователя.
  * @returns Выбранный канал, состояние модального окна и обработчики выбора.
  */
 export const useTwitchChannelState = (sessionLogin: string | undefined) => {
   const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(AUTH_STORAGE_KEYS.ACTIVE_CHANNEL, null)
-  const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(() => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEYS.ACTIVE_CHANNEL)
-    return !stored || stored === 'null'
-  })
+  const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(() => !activeChannel)
   const [channelError, setChannelError] = useState<string | null>(null)
 
   const openChannelModal = useCallback(() => {
@@ -28,15 +27,20 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
     setIsChannelModalOpen(false)
   }, [])
 
+  const applyChannel = useCallback((channel: string | null) => {
+    setChannelError(null)
+    setActiveChannel(channel)
+    setIsChannelModalOpen(false)
+  }, [setActiveChannel])
+
   const selectOwnChannel = useCallback(() => {
     if (!sessionLogin) {
-      setChannelError('Сессия не найдена.')
+      setChannelError(TWITCH_AUTH_UI_MESSAGES.SESSION_NOT_FOUND)
       return
     }
-    setChannelError(null)
-    setActiveChannel(sessionLogin.toLowerCase())
-    setIsChannelModalOpen(false)
-  }, [sessionLogin, setActiveChannel])
+
+    applyChannel(sessionLogin.toLowerCase())
+  }, [sessionLogin, applyChannel])
 
   const selectCustomChannel = useCallback((channelName: string) => {
     const trimmed = channelName.trim().toLowerCase()
@@ -51,16 +55,12 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
       return
     }
 
-    setChannelError(null)
-    setActiveChannel(trimmed)
-    setIsChannelModalOpen(false)
-  }, [setActiveChannel])
+    applyChannel(trimmed)
+  }, [applyChannel])
 
   const resetChannel = useCallback(() => {
-    setActiveChannel(null)
-    setChannelError(null)
-    setIsChannelModalOpen(false)
-  }, [setActiveChannel])
+    applyChannel(null)
+  }, [applyChannel])
 
   return {
     activeChannel,

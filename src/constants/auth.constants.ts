@@ -60,6 +60,7 @@ export const TWITCH_AUTH_UI_MESSAGES = {
   UNKNOWN_VALIDATION: 'Неизвестная ошибка валидации токена.',
   VALIDATION_UNAVAILABLE: 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.',
   VALIDATION_FAILED: 'Не удалось подтвердить валидность токена через Twitch API.',
+  SESSION_NOT_FOUND: 'Сессия не найдена.',
 }
 
 /**
