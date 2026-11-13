@@ -2,18 +2,16 @@ import { useEffect, useRef, useCallback } from 'react'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { SOCKET_CONNECTION_STATUSES } from '../../socket/types.ts'
 import {
-  TWITCH_HEARTBEAT_INTERVAL_MS,
   TWITCH_HEARTBEAT_WORKER_COMMANDS,
   TWITCH_HEARTBEAT_WORKER_EVENTS,
   TWITCH_IRC_COMMANDS,
   TWITCH_PING_MESSAGE,
-  TWITCH_PONG_TIMEOUT_MS,
 } from '../../../constants/twitch.constants.ts'
 
 import HeartbeatWorker from '../workers/heartbeat.worker.ts?worker'
 
 /**
- * Изолированный хук для контроля «полуоткрытого» соединения (Heartbeat / Ping-Pong).
+ * Контроль «полуоткрытого» соединения: PING отправляется только после периода тишины.
  */
 export const useTwitchHeartbeat = () => {
   const socketContext = useSocketContext()
@@ -27,7 +25,7 @@ export const useTwitchHeartbeat = () => {
   }, [connectionStatus])
 
   /**
-   * Принудительно обрывает зависший сокет при отсутствии PONG-ответа.
+   * Принудительно обрывает зависший сокет при отсутствии PONG.
    */
   const handleConnectionFailure = useCallback(() => {
     if (!socketContext) return
@@ -41,35 +39,29 @@ export const useTwitchHeartbeat = () => {
   }, [socketContext])
 
   /**
-   * Отправляет системный IRC-запрос PING на сервер Twitch.
+   * Отправляет PING и запускает ожидание PONG.
    */
   const sendPing = useCallback(() => {
     if (!socketContext || connectionStatusRef.current !== SOCKET_CONNECTION_STATUSES.CONNECTED) return
 
-    const client = socketContext.getClient()
-
-    client.sendRaw(TWITCH_PING_MESSAGE)
-
-    workerRef.current?.postMessage({
-      type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER,
-      payload: TWITCH_PONG_TIMEOUT_MS,
-    })
+    socketContext.getClient().sendRaw(TWITCH_PING_MESSAGE)
+    workerRef.current?.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER })
   }, [socketContext])
 
   /**
-   * Сбрасывает таймер ожидания PONG при успехе и перезапускает таймер тишины.
+   * Снимает ожидание PONG только по ответу сервера и перезапускает таймер тишины.
    */
   const handleSocketActivity = useCallback((command: string) => {
-    if (connectionStatusRef.current !== SOCKET_CONNECTION_STATUSES.CONNECTED || !workerRef.current) return
+    if (connectionStatusRef.current !== SOCKET_CONNECTION_STATUSES.CONNECTED) return
+
+    const worker = workerRef.current
+    if (!worker) return
 
     if (command === TWITCH_IRC_COMMANDS.PONG) {
-      workerRef.current.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_PONG_TIMER })
+      worker.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_PONG_TIMER })
     }
 
-    workerRef.current.postMessage({
-      type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER,
-      payload: TWITCH_HEARTBEAT_INTERVAL_MS,
-    })
+    worker.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER })
   }, [])
 
   const sendPingRef = useRef(sendPing)
@@ -100,20 +92,20 @@ export const useTwitchHeartbeat = () => {
     }
   }, [])
 
-  // Синхронизирует таймеры воркера с текущим статусом соединения
+  // Таймеры синхронизируются только с фактической сменой статуса соединения
   useEffect(() => {
-    const currentWorker = workerRef.current
-    if (!currentWorker) return
+    const worker = workerRef.current
+    if (!worker) return
 
     if (connectionStatus === SOCKET_CONNECTION_STATUSES.CONNECTED) {
-      currentWorker.postMessage({
-        type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER,
-        payload: TWITCH_HEARTBEAT_INTERVAL_MS,
-      })
-    } else if (connectionStatus === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
-      currentWorker.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL })
+      worker.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER })
+      return
     }
-  }, [connectionStatus, workerRef])
+
+    if (connectionStatus === SOCKET_CONNECTION_STATUSES.DISCONNECTED) {
+      worker.postMessage({ type: TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL })
+    }
+  }, [connectionStatus])
 
   return {
     handleSocketActivity,

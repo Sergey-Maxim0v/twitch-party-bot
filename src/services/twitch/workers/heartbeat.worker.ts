@@ -1,5 +1,5 @@
 /**
- * Изолированный Web Worker для ведения точных фоновых таймеров.
+ * Фоновые таймеры heartbeat: опрос сокета после тишины и ожидание PONG.
  */
 import {
   TWITCH_HEARTBEAT_INTERVAL_MS,
@@ -12,59 +12,59 @@ let pingTimeoutId: ReturnType<typeof setTimeout> | null = null
 let pongTimeoutId: ReturnType<typeof setTimeout> | null = null
 
 /**
- * Сбрасывает все активные таймеры воркера.
+ * Останавливает таймер контроля тишины сокета.
  */
-const clearAllTimers = (): void => {
-  if (pingTimeoutId) {
-    clearTimeout(pingTimeoutId)
-    pingTimeoutId = null
-  }
-  if (pongTimeoutId) {
-    clearTimeout(pongTimeoutId)
-    pongTimeoutId = null
-  }
+const clearPingTimer = (): void => {
+  if (pingTimeoutId === null) return
+
+  clearTimeout(pingTimeoutId)
+  pingTimeoutId = null
+}
+
+/**
+ * Останавливает ожидание ответа PONG.
+ */
+const clearPongTimer = (): void => {
+  if (pongTimeoutId === null) return
+
+  clearTimeout(pongTimeoutId)
+  pongTimeoutId = null
 }
 
 self.onmessage = (event: MessageEvent) => {
   const { type, payload } = event.data
 
   switch (type) {
-    // Инициализация или сброс таймера контроля тишины чата
+    // Сокет проверяется только после периода тишины
     case TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PING_TIMER: {
-      clearAllTimers()
-
-      const interval = payload || TWITCH_HEARTBEAT_INTERVAL_MS
+      clearPingTimer()
 
       pingTimeoutId = setTimeout(() => {
+        pingTimeoutId = null
         self.postMessage({ type: TWITCH_HEARTBEAT_WORKER_EVENTS.PING_TICK })
-      }, interval)
+      }, payload || TWITCH_HEARTBEAT_INTERVAL_MS)
       break
     }
 
-    // Запуск таймера ожидания ответа PONG от сервера
+    // Ожидание PONG не зависит от таймера тишины
     case TWITCH_HEARTBEAT_WORKER_COMMANDS.START_PONG_TIMER: {
-      clearAllTimers()
-
-      const timeout = payload || TWITCH_PONG_TIMEOUT_MS
+      clearPongTimer()
 
       pongTimeoutId = setTimeout(() => {
-        self.postMessage({ type: TWITCH_HEARTBEAT_WORKER_EVENTS.PONG_TIMEOUT })
-      }, timeout)
-      break
-    }
-
-    // Снятие таймера ожидания при успешном получении PONG
-    case TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_PONG_TIMER: {
-      if (pongTimeoutId) {
-        clearTimeout(pongTimeoutId)
         pongTimeoutId = null
-      }
+        self.postMessage({ type: TWITCH_HEARTBEAT_WORKER_EVENTS.PONG_TIMEOUT })
+      }, payload || TWITCH_PONG_TIMEOUT_MS)
       break
     }
 
-    // Полная остановка всех фоновых таймеров
+    case TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_PONG_TIMER: {
+      clearPongTimer()
+      break
+    }
+
     case TWITCH_HEARTBEAT_WORKER_COMMANDS.CLEAR_ALL: {
-      clearAllTimers()
+      clearPingTimer()
+      clearPongTimer()
       break
     }
   }
