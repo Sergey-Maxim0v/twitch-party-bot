@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
 import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
-import { updateChatAccess } from '../utils/updateChatAccess.ts'
+import { updateChatAccess, type ChatAccessSnapshot } from '../utils/updateChatAccess.ts'
 import { rejectPendingMessages } from '../utils/rejectPendingMessages.ts'
+import { clearChatTimeout } from '../utils/clearChatTimeout.ts'
 import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
@@ -12,7 +13,12 @@ import {
   TWITCH_CHAT_FALLBACK_LOGIN,
   TWITCH_IRC_COMMANDS,
 } from '../../../constants/twitch.constants.ts'
-import { SOCKET_CONNECTION_STATUSES, type ConnectionStatus } from '../../socket/types.ts'
+import {
+  SOCKET_CONNECTION_STATUSES,
+  TWITCH_CHAT_ACCESS_STATUSES,
+  type ChatAccessStatus,
+  type ConnectionStatus,
+} from '../../socket/types.ts'
 import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
 import { useAppLogs } from '../../../features/app-logs/hooks/useAppLogs.ts'
 import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../../features/app-logs/types.ts'
@@ -30,6 +36,9 @@ export const useTwitchChatManager = () => {
 
   const roomStateTagsRef = useRef<Record<string, string>>({})
 
+  const chatAccessStatus = socketContext?.chatAccessStatus ?? TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
+  const chatAccessStatusRef = useRef<ChatAccessStatus>(chatAccessStatus)
+
   const { handleSocketActivity } = useTwitchHeartbeat()
 
   const { pendingMessagesRef, timeoutTimerRef, registerPendingMessage } = useTwitchPendingMessages()
@@ -43,6 +52,22 @@ export const useTwitchChatManager = () => {
   })
 
   const currentUserLogin = session?.login?.toLowerCase() ?? TWITCH_CHAT_FALLBACK_LOGIN
+
+  // Статус доступа нужен за пределами цикла рендера: таймер снятия таймаута
+  // проверяет его в момент срабатывания
+  useEffect(() => {
+    chatAccessStatusRef.current = chatAccessStatus
+  }, [chatAccessStatus])
+
+  /**
+   * Собирает актуальный снимок состояния доступа к чату.
+   * Значения читаются в момент вызова, поэтому не устаревают между рендерами.
+   */
+  const getChatAccessSnapshot = useCallback((): ChatAccessSnapshot => ({
+    status: chatAccessStatusRef.current,
+    isConnectionActive: client?.status === SOCKET_CONNECTION_STATUSES.CONNECTED,
+    roomTags: roomStateTagsRef.current,
+  }), [client])
 
   /**
    * Отправляет сообщение в чат и регистрирует его для подтверждения USERSTATE.
@@ -79,17 +104,23 @@ export const useTwitchChatManager = () => {
     return true
   }, [registerPendingMessage, socketContext, client, pushLog])
 
-  // Потеря соединения сбрасывает очередь подтверждения, чтобы ответы сервера
-  // не подтверждали сообщения, отправленные до обрыва
+  // Потеря соединения сбрасывает очередь подтверждения, таймер ограничений и теги комнаты:
+  // ответы сервера не должны подтверждать сообщения до обрыва, а просроченный таймер
+  // не должен воскрешать статус доступа после обрыва или реконнекта
   useEffect(() => {
     if (!client) return
 
     return client.onStatusChange((status: ConnectionStatus) => {
-      if (status !== SOCKET_CONNECTION_STATUSES.DISCONNECTED) return
+      const isConnectionLost = status === SOCKET_CONNECTION_STATUSES.DISCONNECTED
+        || status === SOCKET_CONNECTION_STATUSES.FAILED
 
+      if (!isConnectionLost) return
+
+      clearChatTimeout(timeoutTimerRef)
+      roomStateTagsRef.current = {}
       rejectPendingMessages(pendingMessagesRef, CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED, true)
     })
-  }, [client, pendingMessagesRef])
+  }, [client, pendingMessagesRef, timeoutTimerRef])
 
   /**
    * Обрабатывает входящее IRC-сообщение.
@@ -124,8 +155,8 @@ export const useTwitchChatManager = () => {
         pendingMessagesRef,
         timeoutTimerRef,
         updateChatAccessStatus: socketContext.updateChatAccessStatus,
+        getChatAccessSnapshot,
         pushLog,
-        currentRoomTags: roomStateTagsRef.current,
       })
     }
 
@@ -153,6 +184,7 @@ export const useTwitchChatManager = () => {
     client?.currentChannel,
     pendingMessagesRef,
     timeoutTimerRef,
+    getChatAccessSnapshot,
     pushLog,
   ])
 

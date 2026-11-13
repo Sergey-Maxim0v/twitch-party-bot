@@ -67,6 +67,12 @@ export const TWITCH_HEARTBEAT_INTERVAL_MS = 60 * 1000
 export const TWITCH_PONG_TIMEOUT_MS = 10 * 1000
 
 /**
+ * Количество миллисекунд в секунде.
+ * Используется для перевода длительности таймаута Twitch в миллисекунды.
+ */
+export const TWITCH_MILLISECONDS_IN_SECOND = 1000
+
+/**
  * Ответ на PING сервера Twitch.
  */
 export const TWITCH_PONG_MESSAGE = 'PONG :tmi.twitch.tv'
