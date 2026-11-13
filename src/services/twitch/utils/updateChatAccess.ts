@@ -14,6 +14,7 @@ import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../../features/app-logs/types.ts'
 import { getChatSendError, isUnknownChatSendError, type ChatSendErrorInfo } from './chatSendErrors.ts'
 import { rejectPendingMessages } from './rejectPendingMessages.ts'
+import { clearChatTimeout } from './clearChatTimeout.ts'
 import { APP_LOG_TWITCH_ACTOR } from '../../../constants/app-logs.constants.ts'
 
 interface UpdateChatAccessProps {
@@ -151,10 +152,7 @@ const handleClearChat = (
 
   const durationStr = message.tags?.[TWITCH_IRC_TAGS.BAN_DURATION]
 
-  if (timeoutTimerRef.current) {
-    clearTimeout(timeoutTimerRef.current)
-    timeoutTimerRef.current = null
-  }
+  clearChatTimeout(timeoutTimerRef)
 
   if (!durationStr) {
     pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.BAN_PERMANENT)
@@ -193,9 +191,9 @@ const handleUserState = (
   updateChatAccessStatus: (status: ChatAccessStatus) => void,
   pushStatusLog: PushStatusLog,
 ): void => {
-  if (timeoutTimerRef.current) {
-    clearTimeout(timeoutTimerRef.current)
-    timeoutTimerRef.current = null
+  const wasTimeoutActive = clearChatTimeout(timeoutTimerRef)
+
+  if (wasTimeoutActive) {
     pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.RESTRICTION_REMOVED)
   }
 

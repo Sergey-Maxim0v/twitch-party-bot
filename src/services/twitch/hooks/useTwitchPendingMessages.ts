@@ -1,21 +1,18 @@
 import { useCallback, useEffect, useRef } from 'react'
+import { clearChatTimeout } from '../utils/clearChatTimeout.ts'
 import type { PendingChatMessage, SendChatMessageOptions } from '../types.ts'
 
 /**
- * Очередь сообщений, ожидающих подтверждения USERSTATE,
- * и таймер ограничений чата.
+ * Очередь сообщений, ожидающих подтверждения USERSTATE, и таймер снятия ограничений чата.
  */
 export const useTwitchPendingMessages = () => {
   const pendingMessagesRef = useRef<PendingChatMessage[]>([])
   const timeoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Ref читается в cleanup: на монтировании таймер ещё не создан, поэтому значение всегда null
   useEffect(() => {
-    const timer = timeoutTimerRef.current
-
     return () => {
-      if (timer) {
-        clearTimeout(timer)
-      }
+      clearChatTimeout(timeoutTimerRef)
     }
   }, [])
 
