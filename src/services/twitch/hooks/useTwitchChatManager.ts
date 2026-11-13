@@ -4,12 +4,12 @@ import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
 import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
 import { updateChatAccess, type ChatAccessSnapshot } from '../utils/updateChatAccess.ts'
 import { rejectPendingMessages } from '../utils/rejectPendingMessages.ts'
-import { clearChatTimeout } from '../utils/clearChatTimeout.ts'
 import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
 import {
   CHAT_SEND_FAIL_REASONS,
+  TWITCH_CHAT_COMMAND_PREFIX,
   TWITCH_CHAT_FALLBACK_LOGIN,
   TWITCH_IRC_COMMANDS,
 } from '../../../constants/twitch.constants.ts'
@@ -41,7 +41,7 @@ export const useTwitchChatManager = () => {
 
   const { handleSocketActivity } = useTwitchHeartbeat()
 
-  const { pendingMessagesRef, timeoutTimerRef, registerPendingMessage } = useTwitchPendingMessages()
+  const { pendingMessagesRef, clearChatTimeout, startChatTimeout, registerPendingMessage } = useTwitchPendingMessages()
 
   const client = socketContext?.getClient?.() ?? null
 
@@ -104,9 +104,8 @@ export const useTwitchChatManager = () => {
     return true
   }, [registerPendingMessage, socketContext, client, pushLog])
 
-  // Потеря соединения сбрасывает очередь подтверждения, таймер ограничений и теги комнаты:
-  // ответы сервера не должны подтверждать сообщения до обрыва, а просроченный таймер
-  // не должен воскрешать статус доступа после обрыва или реконнекта
+  // Обрыв соединения сбрасывает очередь подтверждения, таймер ограничений и теги комнаты:
+  // просроченный таймер не должен воскрешать статус доступа после обрыва или реконнекта
   useEffect(() => {
     if (!client) return
 
@@ -116,11 +115,11 @@ export const useTwitchChatManager = () => {
 
       if (!isConnectionLost) return
 
-      clearChatTimeout(timeoutTimerRef)
+      clearChatTimeout()
       roomStateTagsRef.current = {}
       rejectPendingMessages(pendingMessagesRef, CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED, true)
     })
-  }, [client, pendingMessagesRef, timeoutTimerRef])
+  }, [client, pendingMessagesRef, clearChatTimeout])
 
   /**
    * Обрабатывает входящее IRC-сообщение.
@@ -153,7 +152,8 @@ export const useTwitchChatManager = () => {
         message,
         currentUserLogin,
         pendingMessagesRef,
-        timeoutTimerRef,
+        clearChatTimeout,
+        startChatTimeout,
         updateChatAccessStatus: socketContext.updateChatAccessStatus,
         getChatAccessSnapshot,
         pushLog,
@@ -169,7 +169,7 @@ export const useTwitchChatManager = () => {
 
     if (!processedMessage || processedMessage.command !== TWITCH_IRC_COMMANDS.PRIV_MSG) return
 
-    const isCommand = processedMessage.text.trim().startsWith('!')
+    const isCommand = processedMessage.text.trim().startsWith(TWITCH_CHAT_COMMAND_PREFIX)
     const isFromOtherUser = processedMessage.user.nick !== currentUserLogin
 
     if (isCommand || isFromOtherUser) {
@@ -183,7 +183,8 @@ export const useTwitchChatManager = () => {
     currentUserLogin,
     client?.currentChannel,
     pendingMessagesRef,
-    timeoutTimerRef,
+    clearChatTimeout,
+    startChatTimeout,
     getChatAccessSnapshot,
     pushLog,
   ])

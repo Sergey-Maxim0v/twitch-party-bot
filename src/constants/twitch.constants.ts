@@ -32,6 +32,11 @@ export const TWITCH_CHAT_HISTORY_MAX_MESSAGES = 300
 export const TWITCH_CHAT_CHANNEL_PREFIX = '#'
 
 /**
+ * Префикс команды чата в тексте сообщения.
+ */
+export const TWITCH_CHAT_COMMAND_PREFIX = '!'
+
+/**
  * Имя автора для сообщений USERSTATE без display-name.
  */
 export const TWITCH_CHAT_FALLBACK_AUTHOR_NAME = 'Broadcaster'

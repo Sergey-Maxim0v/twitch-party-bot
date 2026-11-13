@@ -14,7 +14,6 @@ import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../../features/app-logs/types.ts'
 import { getChatSendError, isUnknownChatSendError, type ChatSendErrorInfo } from './chatSendErrors.ts'
 import { rejectPendingMessages } from './rejectPendingMessages.ts'
-import { clearChatTimeout } from './clearChatTimeout.ts'
 import { APP_LOG_TWITCH_ACTOR } from '../../../constants/app-logs.constants.ts'
 
 /** Записывает событие доступа к чату в журнал приложения. */
@@ -42,8 +41,11 @@ interface ChatAccessContext {
   /** Очередь сообщений, ожидающих подтверждения USERSTATE. */
   pendingMessagesRef: RefObject<PendingChatMessage[]>;
 
-  /** Ref с идентификатором активного таймера снятия ограничений. */
-  timeoutTimerRef: RefObject<ReturnType<typeof setTimeout> | null>;
+  /** Сбрасывает таймер снятия ограничений. */
+  clearChatTimeout: () => boolean;
+
+  /** Взводит таймер снятия ограничений, заменяя ранее запущенный. */
+  startChatTimeout: (durationMs: number, onExpire: () => void) => void;
 
   /** Устанавливает статус доступа к чату. */
   updateChatAccessStatus: (status: ChatAccessStatus) => void;
@@ -59,7 +61,8 @@ interface UpdateChatAccessProps {
   message: ParsedIrcMessage;
   currentUserLogin?: string;
   pendingMessagesRef: RefObject<PendingChatMessage[]>;
-  timeoutTimerRef: RefObject<ReturnType<typeof setTimeout> | null>;
+  clearChatTimeout: () => boolean;
+  startChatTimeout: (durationMs: number, onExpire: () => void) => void;
   updateChatAccessStatus: (status: ChatAccessStatus) => void;
   getChatAccessSnapshot: () => ChatAccessSnapshot;
   pushLog: (log: {
@@ -118,12 +121,13 @@ const handleRoomState = (
 }
 
 /**
- * Применяет бан: статус BANNED и снятие очереди неподтверждённых сообщений.
+ * Применяет бан: сброс таймера ограничений, статус BANNED и снятие очереди неподтверждённых сообщений.
  */
 const applyBan = (
   context: ChatAccessContext,
   reason: string,
 ): void => {
+  context.clearChatTimeout()
   context.pushStatusLog(reason)
   context.updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
   rejectPendingMessages(context.pendingMessagesRef, reason, true)
@@ -141,7 +145,7 @@ const handleSendErrorNotice = (
   const { status } = sendError
 
   if (status === TWITCH_CHAT_ACCESS_STATUSES.BANNED) {
-    clearChatTimeout(context.timeoutTimerRef)
+    context.clearChatTimeout()
   }
 
   if (status) {
@@ -192,9 +196,7 @@ const armTimeoutTimer = (
   durationSeconds: number,
   context: ChatAccessContext,
 ): void => {
-  context.timeoutTimerRef.current = setTimeout(() => {
-    context.timeoutTimerRef.current = null
-
+  context.startChatTimeout(durationSeconds * TWITCH_MILLISECONDS_IN_SECOND, () => {
     const snapshot = context.getChatAccessSnapshot()
 
     if (!snapshot.isConnectionActive) return
@@ -203,7 +205,7 @@ const armTimeoutTimer = (
 
     context.pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.TIMEOUT_EXPIRED)
     context.updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
-  }, durationSeconds * TWITCH_MILLISECONDS_IN_SECOND)
+  })
 }
 
 /**
@@ -218,18 +220,16 @@ const handleClearChat = (
 
   if (!targetUser || targetUser !== currentUserLogin) return
 
-  const durationStr = message.tags?.[TWITCH_IRC_TAGS.BAN_DURATION]
-  const durationSeconds = parseInt(durationStr ?? '', 10)
+  const durationStr = message.tags?.[TWITCH_IRC_TAGS.BAN_DURATION] ?? ''
+  const durationSeconds = parseInt(durationStr, 10)
+  const isTimeoutBan = durationStr !== '' && Number.isFinite(durationSeconds) && durationSeconds > 0
 
-  clearChatTimeout(context.timeoutTimerRef)
+  if (!isTimeoutBan) {
+    const reason = durationStr === ''
+      ? TWITCH_CHAT_ACCESS_LOG_MESSAGES.BAN_PERMANENT
+      : TWITCH_CHAT_ACCESS_LOG_MESSAGES.BAN_INVALID_TIMEOUT
 
-  if (!durationStr) {
-    applyBan(context, TWITCH_CHAT_ACCESS_LOG_MESSAGES.BAN_PERMANENT)
-    return
-  }
-
-  if (isNaN(durationSeconds) || durationSeconds <= 0) {
-    applyBan(context, TWITCH_CHAT_ACCESS_LOG_MESSAGES.BAN_INVALID_TIMEOUT)
+    applyBan(context, reason)
     return
   }
 
@@ -248,7 +248,7 @@ const handleClearChat = (
 const handleUserState = (
   context: ChatAccessContext,
 ): void => {
-  const wasTimeoutActive = clearChatTimeout(context.timeoutTimerRef)
+  const wasTimeoutActive = context.clearChatTimeout()
 
   if (wasTimeoutActive) {
     context.pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.RESTRICTION_REMOVED)
@@ -265,14 +265,16 @@ export const updateChatAccess = ({
   message,
   currentUserLogin,
   pendingMessagesRef,
-  timeoutTimerRef,
+  clearChatTimeout,
+  startChatTimeout,
   updateChatAccessStatus,
   getChatAccessSnapshot,
   pushLog,
 }: UpdateChatAccessProps): void => {
   const context: ChatAccessContext = {
     pendingMessagesRef,
-    timeoutTimerRef,
+    clearChatTimeout,
+    startChatTimeout,
     updateChatAccessStatus,
     getChatAccessSnapshot,
     pushStatusLog: (logMessage: string) => {

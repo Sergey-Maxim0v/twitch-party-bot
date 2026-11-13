@@ -1,20 +1,51 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { clearChatTimeout } from '../utils/clearChatTimeout.ts'
 import type { PendingChatMessage, SendChatMessageOptions } from '../types.ts'
 
 /**
  * Очередь сообщений, ожидающих подтверждения USERSTATE, и таймер снятия ограничений чата.
+ *
+ * Таймер не покидает хук: его создание и сброс доступны только через
+ * `startChatTimeout` и `clearChatTimeout`, поэтому таймер гасится при размонтировании.
  */
 export const useTwitchPendingMessages = () => {
   const pendingMessagesRef = useRef<PendingChatMessage[]>([])
   const timeoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Ref читается в cleanup: на монтировании таймер ещё не создан, поэтому значение всегда null
+  /**
+   * Сбрасывает таймер снятия ограничений чата.
+   *
+   * @returns `true`, если таймер был активен и сброшен.
+   */
+  const clearChatTimeout = useCallback((): boolean => {
+    if (!timeoutTimerRef.current) return false
+
+    clearTimeout(timeoutTimerRef.current)
+    timeoutTimerRef.current = null
+
+    return true
+  }, [])
+
+  /**
+   * Взводит таймер снятия ограничений чата, заменяя ранее запущенный.
+   *
+   * @param durationMs - Длительность таймера в миллисекундах.
+   * @param onExpire - Действие, выполняемое при истечении таймера.
+   */
+  const startChatTimeout = useCallback((durationMs: number, onExpire: () => void): void => {
+    clearChatTimeout()
+
+    timeoutTimerRef.current = setTimeout(() => {
+      timeoutTimerRef.current = null
+      onExpire()
+    }, durationMs)
+  }, [clearChatTimeout])
+
+  // Таймер не должен пережить размонтирование компонента
   useEffect(() => {
     return () => {
-      clearChatTimeout(timeoutTimerRef)
+      clearChatTimeout()
     }
-  }, [])
+  }, [clearChatTimeout])
 
   /**
    * Добавляет сообщение в очередь подтверждения.
@@ -25,7 +56,8 @@ export const useTwitchPendingMessages = () => {
 
   return {
     pendingMessagesRef,
-    timeoutTimerRef,
+    clearChatTimeout,
+    startChatTimeout,
     registerPendingMessage,
   }
 }
