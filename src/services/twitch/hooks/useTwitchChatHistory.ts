@@ -3,13 +3,13 @@ import type { TwitchIrcClient } from '../twitchIrcClient.ts'
 import {
   TWITCH_CHAT_CHANNEL_PREFIX,
   TWITCH_CHAT_FALLBACK_AUTHOR_NAME,
-  TWITCH_CHAT_HISTORY_MAX_MESSAGES,
   TWITCH_CHAT_MESSAGE_ID,
   TWITCH_IRC_COMMANDS,
   TWITCH_IRC_TAGS,
 } from '../../../constants/twitch.constants.ts'
 import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
+import { trimChatHistory } from '../utils/trimChatHistory.ts'
 import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 
 interface UseTwitchChatHistoryProps {
@@ -25,15 +25,27 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
   const lastChannelRef = useRef<string | null>(null)
+  const isMountedRef = useRef(true)
+
+  // После размонтирования хук не должен обновлять состояние
+  useEffect(() => {
+    isMountedRef.current = true
+
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
-    if (!client?.onChannelChange) return
+    if (!client) return
 
     if (client.currentChannel) {
       lastChannelRef.current = client.currentChannel
     }
 
-    client.onChannelChange(() => {
+    const unsubscribe = client.onChannelChange(() => {
+      if (!isMountedRef.current) return
+
       const nextChannel = client.currentChannel
       const isChannelChanged = nextChannel !== lastChannelRef.current
 
@@ -44,6 +56,10 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
       setMessages([])
       roomStateTagsRef.current = {}
     })
+
+    return () => {
+      unsubscribe()
+    }
   }, [client, roomStateTagsRef])
 
   /**
@@ -65,9 +81,8 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
 
     setMessages(prev => {
       const updatedHistory = isModAction ? markDeletedMessages({ modMessage: message, currentMessages: prev }) : prev
-      const finalMessages = [...updatedHistory, systemLog]
 
-      return finalMessages.length > TWITCH_CHAT_HISTORY_MAX_MESSAGES ? finalMessages.slice(finalMessages.length - TWITCH_CHAT_HISTORY_MAX_MESSAGES) : finalMessages
+      return trimChatHistory([...updatedHistory, systemLog])
     })
 
     return true
@@ -124,15 +139,11 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTags
     }
 
     setMessages(prev => {
-      if (prev.some(m => m.text === messageToPush.text && m.timestamp === messageToPush.timestamp && m.user.nick === messageToPush.user.nick)) {
-        return prev
-      }
+      const isDuplicate = prev.some(m => m.text === messageToPush.text && m.timestamp === messageToPush.timestamp && m.user.nick === messageToPush.user.nick)
 
-      const nextHistory = [...prev, messageToPush]
-      if (nextHistory.length > TWITCH_CHAT_HISTORY_MAX_MESSAGES) {
-        return nextHistory.slice(nextHistory.length - TWITCH_CHAT_HISTORY_MAX_MESSAGES)
-      }
-      return nextHistory
+      if (isDuplicate) return prev
+
+      return trimChatHistory([...prev, messageToPush])
     })
 
     return messageToPush

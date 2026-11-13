@@ -180,6 +180,7 @@ export const TWITCH_IRC_CLIENT_LOG_PREFIX = '[TwitchIRC Client]'
  * Тексты сообщений IRC-клиента в консоли.
  */
 export const TWITCH_IRC_CLIENT_LOG_MESSAGES = {
+  CHANNEL_CHANGE_ERROR: 'Ошибка в обработчике смены канала',
   CHANNEL_NOT_SET: 'Невозможно отправить сообщение: канал не задан',
   SOCKET_ERROR: 'Ошибка сокета',
 } as const

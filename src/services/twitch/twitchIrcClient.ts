@@ -36,7 +36,7 @@ interface TwitchSession {
 export class TwitchIrcClient {
   private session: TwitchSession | null = null
   private emitter: MessageEmitter = createMessageEmitter()
-  private onChannelChangeCallback: (() => void) | null = null
+  private readonly onChannelChangeCallbacks = new Set<() => void>()
   private isNetworkOffline = false
   private failure: SocketFailureReason | null = null
   private connectedAt: number | null = null
@@ -54,10 +54,15 @@ export class TwitchIrcClient {
   private connectTimeoutId: ReturnType<typeof setTimeout> | null = null
 
   /**
-   * Регистрирует колбэк, вызываемый при смене канала.
+   * Подписывается на смену канала.
+   * @returns Функция отписки.
    */
-  public onChannelChange(callback: () => void): void {
-    this.onChannelChangeCallback = callback
+  public onChannelChange(callback: () => void): () => void {
+    this.onChannelChangeCallbacks.add(callback)
+
+    return () => {
+      this.onChannelChangeCallbacks.delete(callback)
+    }
   }
 
   /**
@@ -159,7 +164,7 @@ export class TwitchIrcClient {
     this.reconnectManager.resume()
     this.reconnectManager.setIntentionallyDisconnected(false)
     this.failure = null
-    this.onChannelChangeCallback?.()
+    this.emitChannelChange()
 
     this.openSocket()
 
@@ -264,6 +269,19 @@ export class TwitchIrcClient {
    */
   public sendRaw(text: string): void {
     this.socketManager.send(text)
+  }
+
+  /**
+   * Оповещает подписчиков о смене канала.
+   */
+  private emitChannelChange(): void {
+    this.onChannelChangeCallbacks.forEach(callback => {
+      try {
+        callback()
+      } catch (error) {
+        console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} ${TWITCH_IRC_CLIENT_LOG_MESSAGES.CHANNEL_CHANGE_ERROR}:`, error)
+      }
+    })
   }
 
   /**
