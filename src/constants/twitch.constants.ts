@@ -37,6 +37,17 @@ export const TWITCH_CHAT_CHANNEL_PREFIX = '#'
 export const TWITCH_CHAT_COMMAND_PREFIX = '!'
 
 /**
+ * Префикс упоминания пользователя в аргументе команды.
+ */
+export const TWITCH_CHAT_MENTION_REGEX = /^@/
+
+/**
+ * Правила имени Twitch-аккаунта (канал или логин):
+ * латиница, цифры и подчёркивание, от 2 до 25 символов.
+ */
+export const TWITCH_LOGIN_PATTERN = /^[a-z0-9_]{2,25}$/
+
+/**
  * Имя автора для сообщений USERSTATE без display-name.
  */
 export const TWITCH_CHAT_FALLBACK_AUTHOR_NAME = 'Broadcaster'
@@ -167,6 +178,17 @@ export const TWITCH_ROOM_STATE_TAGS = {
 export const TWITCH_IRC_LINE_SEPARATOR_REGEX = /\r?\n/
 
 /**
+ * Последовательность переводов строк в тексте сообщения.
+ * Используется для сплющивания текста в одну IRC-команду.
+ */
+export const TWITCH_IRC_LINE_BREAKS_REGEX = /[\r\n]+/g
+
+/**
+ * Чем заменяется перевод строки при сплющивании сообщения в одну команду.
+ */
+export const TWITCH_IRC_LINE_BREAK_REPLACEMENT = ' '
+
+/**
  * Префикс сообщений парсера IRC в консоли.
  */
 export const TWITCH_IRC_PARSER_LOG_PREFIX = '[IRC Parser]'
@@ -182,6 +204,7 @@ export const TWITCH_IRC_CLIENT_LOG_PREFIX = '[TwitchIRC Client]'
 export const TWITCH_IRC_CLIENT_LOG_MESSAGES = {
   CHANNEL_CHANGE_ERROR: 'Ошибка в обработчике смены канала',
   CHANNEL_NOT_SET: 'Невозможно отправить сообщение: канал не задан',
+  INVALID_SESSION_PARAMS: 'Подключение отклонено: некорректные параметры сессии',
   SOCKET_ERROR: 'Ошибка сокета',
 } as const
 

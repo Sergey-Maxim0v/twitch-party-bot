@@ -5,6 +5,12 @@ import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
+import { TWITCH_CHAT_MENTION_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
+
+/**
+ * Отбрасывает упоминание и пробелы вокруг аргумента команды чата.
+ */
+const parseCommandTarget = (argument: string): string => argument.trim().replace(TWITCH_CHAT_MENTION_REGEX, '').trim()
 
 /**
  * Обрабатывает команды из чата Twitch: вступление в очередь, выход,
@@ -92,8 +98,8 @@ export const useChatCommands = () => {
 
       case commands.add.name: {
         if (!hasAccess(commands.add.isModeratorOnly) || !commandArg) return
-        const targetUsername = commandArg.replace(/^@/, '').trim()
-        if (!targetUsername) return
+        const targetUsername = parseCommandTarget(commandArg)
+        if (!TWITCH_LOGIN_PATTERN.test(targetUsername.toLowerCase())) return
 
         addPlayerToQueue({
           playerData: {
@@ -113,7 +119,7 @@ export const useChatCommands = () => {
 
       case commands.delete.name: {
         if (!hasAccess(commands.delete.isModeratorOnly) || !commandArg) return
-        const targetUsername = commandArg.replace(/^@/, '').trim().toLowerCase()
+        const targetUsername = parseCommandTarget(commandArg).toLowerCase()
         if (!targetUsername) return
 
         removePlayerFromAllQueues({

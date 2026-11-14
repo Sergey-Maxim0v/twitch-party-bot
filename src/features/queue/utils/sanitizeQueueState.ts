@@ -3,7 +3,7 @@ import { QUEUE_PLAYER_SOURCE } from '../../../constants/queue.constants.ts'
 import { mergeWithDefaults } from '../../../hooks/utils/storage.utils.ts'
 import { filterNotNull } from '../../../utils/arrays.ts'
 import { isPlainObject } from '../../../utils/objects.ts'
-import { isFilledString } from '../../../utils/strings.ts'
+import { hasControlCharacters, isFilledString } from '../../../utils/strings.ts'
 import { createInitialState } from './createInitialState.ts'
 
 /** Источники появления игрока, допустимые в сохранённых данных. */
@@ -29,19 +29,23 @@ const isQueuePlayerSource = (value: unknown): value is QueuePlayerSource =>
 
 /**
  * Восстанавливает игрока из сохранённых данных, подставляя безопасные значения
- * для некорректных полей.
+ * для некорректных полей и отбрасывая никнеймы с управляющими символами.
  *
  * @param value - Значение из хранилища.
- * @returns Игрок или `null`, если в записи нет никнейма.
+ * @returns Игрок или `null`, если в записи нет корректного никнейма.
  */
 const toQueuePlayer = (value: unknown): QueuePlayer | null => {
-  if (!isPlainObject(value) || !isFilledString(value.username)) return null
+  if (!isPlainObject(value) || !isFilledString(value.username) || hasControlCharacters(value.username)) return null
+
+  const displayedUsername = isFilledString(value.displayedUsername) && !hasControlCharacters(value.displayedUsername)
+    ? value.displayedUsername
+    : undefined
 
   return {
     // Пустой ID ломает drag-and-drop, поэтому подставляем никнейм.
     userId: isFilledString(value.userId) ? value.userId : value.username,
     username: value.username,
-    displayedUsername: isFilledString(value.displayedUsername) ? value.displayedUsername : undefined,
+    displayedUsername,
     rawMessage: typeof value.rawMessage === 'string' ? value.rawMessage : '',
     playerSource: isQueuePlayerSource(value.playerSource) ? value.playerSource : QUEUE_PLAYER_SOURCE.APP,
     timestamp: isFiniteNumber(value.timestamp) ? value.timestamp : 0,

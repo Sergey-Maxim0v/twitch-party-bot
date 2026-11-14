@@ -66,8 +66,8 @@ export class SocketLifecycleManager {
   }
 
   /**
-   * Отправляет данные через сокет.
-   * Данные не передаются, если сокет закрыт или ещё не открыт.
+   * Отправляет одну IRC-команду через сокет.
+   * Команда не передаётся, если сокет закрыт, ещё не открыт или содержит перевод строки.
    *
    * @returns `true`, если данные переданы сокету.
    */
@@ -76,6 +76,11 @@ export class SocketLifecycleManager {
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.error(`${SOCKET_LOG_PREFIX} ${SOCKET_LOG_MESSAGES.SEND_SKIPPED}`)
+      return false
+    }
+
+    if (text.includes('\r') || text.includes('\n')) {
+      console.error(`${SOCKET_LOG_PREFIX} ${SOCKET_LOG_MESSAGES.SEND_LINE_BREAK}`)
       return false
     }
 

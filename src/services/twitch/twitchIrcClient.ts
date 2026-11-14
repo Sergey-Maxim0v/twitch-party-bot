@@ -2,6 +2,8 @@ import { sendInitialIrcCommands } from './utils/sendInitialIrcCommands.ts'
 import { handleIrcMessage } from './utils/handleIrcMessage.ts'
 import { createMessageEmitter, type MessageCallback, type MessageEmitter } from './utils/createMessageEmitter.ts'
 import { isTwitchAuthFailureNotice } from './utils/isTwitchAuthFailureNotice.ts'
+import { flattenIrcMessageText } from './utils/flattenIrcMessageText.ts'
+import { isIrcCredentialsValid } from './utils/isIrcCredentialsValid.ts'
 import {
   RECONNECT_OUTCOMES,
   SOCKET_CONNECTION_STATUSES,
@@ -18,6 +20,7 @@ import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
 import type { ParsedIrcMessage } from './types.ts'
 import {
+  TWITCH_CHAT_MESSAGE_MAX_LENGTH,
   TWITCH_IRC_CLIENT_LOG_MESSAGES,
   TWITCH_IRC_CLIENT_LOG_PREFIX,
   TWITCH_IRC_COMMANDS,
@@ -141,26 +144,31 @@ export class TwitchIrcClient {
 
   /**
    * Подключается к IRC-каналу Twitch, пересоздавая сокет при необходимости.
+   * Канал и логин проверяются по правилам Twitch, токен — на управляющие символы.
    *
    * @returns Результат попытки подключения.
    */
   public connect(channel: string, token: string, userLogin: string): TwitchConnectOutcome {
-    if (!channel || !token || !userLogin) return TWITCH_CONNECT_OUTCOMES.IGNORED
+    if (!isIrcCredentialsValid({ channel, token, userLogin })) {
+      console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} ${TWITCH_IRC_CLIENT_LOG_MESSAGES.INVALID_SESSION_PARAMS}`)
+      return TWITCH_CONNECT_OUTCOMES.IGNORED
+    }
 
     const targetChannel = channel.toLowerCase()
+    const targetLogin = userLogin.toLowerCase()
     const currentSession = this.session
 
     const isSameSession = currentSession !== null
       && currentSession.channel === targetChannel
       && currentSession.token === token
-      && currentSession.userLogin === userLogin
+      && currentSession.userLogin === targetLogin
 
     if (isSameSession && this.socketManager.isConnectingOrOpen()) {
       this.syncStatus()
       return TWITCH_CONNECT_OUTCOMES.ALREADY_CONNECTED
     }
 
-    this.session = { channel: targetChannel, token, userLogin }
+    this.session = { channel: targetChannel, token, userLogin: targetLogin }
     this.reconnectManager.resume()
     this.reconnectManager.setIntentionallyDisconnected(false)
     this.failure = null
@@ -250,6 +258,7 @@ export class TwitchIrcClient {
 
   /**
    * Отправляет текстовое сообщение в текущий канал.
+   * Переводы строк заменяются пробелами, длина ограничивается лимитом Twitch.
    *
    * @returns `true`, если сообщение передано в сокет.
    */
@@ -261,7 +270,11 @@ export class TwitchIrcClient {
       return false
     }
 
-    return this.socketManager.send(`PRIVMSG #${channel} :${text}`)
+    const message = flattenIrcMessageText(text).trim().slice(0, TWITCH_CHAT_MESSAGE_MAX_LENGTH)
+
+    if (!message) return false
+
+    return this.socketManager.send(`PRIVMSG #${channel} :${message}`)
   }
 
   /**

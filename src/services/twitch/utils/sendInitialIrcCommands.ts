@@ -1,4 +1,5 @@
-import { TWITCH_IRC_CAPABILITIES } from '../../../constants/twitch.constants.ts'
+import { TWITCH_IRC_CAPABILITIES, TWITCH_IRC_CLIENT_LOG_MESSAGES, TWITCH_IRC_CLIENT_LOG_PREFIX } from '../../../constants/twitch.constants.ts'
+import { isIrcCredentialsValid } from './isIrcCredentialsValid.ts'
 import type { SocketSender } from '../types.ts'
 
 interface SendInitialIrcCommandsProps {
@@ -10,6 +11,7 @@ interface SendInitialIrcCommandsProps {
 
 /**
  * Отправляет стартовый пакет команд для авторизации и подключения к каналу Twitch IRC.
+ *
  * @param send - Функция отправки данных в сокет.
  * @param token - OAuth-токен пользователя.
  * @param userLogin - Логин пользователя.
@@ -23,8 +25,10 @@ export const sendInitialIrcCommands = (
     channel,
   }: SendInitialIrcCommandsProps,
 ): void => {
-  const lowerLogin = userLogin.toLowerCase()
-  const lowerChannel = channel.toLowerCase()
+  if (!isIrcCredentialsValid({ channel, token, userLogin })) {
+    console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} ${TWITCH_IRC_CLIENT_LOG_MESSAGES.INVALID_SESSION_PARAMS}`)
+    return
+  }
 
   const capabilities = [
     TWITCH_IRC_CAPABILITIES.MEMBERSHIP,
@@ -33,7 +37,7 @@ export const sendInitialIrcCommands = (
   ].join(' ')
 
   send(`PASS oauth:${token}`)
-  send(`NICK ${lowerLogin}`)
+  send(`NICK ${userLogin.toLowerCase()}`)
   send(`CAP REQ :${capabilities}`)
-  send(`JOIN #${lowerChannel}`)
+  send(`JOIN #${channel.toLowerCase()}`)
 }

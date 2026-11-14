@@ -80,6 +80,7 @@ export const SOCKET_RECONNECT_LOG_PREFIX = '[TwitchReconnectManager]'
 export const SOCKET_LOG_MESSAGES = {
   CLOSE_FAILED: 'Ошибка при закрытии сокета',
   SEND_FAILED: 'Ошибка отправки данных',
+  SEND_LINE_BREAK: 'Отправка отклонена: IRC-команда содержит перевод строки',
   SEND_SKIPPED: 'Отправка пропущена: сокет не открыт',
 } as const
 
