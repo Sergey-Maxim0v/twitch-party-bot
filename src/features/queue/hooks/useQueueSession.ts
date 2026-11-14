@@ -4,12 +4,24 @@ import type { QueueState } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 import { handleOpenQueue } from '../utils/handleOpenQueue.ts'
 import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
+
+/** Аргументы действия с очередью, инициированного пользователем или чатом. */
+interface QueueSessionActionArgs {
+  source: LogSource;
+  actorUsername: string;
+}
+
+/** Аргументы автоматического закрытия очереди с указанием причины. */
+interface AutoCloseQueueArgs extends QueueSessionActionArgs {
+  message: string;
+}
 
 interface UseQueueSessionArgs {
   /** Функция обновления состояния очереди. */
@@ -20,12 +32,16 @@ interface UseQueueSessionArgs {
   isQueueOpen: boolean;
   /** Функция изменения статуса очереди. */
   setIsQueueOpen: Dispatch<SetStateAction<boolean>>;
+  /** Канал, к которому привязывается открытая очередь. */
+  activeChannel: string | null;
+  /** Сохраняет канал, к которому привязана очередь. */
+  setQueueChannel: Dispatch<SetStateAction<string | null>>;
   /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
 }
 
 /**
- * Хук управления жизненным циклом очереди: открытие, закрытие,
+ * Управляет жизненным циклом очереди: открытие, закрытие,
  * завершение сессии и балансировка списков.
  */
 export const useQueueSession = ({
@@ -33,6 +49,8 @@ export const useQueueSession = ({
   getState,
   isQueueOpen,
   setIsQueueOpen,
+  activeChannel,
+  setQueueChannel,
   pushLog,
 }: UseQueueSessionArgs) => {
   const { settings } = useQueueSettings()
@@ -63,19 +81,44 @@ export const useQueueSession = ({
     })
   }, [settings, getState, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser])
 
-  const openQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
-    handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+  const openQueue = useCallback((args: QueueSessionActionArgs) => {
+    const isOpened = handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+
+    if (isOpened) {
+      setQueueChannel(activeChannel)
+    }
+
     sendMessageOpen()
     startNotificationCycle()
-  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageOpen, startNotificationCycle])
+  }, [activeChannel, isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageOpen, startNotificationCycle])
 
-  const closeQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
+  const closeQueue = useCallback((args: QueueSessionActionArgs) => {
     handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+    setQueueChannel(null)
     sendMessageClose()
     stopNotificationCycle()
-  }, [isQueueOpen, setIsQueueOpen, pushLog, sendMessageClose, stopNotificationCycle])
+  }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageClose, stopNotificationCycle])
 
-  const finishActiveQueue = useCallback((args: { source: LogSource; actorUsername: string }) => {
+  /**
+   * Закрывает очередь без сообщения в чат: используется при смене канала,
+   * когда уведомление ушло бы уже в новый канал.
+   */
+  const autoCloseQueue = useCallback(({ source, actorUsername, message }: AutoCloseQueueArgs) => {
+    if (!isQueueOpen) return
+
+    setIsQueueOpen(false)
+    setQueueChannel(null)
+    stopNotificationCycle()
+
+    pushLog({
+      message,
+      status: APP_LOG_STATUSES.WARNING,
+      source,
+      actorUsername,
+    })
+  }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, stopNotificationCycle])
+
+  const finishActiveQueue = useCallback((args: QueueSessionActionArgs) => {
     handleFinishActiveQueue({
       getState,
       setState,
@@ -83,14 +126,15 @@ export const useQueueSession = ({
         const nicknames = playedPlayers
           .map(user => `@${user.displayedUsername ?? user.username}`)
           .join(', ')
+        const finishedMessage = QUEUE_SESSION_LOG_MESSAGES.FINISHED_CHAT(nicknames)
 
         sendMessage(
           settings.messagePrefix
-            ? `${settings.messagePrefix} Очередь завершена. Сейчас играют: ${nicknames}`
-            : `Очередь завершена. Сейчас играют: ${nicknames}`,
+            ? `${settings.messagePrefix} ${finishedMessage}`
+            : finishedMessage,
         )
         pushLog({
-          message: `Состав №${sessionNumber} завершен (игроков: ${playedPlayers.length}).`,
+          message: QUEUE_SESSION_LOG_MESSAGES.FINISHED(sessionNumber, playedPlayers.length),
           status: APP_LOG_STATUSES.WARNING,
           source: args.source,
           actorUsername: args.actorUsername,
@@ -98,13 +142,14 @@ export const useQueueSession = ({
 
         if (isQueueOpen) {
           pushLog({
-            message: 'Очередь автоматически закрыта в связи с завершением сессии.',
+            message: QUEUE_SESSION_LOG_MESSAGES.AUTO_CLOSED_ON_FINISH,
             status: APP_LOG_STATUSES.INFO,
             source: args.source,
             actorUsername: args.actorUsername,
           })
-          stopNotificationCycle()
           setIsQueueOpen(false)
+          setQueueChannel(null)
+          stopNotificationCycle()
         }
 
         if (settings.moveOnSizeChange) {
@@ -113,14 +158,14 @@ export const useQueueSession = ({
       },
       onEmpty: () => {
         pushLog({
-          message: 'Не удалось завершить сессию: Очередь пуста.',
+          message: QUEUE_SESSION_LOG_MESSAGES.FINISHED_EMPTY,
           status: APP_LOG_STATUSES.WARNING,
           source: args.source,
           actorUsername: args.actorUsername,
         })
       },
     })
-  }, [getState, setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, stopNotificationCycle, setIsQueueOpen, balanceQueues])
+  }, [getState, setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, setQueueChannel, stopNotificationCycle, setIsQueueOpen, balanceQueues])
 
-  return { openQueue, closeQueue, finishActiveQueue, balanceQueues }
+  return { openQueue, closeQueue, autoCloseQueue, finishActiveQueue, balanceQueues }
 }

@@ -30,6 +30,7 @@ export const THEME_STORAGE_KEY = 'twitch_party_theme'
 export const QUEUE_STORAGE_KEYS = {
   DATA: 'twitch_queue_data',
   STATUS: 'twitch_queue_status',
+  CHANNEL: 'twitch_queue_channel',
   SETTINGS: 'twitch_queue_settings',
 } as const
 

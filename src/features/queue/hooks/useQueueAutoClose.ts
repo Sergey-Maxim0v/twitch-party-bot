@@ -1,63 +1,48 @@
 import { type Dispatch, type SetStateAction, useEffect } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { useOnWindowUnload } from '../../../hooks/useOnWindowUnload.ts'
-import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
+import { APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
 import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
+import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 
-/**
- * Аргументы для лог-сообщения, передаваемого в функцию pushLog.
- */
-interface LogMessagePayload {
-  message: string
-  status: AppLogStatus
-  source: LogSource
-  actorUsername: string
-}
-
-/**
- * Свойства для инициализации хука автоматического закрытия очереди.
- */
-interface UseAutocloseQueueProps {
+interface UseQueueAutoCloseProps {
   /** Текущий статус активности очереди. */
   isQueueOpen: boolean
-  /** Функция изменения статуса активности очереди. */
-  setIsQueueOpen: Dispatch<SetStateAction<boolean>>
-  /** Функция для отправки системных логов приложения. */
-  pushLog: (payload: LogMessagePayload) => void
+  /** Канал, к которому привязана открытая очередь. */
+  queueChannel: string | null
+  /** Сохраняет канал, к которому привязана очередь. */
+  setQueueChannel: Dispatch<SetStateAction<string | null>>
+  /** Закрывает очередь при смене канала. */
+  autoCloseQueue: (args: { source: LogSource; actorUsername: string; message: string }) => void
 }
 
 /**
- * Кастомный хук для автоматического закрытия очереди зрителей.
+ * Автоматически закрывает очередь при смене активного Twitch-канала.
+ * Очередь, открытая на текущем канале, сохраняется при перезагрузке страницы.
  */
-export const useQueueAutoClose = ({ setIsQueueOpen, isQueueOpen, pushLog }: UseAutocloseQueueProps): void => {
+export const useQueueAutoClose = ({
+  isQueueOpen,
+  queueChannel,
+  setQueueChannel,
+  autoCloseQueue,
+}: UseQueueAutoCloseProps): void => {
   const { activeChannel, userDisplayName, session } = useAuth()
-
   const actorUsername = userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR
 
-  // Закрытие при выгрузке вкладки, закрытии браузера или перезагрузке страницы.
-  useOnWindowUnload(() => {
-    if (!isQueueOpen) return
-
-    setIsQueueOpen(false)
-    pushLog({
-      message: 'Очередь автоматически закрыта из-за перезагрузки страницы или закрытия вкладки приложения.',
-      status: APP_LOG_STATUSES.WARNING,
-      source: APP_LOG_SOURCES.APPLICATION,
-      actorUsername,
-    })
-  })
-
-  // Закрытие при смене активного Twitch-канала стримера.
   useEffect(() => {
     if (!isQueueOpen) return
 
-    setIsQueueOpen(false)
-    pushLog({
-      message: 'Очередь автоматически закрыта в связи с переключением на канала.',
-      status: APP_LOG_STATUSES.WARNING,
+    // Очередь, сохранённая до появления привязки к каналу, остаётся открытой на текущем канале.
+    if (queueChannel === null) {
+      setQueueChannel(activeChannel)
+      return
+    }
+
+    if (!activeChannel || queueChannel === activeChannel) return
+
+    autoCloseQueue({
+      message: QUEUE_SESSION_LOG_MESSAGES.AUTO_CLOSED_ON_CHANNEL_CHANGE,
       source: APP_LOG_SOURCES.APPLICATION,
       actorUsername,
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Нужно реагировать только на смену активного канала
-  }, [activeChannel])
+  }, [activeChannel, actorUsername, autoCloseQueue, isQueueOpen, queueChannel, setQueueChannel])
 }

@@ -216,6 +216,22 @@ export const QUEUE_TYPE_LABELS_ACCUSATIVE = {
 } as const satisfies Record<MutableQueueType, string>
 
 /**
+ * Тексты системных сообщений об открытии, закрытии и завершении очереди.
+ */
+export const QUEUE_SESSION_LOG_MESSAGES = {
+  OPENED: 'Открыта очередь, участники чата могут добавляться.',
+  ALREADY_OPENED: 'Очередь уже открыта.',
+  CLOSED: 'Закрыта очередь, добавлять в очередь могут только модераторы в чате и пользователь приложения.',
+  ALREADY_CLOSED: 'Очередь уже закрыта.',
+  FINISHED: (sessionNumber: number, playersCount: number): string =>
+    `Состав №${sessionNumber} завершен (игроков: ${playersCount}).`,
+  FINISHED_CHAT: (nicknames: string): string => `Очередь завершена. Сейчас играют: ${nicknames}`,
+  FINISHED_EMPTY: 'Не удалось завершить сессию: Очередь пуста.',
+  AUTO_CLOSED_ON_FINISH: 'Очередь автоматически закрыта в связи с завершением сессии.',
+  AUTO_CLOSED_ON_CHANNEL_CHANGE: 'Очередь автоматически закрыта в связи со сменой канала.',
+} as const
+
+/**
  * Тексты системных сообщений об очистке очередей для журнала приложения.
  */
 export const QUEUE_CLEAR_MESSAGES = {

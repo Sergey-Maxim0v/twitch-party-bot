@@ -12,6 +12,7 @@ import { useQueueClear } from '../hooks/useQueueClear.ts'
 import { useQueuePlayers } from '../hooks/useQueuePlayers.ts'
 import { useQueueStore } from '../hooks/useQueueStore.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
+import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { QUEUE_HISTORY_LIMIT, PLAYER_HISTORY_LIMIT } from '../../../constants/queue.constants.ts'
 import { limitQueueHistory } from '../utils/limitQueueHistory.ts'
 import { limitPlayerHistory } from '../utils/limitPlayerHistory.ts'
@@ -27,6 +28,9 @@ interface QueueProviderProps {
 export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const { state, setState, getState } = useQueueStore()
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage(QUEUE_STORAGE_KEYS.STATUS, false)
+  const [queueChannel, setQueueChannel] = useLocalStorage<string | null>(QUEUE_STORAGE_KEYS.CHANNEL, null)
+
+  const { activeChannel } = useAuth()
 
   const { pushLog: pushAppLog } = useAppLogs()
   const { settings } = useQueueSettings()
@@ -81,14 +85,21 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     pushAppLog({ message, status, source, actorUsername, rawCommand })
   }, [pushAppLog])
 
-  useQueueAutoClose({ setIsQueueOpen, isQueueOpen, pushLog })
-
-  const { openQueue, closeQueue, finishActiveQueue, balanceQueues } = useQueueSession({
+  const { openQueue, closeQueue, autoCloseQueue, finishActiveQueue, balanceQueues } = useQueueSession({
     setState,
     getState,
     isQueueOpen,
     setIsQueueOpen,
+    activeChannel,
+    setQueueChannel,
     pushLog,
+  })
+
+  useQueueAutoClose({
+    isQueueOpen,
+    queueChannel,
+    setQueueChannel,
+    autoCloseQueue,
   })
 
   const { clearActiveQueue, clearWaitingQueue, clearQueueHistory } = useQueueClear({

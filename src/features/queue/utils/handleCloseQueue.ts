@@ -1,22 +1,25 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 
 interface HandleCloseQueueArgs {
-  /** Текущее состояние открытости очереди */
+  /** Текущее состояние открытости очереди. */
   isQueueOpen: boolean;
-  /** Функция обновления состояния открытости очереди */
+  /** Функция обновления состояния открытости очереди. */
   setIsQueueOpen: Dispatch<SetStateAction<boolean>>;
-  /** Источник вызова команды (чат/интерфейс) */
+  /** Источник вызова команды (чат/интерфейс). */
   source: LogSource;
-  /** Никнейм того, кто закрыл очередь */
+  /** Никнейм того, кто закрыл очередь. */
   actorUsername: string;
-  /** Хелпер провайдера для записи логов */
+  /** Хелпер провайдера для записи логов. */
   pushLog: AppLogsContextValue['pushLog'];
+  /** Причина закрытия для журнала; по умолчанию — стандартное сообщение. */
+  message?: string;
 }
 
 /**
- * Хендлер для приостановки регистрации игроков в очередь.
+ * Приостанавливает регистрацию игроков в очередь.
  */
 export const handleCloseQueue = ({
   isQueueOpen,
@@ -24,21 +27,23 @@ export const handleCloseQueue = ({
   source,
   actorUsername,
   pushLog,
+  message = QUEUE_SESSION_LOG_MESSAGES.CLOSED,
 }: HandleCloseQueueArgs): void => {
-  if(!isQueueOpen) {
+  if (!isQueueOpen) {
     pushLog({
-      message: 'Очередь уже закрыта.',
+      message: QUEUE_SESSION_LOG_MESSAGES.ALREADY_CLOSED,
       status: APP_LOG_STATUSES.WARNING,
       source,
       actorUsername,
     })
+
     return
   }
 
   setIsQueueOpen(false)
 
   pushLog({
-    message: 'Закрыта очередь, добавлять в очередь могут только модераторы в чате и пользователь приложения.',
+    message,
     status: APP_LOG_STATUSES.WARNING,
     source,
     actorUsername,
