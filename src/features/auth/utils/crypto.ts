@@ -2,15 +2,22 @@ import {
   AUTH_STATE_VALIDATION_RESULTS,
   TWITCH_AUTH_STATE_STORAGE_KEY,
 } from '../../../constants/auth.constants.ts'
-import type { AuthStateValidationResult } from '../types'
-import { readWebStorage, removeWebStorage, writeWebStorage } from '../../../hooks/utils/webStorage.utils.ts'
+import type { AuthContextType, AuthStateValidationResult } from '../types'
+import {
+  readWebStorage,
+  removeWebStorage,
+  writeWebStorage,
+  type WebStorageKind,
+} from '../../../hooks/utils/webStorage.utils.ts'
+
+const AUTH_STORAGE_KIND: WebStorageKind = 'sessionStorage'
 
 /**
  * Данные попытки входа, сохраняемые в sessionStorage перед редиректом на Twitch.
  */
 export interface AuthAttempt {
   state: string;
-  contextType: 'popup' | 'tab';
+  contextType: AuthContextType;
 }
 
 /**
@@ -33,32 +40,37 @@ export const generateRandomState = (): string => {
 }
 
 /**
- * Сохраняет попытку входа (`state` + тип контекста) в sessionStorage перед редиректом на Twitch.
- * Единый источник правды для последующей проверки `state`.
+ * Сохраняет попытку входа (`state` + контекст) перед редиректом на Twitch.
  *
  * @param state - Сгенерированное значение `state`.
- * @param contextType - Тип контекста входа: `popup` или `tab`.
+ * @param contextType - Контекст входа: `popup` или `tab`.
  * @returns `true`, если состояние удалось сохранить.
  */
-export const saveAuthAttempt = (state: string, contextType: 'popup' | 'tab'): boolean => (
-  writeWebStorage('sessionStorage', TWITCH_AUTH_STATE_STORAGE_KEY, JSON.stringify({ state, contextType }))
+export const saveAuthAttempt = (state: string, contextType: AuthContextType): boolean => (
+  writeWebStorage(AUTH_STORAGE_KIND, TWITCH_AUTH_STATE_STORAGE_KEY, JSON.stringify({ state, contextType }))
 )
 
 /**
- * Сверяет вернувшийся `state` с сохранённой попыткой входа и удаляет её из sessionStorage.
- * Проверка выполняется только в документе, вернувшемся с редиректа Twitch.
+ * Удаляет сохранённую попытку входа.
+ */
+export const clearAuthAttempt = (): void => {
+  removeWebStorage(AUTH_STORAGE_KIND, TWITCH_AUTH_STATE_STORAGE_KEY)
+}
+
+/**
+ * Сверяет вернувшийся `state` с сохранённой попыткой входа и удаляет её.
  *
  * @param receivedState - Значение `state` из URL после редиректа.
  * @returns Результат проверки и сохранённая попытка (если была).
  */
 export const consumeAuthAttempt = (receivedState: string | null): AuthConsumeResult => {
-  const { value, isAvailable } = readWebStorage('sessionStorage', TWITCH_AUTH_STATE_STORAGE_KEY)
+  const { value, isAvailable } = readWebStorage(AUTH_STORAGE_KIND, TWITCH_AUTH_STATE_STORAGE_KEY)
 
   if (!isAvailable) {
     return { result: AUTH_STATE_VALIDATION_RESULTS.UNAVAILABLE, attempt: null }
   }
 
-  removeWebStorage('sessionStorage', TWITCH_AUTH_STATE_STORAGE_KEY)
+  removeWebStorage(AUTH_STORAGE_KIND, TWITCH_AUTH_STATE_STORAGE_KEY)
 
   let attempt: AuthAttempt | null = null
 

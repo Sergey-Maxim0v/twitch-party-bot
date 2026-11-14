@@ -1,4 +1,4 @@
-import { AUTH_STATE_VALIDATION_RESULTS, TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
+import { AUTH_CONTEXT_TYPE, AUTH_STATE_VALIDATION_RESULTS, TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
 
 export { TWITCH_AUTH_STAGES }
 
@@ -6,6 +6,11 @@ export { TWITCH_AUTH_STAGES }
  * Результат проверки OAuth-параметра `state`.
  */
 export type AuthStateValidationResult = typeof AUTH_STATE_VALIDATION_RESULTS[keyof typeof AUTH_STATE_VALIDATION_RESULTS]
+
+/**
+ * Контекст входа: всплывающее окно или текущая вкладка.
+ */
+export type AuthContextType = typeof AUTH_CONTEXT_TYPE[keyof typeof AUTH_CONTEXT_TYPE]
 
 /**
  * Данные пользователя, полученные при валидации токена Twitch.
