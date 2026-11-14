@@ -1,14 +1,12 @@
 import { WEB_STORAGE_ERRORS } from '../../constants/storage.constants.ts'
+import { isPlainObject } from '../../utils/objects.ts'
 import { readWebStorage, type WebStorageKind } from './webStorage.utils.ts'
-
-/** Проверяет, что значение является обычным объектом (не массивом и не null). */
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
 
 /**
  * Приводит сохранённое значение к структуре `defaults`: дополняет недостающие поля
- * и отбрасывает значения несовпадающего типа. Массивы сохраняются как есть,
- * а при `defaults === null` возвращается сохранённое значение.
+ * и отбрасывает значения несовпадающего типа. Элементы массивов и содержимое
+ * произвольных записей не проверяются — это ответственность вызывающего кода.
+ * При `defaults === null` возвращается сохранённое значение.
  *
  * @param defaults - Эталон структуры и значения по умолчанию.
  * @param stored - Значение, прочитанное из Web Storage.

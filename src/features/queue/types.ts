@@ -64,7 +64,7 @@ export interface QueueSession {
 /**
  * Статистика истории игрока для расчета всех типов кулдаунов
  */
-interface PlayerHistoryStats {
+export interface PlayerHistoryStats {
   /** Последний timestamp, когда игрок заходил/играл */
   lastPlayedTimestamp: number;
   /** Порядковый номер сессии, в которой игрок сыграл последний раз */

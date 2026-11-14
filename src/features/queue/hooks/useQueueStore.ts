@@ -5,6 +5,7 @@ import { QUEUE_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { readStoredValue, serializeStoredValue } from '../../../hooks/utils/storage.utils.ts'
 import { readWebStorage, writeWebStorage } from '../../../hooks/utils/webStorage.utils.ts'
 import { createInitialState } from '../utils/createInitialState.ts'
+import { sanitizeQueueState } from '../utils/sanitizeQueueState.ts'
 import { createQueueStore, type QueueStore } from '../store/queueStore.ts'
 
 interface UseQueueStoreResult {
@@ -17,12 +18,12 @@ interface UseQueueStoreResult {
 }
 
 /**
- * Читает состояние очереди из localStorage, приводя его к актуальной структуре.
+ * Читает состояние очереди из localStorage и отбрасывает повреждённые записи.
  *
  * @returns Состояние очереди, восстановленное из хранилища.
  */
 const readStoredState = (): QueueState => (
-  readStoredValue('localStorage', QUEUE_STORAGE_KEYS.DATA, createInitialState())
+  sanitizeQueueState(readStoredValue('localStorage', QUEUE_STORAGE_KEYS.DATA, createInitialState()))
 )
 
 /**

@@ -1,8 +1,9 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueSession, QueueState, QueuePlayer } from '../types'
+import type { PlayerHistoryStats, QueueSession, QueueState, QueuePlayer } from '../types'
 import { limitQueueHistory } from './limitQueueHistory.ts'
 import { limitPlayerHistory } from './limitPlayerHistory.ts'
 import { createId } from '../../../utils/createId.ts'
+import { getOwnValue } from '../../../utils/objects.ts'
 
 interface HandleFinishActiveQueueArgs {
   /** Чтение актуального состояния очереди. */
@@ -28,6 +29,28 @@ interface FinishDecision {
 }
 
 /**
+ * Собирает статистику игрока после завершённой сессии.
+ *
+ * @param player - Игрок завершённого состава.
+ * @param existingStats - Статистика игрока до завершения сессии.
+ * @param sessionNumber - Номер завершённой сессии.
+ * @param playedAt - Время завершения сессии.
+ * @returns Обновлённая статистика игрока.
+ */
+const createFinishedPlayerStats = (
+  player: QueuePlayer,
+  existingStats: PlayerHistoryStats | undefined,
+  sessionNumber: number,
+  playedAt: number,
+): PlayerHistoryStats => ({
+  lastPlayedTimestamp: playedAt,
+  lastPlayedSessionNumber: sessionNumber,
+  gamesPlayed: (existingStats?.gamesPlayed ?? 0) + 1,
+  userID: player.userId,
+  username: player.username,
+})
+
+/**
  * Рассчитывает результат завершения текущей сессии: архивирует состав
  * в историю и фиксирует кулдауны участников.
  *
@@ -42,19 +65,21 @@ const decideFinish = (prev: QueueState): FinishDecision => {
   const playedPlayers = [...prev.activeQueue]
   const sessionNumber = prev.globalSessionCounter + 1
   const playedAt = Date.now()
-  const playerHistory = { ...prev.playerHistory }
 
-  playedPlayers.forEach(player => {
-    const existingStats = prev.playerHistory[player.username]
+  // `fromEntries` создаёт обычное поле даже для ника `__proto__`, а присваивание по ключу меняет прототип.
+  const finishedStats = Object.fromEntries(
+    playedPlayers.map(player => [
+      player.username,
+      createFinishedPlayerStats(
+        player,
+        getOwnValue(prev.playerHistory, player.username),
+        sessionNumber,
+        playedAt,
+      ),
+    ] as const),
+  )
 
-    playerHistory[player.username] = {
-      lastPlayedTimestamp: playedAt,
-      lastPlayedSessionNumber: sessionNumber,
-      gamesPlayed: (existingStats?.gamesPlayed || 0) + 1,
-      userID: player.userId,
-      username: player.username,
-    }
-  })
+  const playerHistory = { ...prev.playerHistory, ...finishedStats }
 
   const finishedSession: QueueSession = {
     id: createId('session'),

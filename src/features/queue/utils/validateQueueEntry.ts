@@ -2,6 +2,10 @@ import type { QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
+import { getOwnValue } from '../../../utils/objects.ts'
+
+/** Количество миллисекунд в минуте. */
+const MILLISECONDS_IN_MINUTE = 60_000
 
 /** Данные, необходимые для проверки заявки игрока. */
 interface ValidateQueueEntryArgs {
@@ -53,35 +57,33 @@ export const validateQueueEntry = ({
     return 'Добавление в очередь: Отклонено, доступ к очереди только для подписчиков Twitch, VIP и модераторов '
   }
 
-  const playerStats = state.playerHistory[username]
+  const playerStats = getOwnValue(state.playerHistory, username)
 
   if (!playerStats) {
     return null
   }
 
-  if (settings.maxGamesPerUser && settings.maxGamesPerUser > 0) {
-    const gamesPlayed = playerStats.gamesPlayed || 0
-    if (gamesPlayed >= settings.maxGamesPerUser) {
-      return `Добавление в очередь: Отклонено, игрок ${username} уже сыграл максимальное количество игр (${gamesPlayed}/${settings.maxGamesPerUser})`
-    }
+  const { gamesPlayedCooldown, maxGamesPerUser = 0, sessionHistoryCooldown } = settings
+  const isGamesLimitReached = maxGamesPerUser > 0 && playerStats.gamesPlayed >= maxGamesPerUser
+
+  if (isGamesLimitReached) {
+    return `Добавление в очередь: Отклонено, игрок ${username} уже сыграл максимальное количество игр (${playerStats.gamesPlayed}/${maxGamesPerUser})`
   }
 
-  const currentTimestamp = Date.now()
+  const minutesPassed = (Date.now() - playerStats.lastPlayedTimestamp) / MILLISECONDS_IN_MINUTE
+  const isTimeCooldownActive = sessionHistoryCooldown > 0 && minutesPassed < sessionHistoryCooldown
 
-  if (settings.sessionHistoryCooldown > 0) {
-    const minutesPassed = (currentTimestamp - playerStats.lastPlayedTimestamp) / 60000
-    if (minutesPassed < settings.sessionHistoryCooldown) {
-      const remaining = Math.ceil(settings.sessionHistoryCooldown - minutesPassed)
-      return `Добавление в очередь: Отклонено, кулдаун времени (осталось ${remaining} мин.)`
-    }
+  if (isTimeCooldownActive) {
+    const remaining = Math.ceil(sessionHistoryCooldown - minutesPassed)
+    return `Добавление в очередь: Отклонено, кулдаун времени (осталось ${remaining} мин.)`
   }
 
-  if (settings.gamesPlayedCooldown > 0) {
-    const sessionsPassed = state.globalSessionCounter - playerStats.lastPlayedSessionNumber
-    if (sessionsPassed < settings.gamesPlayedCooldown) {
-      const remaining = settings.gamesPlayedCooldown - sessionsPassed
-      return `Добавление в очередь: Отклонено, кулдаун сыгранных игр (необходимо пропустить еще ${remaining} игр)`
-    }
+  const sessionsPassed = state.globalSessionCounter - playerStats.lastPlayedSessionNumber
+  const isGamesCooldownActive = gamesPlayedCooldown > 0 && sessionsPassed < gamesPlayedCooldown
+
+  if (isGamesCooldownActive) {
+    const remaining = gamesPlayedCooldown - sessionsPassed
+    return `Добавление в очередь: Отклонено, кулдаун сыгранных игр (необходимо пропустить еще ${remaining} игр)`
   }
 
   return null
