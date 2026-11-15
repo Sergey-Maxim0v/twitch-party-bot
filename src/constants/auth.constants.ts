@@ -38,6 +38,7 @@ export const TWITCH_AUTH_ERRORS = {
 export const AUTH_STATE_VALIDATION_RESULTS = {
   VALID: 'valid',
   INVALID: 'invalid',
+  EXPIRED: 'expired',
   UNAVAILABLE: 'unavailable',
 } as const
 
@@ -66,11 +67,13 @@ export const TWITCH_AUTH_UI_MESSAGES = {
   POPUP_BLOCKED_WITHOUT_FALLBACK: 'Всплывающее окно заблокировано, а вход в текущей вкладке недоступен из-за блокировки хранилища. Разрешите хранение данных сайта и попробуйте снова.',
   POPUP_CLOSED: 'Авторизация отменена: всплывающее окно было закрыто.',
   POPUP_TIMEOUT: 'Авторизация не завершена вовремя. Попробуйте снова.',
+  AUTH_CANCELLED: 'Авторизация отменена: ответ Twitch не получен.',
   URL_BUILD_FAILED: 'Ошибка при формировании URL авторизации.',
   CLIENT_ID_MISSING: 'Twitch Client ID не найден в конфигурации приложения. Проверьте настройки CI/CD.',
   INIT_FAILED: 'Не удалось обработать ответ Twitch. Попробуйте войти снова.',
   UNKNOWN_AUTH: 'Неизвестная ошибка при авторизации.',
   AUTH_STATE_UNAVAILABLE: 'Браузер блокирует хранилище, поэтому не удалось проверить состояние авторизации. Разрешите хранение данных сайта и попробуйте снова.',
+  AUTH_STATE_EXPIRED: 'Время ожидания авторизации истекло. Попробуйте войти снова.',
   CURRENT_TAB_LOGIN_UNAVAILABLE: 'Вход в текущей вкладке недоступен: браузер блокирует хранилище. Войдите во всплывающем окне или разрешите хранение данных сайта.',
   STORAGE_PERSISTENCE_UNAVAILABLE: 'Браузер ограничивает хранилище: часть данных и настроек не сохранится после перезагрузки.',
   UNKNOWN_VALIDATION: 'Неизвестная ошибка валидации токена.',
@@ -139,6 +142,13 @@ export const TWITCH_AUTH_STAGES = {
  * Интервал фоновой проверки токена (45 минут).
  */
 export const TWITCH_TOKEN_VALIDATION_INTERVAL_MS = 45 * 60 * 1000
+
+/**
+ * Срок жизни попытки входа (10 минут).
+ *
+ * После истечения срока `state` считается просроченным и больше не принимается.
+ */
+export const TWITCH_AUTH_STATE_TTL_MS = 10 * 60 * 1000
 
 /**
  * Таймаут запроса проверки токена (10 секунд).
