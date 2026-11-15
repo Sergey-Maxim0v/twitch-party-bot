@@ -45,8 +45,13 @@ export default defineConfig([
       '@stylistic/no-multi-spaces': 'error',
       '@stylistic/block-spacing': ['error', 'always'],
       '@stylistic/no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0 }],
-      '@stylistic/object-curly-spacing': ['error', 'always'],
-      '@stylistic/array-bracket-spacing': ['error', 'never'],
+      '@stylistic/list-style': ['error', {
+        empty: 'ignore',
+        singleLine: { spacing: 'never' },
+        overrides: {
+          '{}': { singleLine: { spacing: 'always' } },
+        },
+      }],
       '@stylistic/space-infix-ops': 'error',
       '@stylistic/space-before-blocks': ['error', 'always'],
       '@stylistic/function-call-spacing': ['error', 'never'],

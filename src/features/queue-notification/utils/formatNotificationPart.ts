@@ -11,7 +11,8 @@ interface FormatNotificationPartArgs {
  * Форматирует отдельную группу участников для уведомления.
  */
 export const formatNotificationPart = (
-  { title, members, limit }: FormatNotificationPartArgs): string => {
+  { title, members, limit }: FormatNotificationPartArgs,
+): string => {
   if (limit <= 0 || members.length === 0) {
     return ''
   }

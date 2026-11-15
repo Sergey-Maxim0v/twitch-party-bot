@@ -14,7 +14,8 @@ interface MarkDeletedMessagesProps {
  * @returns Обновленная история сообщений.
  */
 export const markDeletedMessages = (
-  { modMessage, currentMessages }: MarkDeletedMessagesProps): ParsedIrcMessage[] => {
+  { modMessage, currentMessages }: MarkDeletedMessagesProps,
+): ParsedIrcMessage[] => {
   const { command, text, tags } = modMessage
 
   const markAsDeleted = (message: ParsedIrcMessage, modAction: string): ParsedIrcMessage => ({
@@ -36,20 +37,20 @@ export const markDeletedMessages = (
   if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT && text?.trim()) {
     const bannedUser = text.trim().toLowerCase()
 
-    return currentMessages.map(message =>
+    return currentMessages.map(message => (
       message.user.nick.toLowerCase() === bannedUser
         ? markAsDeleted(message, TWITCH_IRC_MOD_ACTIONS.BAN)
-        : message,
-    )
+        : message
+    ))
   }
 
   // Удаление одного сообщения по его ID
   const targetMsgId = tags[TWITCH_IRC_TAGS.TARGET_MSG_ID]
   if (!targetMsgId) return currentMessages
 
-  return currentMessages.map(message =>
+  return currentMessages.map(message => (
     message.id === targetMsgId
       ? markAsDeleted(message, TWITCH_IRC_MOD_ACTIONS.CLEAR_MSG)
-      : message,
-  )
+      : message
+  ))
 }

@@ -22,7 +22,7 @@ export const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
 
   const handleQueueToggle = useCallback(() => {
     if(isQueueOpen) {
-      closeQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' } )
+      closeQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
     } else {
       openQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
     }

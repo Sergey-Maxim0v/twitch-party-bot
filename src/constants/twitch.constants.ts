@@ -360,15 +360,24 @@ export const TWITCH_IRC_MSG_IDS = {
  * Дублирующие английские уведомления игнорируются.
  */
 export const TWITCH_ROOM_STATE_NOTICE_IDS: readonly string[] = [
-  'room_subs_on', 'room_subs_off',
-  'room_emoteonly_on', 'room_emoteonly_off',
-  'msg_emote_only', 'msg_emote_only_off',
-  'room_r9k_on', 'room_r9k_off',
-  'msg_r9k_on', 'msg_r9k_off',
-  'followers_on', 'followers_off',
-  'msg_followers_on', 'msg_followers_off',
-  'slow_on', 'slow_off',
-  'msg_slow_on', 'msg_slow_off',
+  'room_subs_on',
+  'room_subs_off',
+  'room_emoteonly_on',
+  'room_emoteonly_off',
+  'msg_emote_only',
+  'msg_emote_only_off',
+  'room_r9k_on',
+  'room_r9k_off',
+  'msg_r9k_on',
+  'msg_r9k_off',
+  'followers_on',
+  'followers_off',
+  'msg_followers_on',
+  'msg_followers_off',
+  'slow_on',
+  'slow_off',
+  'msg_slow_on',
+  'msg_slow_off',
 ] as const
 
 /**
