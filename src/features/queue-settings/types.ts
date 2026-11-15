@@ -17,10 +17,9 @@ interface QueueCommandConfig {
   isModeratorOnly: boolean;
 }
 
-/** Конфигурация игры: ключ и регулярное выражение для проверки никнейма. */
+/** Конфигурация игры: ключ выбранной игры. */
 export interface QueueGameConfig {
   key: QueueGameKey;
-  validationPattern: string;
 }
 
 /** Настройки очереди. */
@@ -101,7 +100,7 @@ export interface QueueSettings {
     onClearWaiting: boolean;
   };
 
-  /** Выбор регулярного выражения для проверки игрового никнейма. */
+  /** Выбранная игра для проверки игрового никнейма. */
   currentGame?: QueueGameConfig;
 
   /** Список никнеймов, сообщения которых бот не будет учитывать при построении очереди. */

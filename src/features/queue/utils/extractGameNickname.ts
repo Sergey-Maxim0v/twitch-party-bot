@@ -1,16 +1,46 @@
-import type { QueueGameConfig } from '../../queue-settings/types.ts'
+import type { QueueGameConfig, QueueGameKey } from '../../queue-settings/types.ts'
+import { QUEUE_GAME_NICKNAME_PATTERNS, QUEUE_NICKNAME_MAX_LENGTH } from '../../../constants/queue.constants.ts'
+import { TWITCH_CHAT_COMMAND_PREFIX } from '../../../constants/twitch.constants.ts'
 
 /** Аргументы извлечения игрового никнейма из сообщения. */
 interface ExtractGameNicknameArgs {
   /** Полный текст сообщения */
   rawMessage: string;
-  /** Текущие настройки игры и регулярного выражения */
+  /** Выбранная игра */
   gameConfig?: QueueGameConfig;
+}
+
+/** Скомпилированные правила проверки никнейма по ключу игры. */
+const gameRegexes = new Map<QueueGameKey, RegExp>()
+
+/**
+ * Возвращает правило проверки никнейма для игры.
+ * Правила берутся из списка игр и компилируются один раз.
+ *
+ * @param key - Ключ выбранной игры.
+ * @returns Правило проверки или `null`, если для игры правила нет.
+ */
+const getGameRegex = (key: QueueGameKey): RegExp | null => {
+  const cachedRegex = gameRegexes.get(key)
+  if (cachedRegex) return cachedRegex
+
+  const pattern = QUEUE_GAME_NICKNAME_PATTERNS[key]
+  if (!pattern) return null
+
+  try {
+    const regex = new RegExp(pattern)
+    gameRegexes.set(key, regex)
+
+    return regex
+  } catch (error) {
+    console.error('Ошибка в регулярном выражении игры:', error)
+    return null
+  }
 }
 
 /**
  * Сканирует сообщение и извлекает первый никнейм,
- * который строго соответствует регулярному выражению игры.
+ * который строго соответствует правилу выбранной игры.
  *
  * @returns Найденный никнейм или `null`.
  */
@@ -18,31 +48,20 @@ export const extractGameNickname = ({
   rawMessage,
   gameConfig,
 }: ExtractGameNicknameArgs): string | null => {
-  if (!gameConfig?.validationPattern) {
-    return null
-  }
+  if (!gameConfig) return null
 
-  const trimmed = rawMessage.trim()
+  const regex = getGameRegex(gameConfig.key)
+  if (!regex) return null
 
-  if (!trimmed) {
-    return null
-  }
+  const words = rawMessage.trim().split(/\s+/)
+  if (!words[0]) return null
 
-  const textParts = trimmed.split(/\s+/)
+  const candidates = words[0].startsWith(TWITCH_CHAT_COMMAND_PREFIX) ? words.slice(1) : words
 
-  const isCommand = textParts[0].startsWith('!')
-  const wordsToScan = isCommand ? textParts.slice(1) : textParts
-
-  try {
-    const regex = new RegExp(gameConfig.validationPattern)
-
-    for (const word of wordsToScan) {
-      if (regex.test(word)) {
-        return word
-      }
+  for (const word of candidates) {
+    if (word.length <= QUEUE_NICKNAME_MAX_LENGTH && regex.test(word)) {
+      return word
     }
-  } catch (e) {
-    console.error('Ошибка в регулярном выражении игры:', e)
   }
 
   return null

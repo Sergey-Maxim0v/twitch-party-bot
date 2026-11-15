@@ -95,6 +95,12 @@ export const QUEUE_GAME_NICKNAME_PATTERNS: Record<QueueGameKey, string> = {
 }
 
 /**
+ * Максимальная длина слова, которое проверяется правилом игры.
+ * Все встроенные правила ограничены 32 символами, поэтому более длинные слова не проверяются.
+ */
+export const QUEUE_NICKNAME_MAX_LENGTH = 64
+
+/**
  * Настройки очереди по умолчанию.
  */
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {

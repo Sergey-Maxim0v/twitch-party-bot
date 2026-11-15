@@ -29,7 +29,6 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
     updateSettings({
       currentGame: {
         key: selectedKey,
-        validationPattern: QUEUE_GAME_NICKNAME_PATTERNS[selectedKey],
       },
     })
   }
@@ -63,7 +62,7 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
           Активный паттерн:
           {settings.currentGame ? (
             <code className="bg-base-300 px-1 rounded text-primary">
-              {settings.currentGame.validationPattern}
+              {QUEUE_GAME_NICKNAME_PATTERNS[settings.currentGame.key]}
             </code>
           ) : ' не выбрано'}
         </p>
