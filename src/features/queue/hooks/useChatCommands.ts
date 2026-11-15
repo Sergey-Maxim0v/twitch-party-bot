@@ -5,7 +5,7 @@ import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
-import { TWITCH_CHAT_MENTION_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
+import { TWITCH_CHAT_COMMAND_PREFIX, TWITCH_CHAT_MENTION_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
 
 /**
  * Отбрасывает упоминание и пробелы вокруг аргумента команды чата.
@@ -15,6 +15,12 @@ const parseCommandTarget = (argument: string): string => argument.trim().replace
 /**
  * Обрабатывает команды из чата Twitch: вступление в очередь, выход,
  * показ статуса, очистку списков и управление составом.
+ *
+ * Проверяет, что имя команды совпадает с одной из настроенных в
+ * `settings.commands`, а не просто начинается с префикса командного чата.
+ * Это защищает от циклической отправки, когда автоматическое сообщение бота
+ * с messagePrefix, совпадающим с именем команды, снова воспринимается
+ * как команда.
  */
 export const useChatCommands = () => {
   const { settings } = useQueueSettings()
@@ -31,17 +37,19 @@ export const useChatCommands = () => {
   } = useQueue()
 
   const { commands } = settings
+  const commandNames = Object.values(commands).map(cmd => cmd.name)
 
   useEffect(() => {
     if (!lastMessage?.text) return
     const trimmedText = lastMessage.text.trim()
-    if (!trimmedText.startsWith('!')) return
+    if (!trimmedText.startsWith(TWITCH_CHAT_COMMAND_PREFIX)) return
+
+    const commandName = trimmedText.split(/\s+/)[0].slice(TWITCH_CHAT_COMMAND_PREFIX.length)
+    if (!commandNames.includes(commandName)) return
 
     const isModeratorOrStreamer = lastMessage.user.isBroadcaster || lastMessage.user.isModerator
 
-    const parts = trimmedText.split(/\s+/)
-    const commandName = parts[0]
-    const commandArg = parts.slice(1).join(' ')
+    const commandArg = trimmedText.split(/\s+/).slice(1).join(' ')
 
     const hasAccess = (isModeratorOnly: boolean): boolean => !isModeratorOnly || Boolean(isModeratorOrStreamer)
 
@@ -91,7 +99,6 @@ export const useChatCommands = () => {
 
       case commands.show.name: {
         if (!hasAccess(commands.show.isModeratorOnly)) return
-
         sendCurrentQueueStatus()
         break
       }
