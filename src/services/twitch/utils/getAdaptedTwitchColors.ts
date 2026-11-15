@@ -1,6 +1,8 @@
+import { TWITCH_COLOR_LIGHTNESS } from '../../../constants/twitch.constants.ts'
 import { hexToHsl } from './hexToHsl.ts'
+import { isSafeTwitchColor } from './isSafeTwitchColor.ts'
 
-interface AdaptedColors {
+export interface AdaptedColors {
   lightColor: string;
   darkColor: string;
 }
@@ -8,17 +10,28 @@ interface AdaptedColors {
 /**
  * Адаптирует исходный цвет Twitch под требования контрастности для светлой и темной тем.
  * Сохраняет оригинальный оттенок и насыщенность, корректируя только яркость.
- * @param hexColor - Исходный HEX-цвет никнейма.
- * @returns Цвета для светлой и темной тем в формате HSL.
+ * Цвет, который не удается сконвертировать в HSL, используется как есть.
+ *
+ * @param color - Исходный цвет ника.
+ * @returns Цвета для светлой и темной тем или `null`, если значение не является безопасным цветом.
  */
-export const getAdaptedTwitchColors = (hexColor: string): AdaptedColors => {
-  const { h, s, l } = hexToHsl(hexColor)
+export const getAdaptedTwitchColors = (color: string): AdaptedColors | null => {
+  const trimmed = color.trim()
+  const hsl = hexToHsl(trimmed)
 
-  const lightL = l > 45 ? 38 : l
-  const darkL = l < 60 ? 72 : l
+  if (!hsl) {
+    return isSafeTwitchColor(trimmed) ? { lightColor: trimmed, darkColor: trimmed } : null
+  }
+
+  const lightLightness = hsl.l > TWITCH_COLOR_LIGHTNESS.LIGHT_THEME_MAX
+    ? TWITCH_COLOR_LIGHTNESS.LIGHT_THEME_VALUE
+    : hsl.l
+  const darkLightness = hsl.l < TWITCH_COLOR_LIGHTNESS.DARK_THEME_MIN
+    ? TWITCH_COLOR_LIGHTNESS.DARK_THEME_VALUE
+    : hsl.l
 
   return {
-    lightColor: `hsl(${h}, ${s}%, ${lightL}%)`,
-    darkColor: `hsl(${h}, ${s}%, ${darkL}%)`,
+    lightColor: `hsl(${hsl.h}, ${hsl.s}%, ${lightLightness}%)`,
+    darkColor: `hsl(${hsl.h}, ${hsl.s}%, ${darkLightness}%)`,
   }
 }

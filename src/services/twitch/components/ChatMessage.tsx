@@ -40,14 +40,12 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   }
 
   const deletedClassName = msg.isDeleted ? ' opacity-40 select-none' : ''
-  const twitchColor = msg.user.color
-  const hasColor = useColoredNames && twitchColor
+  const adaptedColors = useColoredNames ? getAdaptedTwitchColors(msg.user.color ?? '') : null
   let nameStyle: CSSProperties | undefined = undefined
   let nameClassName = 'font-bold text-primary mr-2 break-words'
 
-  if (hasColor) {
-    const { lightColor, darkColor } = getAdaptedTwitchColors(twitchColor)
-    nameStyle = { '--light-color': lightColor, '--dark-color': darkColor } as CSSProperties
+  if (adaptedColors) {
+    nameStyle = { '--light-color': adaptedColors.lightColor, '--dark-color': adaptedColors.darkColor } as CSSProperties
     nameClassName = 'font-bold mr-2 break-words text-[var(--light-color)] [:where([data-theme=dim])_&]:text-[var(--dark-color)]'
   }
 

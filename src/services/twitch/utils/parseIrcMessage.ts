@@ -9,6 +9,7 @@ import {
 } from '../../../constants/twitch.constants.ts'
 import { formatTimeWithSeconds } from '../../../utils/dateTime.ts'
 import type { ParsedIrcMessage, TwitchIrcCommandType } from '../types.ts'
+import { isSafeTwitchColor } from './isSafeTwitchColor.ts'
 
 /**
  * Команды, текст которых содержит цель удаления (ник или ID сообщения).
@@ -181,6 +182,8 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     || tags[TWITCH_IRC_TAGS.USER_TYPE] === TWITCH_IRC_USER_TYPES.STAFF
     || tags[TWITCH_IRC_TAGS.USER_TYPE] === TWITCH_IRC_USER_TYPES.ADMIN
 
+  const rawColor = tags[TWITCH_IRC_TAGS.COLOR] || ''
+
   const user: ParsedIrcMessage['user'] = {
     userId: tags[TWITCH_IRC_TAGS.USER_ID] || '',
     nick: parsedPrefix.nick,
@@ -190,7 +193,7 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     isVip,
     isSubscriber,
     isTwitchStaff,
-    color: tags[TWITCH_IRC_TAGS.COLOR] || '',
+    color: isSafeTwitchColor(rawColor) ? rawColor : '',
   }
 
   const isDeleted = tags[TWITCH_IRC_TAGS.IS_DELETED] === TWITCH_IRC_TAG_ENABLED
