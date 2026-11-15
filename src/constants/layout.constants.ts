@@ -25,3 +25,13 @@ export const PANEL_DIRECTIONS = {
   HORIZONTAL: 'horizontal',
   VERTICAL: 'vertical',
 } as const
+
+/**
+ * Заголовки панелей рабочего пространства.
+ */
+export const WORKSPACE_PANEL_TITLES = {
+  SETTINGS: 'Настройки',
+  LOGS: 'Логи',
+  QUEUE: 'Очередь',
+  CHAT: 'Чат трансляции',
+} as const

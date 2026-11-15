@@ -1,9 +1,11 @@
 import { type Breakpoint, BREAKPOINTS } from '../../../../hooks/types/breakpoint.types.ts'
 import { CollapsiblePanel } from '../../panel/CollapsiblePanel.tsx'
+import { ErrorBoundary } from '../../../ErrorBoundary.tsx'
 import { QueueSettingsPanel } from '../../../../features/queue-settings/components/QueueSettingsPanel.tsx'
 import { QueueLogsPanel } from '../../../../features/app-logs/components/QueueLogsPanel.tsx'
 import { QueuePanel } from '../../../../features/queue/components/QueuePanel.tsx'
 import { TwitchChat } from '../../../../services/twitch/components/TwitchChat.tsx'
+import { WORKSPACE_PANEL_TITLES } from '../../../../constants/layout.constants.ts'
 import type { WorkspaceDirections } from '../../panel/utils/getPanelDirections.ts'
 
 interface CreateWorkspacePanelProps {
@@ -151,9 +153,11 @@ export const createWorkspacePanels = ({
       direction={directions.settings}
       isOpen={isOpenSettings}
       onToggle={toggleSettings}
-      title="Настройки"
+      title={WORKSPACE_PANEL_TITLES.SETTINGS}
     >
-      <QueueSettingsPanel />
+      <ErrorBoundary compact label={WORKSPACE_PANEL_TITLES.SETTINGS}>
+        <QueueSettingsPanel />
+      </ErrorBoundary>
     </CollapsiblePanel>
   )
 
@@ -163,9 +167,11 @@ export const createWorkspacePanels = ({
       direction={directions.logs}
       isOpen={isOpenLogs}
       onToggle={toggleLogs}
-      title="Логи"
+      title={WORKSPACE_PANEL_TITLES.LOGS}
     >
-      <QueueLogsPanel />
+      <ErrorBoundary compact label={WORKSPACE_PANEL_TITLES.LOGS}>
+        <QueueLogsPanel />
+      </ErrorBoundary>
     </CollapsiblePanel>
   )
 
@@ -175,9 +181,11 @@ export const createWorkspacePanels = ({
       direction={directions.queue}
       isOpen={isOpenQueue}
       onToggle={toggleQueue}
-      title="Очередь"
+      title={WORKSPACE_PANEL_TITLES.QUEUE}
     >
-      <QueuePanel />
+      <ErrorBoundary compact label={WORKSPACE_PANEL_TITLES.QUEUE}>
+        <QueuePanel />
+      </ErrorBoundary>
     </CollapsiblePanel>
   )
 
@@ -187,9 +195,11 @@ export const createWorkspacePanels = ({
       direction={directions.chat}
       isOpen={isOpenChat}
       onToggle={toggleChat}
-      title="Чат трансляции"
+      title={WORKSPACE_PANEL_TITLES.CHAT}
     >
-      <TwitchChat />
+      <ErrorBoundary compact label={WORKSPACE_PANEL_TITLES.CHAT}>
+        <TwitchChat />
+      </ErrorBoundary>
     </CollapsiblePanel>
   )
 

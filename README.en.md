@@ -65,6 +65,7 @@ You can run the application in two ways:
 * **Stable connection:** heartbeat timers run in a Web Worker so the browser does not throttle them in an inactive tab, and a half-open connection is detected and recreated automatically.
 * **Twitch OAuth sign-in:** the sign-in happens in a separate window, with a fallback to the current tab when the browser blocks popups. The token and session profile are stored inside the tab only.
 * **Modular codebase:** the logic is split into independent parts (auth, queue, notifications, settings), with infrastructure services (sockets, Twitch IRC) kept separate.
+* **Recovery from failures:** if something breaks, a recovery screen with a reload button is shown instead of a blank page, and a failing panel does not take the other panels down.
 
 ---
 
@@ -138,7 +139,7 @@ npm run preview
 │   ├── services/                # Low-level infrastructure services
 │   │   ├── socket/              # WebSocket integration layer and event bus
 │   │   └── twitch/              # TwitchIrcClient class and background Web Worker
-│   ├── utils/                   # Shared data formatting utilities
+│   ├── utils/                   # Shared data formatting and error reporting utilities
 │   ├── App.tsx                  # Root application component
 │   ├── index.css                # Global styles (Tailwind CSS v4 entry point)
 │   └── main.tsx                 # React DOM mount entry point
