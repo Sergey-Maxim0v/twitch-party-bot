@@ -214,9 +214,9 @@ export const TWITCH_ROOM_STATE_TAGS = {
 } as const
 
 /**
- * Разделитель строк в сообщениях Twitch IRC.
+ * Разделители строк IRC-сообщений: CRLF, CR или LF.
  */
-export const TWITCH_IRC_LINE_SEPARATOR_REGEX = /\r?\n/
+export const TWITCH_IRC_LINE_SEPARATOR_REGEX = /\r\n|\r|\n/
 
 /**
  * Последовательность переводов строк в тексте сообщения.
@@ -233,6 +233,14 @@ export const TWITCH_IRC_LINE_BREAK_REPLACEMENT = ' '
  * Префикс сообщений парсера IRC в консоли.
  */
 export const TWITCH_IRC_PARSER_LOG_PREFIX = '[IRC Parser]'
+
+/**
+ * Тексты сообщений парсера IRC в консоли.
+ */
+export const TWITCH_IRC_PARSER_LOG_MESSAGES = {
+  PARSE_FAILED: 'Не удалось разобрать сообщение:',
+  UNEXPECTED_DATA_TYPE: (dataType: string): string => `Ожидалась строка, получено: ${dataType}`,
+} as const
 
 /**
  * Префикс сообщений IRC-клиента в консоли.
