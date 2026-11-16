@@ -12,28 +12,6 @@ import { QueueProvider } from './features/queue/context/QueueProvider.tsx'
 import { TwitchChatProvider } from './services/twitch/context/TwitchChatProvider.tsx'
 import { QueueNotificationProvider } from './features/queue-notification/context/QueueNotificationProvider.tsx'
 
-//  TODO:
-//   проверить:
-//   -  авторизации
-//   -  каналы
-//   -  индикаторы
-//   -  статусы канала в модалке
-//   -  дисконекты
-//   -  логика автосворачивания панелей от размера
-//   -  выделение игрового никнейма (регуляркой)
-//   -  лимиты игр
-//   -  добавление в очередь
-//   -  удаление из очереди
-//   -  удаление из всех очередей
-//   -  бан
-//   -  разбан
-//   -  приоритет подписчиков
-//   -  все команды чата
-//   -  изменение команд для чата
-//   -  список ожидающих
-//   -  отправка сообщений в чат при изменении очереди согласно настройкам
-//   -  данные между вкладками
-
 function App() {
   return (
     <SocketProvider>

@@ -1,6 +1,6 @@
 import { type Breakpoint, BREAKPOINTS } from '../../../../hooks/types/breakpoint.types.ts'
 import { CollapsiblePanel } from '../../panel/CollapsiblePanel.tsx'
-import { ErrorBoundary } from '../../../ErrorBoundary.tsx'
+import { ErrorBoundary } from '../../../error-boundary/components/ErrorBoundary.tsx'
 import { QueueSettingsPanel } from '../../../../features/queue-settings/components/QueueSettingsPanel.tsx'
 import { QueueLogsPanel } from '../../../../features/app-logs/components/QueueLogsPanel.tsx'
 import { QueuePanel } from '../../../../features/queue/components/QueuePanel.tsx'
