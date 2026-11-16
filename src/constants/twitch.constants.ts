@@ -27,6 +27,21 @@ export const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
 export const TWITCH_CHAT_HISTORY_MAX_MESSAGES = 300
 
 /**
+ * Максимальное количество сообщений, ожидающих подтверждения от Twitch.
+ */
+export const TWITCH_PENDING_MESSAGES_MAX = 50
+
+/**
+ * Время ожидания подтверждения отправленного сообщения.
+ */
+export const TWITCH_PENDING_MESSAGE_TTL_MS = 15 * 1000
+
+/**
+ * Интервал проверки сообщений, ожидающих подтверждения.
+ */
+export const TWITCH_PENDING_MESSAGE_SWEEP_INTERVAL_MS = 1000
+
+/**
  * Префикс имени канала в IRC.
  */
 export const TWITCH_CHAT_CHANNEL_PREFIX = '#'
@@ -238,7 +253,11 @@ export const TWITCH_IRC_CLIENT_LOG_MESSAGES = {
  * Причины недоставки сообщений в чат Twitch.
  */
 export const CHAT_SEND_FAIL_REASONS = {
+  CHANNEL_CHANGED: 'канал чата изменён',
+  CONNECTION_RESTARTED: 'соединение с чатом переподключено',
   NOT_INITIALIZED: 'соединение с Twitch не инициализировано',
+  NO_CONFIRMATION: 'подтверждение от Twitch не получено',
+  QUEUE_OVERFLOW: 'очередь неподтверждённых сообщений переполнена',
   SOCKET_CLOSED: 'соединение с чатом закрыто',
 } as const
 

@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
 import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
+import { useTwitchChannelChange } from './useTwitchChannelChange.ts'
 import { updateChatAccess, type ChatAccessSnapshot } from '../utils/updateChatAccess.ts'
-import { rejectPendingMessages } from '../utils/rejectPendingMessages.ts'
 import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
@@ -41,7 +41,7 @@ export const useTwitchChatManager = () => {
 
   const { handleSocketActivity } = useTwitchHeartbeat()
 
-  const { pendingMessagesRef, clearChatTimeout, startChatTimeout, registerPendingMessage } = useTwitchPendingMessages()
+  const { pendingMessagesRef, clearChatTimeout, startChatTimeout, registerPendingMessage, clearPendingMessages } = useTwitchPendingMessages()
 
   const client = socketContext?.getClient?.() ?? null
 
@@ -72,13 +72,16 @@ export const useTwitchChatManager = () => {
   /**
    * Отправляет сообщение в чат и регистрирует его для подтверждения USERSTATE.
    *
+   * Недоставка после отправки — нет подтверждения, переполнение очереди,
+   * разрыв соединения — попадает в журнал приложения.
+   *
    * @returns `true`, если сообщение передано в сокет.
    */
   const sendChatMessage = useCallback((message: string, options?: SendChatMessageOptions): boolean => {
-    const fail = (reason: string): false => {
+    const handleFailure = (reason: string): void => {
       if (options?.onFailed) {
         options.onFailed(reason)
-        return false
+        return
       }
 
       pushLog({
@@ -87,6 +90,10 @@ export const useTwitchChatManager = () => {
         source: APP_LOG_SOURCES.APPLICATION,
         actorUsername: APP_LOG_TWITCH_ACTOR,
       })
+    }
+
+    const fail = (reason: string): false => {
+      handleFailure(reason)
 
       return false
     }
@@ -99,12 +106,18 @@ export const useTwitchChatManager = () => {
       return fail(CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED)
     }
 
-    registerPendingMessage(message, options)
+    registerPendingMessage(message, { ...options, onFailed: handleFailure })
 
     return true
   }, [registerPendingMessage, socketContext, client, pushLog])
 
-  // Обрыв соединения сбрасывает очередь подтверждения, таймер ограничений и теги комнаты:
+  // Смена канала сбрасывает очередь подтверждения: подтверждения от прежнего канала не придут
+  useTwitchChannelChange(client, () => {
+    clearPendingMessages(CHAT_SEND_FAIL_REASONS.CHANNEL_CHANGED)
+  })
+
+  // Обрыв и переподключение сбрасывают очередь подтверждения: подтверждения от прежнего
+  // соединения не придут. Обрыв также сбрасывает таймер ограничений и теги комнаты:
   // просроченный таймер не должен воскрешать статус доступа после обрыва или реконнекта
   useEffect(() => {
     if (!client) return
@@ -112,14 +125,20 @@ export const useTwitchChatManager = () => {
     return client.onStatusChange((status: ConnectionStatus) => {
       const isConnectionLost = status === SOCKET_CONNECTION_STATUSES.DISCONNECTED
         || status === SOCKET_CONNECTION_STATUSES.FAILED
+      const isConnectionRestarted = status === SOCKET_CONNECTION_STATUSES.CONNECTING
 
-      if (!isConnectionLost) return
+      if (!isConnectionLost && !isConnectionRestarted) return
 
-      clearChatTimeout()
-      roomStateTagsRef.current = {}
-      rejectPendingMessages(pendingMessagesRef, CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED, true)
+      if (isConnectionLost) {
+        clearChatTimeout()
+        roomStateTagsRef.current = {}
+        clearPendingMessages(CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED)
+        return
+      }
+
+      clearPendingMessages(CHAT_SEND_FAIL_REASONS.CONNECTION_RESTARTED)
     })
-  }, [client, pendingMessagesRef, clearChatTimeout])
+  }, [client, clearChatTimeout, clearPendingMessages])
 
   /**
    * Обрабатывает входящее IRC-сообщение.

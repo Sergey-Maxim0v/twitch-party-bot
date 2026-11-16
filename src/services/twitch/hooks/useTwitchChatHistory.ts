@@ -1,4 +1,4 @@
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { type RefObject, useCallback, useState } from 'react'
 import type { TwitchIrcClient } from '../twitchIrcClient.ts'
 import {
   TWITCH_CHAT_CHANNEL_PREFIX,
@@ -10,6 +10,7 @@ import {
 import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
 import { trimChatHistory } from '../utils/trimChatHistory.ts'
+import { useTwitchChannelChange } from './useTwitchChannelChange.ts'
 import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 
 interface UseTwitchChatHistoryProps {
@@ -24,43 +25,11 @@ interface UseTwitchChatHistoryProps {
 export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTagsRef }: UseTwitchChatHistoryProps) => {
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
-  const lastChannelRef = useRef<string | null>(null)
-  const isMountedRef = useRef(true)
-
-  // После размонтирования хук не должен обновлять состояние
-  useEffect(() => {
-    isMountedRef.current = true
-
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!client) return
-
-    if (client.currentChannel) {
-      lastChannelRef.current = client.currentChannel
-    }
-
-    const unsubscribe = client.onChannelChange(() => {
-      if (!isMountedRef.current) return
-
-      const nextChannel = client.currentChannel
-      const isChannelChanged = nextChannel !== lastChannelRef.current
-
-      lastChannelRef.current = nextChannel
-
-      if (!isChannelChanged) return
-
-      setMessages([])
-      roomStateTagsRef.current = {}
-    })
-
-    return () => {
-      unsubscribe()
-    }
-  }, [client, roomStateTagsRef])
+  // Смена канала очищает историю и теги комнаты
+  useTwitchChannelChange(client, () => {
+    setMessages([])
+    roomStateTagsRef.current = {}
+  })
 
   /**
    * Обрабатывает модераторские действия, системные события и служебные логи.

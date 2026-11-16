@@ -156,7 +156,10 @@ const handleSendErrorNotice = (
 }
 
 /**
- * Обрабатывает NOTICE: ошибки отправки, неизвестные ошибки и служебные уведомления.
+ * Обрабатывает NOTICE: ошибки отправки, неизвестные ошибки и отказ в авторизации.
+ *
+ * Служебные уведомления о режимах комнаты очередь не затрагивают:
+ * они не означают, что отправленное сообщение не доставлено.
  */
 const handleNotice = (
   message: ParsedIrcMessage,
@@ -180,10 +183,7 @@ const handleNotice = (
 
   if (isTwitchAuthFailureNotice(message)) {
     rejectPendingMessages(context.pendingMessagesRef, TWITCH_CHAT_ACCESS_LOG_MESSAGES.AUTH_FAILED, true)
-    return
   }
-
-  context.pendingMessagesRef.current.shift()
 }
 
 /**
@@ -222,7 +222,7 @@ const handleClearChat = (
 
   const durationStr = message.tags?.[TWITCH_IRC_TAGS.BAN_DURATION] ?? ''
   const durationSeconds = parseInt(durationStr, 10)
-  const isTimeoutBan = durationStr !== '' && Number.isFinite(durationSeconds) && durationSeconds > 0
+  const isTimeoutBan = Number.isFinite(durationSeconds) && durationSeconds > 0
 
   if (!isTimeoutBan) {
     const reason = durationStr === ''

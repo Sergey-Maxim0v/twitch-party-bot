@@ -92,4 +92,7 @@ export interface SendChatMessageOptions {
 export interface PendingChatMessage extends SendChatMessageOptions {
   /** Текст отправленного сообщения. */
   text: string;
+
+  /** Момент постановки в очередь, миллисекунды. */
+  createdAt: number;
 }
