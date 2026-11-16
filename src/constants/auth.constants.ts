@@ -83,6 +83,16 @@ export const TWITCH_AUTH_UI_MESSAGES = {
 }
 
 /**
+ * Тексты модального окна подтверждения выхода из аккаунта.
+ */
+export const TWITCH_LOGOUT_UI_MESSAGES = {
+  TITLE: 'Выйти из аккаунта?',
+  DESCRIPTION: 'Бот отключится от канала. Выбранный канал и настройки сохранятся.',
+  CONFIRM: 'Выйти',
+  CANCEL: 'Отмена',
+} as const
+
+/**
  * Статусы проверки OAuth-токена.
  */
 export const TWITCH_TOKEN_VALIDATION_STATUSES = {
