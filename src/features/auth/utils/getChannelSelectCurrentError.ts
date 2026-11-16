@@ -1,28 +1,30 @@
+import { TWITCH_CHANNEL_ERRORS, TWITCH_CHANNEL_PROFILE_STATUSES } from '../../../constants/auth.constants.ts'
+import type { TwitchChannelProfileFailure } from './getTwitchChannelProfile.ts'
 import { validateChannelName } from './validateChannelName.ts'
-import { TWITCH_CHANNEL_ERRORS } from '../../../constants/auth.constants.ts'
 
 interface GetChannelErrorParams {
   channelError: string | null;
   isValidationTriggered: boolean;
   value: string;
-  isNotFound: boolean
+  profileFailure: TwitchChannelProfileFailure | null;
 }
 
 /**
- * Определяет текст ошибки, который нужно показать под полем ввода канала.
- * Приоритет: ошибка из стора, затем «канал не найден», затем локальная валидация.
+ * Подбирает текст ошибки под полем ввода канала.
+ * Приоритет: ошибка канала, неудачная проверка, локальная валидация.
  *
  * @param params - Текущее состояние формы выбора канала.
- * @returns Текст ошибки или `null`, если ошибок нет.
+ * @returns Текст ошибки или `null`.
  */
 export const getChannelSelectCurrentError = ({
   channelError,
   isValidationTriggered,
   value,
-  isNotFound,
+  profileFailure,
 }: GetChannelErrorParams): string | null => {
   if (channelError) return channelError
-  if (isNotFound) return TWITCH_CHANNEL_ERRORS.NOT_FOUND
+  if (profileFailure === TWITCH_CHANNEL_PROFILE_STATUSES.NOT_FOUND) return TWITCH_CHANNEL_ERRORS.NOT_FOUND
+  if (profileFailure === TWITCH_CHANNEL_PROFILE_STATUSES.UNAVAILABLE) return TWITCH_CHANNEL_ERRORS.UNAVAILABLE
   if (!isValidationTriggered) return null
 
   const trimmed = value.trim()

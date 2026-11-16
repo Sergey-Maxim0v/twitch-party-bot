@@ -4,6 +4,11 @@
 export const TWITCH_HELIX_BASE_URL = 'https://api.twitch.tv/helix'
 
 /**
+ * Таймаут запросов к Twitch Helix API (10 секунд).
+ */
+export const TWITCH_HELIX_REQUEST_TIMEOUT_MS = 10 * 1000
+
+/**
  * URL IRC-сокета Twitch.
  */
 export const TWITCH_IRC_SOCKET_URL = 'wss://irc-ws.chat.twitch.tv:443'

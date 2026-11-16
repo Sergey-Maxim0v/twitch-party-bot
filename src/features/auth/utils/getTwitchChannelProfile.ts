@@ -1,5 +1,12 @@
-import { TWITCH_HELIX_BASE_URL } from '../../../constants/twitch.constants.ts'
-import { TWITCH_CLIENT_ID } from '../../../constants/auth.constants.ts'
+import {
+  TWITCH_CHANNEL_PROFILE_LOG_MESSAGES,
+  TWITCH_CHANNEL_PROFILE_STATUSES,
+  TWITCH_CLIENT_ID,
+} from '../../../constants/auth.constants.ts'
+import {
+  TWITCH_HELIX_BASE_URL,
+  TWITCH_HELIX_REQUEST_TIMEOUT_MS,
+} from '../../../constants/twitch.constants.ts'
 import { validateChannelName } from './validateChannelName.ts'
 
 export interface TwitchChannelData {
@@ -10,17 +17,45 @@ export interface TwitchChannelData {
 }
 
 /**
- * Получает профиль канала на Twitch через Helix API.
+ * Статус неудачной проверки канала.
+ */
+export type TwitchChannelProfileFailure =
+  | typeof TWITCH_CHANNEL_PROFILE_STATUSES.NOT_FOUND
+  | typeof TWITCH_CHANNEL_PROFILE_STATUSES.UNAVAILABLE
+
+/**
+ * Результат проверки канала на Twitch.
+ */
+export type TwitchChannelProfileResult =
+  | { status: typeof TWITCH_CHANNEL_PROFILE_STATUSES.FOUND; data: TwitchChannelData }
+  | { status: TwitchChannelProfileFailure }
+
+interface TwitchHelixUser {
+  id: string;
+  login: string;
+  display_name: string;
+  profile_image_url: string;
+}
+
+interface TwitchHelixUsersResponse {
+  data?: TwitchHelixUser[];
+}
+
+/**
+ * Получает профиль канала через Twitch Helix API.
  *
  * @param channelName - Имя проверяемого канала.
- * @param token - Авторизационный токен пользователя (Bearer).
- * @returns Данные канала или `null`, если канал не найден либо запрос завершился ошибкой.
+ * @param token - Токен доступа пользователя.
+ * @returns Данные канала либо статус неудачной проверки.
  */
-export const getTwitchChannelProfile = async (channelName: string, token: string): Promise<TwitchChannelData | null> => {
+export const getTwitchChannelProfile = async (
+  channelName: string,
+  token: string,
+): Promise<TwitchChannelProfileResult> => {
   const trimmed = channelName.trim().toLowerCase()
 
   if (!trimmed || !validateChannelName(trimmed)) {
-    return null
+    return { status: TWITCH_CHANNEL_PROFILE_STATUSES.NOT_FOUND }
   }
 
   try {
@@ -30,28 +65,36 @@ export const getTwitchChannelProfile = async (channelName: string, token: string
         'Authorization': `Bearer ${token}`,
         'Client-Id': TWITCH_CLIENT_ID,
       },
+      signal: AbortSignal.timeout(TWITCH_HELIX_REQUEST_TIMEOUT_MS),
     })
 
+    if (response.status === 404) {
+      return { status: TWITCH_CHANNEL_PROFILE_STATUSES.NOT_FOUND }
+    }
+
     if (!response.ok) {
-      return null
+      console.error(TWITCH_CHANNEL_PROFILE_LOG_MESSAGES.HTTP_ERROR(response.status))
+      return { status: TWITCH_CHANNEL_PROFILE_STATUSES.UNAVAILABLE }
     }
 
-    const result = await response.json()
+    const result = await response.json() as TwitchHelixUsersResponse
+    const twitchUser = Array.isArray(result.data) ? result.data[0] : undefined
 
-    if (!Array.isArray(result.data) || result.data.length === 0) {
-      return null
+    if (!twitchUser) {
+      return { status: TWITCH_CHANNEL_PROFILE_STATUSES.NOT_FOUND }
     }
-
-    const twitchUser = result.data[0]
 
     return {
-      id: twitchUser.id,
-      login: twitchUser.login,
-      displayName: twitchUser.display_name,
-      profileImageUrl: twitchUser.profile_image_url,
+      status: TWITCH_CHANNEL_PROFILE_STATUSES.FOUND,
+      data: {
+        id: twitchUser.id,
+        login: twitchUser.login,
+        displayName: twitchUser.display_name,
+        profileImageUrl: twitchUser.profile_image_url,
+      },
     }
   } catch (error) {
-    console.error('Ошибка сети при получении профиля канала:', error)
-    return null
+    console.error(TWITCH_CHANNEL_PROFILE_LOG_MESSAGES.NETWORK_ERROR, error)
+    return { status: TWITCH_CHANNEL_PROFILE_STATUSES.UNAVAILABLE }
   }
 }

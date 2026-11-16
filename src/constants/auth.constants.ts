@@ -183,10 +183,28 @@ export const TWITCH_AUTH_POPUP = {
 }
 
 /**
+ * Статусы проверки канала через Twitch Helix.
+ */
+export const TWITCH_CHANNEL_PROFILE_STATUSES = {
+  FOUND: 'found',
+  NOT_FOUND: 'not_found',
+  UNAVAILABLE: 'unavailable',
+} as const
+
+/**
  * Тексты ошибок валидации имени Twitch-канала.
  */
 export const TWITCH_CHANNEL_ERRORS = {
   EMPTY: 'Имя канала не может быть пустым.',
   INVALID: 'Некорректное имя канала Twitch.',
   NOT_FOUND: 'Канал не найден на Twitch.',
+  UNAVAILABLE: 'Не удалось проверить канал: Twitch недоступен. Проверьте соединение и попробуйте снова.',
+} as const
+
+/**
+ * Сообщения журнала при получении профиля канала.
+ */
+export const TWITCH_CHANNEL_PROFILE_LOG_MESSAGES = {
+  HTTP_ERROR: (status: number): string => `Ошибка получения профиля канала Twitch: HTTP ${status}`,
+  NETWORK_ERROR: 'Ошибка сети при получении профиля канала:',
 } as const

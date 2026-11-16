@@ -4,8 +4,12 @@ import { useSocketContext } from '../../../services/socket/hooks/useSocketContex
 import { validateChannelName } from '../utils/validateChannelName.ts'
 import { LuX } from 'react-icons/lu'
 import { getChannelSelectCurrentError } from '../utils/getChannelSelectCurrentError.ts'
-import { getTwitchChannelProfile } from '../utils/getTwitchChannelProfile.ts'
+import {
+  getTwitchChannelProfile,
+  type TwitchChannelProfileFailure,
+} from '../utils/getTwitchChannelProfile.ts'
 import { isChannelConnectRequired } from '../utils/isChannelConnectRequired.ts'
+import { TWITCH_CHANNEL_PROFILE_STATUSES } from '../../../constants/auth.constants.ts'
 import { ChannelInfoCard } from '../../channel-info/components/ChannelInfoCard.tsx'
 
 /**
@@ -28,7 +32,7 @@ export const ChannelSelectModal: FC = () => {
 
   const [inputValue, setInputValue] = useState('')
   const [isChecking, setIsChecking] = useState(false)
-  const [isNotFound, setIsNotFound] = useState(false)
+  const [profileFailure, setProfileFailure] = useState<TwitchChannelProfileFailure | null>(null)
   const [isValidationTriggered, setIsValidationTriggered] = useState(false)
 
   useEffect(() => {
@@ -51,12 +55,12 @@ export const ChannelSelectModal: FC = () => {
     channelError,
     isValidationTriggered,
     value: inputValue,
-    isNotFound,
+    profileFailure,
   })
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
-    setIsNotFound(false)
+    setProfileFailure(null)
   }
 
   /**
@@ -80,61 +84,62 @@ export const ChannelSelectModal: FC = () => {
   }
 
   /**
-   * Проверяет канал на Twitch и, если он существует, выбирает его и подключает бота.
+   * Проверяет канал на Twitch, выбирает его и подключает бота.
    *
    * @param channel - Имя канала.
-   * @param accessToken - Токен доступа авторизованного пользователя.
-   * @param select - Обработчик сохранения выбранного канала.
+   * @param select - Обработчик сохранения канала.
    */
   const verifyAndConnect = async (
     channel: string,
-    accessToken: string,
-    select: (value: string) => void,
+    select: (channel: string) => void,
   ): Promise<void> => {
-    const channelProfile = await getTwitchChannelProfile(channel, accessToken)
-
-    if (!channelProfile) {
-      setIsNotFound(true)
-      return
-    }
-
-    select(channel)
-    connectToChannel(channel)
-  }
-
-  /**
-   * Подключает бота к собственному каналу пользователя.
-   */
-  const handleOwnChannelClick = async () => {
-    if (!session?.login || !session?.accessToken || isChecking) return
+    if (!session?.accessToken) return
 
     setIsChecking(true)
-    setIsNotFound(false)
+    setProfileFailure(null)
 
-    await verifyAndConnect(session.login, session.accessToken, selectOwnChannel)
-    setIsChecking(false)
+    try {
+      const result = await getTwitchChannelProfile(channel, session.accessToken)
+
+      if (result.status !== TWITCH_CHANNEL_PROFILE_STATUSES.FOUND) {
+        setProfileFailure(result.status)
+        return
+      }
+
+      select(channel)
+      connectToChannel(channel)
+    } finally {
+      setIsChecking(false)
+    }
   }
 
   /**
-   * Подключает бота к каналу, введённому вручную.
+   * Подключает собственный канал пользователя.
+   */
+  const handleOwnChannelClick = async (): Promise<void> => {
+    if (!session?.login || !session.accessToken || isChecking) return
+
+    await verifyAndConnect(session.login, selectOwnChannel)
+  }
+
+  /**
+   * Подключает канал, введённый вручную.
    *
    * @param e - Событие отправки формы.
    */
-  const handleCustomSubmit = async (e: SyntheticEvent) => {
+  const handleCustomSubmit = async (e: SyntheticEvent): Promise<void> => {
     e.preventDefault()
+
     if (isChecking) return
 
     setIsValidationTriggered(true)
-    setIsNotFound(false)
+    setProfileFailure(null)
 
     const trimmed = inputValue.trim()
 
     if (!trimmed || !validateChannelName(trimmed) || !session?.login || !session?.accessToken) return
 
-    setIsChecking(true)
-
-    await verifyAndConnect(trimmed, session.accessToken, selectCustomChannel)
-    setIsChecking(false)
+    await verifyAndConnect(trimmed, selectCustomChannel)
   }
 
   if (!isAuthenticated || !isChannelModalOpen) return null

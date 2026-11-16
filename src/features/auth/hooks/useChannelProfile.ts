@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { TWITCH_CHANNEL_PROFILE_STATUSES } from '../../../constants/auth.constants.ts'
 import { getTwitchChannelProfile, type TwitchChannelData } from '../utils/getTwitchChannelProfile.ts'
 
 interface UseChannelProfileParams {
@@ -7,30 +8,28 @@ interface UseChannelProfileParams {
 }
 
 /**
- * Хук для фонового получения актуального аватара и отображаемого имени стримера.
+ * Получает отображаемое имя и аватар канала в фоне.
  *
- * @param params - Канал и токен, для которых запрашивается профиль.
- * @returns Отображаемое имя и ссылка на аватар либо `null`, если данных ещё нет.
+ * @param params - Канал и токен для запроса профиля.
+ * @returns Имя и аватар либо `null`, пока данных нет.
  */
 export const useChannelProfile = ({ channel, accessToken }: UseChannelProfileParams) => {
   const [profile, setProfile] = useState<TwitchChannelData | null>(null)
 
   useEffect(() => {
-    if (!channel || !accessToken) {
-      return
-    }
+    if (!channel || !accessToken) return
 
     let isMounted = true
 
     const fetchProfileData = async () => {
-      const channelData = await getTwitchChannelProfile(channel, accessToken)
+      const result = await getTwitchChannelProfile(channel, accessToken)
 
-      if (isMounted && channelData) {
-        setProfile(channelData)
+      if (isMounted && result.status === TWITCH_CHANNEL_PROFILE_STATUSES.FOUND) {
+        setProfile(result.data)
       }
     }
 
-    fetchProfileData().catch(err => { console.error('useChannelProfile error:', err) })
+    void fetchProfileData()
 
     return () => {
       isMounted = false
