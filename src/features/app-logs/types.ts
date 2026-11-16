@@ -1,6 +1,6 @@
-import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../constants/app-logs.constants.ts'
+import { APP_LOG_LIMIT, APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../constants/app-logs.constants.ts'
 
-export { APP_LOG_SOURCES, APP_LOG_STATUSES }
+export { APP_LOG_LIMIT, APP_LOG_SOURCES, APP_LOG_STATUSES }
 
 export type AppLogStatus = typeof APP_LOG_STATUSES[keyof typeof APP_LOG_STATUSES]
 

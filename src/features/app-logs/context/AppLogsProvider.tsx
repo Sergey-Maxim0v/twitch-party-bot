@@ -1,6 +1,6 @@
 import { type FC, type ReactNode, useState, useCallback, useMemo } from 'react'
 import { AppLogsContext } from './AppLogsInstance.ts'
-import { APP_LOG_STATUSES, type AppLogItem } from '../types.ts'
+import { APP_LOG_LIMIT, APP_LOG_STATUSES, type AppLogItem } from '../types.ts'
 import { AppLogsConsumerWrapper } from '../components/AppLogsConsumerWrapper.tsx'
 import { createId } from '../../../utils/createId.ts'
 
@@ -11,6 +11,9 @@ interface AppLogsProviderProps {
 /**
  * Провайдер контекста логов приложения: хранит очередь логов
  * и предоставляет методы для чтения, записи и очистки.
+ *
+ * Записи применяются сразу, в порядке вызова `pushLog`, поэтому
+ * `pushLog` нельзя вызывать во время рендера компонентов.
  */
 export const AppLogsProvider: FC<AppLogsProviderProps> = ({ children }) => {
   const [logs, setLogs] = useState<AppLogItem[]>([])
@@ -38,9 +41,7 @@ export const AppLogsProvider: FC<AppLogsProviderProps> = ({ children }) => {
       status,
     }
 
-    setTimeout(() => {
-      setLogs(prev => [newLog, ...prev].slice(0, 1000))
-    }, 0)
+    setLogs(prev => [newLog, ...prev].slice(0, APP_LOG_LIMIT))
   }, [])
 
   const clearLogs = useCallback(() => {

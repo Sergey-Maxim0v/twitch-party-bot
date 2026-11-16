@@ -158,7 +158,7 @@ export const ChannelSelectModal: FC = () => {
         )}
 
         <div className="text-center mt-2">
-          <h3 className="font-bold text-xl text-base-content">Выбор канала чата</h3>
+          <h3 className="font-bold text-xl text-base-content">Выбор канала</h3>
           <p className="text-sm text-base-content/60 mt-1">
             Укажите канал, сообщения которого бот должен начать отслеживать.
           </p>

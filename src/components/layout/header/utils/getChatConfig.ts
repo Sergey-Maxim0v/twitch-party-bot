@@ -20,7 +20,7 @@ export const getChatConfig = (chatAccessStatus: ChatAccessStatus): StatusConfig 
       return {
         statusText: STATUS_TEXTS.RESTRICTED,
         badgeType: STATUS_BADGE_TYPES.WARNING,
-        tooltipText: 'Чат: Аккаунт ограничен. Вы можете читать чат, но отправка сообщений заблокирована.',
+        tooltipText: 'Чат: Аккаунт ограничен. Вы можете читать чат, но отправка сообщений ограничена.',
       }
     case TWITCH_CHAT_ACCESS_STATUSES.BANNED:
       return {

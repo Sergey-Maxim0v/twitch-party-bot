@@ -42,8 +42,8 @@ function App() {
 
         <ChannelInfoProvider>
           <PageLayout>
-            <ProtectedView fallback={<WelcomeScreen />}>
-              <AppLogsProvider>
+            <AppLogsProvider>
+              <ProtectedView fallback={<WelcomeScreen />}>
                 <QueueSettingsProvider>
                   <TwitchChatProvider>
                     <QueueNotificationProvider>
@@ -53,8 +53,8 @@ function App() {
                     </QueueNotificationProvider>
                   </TwitchChatProvider>
                 </QueueSettingsProvider>
-              </AppLogsProvider>
-            </ProtectedView>
+              </ProtectedView>
+            </AppLogsProvider>
           </PageLayout>
         </ChannelInfoProvider>
       </AuthProvider>
