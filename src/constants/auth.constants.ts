@@ -208,6 +208,7 @@ export const TWITCH_CHANNEL_ERRORS = {
   EMPTY: 'Имя канала не может быть пустым.',
   INVALID: 'Некорректное имя канала Twitch.',
   NOT_FOUND: 'Канал не найден на Twitch.',
+  STORED_INVALID: 'Выбранный канал недействителен. Выберите канал заново.',
   UNAVAILABLE: 'Не удалось проверить канал: Twitch недоступен. Проверьте соединение и попробуйте снова.',
 } as const
 

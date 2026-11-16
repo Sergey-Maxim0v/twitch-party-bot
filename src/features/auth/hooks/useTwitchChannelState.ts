@@ -2,20 +2,27 @@ import { useCallback, useState } from 'react'
 import { AUTH_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { TWITCH_AUTH_UI_MESSAGES, TWITCH_CHANNEL_ERRORS } from '../../../constants/auth.constants.ts'
 import { validateChannelName } from '../utils/validateChannelName.ts'
+import { parseActiveChannel } from '../utils/parseActiveChannel.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 
 /**
  * Управляет выбранным каналом чата и состоянием модального окна его выбора.
- * Видимость окна выводится из канала, восстановленного `useLocalStorage`,
- * поэтому прямых обращений к хранилищу во время рендера нет.
+ * Некорректное значение из хранилища сбрасывается и требует повторного выбора.
  *
  * @param sessionLogin - Логин авторизованного пользователя.
  * @returns Выбранный канал, состояние модального окна и обработчики выбора.
  */
 export const useTwitchChannelState = (sessionLogin: string | undefined) => {
-  const [activeChannel, setActiveChannel] = useLocalStorage<string | null>(AUTH_STORAGE_KEYS.ACTIVE_CHANNEL, null)
+  const [activeChannel, setActiveChannel, hasInvalidStoredChannel] = useLocalStorage<string | null>(
+    AUTH_STORAGE_KEYS.ACTIVE_CHANNEL,
+    null,
+    parseActiveChannel,
+  )
+
   const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(() => !activeChannel)
   const [channelError, setChannelError] = useState<string | null>(null)
+  const visibleChannelError = channelError ?? (hasInvalidStoredChannel ? TWITCH_CHANNEL_ERRORS.STORED_INVALID : null)
+  const isChannelModalVisible = isChannelModalOpen || hasInvalidStoredChannel
 
   const openChannelModal = useCallback(() => {
     setChannelError(null)
@@ -66,12 +73,12 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
     activeChannel,
     setActiveChannel,
     hasSelectedChannel: !!activeChannel,
-    isChannelModalOpen,
+    isChannelModalOpen: isChannelModalVisible,
     openChannelModal,
     closeChannelModal,
     selectOwnChannel,
     selectCustomChannel,
     resetChannel,
-    channelError,
+    channelError: visibleChannelError,
   }
 }
