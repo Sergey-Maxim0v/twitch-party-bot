@@ -5,6 +5,8 @@ import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
+import { formatPrefixedMessage } from '../../queue-notification/utils/formatPrefixedMessage.ts'
+import { QUEUE_CHAT_NOTIFICATION_MESSAGES } from '../../../constants/queue.constants.ts'
 import { TWITCH_CHAT_COMMAND_PREFIX, TWITCH_CHAT_MENTION_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
 
 /**
@@ -13,14 +15,7 @@ import { TWITCH_CHAT_COMMAND_PREFIX, TWITCH_CHAT_MENTION_REGEX, TWITCH_LOGIN_PAT
 const parseCommandTarget = (argument: string): string => argument.trim().replace(TWITCH_CHAT_MENTION_REGEX, '').trim()
 
 /**
- * Обрабатывает команды из чата Twitch: вступление в очередь, выход,
- * показ статуса, очистку списков и управление составом.
- *
- * Проверяет, что имя команды совпадает с одной из настроенных в
- * `settings.commands`, а не просто начинается с префикса командного чата.
- * Это защищает от циклической отправки, когда автоматическое сообщение бота
- * с messagePrefix, совпадающим с именем команды, снова воспринимается
- * как команда.
+ * Обрабатывает команды чата Twitch: запись, статус, очистку и управление очередями.
  */
 export const useChatCommands = () => {
   const { settings } = useQueueSettings()
@@ -146,7 +141,10 @@ export const useChatCommands = () => {
         clearWaitingQueue({ source, actorUsername })
         clearActiveQueue({ source, actorUsername })
 
-        sendMessage('Текущая очередь и список ожидания очищены.')
+        sendMessage(formatPrefixedMessage(
+          QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ALL,
+          settings.messagePrefix,
+        ))
         break
       }
 

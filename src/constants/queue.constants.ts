@@ -307,6 +307,7 @@ export const QUEUE_CLEAR_TARGET_UI = {
  * Тексты автоматических уведомлений в чат Twitch.
  */
 export const QUEUE_CHAT_NOTIFICATION_MESSAGES = {
+  CLEARED_ALL: 'Текущая очередь и список ожидания очищены.',
   CLEARED_ACTIVE: 'Очередь очищена.',
   CLEARED_WAITING: 'Список ожидающих очищен.',
   QUEUE_FULL: 'Очередь заполнена.',
