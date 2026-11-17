@@ -27,6 +27,14 @@ export const PANEL_DIRECTIONS = {
 } as const
 
 /**
+ * CSS-свойства, по завершении анимации которых панель считается свёрнутой или раскрытой.
+ */
+export const PANEL_TRANSITION_PROPERTIES = {
+  HORIZONTAL: 'width',
+  VERTICAL: 'height',
+} as const
+
+/**
  * Заголовки панелей рабочего пространства.
  */
 export const WORKSPACE_PANEL_TITLES = {

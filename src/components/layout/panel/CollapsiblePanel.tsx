@@ -1,6 +1,7 @@
 import { type FC, type ReactNode, type TransitionEvent, useState } from 'react'
 import { PanelToggle } from './PanelToggle.tsx'
 import { PANEL_DIRECTIONS, type PanelDirection } from './types'
+import { PANEL_TRANSITION_PROPERTIES } from '../../../constants/layout.constants.ts'
 
 interface CollapsiblePanelProps {
   /** Развернута ли панель. */
@@ -20,7 +21,10 @@ interface CollapsiblePanelProps {
 }
 
 /**
- * Панель, которую можно свернуть и развернуть кнопкой в углу заголовка.
+ * Панель с кнопкой сворачивания.
+ *
+ * Содержимое не размонтируется, а скрывается, поэтому обработчики внутри панели
+ * продолжают работать при её сворачивании.
  */
 export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
   isOpen,
@@ -33,6 +37,9 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
 }) => {
   const [isAnimationDone, setIsAnimationDone] = useState<boolean>(isOpen)
   const isHorizontal = direction === PANEL_DIRECTIONS.HORIZONTAL
+  const transitionProperty = isHorizontal
+    ? PANEL_TRANSITION_PROPERTIES.HORIZONTAL
+    : PANEL_TRANSITION_PROPERTIES.VERTICAL
 
   const handleToggle = () => {
     if (isOpen) {
@@ -42,21 +49,29 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
   }
 
   const handleTransitionEnd = (event: TransitionEvent<HTMLElement>) => {
-    const targetProperty = isHorizontal ? 'width' : 'height'
-    if (event.propertyName === targetProperty && event.target === event.currentTarget) {
-      setIsAnimationDone(isOpen)
-    }
+    if (event.propertyName !== transitionProperty || event.target !== event.currentTarget) return
+    setIsAnimationDone(isOpen)
   }
 
-  const sizeClasses = isHorizontal
-    ? (isOpen ? `w-80 h-full ${className}` : `w-12 h-full bg-base-300 ${collapsedClassName}`)
-    : (isOpen ? `w-full h-80 ${className}` : `w-full h-12 bg-base-300 ${collapsedClassName}`)
+  let sizeClasses: string
+  if (isOpen) {
+    sizeClasses = `${isHorizontal ? 'w-80 h-full' : 'w-full h-80'} ${className}`
+  } else {
+    sizeClasses = `${isHorizontal ? 'w-12 h-full bg-base-300' : 'w-full h-12 bg-base-300'} ${collapsedClassName}`
+  }
 
-  const headerClasses = isOpen
-    ? 'justify-between'
-    : isHorizontal
-      ? 'flex-col pt-2 pb-4 h-auto'
-      : 'flex-row items-center'
+  let headerClasses: string
+  if (isOpen) {
+    headerClasses = 'justify-between'
+  } else if (isHorizontal) {
+    headerClasses = 'flex-col pt-2 pb-4 h-auto'
+  } else {
+    headerClasses = 'flex-row items-center'
+  }
+
+  const contentClasses = isOpen
+    ? `transition-opacity duration-300 ease-in-out ${isAnimationDone ? 'opacity-100' : 'opacity-0'}`
+    : 'hidden'
 
   return (
     <section
@@ -74,7 +89,6 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
           ${headerClasses}
         `}
       >
-        {/* Горизонтальный заголовок: раскрытая панель или свёрнутая вертикальная */}
         {(isOpen || !isHorizontal) && (
           <h2 className="text-sm font-bold uppercase tracking-wider truncate pr-10 select-none text-base-content/80">
             {title}
@@ -89,7 +103,6 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
           title={title}
         />
 
-        {/* Вертикальный заголовок только у свёрнутой горизонтальной панели */}
         {!isOpen && isHorizontal && (
           <span
             className="p-2 text-xs font-bold text-base-content/40 tracking-widest uppercase [writing-mode:vertical-lr] mt-8 select-none max-h-[calc(100vh-8rem)] overflow-hidden text-ellipsis whitespace-nowrap"
@@ -99,17 +112,9 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
         )}
       </div>
 
-      {(isOpen || !isAnimationDone) && (
-        <div
-          className={`
-            flex flex-col h-full w-full pt-14 overflow-hidden
-            ${isOpen ? 'transition-opacity duration-300 ease-in-out' : 'hidden'}
-            ${isOpen && isAnimationDone ? 'opacity-100' : 'opacity-0'}
-          `}
-        >
-          {children}
-        </div>
-      )}
+      <div className={`flex flex-col h-full w-full pt-14 overflow-hidden ${contentClasses}`}>
+        {children}
+      </div>
     </section>
   )
 }
