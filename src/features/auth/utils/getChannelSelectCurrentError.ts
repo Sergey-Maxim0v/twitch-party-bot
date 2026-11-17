@@ -12,6 +12,7 @@ interface GetChannelErrorParams {
 /**
  * Подбирает текст ошибки под полем ввода канала.
  * Приоритет: ошибка канала, неудачная проверка, локальная валидация.
+ * Пустое значение ошибкой не считается: кнопка подключения в этом случае неактивна.
  *
  * @param params - Текущее состояние формы выбора канала.
  * @returns Текст ошибки или `null`.
@@ -29,8 +30,7 @@ export const getChannelSelectCurrentError = ({
 
   const trimmed = value.trim()
 
-  if (!trimmed) return TWITCH_CHANNEL_ERRORS.EMPTY
-  if (!validateChannelName(trimmed)) return TWITCH_CHANNEL_ERRORS.INVALID
+  if (trimmed && !validateChannelName(trimmed)) return TWITCH_CHANNEL_ERRORS.INVALID
 
   return null
 }

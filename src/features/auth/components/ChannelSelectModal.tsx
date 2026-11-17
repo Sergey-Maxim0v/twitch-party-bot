@@ -61,6 +61,7 @@ export const ChannelSelectModal: FC = () => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
     setProfileFailure(null)
+    setIsValidationTriggered(false)
   }
 
   /**
