@@ -1,45 +1,44 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { parseStoredValueSafe, readStoredValue, serializeStoredValue } from './utils/storage.utils.ts'
+import { sanitizeStoredValue } from './utils/sanitizeStoredValue.ts'
 import { readWebStorage, writeWebStorage } from './utils/webStorage.utils.ts'
-
-interface SanitizedValue<T> {
-  value: T;
-  isInvalid: boolean;
-}
+import type { LocalStorageOptions, SanitizedValue } from './types/storage.types.ts'
 
 /**
  * Хранит состояние в localStorage и синхронизирует его между вкладками.
  *
- * Сохранённые данные приводятся к структуре `initialValue`; при изменении
+ * Сохранённые данные приводятся к структуре `initialValue`. При изменении
  * структуры элемента массива смените ключ (например, на `..._v2`).
- * Необязательный `sanitize` проверяет значение, а исправленный вариант
- * записывается обратно в хранилище.
+ * Необязательный `sanitize` проверяет значение после чтения и перед записью,
+ * а исправленное значение записывается обратно в хранилище.
  *
  * @template T - Тип сохраняемого значения.
  * @param key - Ключ в localStorage.
  * @param initialValue - Значение по умолчанию и эталон структуры.
- * @param sanitize - Проверка и нормализация сохранённого значения.
- * @returns Текущее значение, функция его обновления и признак некорректного сохранённого значения.
+ * @param options - Проверка и нормализация значения.
+ * @returns Текущее значение, функция его обновления и признак некорректного значения.
  */
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,
-  sanitize?: (value: unknown) => SanitizedValue<T>,
+  { sanitize }: LocalStorageOptions<T> = {},
 ): [T, (value: T | ((val: T) => T)) => void, boolean] {
   const initialValueRef = useRef(initialValue)
+  const sanitizeRef = useRef(sanitize)
+
   useEffect(() => {
     initialValueRef.current = initialValue
-  }, [initialValue])
+    sanitizeRef.current = sanitize
+  }, [initialValue, sanitize])
 
-  const [storedValue, setStoredValue] = useState<T>(() => readStoredValue('localStorage', key, initialValue))
+  const [storedValue, setStoredValue] = useState<SanitizedValue<T>>(() => (
+    sanitizeStoredValue(readStoredValue('localStorage', key, initialValue), sanitize)
+  ))
 
-  const sanitizedValue = sanitize?.(storedValue)
-  const value = sanitizedValue ? sanitizedValue.value : storedValue
-  const isInvalid = sanitizedValue ? sanitizedValue.isInvalid : false
   const isFirstRunRef = useRef(true)
 
   useEffect(() => {
-    const serialized = serializeStoredValue('localStorage', key, value)
+    const serialized = serializeStoredValue('localStorage', key, storedValue.value)
     const { value: item } = readWebStorage('localStorage', key)
     const isFirstRun = isFirstRunRef.current
     isFirstRunRef.current = false
@@ -47,10 +46,17 @@ export function useLocalStorage<T>(
     if (serialized === null || (isFirstRun && item === null) || item === serialized) return
 
     writeWebStorage('localStorage', key, serialized)
-  }, [key, storedValue, value])
+  }, [key, storedValue])
 
   const setValue = useCallback((value: T | ((val: T) => T)) => {
-    setStoredValue(currentValue => (value instanceof Function ? value(currentValue) : value))
+    setStoredValue(currentValue => {
+      const nextValue = value instanceof Function ? value(currentValue.value) : value
+      const sanitizedValue = sanitizeStoredValue(nextValue, sanitizeRef.current)
+      const isUnchanged = Object.is(sanitizedValue.value, currentValue.value)
+        && sanitizedValue.isInvalid === currentValue.isInvalid
+
+      return isUnchanged ? currentValue : sanitizedValue
+    })
   }, [])
 
   useEffect(() => {
@@ -61,7 +67,7 @@ export function useLocalStorage<T>(
         ? initialValueRef.current
         : parseStoredValueSafe('localStorage', key, event.newValue, initialValueRef.current)
 
-      setStoredValue(newValue)
+      setStoredValue(sanitizeStoredValue(newValue, sanitizeRef.current))
     }
 
     window.addEventListener('storage', handleStorageChange)
@@ -71,5 +77,5 @@ export function useLocalStorage<T>(
     }
   }, [key])
 
-  return [value, setValue, isInvalid]
+  return [storedValue.value, setValue, storedValue.isInvalid]
 }

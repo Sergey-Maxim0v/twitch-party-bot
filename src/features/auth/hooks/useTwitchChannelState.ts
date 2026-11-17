@@ -16,7 +16,7 @@ export const useTwitchChannelState = (sessionLogin: string | undefined) => {
   const [activeChannel, setActiveChannel, hasInvalidStoredChannel] = useLocalStorage<string | null>(
     AUTH_STORAGE_KEYS.ACTIVE_CHANNEL,
     null,
-    parseActiveChannel,
+    { sanitize: parseActiveChannel },
   )
 
   const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(() => !activeChannel)
