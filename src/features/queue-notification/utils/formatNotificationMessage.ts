@@ -1,7 +1,13 @@
 import { formatNotificationPart } from './formatNotificationPart.ts'
+import { formatPrefixedMessage } from './formatPrefixedMessage.ts'
 import type { TwitchNotificationState } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH } from '../../../constants/twitch.constants.ts'
+import {
+  QUEUE_CHAT_MESSAGE_SEPARATOR,
+  QUEUE_NOTIFICATION_MEMBER_MARKS,
+  QUEUE_NOTIFICATION_PART_TITLES,
+} from '../../../constants/queue.constants.ts'
+import { fitChatMessage } from '../../../services/twitch/utils/fitChatMessage.ts'
 
 interface FormatNotificationMessageArgs {
   /** Буфер накопленных событий очереди. */
@@ -23,72 +29,58 @@ export const formatNotificationMessage = ({
   const { joined, waiting, deleted, movedToActive, movedToWaiting, denied } = state
   const { onMemberAdd, onMemberRemove, onMemberMove } = permissions
 
-  const hasChanges =
-    joined.size > 0 ||
-    waiting.size > 0 ||
-    deleted.size > 0 ||
-    movedToActive.size > 0 ||
-    movedToWaiting.size > 0 ||
-    denied.size > 0
+  const groups = [
+    {
+      title: QUEUE_NOTIFICATION_PART_TITLES.JOINED,
+      members: Array.from(joined).map(nick => `${QUEUE_NOTIFICATION_MEMBER_MARKS.ACTIVE}${nick}`),
+      enabled: onMemberAdd,
+    },
+    {
+      title: QUEUE_NOTIFICATION_PART_TITLES.WAITING,
+      members: Array.from(waiting).map(nick => `${QUEUE_NOTIFICATION_MEMBER_MARKS.WAITING}${nick}`),
+      enabled: onMemberAdd,
+    },
+    {
+      title: QUEUE_NOTIFICATION_PART_TITLES.DELETED,
+      members: Array.from(deleted).map(nick => `${QUEUE_NOTIFICATION_MEMBER_MARKS.REMOVED}${nick}`),
+      enabled: onMemberRemove,
+    },
+    {
+      title: QUEUE_NOTIFICATION_PART_TITLES.MOVED_TO_ACTIVE,
+      members: Array.from(movedToActive).map(nick => `${QUEUE_NOTIFICATION_MEMBER_MARKS.ACTIVE}${nick}`),
+      enabled: onMemberMove,
+    },
+    {
+      title: QUEUE_NOTIFICATION_PART_TITLES.MOVED_TO_WAITING,
+      members: Array.from(movedToWaiting).map(nick => `${QUEUE_NOTIFICATION_MEMBER_MARKS.WAITING}${nick}`),
+      enabled: onMemberMove,
+    },
+    {
+      title: QUEUE_NOTIFICATION_PART_TITLES.DENIED,
+      members: Array.from(denied).map(nick => `${QUEUE_NOTIFICATION_MEMBER_MARKS.REMOVED}${nick}`),
+      enabled: onMemberAdd,
+    },
+  ]
 
-  if (!hasChanges) {
+  if (!groups.some(group => group.enabled && group.members.length > 0)) {
     return ''
   }
 
-  const joinedArray = Array.from(joined).map(nick => `🟢@${nick}`)
-  const waitingArray = Array.from(waiting).map(nick => `🟡@${nick}`)
-  const deletedArray = Array.from(deleted).map(nick => `🔴@${nick}`)
-  const movedToActiveArray = Array.from(movedToActive).map(nick => `🟢@${nick}`)
-  const movedToWaitingArray = Array.from(movedToWaiting).map(nick => `🟡@${nick}`)
-  const deniedArray = Array.from(denied).map(nick => `🔴@${nick}`)
+  return fitChatMessage({
+    build: visibleCounts => {
+      const parts = groups
+        .map((group, index) => group.enabled
+          ? formatNotificationPart({ title: group.title, members: group.members, limit: visibleCounts[index] })
+          : '')
+        .filter(part => part.length > 0)
 
-  let showJoinedCount = onMemberAdd ? joinedArray.length : 0
-  let showWaitingCount = onMemberAdd ? waitingArray.length : 0
-  let showDeletedCount = onMemberRemove ? deletedArray.length : 0
-  let showMovedToActiveCount = onMemberMove ? movedToActiveArray.length : 0
-  let showMovedToWaitingCount = onMemberMove ? movedToWaitingArray.length : 0
-  let showDeniedCount = onMemberAdd ? deniedArray.length : 0
+      if (parts.length === 0) return ''
 
-  const buildString = (): string => {
-    const parts = [
-      formatNotificationPart({ title: 'Добавлены', members: joinedArray, limit: showJoinedCount }),
-      formatNotificationPart({ title: 'Добавлены в ожидающие', members: waitingArray, limit: showWaitingCount }),
-      formatNotificationPart({ title: 'Удалены', members: deletedArray, limit: showDeletedCount }),
-      formatNotificationPart({ title: 'Перемещены в очередь', members: movedToActiveArray, limit: showMovedToActiveCount }),
-      formatNotificationPart({ title: 'Перемещены в ожидающие', members: movedToWaitingArray, limit: showMovedToWaitingCount }),
-      formatNotificationPart({ title: 'Отказано', members: deniedArray, limit: showDeniedCount }),
-    ].filter(part => part.length > 0)
+      const body = parts.join(QUEUE_CHAT_MESSAGE_SEPARATOR)
 
-    if (parts.length === 0) {
-      return ''
-    }
-
-    const body = parts.join(' | ')
-
-    return prefix ? `${prefix} ${body}` : body
-  }
-
-  let result = buildString()
-
-  while (result.length > TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH) {
-    if (showDeniedCount > 0) {
-      showDeniedCount--
-    } else if (showMovedToWaitingCount > 0) {
-      showMovedToWaitingCount--
-    } else if (showMovedToActiveCount > 0) {
-      showMovedToActiveCount--
-    } else if (showDeletedCount > 0) {
-      showDeletedCount--
-    } else if (showWaitingCount > 0) {
-      showWaitingCount--
-    } else if (showJoinedCount > 1) {
-      showJoinedCount--
-    } else {
-      break
-    }
-
-    result = buildString()
-  }
-
-  return result
+      return formatPrefixedMessage(body, prefix)
+    },
+    counts: groups.map(group => group.enabled ? group.members.length : 0),
+    minVisible: groups.map((_, index) => index === 0 ? 1 : 0),
+  })
 }

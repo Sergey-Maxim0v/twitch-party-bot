@@ -101,6 +101,11 @@ export const QUEUE_GAME_NICKNAME_PATTERNS: Record<QueueGameKey, string> = {
 export const QUEUE_NICKNAME_MAX_LENGTH = 64
 
 /**
+ * Максимальная длина названия команды чата.
+ */
+export const QUEUE_COMMAND_NAME_MAX_LENGTH = 20
+
+/**
  * Настройки очереди по умолчанию.
  */
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
@@ -193,6 +198,21 @@ export const QUEUE_COMMAND_LABELS = {
 } as const satisfies Record<keyof QueueSettings['commands'], string>
 
 /**
+ * Описания команд в сообщении об открытии очереди.
+ */
+export const QUEUE_COMMAND_CHAT_DESCRIPTIONS = {
+  JOIN: 'для входа',
+  LEAVE: 'для выхода',
+  SHOW: 'для просмотра очереди',
+  START: 'для открытия',
+  STOP: 'для закрытия',
+  PLAY: 'для завершения',
+  CLEAR: 'для очистки',
+  ADD: 'для добавления',
+  DELETE: 'для исключения',
+} as const
+
+/**
  * Типы очередей, участвующих в операциях над списками игроков.
  */
 type MutableQueueType = Exclude<typeof QUEUE_TYPES[keyof typeof QUEUE_TYPES], 'history'>
@@ -231,7 +251,7 @@ export const QUEUE_SESSION_LOG_MESSAGES = {
   ALREADY_CLOSED: 'Очередь уже закрыта.',
   FINISHED: (sessionNumber: number, playersCount: number): string =>
     `Состав №${sessionNumber} завершен (игроков: ${playersCount}).`,
-  FINISHED_CHAT: (nicknames: string): string => `Очередь завершена. Сейчас играют: ${nicknames}`,
+  FINISHED_CHAT_HEADER: 'Очередь завершена. Сейчас играют:',
   FINISHED_EMPTY: 'Не удалось завершить сессию: Очередь пуста.',
   AUTO_CLOSED_ON_FINISH: 'Очередь автоматически закрыта в связи с завершением сессии.',
   AUTO_CLOSED_ON_CHANNEL_CHANGE: 'Очередь автоматически закрыта в связи со сменой канала.',
@@ -292,6 +312,51 @@ export const QUEUE_CHAT_NOTIFICATION_MESSAGES = {
   QUEUE_FULL: 'Очередь заполнена.',
   QUEUE_OPENED: 'Очередь открыта!',
   QUEUE_CLOSED: 'Очередь закрыта!',
+} as const
+
+/**
+ * Разделитель блоков в сообщениях бота.
+ */
+export const QUEUE_CHAT_MESSAGE_SEPARATOR = ' | '
+
+/**
+ * Заголовок сообщения о заполнении очереди.
+ */
+export const QUEUE_FULL_STATUS_HEADER = `${QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_FULL} Текущий состав:`
+
+/**
+ * Заголовок списка команд в сообщении об открытии очереди.
+ */
+export const QUEUE_COMMAND_LIST_TITLE = 'Доступные команды:'
+
+/**
+ * Подписи блоков сообщения о составе очереди.
+ */
+export const QUEUE_STATUS_MESSAGE_LABELS = {
+  ACTIVE: 'В очереди:',
+  WAITING: 'В ожидании:',
+  EMPTY: 'Пуста.',
+} as const
+
+/**
+ * Заголовки групп уведомлений о событиях очереди.
+ */
+export const QUEUE_NOTIFICATION_PART_TITLES = {
+  JOINED: 'Добавлены',
+  WAITING: 'Добавлены в ожидающие',
+  DELETED: 'Удалены',
+  MOVED_TO_ACTIVE: 'Перемещены в очередь',
+  MOVED_TO_WAITING: 'Перемещены в ожидающие',
+  DENIED: 'Отказано',
+} as const
+
+/**
+ * Маркеры участников в уведомлениях о событиях очереди.
+ */
+export const QUEUE_NOTIFICATION_MEMBER_MARKS = {
+  ACTIVE: '🟢@',
+  WAITING: '🟡@',
+  REMOVED: '🔴@',
 } as const
 
 /**

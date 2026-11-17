@@ -23,9 +23,6 @@ export const TWITCH_CHAT_MESSAGE_MAX_LENGTH = 500
  */
 export const TWITCH_CHAT_MESSAGE_MIN_LENGTH = 1
 
-/** Безопасный лимит длины текстового сообщения для Twitch PRIVMSG. */
-export const TWITCH_CHAT_MESSAGE_SAFE_MAX_LENGTH = 400
-
 /**
  * Лимит сообщений в истории чата.
  */

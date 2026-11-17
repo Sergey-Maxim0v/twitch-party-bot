@@ -7,10 +7,10 @@ import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_STATUSES, APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
-import { QUEUE_CHAT_NOTIFICATION_MESSAGES } from '../../../constants/queue.constants.ts'
+import { QUEUE_CHAT_MESSAGE_SEPARATOR, QUEUE_CHAT_NOTIFICATION_MESSAGES, QUEUE_FULL_STATUS_HEADER } from '../../../constants/queue.constants.ts'
 import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
-import { formatCurrentQueueStatus } from '../utils/formatCurrentQueueStatus.ts'
-import { formatQueueCloseMessage } from '../utils/formatQueueCloseMessage.ts'
+import { formatQueueStatusMessage } from '../utils/formatQueueStatusMessage.ts'
+import { formatPrefixedMessage } from '../utils/formatPrefixedMessage.ts'
 import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
 import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 import { useNotificationGuard } from '../hooks/useNotificationGuard.ts'
@@ -92,32 +92,38 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     })
   }, [sendChatMessage, pushLog, session?.login, userDisplayName])
 
-  const getCurrentStatusText = useCallback((): string => {
-    return formatCurrentQueueStatus({
+  const formatQueueStatus = useCallback((header?: string, separator?: string): string => {
+    return formatQueueStatusMessage({
       activeUsernames: activeQueueRef.current,
       waitingUsernames: waitingQueueRef.current,
       maxQueueSize,
+      prefix: settings.messagePrefix,
+      header,
+      separator,
     })
-  }, [maxQueueSize])
+  }, [maxQueueSize, settings.messagePrefix])
 
   const sendMessage = useCallback((text: string): boolean => {
-    // Отправка отключена настройкой
     if (!permissionsRef.current.allowSending) {
       return true
     }
 
     // Чат недоступен — сохраняем буфер до восстановления
-    if (!isReadyForAutomations) {
-      if (chatAccessStatus === TWITCH_CHAT_ACCESS_STATUSES.BANNED && !isBannedNotificationLoggedRef.current) {
-        pushLog({
-          message: 'Отправка уведомлений приостановлена: аккаунт забанен. Накопленные события будут отправлены после восстановления доступа.',
-          status: APP_LOG_STATUSES.WARNING,
-          source: APP_LOG_SOURCES.APPLICATION,
-          actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
-        })
-        isBannedNotificationLoggedRef.current = true
-      }
+    const shouldLogBan = !isReadyForAutomations
+      && chatAccessStatus === TWITCH_CHAT_ACCESS_STATUSES.BANNED
+      && !isBannedNotificationLoggedRef.current
 
+    if (shouldLogBan) {
+      pushLog({
+        message: 'Отправка уведомлений приостановлена: аккаунт забанен. Накопленные события будут отправлены после восстановления доступа.',
+        status: APP_LOG_STATUSES.WARNING,
+        source: APP_LOG_SOURCES.APPLICATION,
+        actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
+      })
+      isBannedNotificationLoggedRef.current = true
+    }
+
+    if (!isReadyForAutomations) {
       return false
     }
 
@@ -146,23 +152,16 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       return
     }
 
-    const messageText = formatQueueCloseMessage({ queueStatusText: getCurrentStatusText(), prefix: settings.messagePrefix })
-    sendMessage(messageText)
-  }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
+    sendMessage(formatQueueStatus(QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_CLOSED, QUEUE_CHAT_MESSAGE_SEPARATOR))
+  }, [formatQueueStatus, sendMessage])
 
   const sendQueueFullMessage = useCallback((): void => {
     if (!permissionsRef.current.onQueueFull) {
       return
     }
 
-    const statusText = getCurrentStatusText()
-
-    sendMessage(
-      settings.messagePrefix
-        ? `${settings.messagePrefix} ${QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_FULL} Текущий состав: ${statusText}`
-        : `${QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_FULL} Текущий состав: ${statusText}`,
-    )
-  }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
+    sendMessage(formatQueueStatus(QUEUE_FULL_STATUS_HEADER))
+  }, [formatQueueStatus, sendMessage])
 
   const sendClearActive = useCallback((): void => {
     if (!permissionsRef.current.onClearActive) {
@@ -175,11 +174,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       movedToActive: new Set<string>(),
     }))
 
-    sendMessage(
-      settings.messagePrefix
-        ? `${settings.messagePrefix} ${QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ACTIVE}`
-        : QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ACTIVE,
-    )
+    sendMessage(formatPrefixedMessage(QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ACTIVE, settings.messagePrefix))
   }, [sendMessage, settings.messagePrefix])
 
   const sendClearWaiting = useCallback((): void => {
@@ -193,18 +188,12 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       movedToWaiting: new Set<string>(),
     }))
 
-    sendMessage(
-      settings.messagePrefix
-        ? `${settings.messagePrefix} ${QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_WAITING}`
-        : QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_WAITING,
-    )
+    sendMessage(formatPrefixedMessage(QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_WAITING, settings.messagePrefix))
   }, [sendMessage, settings.messagePrefix])
 
   const sendCurrentQueueStatus = useCallback((): void => {
-    const statusText = getCurrentStatusText()
-
-    sendMessage(settings.messagePrefix ? `${settings.messagePrefix} ${statusText}` : statusText)
-  }, [getCurrentStatusText, sendMessage, settings.messagePrefix])
+    sendMessage(formatQueueStatus())
+  }, [formatQueueStatus, sendMessage])
 
   const {
     startNotificationCycle,

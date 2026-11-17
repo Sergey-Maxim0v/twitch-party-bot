@@ -5,6 +5,7 @@ import type { LogSource } from '../../app-logs/types.ts'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
+import { formatFinishedQueueMessage } from '../../queue-notification/utils/formatFinishedQueueMessage.ts'
 import { handleOpenQueue } from '../utils/handleOpenQueue.ts'
 import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
@@ -125,14 +126,9 @@ export const useQueueSession = ({
       onSuccess: (playedPlayers, sessionNumber) => {
         const nicknames = playedPlayers
           .map(user => `@${user.displayedUsername ?? user.username}`)
-          .join(', ')
-        const finishedMessage = QUEUE_SESSION_LOG_MESSAGES.FINISHED_CHAT(nicknames)
+        const finishedMessage = formatFinishedQueueMessage({ nicknames, prefix: settings.messagePrefix })
 
-        sendMessage(
-          settings.messagePrefix
-            ? `${settings.messagePrefix} ${finishedMessage}`
-            : finishedMessage,
-        )
+        sendMessage(finishedMessage)
         pushLog({
           message: QUEUE_SESSION_LOG_MESSAGES.FINISHED(sessionNumber, playedPlayers.length),
           status: APP_LOG_STATUSES.WARNING,
