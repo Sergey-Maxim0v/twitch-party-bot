@@ -114,18 +114,25 @@ export const TWITCH_SESSION_ERRORS = {
   INIT_FAILED: 'Не удалось инициализировать авторизацию Twitch:',
   AUTH_URL_FAILED: 'Не удалось сформировать URL авторизации Twitch:',
   REDIRECT_CLEANUP_FAILED: 'Не удалось очистить OAuth-параметры из адресной строки:',
+  AUTH_MESSAGE_REJECTED: 'Сообщение авторизации отклонено: подходящая попытка входа не найдена.',
 } as const
 
 /**
- * Ключ sessionStorage для хранения попытки входа (state + тип контекста),
- * защищающего OAuth-поток от CSSF. Единый источник правды для проверки.
+ * Хранилище, в котором лежит попытка входа.
+ */
+export const TWITCH_AUTH_STATE_STORAGE_KIND = 'sessionStorage'
+
+/**
+ * Ключ хранилища для попытки входа (`state` + тип контекста), защищающей
+ * OAuth-поток от CSRF. Единый источник правды для проверки.
  */
 export const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
 
 /**
  * Канал BroadcastChannel для передачи результата авторизации из возвращённого
- * окна в родительское. Работает только в пределах одного источника, не
- * зависит от window.opener/WindowProxy.
+ * окна в родительское. Канал общий для всего источника и не зависит от
+ * window.opener/WindowProxy, поэтому результат принимается только с `state`
+ * текущей попытки входа.
  */
 export const TWITCH_AUTH_BROADCAST_CHANNEL = 'twitch_auth_result'
 

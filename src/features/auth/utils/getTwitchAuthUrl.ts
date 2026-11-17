@@ -5,7 +5,7 @@ import {
   TWITCH_AUTH_UI_MESSAGES,
   TWITCH_CLIENT_ID,
 } from '../../../constants/auth.constants.ts'
-import { generateRandomState } from './crypto.ts'
+import { generateRandomState } from './generateRandomState.ts'
 
 export interface TwitchAuthRequest {
   url: string;

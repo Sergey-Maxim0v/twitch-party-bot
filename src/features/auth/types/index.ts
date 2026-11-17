@@ -13,6 +13,23 @@ export type AuthStateValidationResult = typeof AUTH_STATE_VALIDATION_RESULTS[key
 export type AuthContextType = typeof AUTH_CONTEXT_TYPE[keyof typeof AUTH_CONTEXT_TYPE]
 
 /**
+ * Попытка входа, сохраняемая перед редиректом на Twitch.
+ */
+export interface AuthAttempt {
+  state: string;
+  contextType: AuthContextType;
+  createdAt: number;
+}
+
+/**
+ * Результат чтения попытки входа и сверки `state`.
+ */
+export interface AuthAttemptCheckResult {
+  result: AuthStateValidationResult;
+  attempt: AuthAttempt | null;
+}
+
+/**
  * Данные пользователя, полученные при валидации токена Twitch.
  */
 export interface TwitchUserData {

@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { TwitchAuthMessageData } from '../types/messages.types.ts'
 import { type AuthStage, TWITCH_AUTH_STAGES } from '../types'
 import {
   AUTH_CONTEXT_TYPE,
   TWITCH_AUTH_BROADCAST_CHANNEL,
-  TWITCH_AUTH_MESSAGE_TYPE,
   TWITCH_AUTH_POPUP,
   TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS,
   TWITCH_AUTH_POPUP_WAIT_TIMEOUT_MS,
@@ -13,7 +11,11 @@ import {
   TWITCH_SESSION_ERRORS,
 } from '../../../constants/auth.constants.ts'
 import { createTwitchAuthRequest } from '../utils/getTwitchAuthUrl.ts'
-import { clearAuthAttempt, saveAuthAttempt } from '../utils/crypto.ts'
+import { clearAuthAttempt } from '../utils/clearAuthAttempt.ts'
+import { getPopupBlockedMessage } from '../utils/getPopupBlockedMessage.ts'
+import { isAuthAttemptValid } from '../utils/isAuthAttemptValid.ts'
+import { isTwitchAuthMessage } from '../utils/isTwitchAuthMessage.ts'
+import { saveAuthAttempt } from '../utils/saveAuthAttempt.ts'
 import { isWebStorageAvailable } from '../../../hooks/utils/webStorage.utils.ts'
 import { formatAuthError, getAuthErrorMessage } from '../utils/formatAuthError.ts'
 
@@ -21,18 +23,6 @@ interface UseTwitchPopupProps {
   onSuccess: (token: string) => Promise<void>;
   setError: (err: string | null) => void;
 }
-
-/**
- * Выбирает текст ошибки блокировки popup с учётом доступности запасного входа.
- *
- * @param canFallback - Доступен ли вход в текущей вкладке.
- * @returns Текст ошибки для модального окна.
- */
-const getPopupBlockedMessage = (canFallback: boolean): string => (
-  canFallback
-    ? TWITCH_AUTH_UI_MESSAGES.POPUP_BLOCKED
-    : TWITCH_AUTH_UI_MESSAGES.POPUP_BLOCKED_WITHOUT_FALLBACK
-)
 
 /**
  * Управляет авторизацией Twitch: всплывающим окном, приёмом результата и стадиями.
@@ -103,6 +93,9 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
 
   /**
    * Открывает канал приёма результата из popup и передаёт токен на проверку.
+   *
+   * Канал общий для всего источника, поэтому результат принимается только
+   * с `state` сохранённой попытки входа.
    */
   const openAuthChannel = useCallback((): void => {
     closeAuthChannel()
@@ -111,10 +104,14 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
     channelRef.current = channel
 
     channel.onmessage = async (event: MessageEvent): Promise<void> => {
-      const data = event.data as Partial<TwitchAuthMessageData>
-      const hasResult = Boolean(data?.error || data?.token)
+      const data: unknown = event.data
 
-      if (!data || data.type !== TWITCH_AUTH_MESSAGE_TYPE || !hasResult) return
+      if (!isTwitchAuthMessage(data)) return
+
+      if (!isAuthAttemptValid(data.state)) {
+        console.warn(TWITCH_SESSION_ERRORS.AUTH_MESSAGE_REJECTED)
+        return
+      }
 
       closeAuthChannel()
       clearAuthAttempt()
