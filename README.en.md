@@ -74,6 +74,7 @@ You can run the application in two ways:
 * **No backend.** The app runs entirely in the browser: the bot reads and sends messages directly through Twitch IRC. No third-party servers are involved, and no analytics or trackers are used.
 * **Local data only.** The OAuth token is stored in the current tab's session, while the queue and settings are kept in the browser's `localStorage`. Clearing site data resets everything, while logging out only clears the session.
 * **If the browser blocks Web Storage** (for example, in a sandboxed iframe), the app keeps working in memory: data is not preserved between reloads, and a warning is shown.
+* **Clickjacking protection.** The app does not start inside an iframe and shows a warning instead of the bot UI.
 * **The bot runs only while the tab is open.** Closing the tab or browser stops chat responses. Keep the tab open while streaming.
 * **No cross-device sync.** The queue and settings are shared only between tabs of the same browser.
 * **Token lifetime.** The Twitch token expires after a limited time and is not refreshed automatically; you will need to log in again.

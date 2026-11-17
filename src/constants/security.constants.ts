@@ -41,3 +41,20 @@ export const CSP_PLUGIN = {
   TAG: 'meta',
   INJECT_TO: 'head-prepend',
 } as const
+
+/**
+ * Тексты экрана блокировки при открытии приложения внутри iframe.
+ */
+export const FRAME_GUARD_UI_MESSAGES = {
+  TITLE: 'Приложение открыто внутри другого сайта',
+  DESCRIPTION: 'Для защиты от подмены кликов бот не запускается во встроенном окне. Откройте приложение в отдельной вкладке.',
+  OPEN_IN_NEW_TAB: 'Открыть в новой вкладке',
+} as const
+
+/**
+ * Атрибуты ссылки, открывающей приложение вне iframe.
+ */
+export const FRAME_GUARD_LINK_ATTRS = {
+  TARGET: '_blank',
+  REL: 'noopener noreferrer',
+} as const

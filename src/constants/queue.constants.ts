@@ -246,6 +246,44 @@ export const QUEUE_CLEAR_MESSAGES = {
 } as const
 
 /**
+ * Цели очистки очереди из панели настроек.
+ */
+export const QUEUE_CLEAR_TARGETS = ['active', 'waiting', 'history'] as const
+
+/**
+ * Цель очистки очереди.
+ */
+export type QueueClearTarget = typeof QUEUE_CLEAR_TARGETS[number]
+
+/**
+ * Тексты секции очистки очереди и окна подтверждения.
+ */
+export const QUEUE_CLEAR_UI = {
+  SECTION_TITLE: 'Очистить очередь',
+  CONFIRM: 'Очистить',
+  CANCEL: 'Отмена',
+  WARNING: 'Действие нельзя отменить.',
+} as const
+
+/**
+ * Подписи кнопок и вопросы подтверждения для каждой цели очистки.
+ */
+export const QUEUE_CLEAR_TARGET_UI = {
+  active: {
+    LABEL: 'Очистить текущую очередь',
+    QUESTION: 'Очистить текущую очередь?',
+  },
+  waiting: {
+    LABEL: 'Очистить список ожидающих',
+    QUESTION: 'Очистить список ожидающих?',
+  },
+  history: {
+    LABEL: 'Очистить историю',
+    QUESTION: 'Очистить историю?',
+  },
+} as const satisfies Record<QueueClearTarget, { LABEL: string; QUESTION: string }>
+
+/**
  * Тексты автоматических уведомлений в чат Twitch.
  */
 export const QUEUE_CHAT_NOTIFICATION_MESSAGES = {
