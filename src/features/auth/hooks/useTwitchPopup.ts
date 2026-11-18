@@ -36,6 +36,7 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
 
   const popupRef = useRef<Window | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
+  const isRedirectingRef = useRef(false)
 
   const canLoginInCurrentTab = isWebStorageAvailable('sessionStorage')
 
@@ -48,14 +49,16 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
   }, [])
 
   /**
-   * Закрывает popup, канал и сбрасывает сохранённую попытку входа.
+   * Закрывает popup и канал приёма результата, сохраняя попытку входа.
+   *
+   * Попытку удаляют только отмена, тайм-аут или проверка ответа Twitch.
    */
   const closePopup = useCallback((): void => {
     const popup = popupRef.current
 
     popupRef.current = null
+    isRedirectingRef.current = false
     closeAuthChannel()
-    clearAuthAttempt()
 
     if (popup && !popup.closed) popup.close()
   }, [closeAuthChannel])
@@ -71,6 +74,20 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
     setError(message)
     setIsModalOpen(true)
   }, [closePopup, setError])
+
+  /**
+   * Отменяет ожидание popup: удаляет попытку входа и показывает ошибку.
+   *
+   * Пока приложение уходит на Twitch, попытку не трогает.
+   *
+   * @param message - Текст ошибки для модального окна.
+   */
+  const cancelWaitingAuth = useCallback((message: string): void => {
+    if (isRedirectingRef.current) return
+
+    clearAuthAttempt()
+    failAuth(message)
+  }, [failAuth])
 
   /**
    * Проверяет токен и переводит авторизацию в финальную стадию.
@@ -177,6 +194,7 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
         return
       }
 
+      isRedirectingRef.current = true
       window.location.assign(url)
     } catch (error) {
       console.error(TWITCH_SESSION_ERRORS.AUTH_URL_FAILED, error)
@@ -185,10 +203,11 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
   }, [closePopup, failAuth, setError])
 
   /**
-   * Закрывает модальное окно авторизации.
+   * Закрывает модальное окно и сбрасывает попытку входа.
    */
   const closeModal = useCallback((): void => {
     setIsModalOpen(false)
+    clearAuthAttempt()
     closePopup()
   }, [closePopup])
 
@@ -202,18 +221,18 @@ export const useTwitchPopup = ({ onSuccess, setError }: UseTwitchPopupProps) => 
 
       if (popup && !popup.closed) return
 
-      failAuth(popup ? TWITCH_AUTH_UI_MESSAGES.POPUP_CLOSED : getPopupBlockedMessage(canLoginInCurrentTab))
+      cancelWaitingAuth(popup ? TWITCH_AUTH_UI_MESSAGES.POPUP_CLOSED : getPopupBlockedMessage(canLoginInCurrentTab))
     }, TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS)
 
     const timeoutTimer = setTimeout(() => {
-      failAuth(TWITCH_AUTH_UI_MESSAGES.POPUP_TIMEOUT)
+      cancelWaitingAuth(TWITCH_AUTH_UI_MESSAGES.POPUP_TIMEOUT)
     }, TWITCH_AUTH_POPUP_WAIT_TIMEOUT_MS)
 
     return () => {
       clearInterval(pollTimer)
       clearTimeout(timeoutTimer)
     }
-  }, [canLoginInCurrentTab, failAuth, isModalOpen, authStage])
+  }, [canLoginInCurrentTab, cancelWaitingAuth, isModalOpen, authStage])
 
   return {
     isModalOpen,
