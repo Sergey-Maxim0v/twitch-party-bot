@@ -78,6 +78,7 @@ You can run the application in two ways:
 * **The bot runs only while the tab is open.** Closing the tab or browser stops chat responses. Keep the tab open while streaming.
 * **No cross-device sync.** The queue and settings are shared only between tabs of the same browser.
 * **Token lifetime.** The Twitch token expires after a limited time and is not refreshed automatically; you will need to log in again.
+* **Twitch warnings (`/warn`) are not displayed.** Warnings are delivered through Twitch web chat and EventSub, not IRC, so the app never receives them. If the account receives a warning, sending messages may be blocked until it is acknowledged on the Twitch website; the warning must be acknowledged manually in the channel's web chat. Slash commands other than `/me` are not supported in the input field and are sent as plain text.
 
 ---
 
