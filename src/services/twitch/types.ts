@@ -65,6 +65,22 @@ export type ChatMessageSegment =
   | { type: 'emote'; id: string; name: string }
 
 /**
+ * Эмоция Twitch из Helix API.
+ */
+export interface TwitchEmote {
+  /** ID эмоции Twitch. */
+  id: string;
+
+  /** Код эмоции в тексте сообщения. */
+  name: string;
+}
+
+/**
+ * Словарь эмоций: код эмоции → её ID.
+ */
+export type TwitchEmoteDictionary = ReadonlyMap<string, string>
+
+/**
  * Данные пользователя, отправившего IRC-сообщение.
  */
 export interface IrcUserData {

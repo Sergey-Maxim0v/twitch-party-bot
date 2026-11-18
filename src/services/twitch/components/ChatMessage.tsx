@@ -2,7 +2,7 @@ import type { CSSProperties, FC } from 'react'
 import { LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench } from 'react-icons/lu'
 import { ChatMessageText } from './ChatMessageText.tsx'
 import { TWITCH_IRC_COMMANDS, TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
-import type { ParsedIrcMessage } from '../types.ts'
+import type { ParsedIrcMessage, TwitchEmoteDictionary } from '../types.ts'
 import { getAdaptedTwitchColors } from '../utils/getAdaptedTwitchColors.ts'
 
 interface ChatMessageProps {
@@ -13,6 +13,7 @@ interface ChatMessageProps {
   showSystemNotifications: boolean;
   highlightPointsMessages: boolean;
   showEmotes: boolean;
+  emoteDictionary: TwitchEmoteDictionary;
 }
 
 /**
@@ -26,6 +27,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   showSystemNotifications,
   highlightPointsMessages,
   showEmotes,
+  emoteDictionary,
 }) => {
   if (msg.isDeleted && !isShowDeletedMessages) return null
   if (msg.isSystem && msg.isChannelEvent && !showSystemNotifications) return null
@@ -95,7 +97,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         {displaySenderName}:
       </span>
       <span className={`${msg.isDeleted ? 'text-base-content/60' : 'text-base-content'} inline align-middle ml-1.5`}>
-        <ChatMessageText emoteTag={emoteTag} showEmotes={showEmotes} text={msg.text} />
+        <ChatMessageText emoteDictionary={emoteDictionary} emoteTag={emoteTag} showEmotes={showEmotes} text={msg.text} />
       </span>
     </div>
   )

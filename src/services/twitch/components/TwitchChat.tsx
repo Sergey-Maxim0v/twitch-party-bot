@@ -5,6 +5,7 @@ import { ChatSettings } from './ChatSettings.tsx'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { TWITCH_CHAT_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { useTwitchChat } from '../hooks/useTwitchChat.ts'
+import { useTwitchEmoteDictionary } from '../hooks/useTwitchEmoteDictionary.ts'
 
 /**
  * Компонент чата Twitch: история сообщений, настройки и поле ввода.
@@ -18,10 +19,12 @@ export const TwitchChat: FC = () => {
   const [highlightPointsMessages, setHighlightPointsMessages] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.HIGHLIGHT_MESSAGES, true)
 
   const { messages, sendChatMessage } = useTwitchChat()
+  const emoteDictionary = useTwitchEmoteDictionary()
 
   return (
     <>
       <ChatList
+        emoteDictionary={emoteDictionary}
         highlightPointsMessages={highlightPointsMessages}
         highlightRoles={highlightRoles}
         IsShowDeletedMessages={IsShowDeletedMessages}

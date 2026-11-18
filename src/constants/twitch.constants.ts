@@ -215,6 +215,46 @@ export const TWITCH_EMOTE_IMAGE_BASE_URL = 'https://static-cdn.jtvnw.net/emotico
 export const TWITCH_EMOTE_IMAGE_VARIANT = 'default/dark/1.0'
 
 /**
+ * Пути Twitch Helix API для списков эмоций.
+ */
+export const TWITCH_HELIX_EMOTE_PATHS = {
+  GLOBAL: '/chat/emotes/global',
+  CHANNEL: '/chat/emotes',
+} as const
+
+/**
+ * Параметры запроса списка эмоций канала.
+ */
+export const TWITCH_HELIX_EMOTE_QUERY_PARAMS = {
+  BROADCASTER_ID: 'broadcaster_id',
+  FIRST: 'first',
+  AFTER: 'after',
+} as const
+
+/**
+ * Размер страницы при загрузке эмоций канала.
+ */
+export const TWITCH_HELIX_EMOTES_PAGE_SIZE = '100'
+
+/**
+ * Разделитель слов в тексте сообщения с сохранением пробелов при разбиении.
+ */
+export const TWITCH_CHAT_TEXT_SPLIT_REGEX = /(\s+)/
+
+/**
+ * Префикс сообщений о загрузке эмоций Twitch в консоли.
+ */
+export const TWITCH_EMOTE_LOG_PREFIX = '[Twitch Emotes]'
+
+/**
+ * Тексты сообщений о загрузке эмоций Twitch в консоли.
+ */
+export const TWITCH_EMOTE_LOG_MESSAGES = {
+  HTTP_ERROR: (status: number): string => `Не удалось загрузить эмоции Twitch: HTTP ${status}`,
+  NETWORK_ERROR: 'Ошибка сети при загрузке эмоций Twitch:',
+} as const
+
+/**
  * Разделители в IRC-теге `emotes`.
  */
 export const TWITCH_EMOTE_TAG_DELIMITERS = {
