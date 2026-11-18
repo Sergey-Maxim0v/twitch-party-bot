@@ -23,16 +23,12 @@ export const useTwitchPendingMessages = () => {
 
   /**
    * Сбрасывает таймер снятия ограничений чата.
-   *
-   * @returns `true`, если таймер был активен и сброшен.
    */
-  const clearChatTimeout = useCallback((): boolean => {
-    if (!timeoutTimerRef.current) return false
+  const clearChatTimeout = useCallback((): void => {
+    if (!timeoutTimerRef.current) return
 
     clearTimeout(timeoutTimerRef.current)
     timeoutTimerRef.current = null
-
-    return true
   }, [])
 
   /**

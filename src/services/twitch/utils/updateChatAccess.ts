@@ -1,8 +1,13 @@
 import type { RefObject } from 'react'
+import { APP_LOG_TWITCH_ACTOR } from '../../../constants/app-logs.constants.ts'
 import { TWITCH_CHAT_ACCESS_LOG_MESSAGES, TWITCH_IRC_COMMANDS, TWITCH_IRC_TAGS, TWITCH_MILLISECONDS_IN_SECOND } from '../../../constants/twitch.constants.ts'
-import { TWITCH_CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../../socket/types.ts'
+import { APP_LOG_SOURCES, APP_LOG_STATUSES, type AppLogItem } from '../../../features/app-logs/types.ts'
+import { TWITCH_CHAT_ACCESS_STATUSES } from '../../socket/types.ts'
+import type { ChatAccessFacts, ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 import { checkIsRoomRestricted } from './checkIsRoomRestricted.ts'
+import { getChatSendError, isUnknownChatSendError, type ChatSendErrorInfo } from './chatSendErrors.ts'
 import { isTwitchAuthFailureNotice } from './isTwitchAuthFailureNotice.ts'
+import { rejectPendingMessages } from './rejectPendingMessages.ts'
 import {
   isRoomStateInitialization,
   parseRoomStateRestrictions,
@@ -10,48 +15,28 @@ import {
   ROOM_STATE_SUMMARY_PRIORITY,
   type RoomStateRestrictions,
 } from './roomState.ts'
-import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
-import { APP_LOG_STATUSES, type AppLogItem, APP_LOG_SOURCES } from '../../../features/app-logs/types.ts'
-import { getChatSendError, isUnknownChatSendError, type ChatSendErrorInfo } from './chatSendErrors.ts'
-import { rejectPendingMessages } from './rejectPendingMessages.ts'
-import { APP_LOG_TWITCH_ACTOR } from '../../../constants/app-logs.constants.ts'
 
 /** Записывает событие доступа к чату в журнал приложения. */
 type PushStatusLog = (logMessage: string) => void
 
 /**
- * Снимок актуального состояния доступа к чату.
- * Читается в момент проверки, чтобы не опираться на устаревшие данные.
- */
-export interface ChatAccessSnapshot {
-  /** Текущий статус доступа к чату. */
-  status: ChatAccessStatus;
-
-  /** Признак активного соединения с Twitch IRC. */
-  isConnectionActive: boolean;
-
-  /** Теги состояния комнаты, накопленные от последнего ROOMSTATE. */
-  roomTags: Record<string, string>;
-}
-
-/**
  * Общий контекст обработчиков доступа к чату.
  */
 interface ChatAccessContext {
+  /** Факты доступа к чату. */
+  facts: ChatAccessFacts;
+
   /** Очередь сообщений, ожидающих подтверждения USERSTATE. */
   pendingMessagesRef: RefObject<PendingChatMessage[]>;
 
   /** Сбрасывает таймер снятия ограничений. */
-  clearChatTimeout: () => boolean;
+  clearChatTimeout: () => void;
 
   /** Взводит таймер снятия ограничений, заменяя ранее запущенный. */
   startChatTimeout: (durationMs: number, onExpire: () => void) => void;
 
-  /** Устанавливает статус доступа к чату. */
-  updateChatAccessStatus: (status: ChatAccessStatus) => void;
-
-  /** Возвращает актуальный снимок состояния доступа к чату. */
-  getChatAccessSnapshot: () => ChatAccessSnapshot;
+  /** Публикует статус, выведенный из актуальных фактов. */
+  syncStatus: () => void;
 
   /** Записывает событие в журнал приложения. */
   pushStatusLog: PushStatusLog;
@@ -61,10 +46,10 @@ interface UpdateChatAccessProps {
   message: ParsedIrcMessage;
   currentUserLogin?: string;
   pendingMessagesRef: RefObject<PendingChatMessage[]>;
-  clearChatTimeout: () => boolean;
+  factsRef: RefObject<ChatAccessFacts>;
+  clearChatTimeout: () => void;
   startChatTimeout: (durationMs: number, onExpire: () => void) => void;
-  updateChatAccessStatus: (status: ChatAccessStatus) => void;
-  getChatAccessSnapshot: () => ChatAccessSnapshot;
+  syncStatus: () => void;
   pushLog: (log: {
     message: AppLogItem['message'];
     status?: AppLogItem['status'];
@@ -105,7 +90,7 @@ const logRoomStateRestrictions = (
 }
 
 /**
- * Обрабатывает ROOMSTATE: логирует режимы комнаты и обновляет статус доступа.
+ * Применяет ROOMSTATE: накапливает теги комнаты и публикует статус по ним.
  */
 const handleRoomState = (
   message: ParsedIrcMessage,
@@ -115,21 +100,32 @@ const handleRoomState = (
 
   logRoomStateRestrictions(tags, parseRoomStateRestrictions(tags), context.pushStatusLog)
 
-  const isRestricted = checkIsRoomRestricted(context.getChatAccessSnapshot().roomTags)
+  context.facts.roomTags = { ...context.facts.roomTags, ...tags }
+  context.facts.isSendBlocked = false
 
-  context.updateChatAccessStatus(isRestricted ? TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED : TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
+  context.syncStatus()
 }
 
 /**
- * Применяет бан: сброс таймера ограничений, статус BANNED и снятие очереди неподтверждённых сообщений.
+ * Фиксирует бан: снимает таймаут и блокирует отправку до переподключения.
+ */
+const markBanned = (context: ChatAccessContext): void => {
+  context.facts.isBanned = true
+  context.facts.isTimeoutActive = false
+  context.facts.isSendBlocked = false
+  context.clearChatTimeout()
+}
+
+/**
+ * Применяет бан: фиксирует факт, логирует причину и снимает очередь неподтверждённых сообщений.
  */
 const applyBan = (
   context: ChatAccessContext,
   reason: string,
 ): void => {
-  context.clearChatTimeout()
+  markBanned(context)
   context.pushStatusLog(reason)
-  context.updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.BANNED)
+  context.syncStatus()
   rejectPendingMessages(context.pendingMessagesRef, reason, true)
 }
 
@@ -144,13 +140,9 @@ const handleSendErrorNotice = (
 
   const { status } = sendError
 
-  if (status === TWITCH_CHAT_ACCESS_STATUSES.BANNED) {
-    context.clearChatTimeout()
-  }
-
-  if (status) {
-    context.updateChatAccessStatus(status)
-  }
+  if (status === TWITCH_CHAT_ACCESS_STATUSES.BANNED) markBanned(context)
+  if (status === TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED) context.facts.isSendBlocked = true
+  if (status) context.syncStatus()
 
   rejectPendingMessages(context.pendingMessagesRef, sendError.logMessage, sendError.rejectsAllPending)
 }
@@ -187,24 +179,23 @@ const handleNotice = (
 }
 
 /**
- * Взводит таймер снятия таймаута.
- *
- * Ограничение снимается, только если с момента выдачи таймаута его не сменило
- * другое событие: обрыв соединения, бан или режим комнаты.
+ * Взводит таймер таймаута: по его истечении снимается только этот факт,
+ * а ограничения комнаты и ошибки отправки продолжают удерживать статус.
  */
 const armTimeoutTimer = (
   durationSeconds: number,
   context: ChatAccessContext,
 ): void => {
+  context.facts.isTimeoutActive = true
+
   context.startChatTimeout(durationSeconds * TWITCH_MILLISECONDS_IN_SECOND, () => {
-    const snapshot = context.getChatAccessSnapshot()
+    context.facts.isTimeoutActive = false
 
-    if (!snapshot.isConnectionActive) return
-    if (snapshot.status !== TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED) return
-    if (checkIsRoomRestricted(snapshot.roomTags)) return
+    if (!checkIsRoomRestricted(context.facts.roomTags)) {
+      context.pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.TIMEOUT_EXPIRED)
+    }
 
-    context.pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.TIMEOUT_EXPIRED)
-    context.updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
+    context.syncStatus()
   })
 }
 
@@ -236,47 +227,50 @@ const handleClearChat = (
   const reason = TWITCH_CHAT_ACCESS_LOG_MESSAGES.TIMEOUT(durationStr)
 
   context.pushStatusLog(reason)
-  context.updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.RESTRICTED)
-  rejectPendingMessages(context.pendingMessagesRef, reason, true)
-
+  context.facts.isSendBlocked = false
   armTimeoutTimer(durationSeconds, context)
+  context.syncStatus()
+  rejectPendingMessages(context.pendingMessagesRef, reason, true)
 }
 
 /**
- * Обрабатывает USERSTATE: снимает таймаут и подтверждает доступ к чату.
+ * Обрабатывает USERSTATE: отправка подтверждена, поэтому снимаются таймаут,
+ * запрет по NOTICE и отметка о бане.
  */
 const handleUserState = (
   context: ChatAccessContext,
 ): void => {
-  const wasTimeoutActive = context.clearChatTimeout()
+  const wasTimeoutActive = context.facts.isTimeoutActive
 
-  if (wasTimeoutActive) {
-    context.pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.RESTRICTION_REMOVED)
-  }
+  context.facts.isBanned = false
+  context.facts.isTimeoutActive = false
+  context.facts.isSendBlocked = false
+  context.clearChatTimeout()
 
-  context.updateChatAccessStatus(TWITCH_CHAT_ACCESS_STATUSES.CONNECTED)
+  if (wasTimeoutActive) context.pushStatusLog(TWITCH_CHAT_ACCESS_LOG_MESSAGES.RESTRICTION_REMOVED)
+
+  context.syncStatus()
 }
 
 /**
- * Обновляет статус доступа к чату и снимает недоставленные сообщения
- * по входящим IRC-событиям Twitch.
+ * Обновляет факты доступа к чату и публикует статус по входящим IRC-событиям Twitch.
  */
 export const updateChatAccess = ({
   message,
   currentUserLogin,
   pendingMessagesRef,
+  factsRef,
   clearChatTimeout,
   startChatTimeout,
-  updateChatAccessStatus,
-  getChatAccessSnapshot,
+  syncStatus,
   pushLog,
 }: UpdateChatAccessProps): void => {
   const context: ChatAccessContext = {
+    facts: factsRef.current,
     pendingMessagesRef,
     clearChatTimeout,
     startChatTimeout,
-    updateChatAccessStatus,
-    getChatAccessSnapshot,
+    syncStatus,
     pushStatusLog: (logMessage: string) => {
       pushLog({
         message: logMessage,
@@ -302,7 +296,5 @@ export const updateChatAccess = ({
     return
   }
 
-  if (message.command !== TWITCH_IRC_COMMANDS.USER_STATE) return
-
-  handleUserState(context)
+  if (message.command === TWITCH_IRC_COMMANDS.USER_STATE) handleUserState(context)
 }

@@ -117,3 +117,20 @@ export interface PendingChatMessage extends SendChatMessageOptions {
   /** Момент постановки в очередь, миллисекунды. */
   createdAt: number;
 }
+
+/**
+ * Факты, из которых выводится статус доступа к чату.
+ */
+export interface ChatAccessFacts {
+  /** Аккаунт забанен на канале. */
+  isBanned: boolean;
+
+  /** Twitch отклонил отправку сообщения по NOTICE. */
+  isSendBlocked: boolean;
+
+  /** Действует таймаут, отслеживаемый таймером. */
+  isTimeoutActive: boolean;
+
+  /** Теги состояния комнаты из последних ROOMSTATE. */
+  roomTags: Record<string, string>;
+}

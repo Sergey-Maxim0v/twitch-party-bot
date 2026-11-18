@@ -16,19 +16,17 @@ import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 interface UseTwitchChatHistoryProps {
   client: TwitchIrcClient | null;
   pendingMessagesRef: RefObject<PendingChatMessage[]>;
-  roomStateTagsRef: RefObject<Record<string, string>>;
 }
 
 /**
  * Хук для управления историей сообщений чата Twitch и модерацией.
  */
-export const useTwitchChatHistory = ({ client, pendingMessagesRef, roomStateTagsRef }: UseTwitchChatHistoryProps) => {
+export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchChatHistoryProps) => {
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
-  // Смена канала очищает историю и теги комнаты
+  // Смена канала очищает историю сообщений
   useTwitchChannelChange(client, () => {
     setMessages([])
-    roomStateTagsRef.current = {}
   })
 
   /**

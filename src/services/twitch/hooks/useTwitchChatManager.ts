@@ -3,7 +3,8 @@ import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
 import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
 import { useTwitchChannelChange } from './useTwitchChannelChange.ts'
-import { updateChatAccess, type ChatAccessSnapshot } from '../utils/updateChatAccess.ts'
+import { useChatAccessFacts } from './useChatAccessFacts.ts'
+import { updateChatAccess } from '../utils/updateChatAccess.ts'
 import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
@@ -15,8 +16,6 @@ import {
 } from '../../../constants/twitch.constants.ts'
 import {
   SOCKET_CONNECTION_STATUSES,
-  TWITCH_CHAT_ACCESS_STATUSES,
-  type ChatAccessStatus,
   type ConnectionStatus,
 } from '../../socket/types.ts'
 import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
@@ -34,40 +33,23 @@ export const useTwitchChatManager = () => {
   const { pushLog } = useAppLogs()
   const [lastMessage, setLastMessage] = useState<ParsedIrcMessage | null>(null)
 
-  const roomStateTagsRef = useRef<Record<string, string>>({})
-
-  const chatAccessStatus = socketContext?.chatAccessStatus ?? TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
-  const chatAccessStatusRef = useRef<ChatAccessStatus>(chatAccessStatus)
-
   const { handleSocketActivity } = useTwitchHeartbeat()
 
   const { pendingMessagesRef, clearChatTimeout, startChatTimeout, registerPendingMessage, clearPendingMessages } = useTwitchPendingMessages()
 
   const client = socketContext?.getClient?.() ?? null
 
+  const { factsRef, resetFacts, syncStatus } = useChatAccessFacts({
+    client,
+    updateChatAccessStatus: socketContext?.updateChatAccessStatus,
+  })
+
   const { messages, handleModerationAndEvents, handleStandardMessage } = useTwitchChatHistory({
     client,
     pendingMessagesRef,
-    roomStateTagsRef,
   })
 
   const currentUserLogin = session?.login?.toLowerCase() ?? TWITCH_CHAT_FALLBACK_LOGIN
-
-  // Статус доступа нужен за пределами цикла рендера: таймер снятия таймаута
-  // проверяет его в момент срабатывания
-  useEffect(() => {
-    chatAccessStatusRef.current = chatAccessStatus
-  }, [chatAccessStatus])
-
-  /**
-   * Собирает актуальный снимок состояния доступа к чату.
-   * Значения читаются в момент вызова, поэтому не устаревают между рендерами.
-   */
-  const getChatAccessSnapshot = useCallback((): ChatAccessSnapshot => ({
-    status: chatAccessStatusRef.current,
-    isConnectionActive: client?.status === SOCKET_CONNECTION_STATUSES.CONNECTED,
-    roomTags: roomStateTagsRef.current,
-  }), [client])
 
   /**
    * Отправляет сообщение в чат и регистрирует его для подтверждения USERSTATE.
@@ -117,8 +99,8 @@ export const useTwitchChatManager = () => {
   })
 
   // Обрыв и переподключение сбрасывают очередь подтверждения: подтверждения от прежнего
-  // соединения не придут. Обрыв также сбрасывает таймер ограничений и теги комнаты:
-  // просроченный таймер не должен воскрешать статус доступа после обрыва или реконнекта
+  // соединения не придут. Обрыв также сбрасывает таймер ограничений и факты доступа:
+  // просроченный таймер не должен воскрешать статус после обрыва или реконнекта
   useEffect(() => {
     if (!client) return
 
@@ -131,14 +113,14 @@ export const useTwitchChatManager = () => {
 
       if (isConnectionLost) {
         clearChatTimeout()
-        roomStateTagsRef.current = {}
+        resetFacts()
         clearPendingMessages(CHAT_SEND_FAIL_REASONS.SOCKET_CLOSED)
         return
       }
 
       clearPendingMessages(CHAT_SEND_FAIL_REASONS.CONNECTION_RESTARTED)
     })
-  }, [client, clearChatTimeout, clearPendingMessages])
+  }, [client, clearChatTimeout, resetFacts, clearPendingMessages])
 
   /**
    * Обрабатывает входящее IRC-сообщение.
@@ -159,25 +141,16 @@ export const useTwitchChatManager = () => {
 
     handleSocketActivity(message.command)
 
-    if (message.command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
-      roomStateTagsRef.current = {
-        ...roomStateTagsRef.current,
-        ...(message.tags || {}),
-      }
-    }
-
-    if (socketContext?.updateChatAccessStatus) {
-      updateChatAccess({
-        message,
-        currentUserLogin,
-        pendingMessagesRef,
-        clearChatTimeout,
-        startChatTimeout,
-        updateChatAccessStatus: socketContext.updateChatAccessStatus,
-        getChatAccessSnapshot,
-        pushLog,
-      })
-    }
+    updateChatAccess({
+      message,
+      currentUserLogin,
+      pendingMessagesRef,
+      factsRef,
+      clearChatTimeout,
+      startChatTimeout,
+      syncStatus,
+      pushLog,
+    })
 
     const isEventOrMod = handleModerationAndEvents(message)
     if (isEventOrMod) {
@@ -196,15 +169,15 @@ export const useTwitchChatManager = () => {
     }
   }, [
     handleSocketActivity,
-    socketContext,
     handleModerationAndEvents,
     handleStandardMessage,
     currentUserLogin,
     client?.currentChannel,
     pendingMessagesRef,
+    factsRef,
     clearChatTimeout,
     startChatTimeout,
-    getChatAccessSnapshot,
+    syncStatus,
     pushLog,
   ])
 
