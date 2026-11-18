@@ -38,7 +38,7 @@
 
 ## Features
 
-* **Built-in Twitch chat:** message history, role highlighting, colored nicknames, system notifications, and deleted-message display.
+* **Built-in Twitch chat:** message history, role highlighting, colored nicknames, Twitch emotes, system notifications, and deleted-message display.
 * **Logs panel:** network events, app state, and queue changes.
 * **Queue management:** active roster, waiting list, history, and drag-and-drop player reordering.
 * **Three UI themes:** Nord, Dim, and System.

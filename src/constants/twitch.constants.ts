@@ -205,6 +205,31 @@ export const TWITCH_HEARTBEAT_WORKER_EVENTS = {
 } as const
 
 /**
+ * Базовый URL картинок эмоций Twitch.
+ */
+export const TWITCH_EMOTE_IMAGE_BASE_URL = 'https://static-cdn.jtvnw.net/emoticons/v2'
+
+/**
+ * Вариант картинки эмоции: анимация, темное оформление, масштаб 1.0.
+ */
+export const TWITCH_EMOTE_IMAGE_VARIANT = 'default/dark/1.0'
+
+/**
+ * Разделители в IRC-теге `emotes`.
+ */
+export const TWITCH_EMOTE_TAG_DELIMITERS = {
+  EMOTES: '/',
+  RANGES: ',',
+  ID: ':',
+  RANGE: '-',
+} as const
+
+/**
+ * Формат числовых значений в теге `emotes`: ID эмоции и позиции в тексте.
+ */
+export const TWITCH_EMOTE_NUMBER_PATTERN = /^\d+$/
+
+/**
  * Теги состояния комнаты, приходящие в команде ROOMSTATE.
  */
 export const TWITCH_ROOM_STATE_TAGS = {
@@ -293,6 +318,7 @@ export const TWITCH_IRC_TAGS = {
   BAN_DURATION: 'ban-duration',
   COLOR: 'color',
   DISPLAY_NAME: 'display-name',
+  EMOTES: 'emotes',
   ID: 'id',
   IS_ANNOUNCEMENT: 'system-type',
   IS_DELETED: 'is-deleted',

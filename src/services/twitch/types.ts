@@ -44,6 +44,27 @@ export interface ParsedIrcMessage {
 }
 
 /**
+ * Диапазон эмоции в тексте сообщения.
+ */
+export interface EmoteRange {
+  /** ID эмоции Twitch. */
+  id: string;
+
+  /** Индекс первого символа эмоции. */
+  start: number;
+
+  /** Индекс последнего символа эмоции. */
+  end: number;
+}
+
+/**
+ * Сегмент текста сообщения: обычный текст или эмоция Twitch.
+ */
+export type ChatMessageSegment =
+  | { type: 'text'; text: string }
+  | { type: 'emote'; id: string; name: string }
+
+/**
  * Данные пользователя, отправившего IRC-сообщение.
  */
 export interface IrcUserData {

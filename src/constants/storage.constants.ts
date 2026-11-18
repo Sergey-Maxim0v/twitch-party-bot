@@ -13,6 +13,7 @@ export const PANEL_STORAGE_KEYS = {
  */
 export const TWITCH_CHAT_STORAGE_KEYS = {
   COLORED_NAMES: 'twitch_chat_colored_names',
+  SHOW_EMOTES: 'twitch_chat_show_emotes',
   HIGHLIGHT_ROLES: 'twitch_chat_highlight_roles',
   SHOW_MODERATION_LOGS: 'twitch_chat_show_moderation_logs',
   SHOW_SYSTEM_NOTIFICATIONS: 'twitch_chat_show_system_notifications',

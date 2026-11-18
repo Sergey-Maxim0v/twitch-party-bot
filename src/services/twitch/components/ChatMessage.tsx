@@ -1,6 +1,7 @@
 import type { CSSProperties, FC } from 'react'
 import { LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench } from 'react-icons/lu'
-import { TWITCH_IRC_COMMANDS } from '../../../constants/twitch.constants.ts'
+import { ChatMessageText } from './ChatMessageText.tsx'
+import { TWITCH_IRC_COMMANDS, TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 import { getAdaptedTwitchColors } from '../utils/getAdaptedTwitchColors.ts'
 
@@ -11,10 +12,11 @@ interface ChatMessageProps {
   isShowDeletedMessages: boolean;
   showSystemNotifications: boolean;
   highlightPointsMessages: boolean;
+  showEmotes: boolean;
 }
 
 /**
- * Отображает одно сообщение чата Twitch с учетом ролей, модерации и настроек.
+ * Отображает одно сообщение чата Twitch с учетом ролей, эмоций, модерации и настроек.
  */
 export const ChatMessage: FC<ChatMessageProps> = ({
   msg,
@@ -23,17 +25,18 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   isShowDeletedMessages,
   showSystemNotifications,
   highlightPointsMessages,
+  showEmotes,
 }) => {
   if (msg.isDeleted && !isShowDeletedMessages) return null
   if (msg.isSystem && msg.isChannelEvent && !showSystemNotifications) return null
 
   let containerClassName = 'text-sm break-words leading-relaxed animate-fadeIn p-1 rounded transition-all block w-full'
 
-  if (highlightRoles && !msg.isSystem) {
-    if (msg.user.isBroadcaster) containerClassName += ' bg-error/10'
-    else if (msg.user.isModerator) containerClassName += ' bg-success/10'
-    else if (msg.user.isVip) containerClassName += ' bg-info/10'
-  }
+  const shouldHighlightRoles = highlightRoles && !msg.isSystem
+
+  if (shouldHighlightRoles && msg.user.isBroadcaster) containerClassName += ' bg-error/10'
+  else if (shouldHighlightRoles && msg.user.isModerator) containerClassName += ' bg-success/10'
+  else if (shouldHighlightRoles && msg.user.isVip) containerClassName += ' bg-info/10'
 
   if (msg.isHighlightedMessage && highlightPointsMessages && !msg.isSystem) {
     containerClassName += ' outline outline-2 outline-primary -outline-offset-2'
@@ -77,6 +80,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   }
 
   const iconClassName = 'w-4 h-4 inline align-middle mr-1'
+  const emoteTag = msg.tags[TWITCH_IRC_TAGS.EMOTES]
 
   return (
     <div className={`${containerClassName} ${deletedClassName}`}>
@@ -91,7 +95,7 @@ export const ChatMessage: FC<ChatMessageProps> = ({
         {displaySenderName}:
       </span>
       <span className={`${msg.isDeleted ? 'text-base-content/60' : 'text-base-content'} inline align-middle ml-1.5`}>
-        {msg.text}
+        <ChatMessageText emoteTag={emoteTag} showEmotes={showEmotes} text={msg.text} />
       </span>
     </div>
   )

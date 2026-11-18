@@ -13,6 +13,8 @@ interface ChatSettingsProps {
   setShowSystemNotifications: (value: boolean) => void
   highlightPointsMessages: boolean;
   setHighlightPointsMessages: (value: boolean) => void;
+  showEmotes: boolean;
+  setShowEmotes: (value: boolean) => void;
 }
 
 /**
@@ -29,6 +31,8 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
   setShowSystemNotifications,
   highlightPointsMessages,
   setHighlightPointsMessages,
+  showEmotes,
+  setShowEmotes,
 }) => {
 
   return (
@@ -57,6 +61,12 @@ export const ChatSettings: FC<ChatSettingsProps> = ({
             checked={useColoredNames}
             label="Цветные ники"
             onChange={setUseColoredNames}
+          />
+
+          <ChatSettingsToggle
+            checked={showEmotes}
+            label="Смайлики Twitch"
+            onChange={setShowEmotes}
           />
 
           <ChatSettingsToggle

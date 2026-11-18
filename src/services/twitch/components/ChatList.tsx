@@ -8,6 +8,7 @@ interface ChatListProps {
   IsShowDeletedMessages: boolean;
   showSystemNotifications: boolean;
   highlightPointsMessages: boolean;
+  showEmotes: boolean;
 }
 
 /**
@@ -20,6 +21,7 @@ export const ChatList = ({
   highlightRoles,
   showSystemNotifications,
   highlightPointsMessages,
+  showEmotes,
 }: ChatListProps) => {
 
   const reversedMessages = [...messages].reverse()
@@ -40,6 +42,7 @@ export const ChatList = ({
             isShowDeletedMessages={IsShowDeletedMessages}
             key={msg.id}
             msg={msg}
+            showEmotes={showEmotes}
             showSystemNotifications={showSystemNotifications}
             useColoredNames={useColoredNames}
           />
