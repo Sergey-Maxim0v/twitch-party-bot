@@ -9,7 +9,7 @@ export type TwitchIrcCommandType = typeof TWITCH_IRC_COMMANDS[keyof typeof TWITC
 export type SocketSender = (text: string) => boolean
 
 export interface ParsedIrcMessage {
-  /** Уникальный идентификатор сообщения (msg-id из тегов Twitch) */
+  /** Уникальный идентификатор сообщения: тег id Twitch или локальный fallback */
   id: string;
 
   /** Данные пользователя, отправившего IRC-сообщение. */

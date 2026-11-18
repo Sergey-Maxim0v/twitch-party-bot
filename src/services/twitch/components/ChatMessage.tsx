@@ -45,6 +45,8 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   }
 
   const deletedClassName = msg.isDeleted ? ' opacity-40 select-none' : ''
+  const iconBaseClassName = 'w-4 h-4 inline align-middle'
+  const iconClassName = `${iconBaseClassName} mr-1`
   const adaptedColors = useColoredNames ? getAdaptedTwitchColors(msg.user.color ?? '') : null
   let nameStyle: CSSProperties | undefined = undefined
   let nameClassName = 'font-bold text-primary mr-2 break-words'
@@ -68,11 +70,12 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     }
 
     return (
-      <div className={`${containerClassName} ${systemColorClass}`}>
+      <div className={`${containerClassName} ${systemColorClass} ${deletedClassName}`}>
         <span className="text-xs text-base-content/40 mr-2 select-none">{msg.timestamp}</span>
         <span className="mr-2">
+          {msg.isDeleted && <LuCircleAlert className={iconClassName} />}
           {isAlert || msg.isAnnouncement ?
-            <LuSparkles className="w-4 h-4 inline align-middle" /> : <LuWrench className="w-4 h-4 inline align-middle" />
+            <LuSparkles className={iconBaseClassName} /> : <LuWrench className={iconBaseClassName} />
           }
         </span>
         {msg.isAnnouncement && <span className="mr-2">{displaySenderName}:</span>}
@@ -81,7 +84,6 @@ export const ChatMessage: FC<ChatMessageProps> = ({
     )
   }
 
-  const iconClassName = 'w-4 h-4 inline align-middle mr-1'
   const emoteTag = msg.tags[TWITCH_IRC_TAGS.EMOTES]
 
   return (

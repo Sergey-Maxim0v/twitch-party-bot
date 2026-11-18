@@ -147,7 +147,6 @@ export const parseIrcMessage = (rawMessage: string): ParsedIrcMessage | null => 
     : parsedText
 
   const id = tags[TWITCH_IRC_TAGS.ID]
-    || tags[TWITCH_IRC_TAGS.MSG_ID]
     || `${Date.now()}-${Math.random().toString(TWITCH_IRC_FALLBACK_ID.RANDOM_RADIX).slice(TWITCH_IRC_FALLBACK_ID.RANDOM_START, TWITCH_IRC_FALLBACK_ID.RANDOM_END)}`
 
   const rawTimestamp = tags[TWITCH_IRC_TAGS.SENT_TIMESTAMP]

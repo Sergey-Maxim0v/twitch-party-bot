@@ -3,7 +3,6 @@ import type { TwitchIrcClient } from '../twitchIrcClient.ts'
 import {
   TWITCH_CHAT_CHANNEL_PREFIX,
   TWITCH_CHAT_FALLBACK_AUTHOR_NAME,
-  TWITCH_CHAT_MESSAGE_ID,
   TWITCH_IRC_COMMANDS,
   TWITCH_IRC_TAGS,
 } from '../../../constants/twitch.constants.ts'
@@ -81,17 +80,12 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchCh
       ? (message.tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || currentUserLogin || TWITCH_CHAT_FALLBACK_AUTHOR_NAME)
       : (message.user.displayName || message.user.nick)
 
-    const { PREFIX, RANDOM_END, RANDOM_RADIX, RANDOM_START } = TWITCH_CHAT_MESSAGE_ID
-    const randomSuffix = Math.random().toString(RANDOM_RADIX).slice(RANDOM_START, RANDOM_END)
-    const uniqueId = `${PREFIX}${message.id}-${Date.now()}-${randomSuffix}`
-
     const cleanChannel = currentChannel?.toLowerCase().replace(TWITCH_CHAT_CHANNEL_PREFIX, '')
     const isBroadcaster = Boolean(cleanChannel) && currentUserLogin.toLowerCase() === cleanChannel
     const isModerator = isBroadcaster || Boolean(message.user.isModerator)
 
     const messageToPush: ParsedIrcMessage = {
       ...message,
-      id: uniqueId,
       command: TWITCH_IRC_COMMANDS.PRIV_MSG,
       text: savedText ?? message.text,
       user: isPrivmsg

@@ -101,16 +101,6 @@ export const TWITCH_CHAT_FALLBACK_AUTHOR_NAME = 'Broadcaster'
 export const TWITCH_CHAT_FALLBACK_LOGIN = 'broadcaster'
 
 /**
- * Параметры генерации локального ID сообщения чата.
- */
-export const TWITCH_CHAT_MESSAGE_ID = {
-  PREFIX: 'msg-',
-  RANDOM_END: 5,
-  RANDOM_RADIX: 36,
-  RANDOM_START: 2,
-} as const
-
-/**
  * Задержка создания сокета после смены канала.
  */
 export const TWITCH_SOCKET_CONNECT_DELAY_MS = 16
@@ -363,6 +353,7 @@ export const TWITCH_IRC_TAGS = {
   IS_ANNOUNCEMENT: 'system-type',
   IS_DELETED: 'is-deleted',
   IS_SYSTEM: 'is-system',
+  LOGIN: 'login',
   MOD: 'mod',
   MOD_ACTION: 'mod-action',
   MSG_ID: 'msg-id',
@@ -433,16 +424,6 @@ export const TWITCH_IRC_MSG_PARAMS = {
   RECIPIENT_USER_NAME: 'msg-param-recipient-user-name',
   VALUE: 'msg-param-value',
   VIEWER_COUNT: 'msg-param-viewerCount',
-} as const
-
-/**
- * Параметры генерации локального ID системного сообщения.
- */
-export const TWITCH_SYSTEM_MESSAGE_ID = {
-  PREFIX: 'sys-',
-  RANDOM_END: 9,
-  RANDOM_RADIX: 36,
-  RANDOM_START: 2,
 } as const
 
 /**

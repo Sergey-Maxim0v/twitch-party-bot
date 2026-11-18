@@ -8,20 +8,9 @@ import {
   TWITCH_ROOM_STATE_NOTICE_IDS,
   TWITCH_ROOM_STATE_NOTICE_TEXTS,
   TWITCH_SYSTEM_MESSAGE_AUTHOR,
-  TWITCH_SYSTEM_MESSAGE_ID,
 } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage } from '../types.ts'
 import { isRoomStateInitialization, parseRoomStateRestrictions, ROOM_STATE_MESSAGE_PRIORITY } from './roomState.ts'
-
-/**
- * Создает локальный ID системного сообщения.
- *
- * @returns Уникальный идентификатор системного сообщения.
- */
-const generateSystemMessageId = (): string => {
-  const { PREFIX, RANDOM_END, RANDOM_RADIX, RANDOM_START } = TWITCH_SYSTEM_MESSAGE_ID
-  return `${PREFIX}${Date.now()}-${Math.random().toString(RANDOM_RADIX).substring(RANDOM_START, RANDOM_END)}`
-}
 
 /**
  * Создает структурированное системное сообщение на основе служебных команд Twitch.
@@ -33,7 +22,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   const { command, text, tags, timestamp } = message
 
   const buildSystemPayload = (systemText: string): ParsedIrcMessage => ({
-    id: generateSystemMessageId(),
+    id: message.id,
     user: {
       nick: TWITCH_SYSTEM_MESSAGE_AUTHOR.NICK,
       displayName: TWITCH_SYSTEM_MESSAGE_AUTHOR.DISPLAY_NAME,
@@ -46,13 +35,12 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     isChannelEvent: true,
   })
 
+  if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT && !text?.trim()) {
+    return buildSystemPayload('Чат был очищен модератором.')
+  }
+
   if (command === TWITCH_IRC_COMMANDS.CLEAR_CHAT) {
-    const bannedUser = text?.trim()
-
-    if (!bannedUser) {
-      return buildSystemPayload('Чат был очищен модератором.')
-    }
-
+    const bannedUser = text?.trim() ?? ''
     const duration = tags[TWITCH_IRC_TAGS.BAN_DURATION]
     const actionText = duration
       ? `Пользователь @${bannedUser} заблокирован на ${duration} сек.`
@@ -62,7 +50,7 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
   }
 
   if (command === TWITCH_IRC_COMMANDS.CLEAR_MSG) {
-    const targetUser = tags.login || 'Пользователь'
+    const targetUser = tags[TWITCH_IRC_TAGS.LOGIN] || 'Пользователь'
     return buildSystemPayload(`Сообщение от @${targetUser} удалено.`)
   }
 
@@ -70,12 +58,11 @@ export const createSystemMessage = (message: ParsedIrcMessage): ParsedIrcMessage
     return createUserNoticeMessage(message, buildSystemPayload)
   }
 
-  if (command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
-    // Стартовый пакет инициализации комнаты не выводим в чат
-    if (isRoomStateInitialization(tags)) {
-      return null
-    }
+  if (command === TWITCH_IRC_COMMANDS.ROOM_STATE && isRoomStateInitialization(tags)) {
+    return null
+  }
 
+  if (command === TWITCH_IRC_COMMANDS.ROOM_STATE) {
     const restrictions = parseRoomStateRestrictions(tags)
 
     const changedRestriction = ROOM_STATE_MESSAGE_PRIORITY
@@ -122,10 +109,10 @@ const createUserNoticeMessage = (
   message: ParsedIrcMessage,
   buildSystemPayload: (systemText: string) => ParsedIrcMessage,
 ): ParsedIrcMessage | null => {
-  const { command, text, tags, timestamp } = message
+  const { text, tags } = message
 
   const msgId = tags[TWITCH_IRC_TAGS.MSG_ID]
-  const login = tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || tags.login || 'Пользователь'
+  const login = tags[TWITCH_IRC_TAGS.DISPLAY_NAME] || tags[TWITCH_IRC_TAGS.LOGIN] || 'Пользователь'
   const userMessage = text?.trim() ? `: "${text.trim()}"` : ''
 
   if (msgId === TWITCH_IRC_MSG_IDS.SUB || msgId === TWITCH_IRC_MSG_IDS.RESUB) {
@@ -158,19 +145,19 @@ const createUserNoticeMessage = (
   }
 
   if (msgId === TWITCH_IRC_MSG_IDS.ANNOUNCEMENT) {
+    const announcement = buildSystemPayload(`@${login}: ${text}`)
+
     return {
-      id: generateSystemMessageId(),
+      ...announcement,
       user: {
         nick: TWITCH_ANNOUNCEMENT_AUTHOR.NICK,
         displayName: TWITCH_ANNOUNCEMENT_AUTHOR.DISPLAY_NAME,
       },
-      text: `@${login}: ${text}`,
-      command,
-      timestamp,
-      isSystem: true,
-      isChannelEvent: true,
       isAnnouncement: true,
-      tags: { [TWITCH_IRC_TAGS.IS_SYSTEM]: TWITCH_IRC_TAG_ENABLED, [TWITCH_IRC_TAGS.IS_ANNOUNCEMENT]: TWITCH_IRC_MSG_IDS.ANNOUNCEMENT, ...tags },
+      tags: {
+        ...announcement.tags,
+        [TWITCH_IRC_TAGS.IS_ANNOUNCEMENT]: TWITCH_IRC_MSG_IDS.ANNOUNCEMENT,
+      },
     }
   }
 
