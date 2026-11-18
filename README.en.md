@@ -63,7 +63,7 @@ You can run the application in two ways:
 
 * **Custom IRC client:** a lightweight Twitch IRC implementation instead of third-party libraries — handshake, connection keep-alive, switching channels on the fly, and automatic reconnection after a network drop.
 * **Stable connection:** heartbeat timers run in a Web Worker so the browser does not throttle them in an inactive tab, and a half-open connection is detected and recreated automatically.
-* **Twitch OAuth sign-in:** the sign-in happens in a separate window, with a fallback to the current tab when the browser blocks popups. The token and session profile are stored inside the tab only.
+* **Twitch OAuth sign-in:** the sign-in redirects the current tab to Twitch. The token and session profile are stored inside the tab only.
 * **Modular codebase:** the logic is split into independent parts (auth, queue, notifications, settings), with infrastructure services (sockets, Twitch IRC) kept separate.
 * **Recovery from failures:** if something breaks, a recovery screen with a reload button is shown instead of a blank page, and a failing panel does not take the other panels down.
 

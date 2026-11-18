@@ -43,11 +43,6 @@ export const AUTH_STATE_VALIDATION_RESULTS = {
 } as const
 
 /**
- * Тип сообщения, которое popup отправляет родительскому окну.
- */
-export const TWITCH_AUTH_MESSAGE_TYPE = 'TWITCH_AUTH_RESULT'
-
-/**
  * Имена параметров URL, которые Twitch возвращает после редиректа.
  */
 export const TWITCH_AUTH_URL_PARAMS = {
@@ -63,10 +58,6 @@ export const TWITCH_AUTH_URL_PARAMS = {
 export const TWITCH_AUTH_UI_MESSAGES = {
   CSRF_FAILED: 'Ошибка безопасности (CSRF): верификация контекста не пройдена.',
   DENIED: 'Авторизация отклонена Twitch:',
-  POPUP_BLOCKED: 'Всплывающее окно заблокировано браузером. Войдите в текущей вкладке.',
-  POPUP_BLOCKED_WITHOUT_FALLBACK: 'Всплывающее окно заблокировано, а вход в текущей вкладке недоступен из-за блокировки хранилища. Разрешите хранение данных сайта и попробуйте снова.',
-  POPUP_CLOSED: 'Авторизация отменена: всплывающее окно было закрыто.',
-  POPUP_TIMEOUT: 'Авторизация не завершена вовремя. Попробуйте снова.',
   AUTH_CANCELLED: 'Авторизация отменена: ответ Twitch не получен.',
   URL_BUILD_FAILED: 'Ошибка при формировании URL авторизации.',
   CLIENT_ID_MISSING: 'Twitch Client ID не найден в конфигурации приложения. Проверьте настройки CI/CD.',
@@ -74,13 +65,25 @@ export const TWITCH_AUTH_UI_MESSAGES = {
   UNKNOWN_AUTH: 'Неизвестная ошибка при авторизации.',
   AUTH_STATE_UNAVAILABLE: 'Браузер блокирует хранилище, поэтому не удалось проверить состояние авторизации. Разрешите хранение данных сайта и попробуйте снова.',
   AUTH_STATE_EXPIRED: 'Время ожидания авторизации истекло. Попробуйте войти снова.',
-  CURRENT_TAB_LOGIN_UNAVAILABLE: 'Вход в текущей вкладке недоступен: браузер блокирует хранилище. Войдите во всплывающем окне или разрешите хранение данных сайта.',
   STORAGE_PERSISTENCE_UNAVAILABLE: 'Браузер ограничивает хранилище: часть данных и настроек не сохранится после перезагрузки.',
   UNKNOWN_VALIDATION: 'Неизвестная ошибка валидации токена.',
   VALIDATION_UNAVAILABLE: 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.',
   VALIDATION_FAILED: 'Не удалось подтвердить валидность токена через Twitch API.',
   SESSION_NOT_FOUND: 'Сессия не найдена.',
 }
+
+/**
+ * Тексты модального окна авторизации.
+ */
+export const TWITCH_AUTH_MODAL_UI_MESSAGES = {
+  VALIDATING_TITLE: 'Проверка токена',
+  VALIDATING_DESCRIPTION: 'Верифицируем вашу сессию через официальный API Twitch...',
+  SUCCESS_TITLE: 'Успешный вход!',
+  SUCCESS_DESCRIPTION: 'Добро пожаловать. Окно закроется автоматически.',
+  ERROR_TITLE: 'Ошибка входа',
+  RETRY: 'Повторить',
+  CLOSE: 'Закрыть',
+} as const
 
 /**
  * Тексты модального окна подтверждения выхода из аккаунта.
@@ -112,9 +115,7 @@ export const TWITCH_TOKEN_REJECTED_STATUSES: readonly number[] = [400, 401]
 export const TWITCH_SESSION_ERRORS = {
   CORRUPTED: 'Повреждённая сессия Twitch удалена из хранилища.',
   INIT_FAILED: 'Не удалось инициализировать авторизацию Twitch:',
-  AUTH_URL_FAILED: 'Не удалось сформировать URL авторизации Twitch:',
   REDIRECT_CLEANUP_FAILED: 'Не удалось очистить OAuth-параметры из адресной строки:',
-  AUTH_MESSAGE_REJECTED: 'Сообщение авторизации отклонено: подходящая попытка входа не найдена.',
 } as const
 
 /**
@@ -123,33 +124,15 @@ export const TWITCH_SESSION_ERRORS = {
 export const TWITCH_AUTH_STATE_STORAGE_KIND = 'sessionStorage'
 
 /**
- * Ключ хранилища для попытки входа (`state` + тип контекста), защищающей
- * OAuth-поток от CSRF. Единый источник правды для проверки.
+ * Ключ хранилища для попытки входа (`state`), защищающей OAuth-поток от CSRF.
  */
 export const TWITCH_AUTH_STATE_STORAGE_KEY = 'twitch_oauth_state'
-
-/**
- * Канал BroadcastChannel для передачи результата авторизации из возвращённого
- * окна в родительское. Канал общий для всего источника и не зависит от
- * window.opener/WindowProxy, поэтому результат принимается только с `state`
- * текущей попытки входа.
- */
-export const TWITCH_AUTH_BROADCAST_CHANNEL = 'twitch_auth_result'
-
-/**
- * Тип контекста входа: всплывающее окно или текущая вкладка.
- */
-export const AUTH_CONTEXT_TYPE = {
-  POPUP: 'popup',
-  TAB: 'tab',
-} as const
 
 /**
  * Этапы процесса авторизации.
  */
 export const TWITCH_AUTH_STAGES = {
   IDLE: 'idle',
-  WAITING: 'waiting',
   VALIDATING: 'validating',
   SUCCESS: 'success',
   ERROR: 'error',
@@ -178,26 +161,6 @@ export const TWITCH_TOKEN_VALIDATION_TIMEOUT_MS = 10 * 1000
  * Задержка закрытия модального окна после успешной авторизации.
  */
 export const TWITCH_AUTH_SUCCESS_CLOSE_DELAY_MS = 1000
-
-/**
- * Интервал проверки ручного закрытия popup-окна.
- */
-export const TWITCH_AUTH_POPUP_CLOSE_POLL_INTERVAL_MS = 500
-
-/**
- * Таймаут ожидания завершения авторизации во всплывающем окне (5 минут).
- */
-export const TWITCH_AUTH_POPUP_WAIT_TIMEOUT_MS = 5 * 60 * 1000
-
-/**
- * Имя, размеры и возможности окна Twitch-авторизации.
- */
-export const TWITCH_AUTH_POPUP = {
-  NAME: 'TwitchAuthPopup',
-  WIDTH: 500,
-  HEIGHT: 650,
-  FEATURES: 'scrollbars=yes,resizable=yes',
-}
 
 /**
  * Статусы проверки канала через Twitch Helix.

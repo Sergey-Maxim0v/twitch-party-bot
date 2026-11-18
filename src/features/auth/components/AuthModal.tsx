@@ -1,7 +1,10 @@
 import { type FC } from 'react'
 import { useAuth } from '../hooks/useAuth.ts'
 import { TWITCH_AUTH_STAGES } from '../types'
-import { TWITCH_AUTH_UI_MESSAGES } from '../../../constants/auth.constants.ts'
+import {
+  TWITCH_AUTH_MODAL_UI_MESSAGES,
+  TWITCH_AUTH_UI_MESSAGES,
+} from '../../../constants/auth.constants.ts'
 
 /**
  * Модальное окно, отражающее текущую стадию авторизации Twitch.
@@ -12,8 +15,6 @@ export const AuthModal: FC = () => {
     authStage,
     error,
     login,
-    loginInCurrentTab,
-    canLoginInCurrentTab,
     isStoragePersistent,
     closeModal,
   } = useAuth()
@@ -24,36 +25,14 @@ export const AuthModal: FC = () => {
     <div className="modal modal-open z-200">
       <div className="modal-box max-w-sm flex flex-col items-center text-center p-6 gap-4">
 
-        {authStage === TWITCH_AUTH_STAGES.WAITING && (
-          <>
-            <span className="loading loading-spinner loading-lg text-primary"></span>
-            <h3 className="font-bold text-lg">Авторизация на Twitch</h3>
-            <p className="text-sm text-base-content/70">
-              Пожалуйста, завершите вход в открывшемся всплывающем окне.
-            </p>
-            <div className="modal-action w-full mt-2">
-              <button className="btn btn-ghost btn-sm w-full" onClick={closeModal}>
-                Отмена
-              </button>
-            </div>
-            {canLoginInCurrentTab ? (
-              <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
-                Войти в текущей вкладке
-              </button>
-            ) : (
-              <p className="text-xs text-base-content/60">
-                {TWITCH_AUTH_UI_MESSAGES.CURRENT_TAB_LOGIN_UNAVAILABLE}
-              </p>
-            )}
-          </>
-        )}
-
         {authStage === TWITCH_AUTH_STAGES.VALIDATING && (
           <>
             <span className="loading loading-ring loading-lg text-secondary"></span>
-            <h3 className="font-bold text-lg">Проверка токена</h3>
+            <h3 className="font-bold text-lg">
+              {TWITCH_AUTH_MODAL_UI_MESSAGES.VALIDATING_TITLE}
+            </h3>
             <p className="text-sm text-base-content/70">
-              Верифицируем вашу сессию через официальный API Twitch...
+              {TWITCH_AUTH_MODAL_UI_MESSAGES.VALIDATING_DESCRIPTION}
             </p>
           </>
         )}
@@ -67,9 +46,11 @@ export const AuthModal: FC = () => {
                 <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </div>
-            <h3 className="font-bold text-lg text-success">Успешный вход!</h3>
+            <h3 className="font-bold text-lg text-success">
+              {TWITCH_AUTH_MODAL_UI_MESSAGES.SUCCESS_TITLE}
+            </h3>
             <p className="text-sm text-base-content/70">
-              Добро пожаловать. Окно сейчас закроется автоматически.
+              {TWITCH_AUTH_MODAL_UI_MESSAGES.SUCCESS_DESCRIPTION}
             </p>
             {!isStoragePersistent && (
               <p className="text-xs text-warning">
@@ -90,27 +71,20 @@ export const AuthModal: FC = () => {
                 />
               </svg>
             </div>
-            <h3 className="font-bold text-lg text-error">Ошибка входа</h3>
+            <h3 className="font-bold text-lg text-error">
+              {TWITCH_AUTH_MODAL_UI_MESSAGES.ERROR_TITLE}
+            </h3>
             <p className="text-sm text-error/90 max-w-xs wrap-break-word">
               {error || TWITCH_AUTH_UI_MESSAGES.UNKNOWN_AUTH}
             </p>
             <div className="modal-action grid grid-cols-2 gap-2 w-full mt-2">
               <button className="btn btn-primary btn-sm" onClick={login}>
-                Повторить
+                {TWITCH_AUTH_MODAL_UI_MESSAGES.RETRY}
               </button>
               <button className="btn btn-ghost btn-sm" onClick={closeModal}>
-                Закрыть
+                {TWITCH_AUTH_MODAL_UI_MESSAGES.CLOSE}
               </button>
             </div>
-            {canLoginInCurrentTab ? (
-              <button className="btn btn-outline btn-sm w-full" onClick={loginInCurrentTab}>
-                Войти в текущей вкладке
-              </button>
-            ) : (
-              <p className="text-xs text-base-content/60">
-                {TWITCH_AUTH_UI_MESSAGES.CURRENT_TAB_LOGIN_UNAVAILABLE}
-              </p>
-            )}
           </>
         )}
 

@@ -1,15 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import {
-  TWITCH_AUTH_STAGES,
-  type AuthStateValidationResult,
-  type TwitchAuthHookResult,
-  type TwitchAuthResponse,
-  type TwitchUserSession,
-} from '../types'
-import { useTwitchPopup } from './useTwitchPopup.ts'
+import type { TwitchAuthHookResult, TwitchUserSession } from '../types'
+import { useTwitchLogin } from './useTwitchLogin.ts'
 import { useTwitchChannelState } from './useTwitchChannelState.ts'
 import {
-  AUTH_STATE_VALIDATION_RESULTS,
   TWITCH_AUTH_UI_MESSAGES,
   TWITCH_SESSION_ERRORS,
   TWITCH_TOKEN_VALIDATION_INTERVAL_MS,
@@ -20,37 +13,13 @@ import { useChannelProfile } from './useChannelProfile.ts'
 import { useSessionStorage } from '../../../hooks/useSessionStorage.ts'
 import { validateTwitchToken } from '../utils/validateTwitchToken.ts'
 import { parseTwitchAuthResponse } from '../utils/parseTwitchAuthResponse.ts'
-import { clearAuthRedirectUrl, isAuthPopupWindow, openAuthBroadcastChannel, postAuthResult } from '../utils/authRedirect.ts'
+import { clearAuthRedirectUrl } from '../utils/clearAuthRedirectUrl.ts'
 import { consumeAuthAttempt } from '../utils/consumeAuthAttempt.ts'
 import { formatAuthError } from '../utils/formatAuthError.ts'
 import { buildTwitchSession, isValidTwitchSession, getTwitchAccessToken } from '../utils/twitchSession.ts'
 import { isWebStorageAvailable } from '../../../hooks/utils/webStorage.utils.ts'
-
-/**
- * Преобразует результат проверки `state` в текст ошибки.
- *
- * @param result - Результат проверки попытки входа.
- * @returns Текст ошибки или `null`, если проверка пройдена.
- */
-const getStateErrorMessage = (result: AuthStateValidationResult): string | null => {
-  if (result === AUTH_STATE_VALIDATION_RESULTS.UNAVAILABLE) return TWITCH_AUTH_UI_MESSAGES.AUTH_STATE_UNAVAILABLE
-  if (result === AUTH_STATE_VALIDATION_RESULTS.EXPIRED) return TWITCH_AUTH_UI_MESSAGES.AUTH_STATE_EXPIRED
-  if (result === AUTH_STATE_VALIDATION_RESULTS.INVALID) return TWITCH_AUTH_UI_MESSAGES.CSRF_FAILED
-
-  return null
-}
-
-/**
- * Подбирает текст ошибки для попытки входа, прерванной до получения ответа Twitch.
- *
- * @param result - Результат проверки попытки входа.
- * @returns Текст ошибки для показа пользователю.
- */
-const getCancelledAuthMessage = (result: AuthStateValidationResult): string => (
-  result === AUTH_STATE_VALIDATION_RESULTS.EXPIRED
-    ? TWITCH_AUTH_UI_MESSAGES.AUTH_STATE_EXPIRED
-    : TWITCH_AUTH_UI_MESSAGES.AUTH_CANCELLED
-)
+import { getStateErrorMessage } from '../utils/getStateErrorMessage.ts'
+import { getCancelledAuthMessage } from '../utils/getCancelledAuthMessage.ts'
 
 /**
  * Основной хук авторизации Twitch: хранит сессию текущей вкладки,
@@ -63,12 +32,11 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  const isProcessingHash = useRef(false)
+  const isAuthInitStarted = useRef(false)
 
   const session = isValidTwitchSession(storedSession) ? storedSession : null
   const accessToken = getTwitchAccessToken(storedSession)
-  const canLoginInCurrentTab = isWebStorageAvailable('sessionStorage')
-  const isStoragePersistent = canLoginInCurrentTab && isWebStorageAvailable('localStorage')
+  const isStoragePersistent = isWebStorageAvailable('sessionStorage') && isWebStorageAvailable('localStorage')
 
   /**
    * Проверяет токен и формирует сессию. Сетевые ошибки не требуют выхода.
@@ -115,51 +83,14 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     setSession(buildTwitchSession(token, result.user))
   }, [setSession])
 
-  const popupManager = useTwitchPopup({
-    onSuccess: saveSession,
-    setError,
-  })
-
-  const { setAuthStage, setIsModalOpen, authorizeToken } = popupManager
-
-  /**
-   * Показывает ошибку авторизации в модальном окне.
-   *
-   * @param message - Текст ошибки.
-   */
-  const showAuthError = useCallback((message: string): void => {
-    setAuthStage(TWITCH_AUTH_STAGES.ERROR)
-    setError(message)
-    setIsModalOpen(true)
-  }, [setAuthStage, setError, setIsModalOpen])
-
-  /**
-   * Обрабатывает ответ Twitch, полученный во всплывающем окне.
-   *
-   * Попытка входа проверяется в том окне, где она была сохранена, а результат
-   * передаётся в родительское окно через `BroadcastChannel`.
-   *
-   * @param response - Результат разбора ответа Twitch.
-   */
-  const handlePopupResponse = useCallback((response: TwitchAuthResponse): void => {
-    const { result } = consumeAuthAttempt(response.state)
-
-    if (!response.token && !response.error) {
-      showAuthError(TWITCH_AUTH_UI_MESSAGES.AUTH_CANCELLED)
-      return
-    }
-
-    const stateError = getStateErrorMessage(result)
-
-    if (stateError) {
-      showAuthError(stateError)
-      return
-    }
-
-    const channel = openAuthBroadcastChannel()
-    postAuthResult(channel, response)
-    channel.close()
-  }, [showAuthError])
+  const {
+    isModalOpen,
+    authStage,
+    login,
+    failAuth,
+    closeModal,
+    authorizeToken,
+  } = useTwitchLogin({ onSuccess: saveSession, setError })
 
   const channelManager = useTwitchChannelState(session?.login)
 
@@ -182,9 +113,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   const logout = useCallback((): void => {
     setSession(null)
     setError(null)
-    setAuthStage(TWITCH_AUTH_STAGES.IDLE)
-    setIsModalOpen(false)
-  }, [setSession, setAuthStage, setIsModalOpen])
+    closeModal()
+  }, [setSession, closeModal])
 
   /**
    * Синхронизирует сохранённую сессию с состоянием Twitch.
@@ -211,67 +141,80 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     setSession(null)
   }, [storedSession, accessToken, setSession])
 
-  useEffect(() => {
-    const handleAuthInit = async (): Promise<void> => {
-      if (isProcessingHash.current) return
-      isProcessingHash.current = true
+  /**
+   * Обрабатывает ответ Twitch или сообщает об отменённом входе.
+   */
+  const processAuthResponse = useCallback(async (): Promise<void> => {
+    setIsLoading(true)
 
-      setIsLoading(true)
+    try {
+      const response = parseTwitchAuthResponse()
 
-      const isPopup = isAuthPopupWindow()
+      // Попытка входа потребляется единственный раз: запись удаляется при любом
+      // исходе, поэтому висящий `state` не засчитается следующему запросу.
+      const { result, attempt } = consumeAuthAttempt(response.state)
 
-      try {
-        const response = parseTwitchAuthResponse()
-
-        if (isPopup) {
-          handlePopupResponse(response)
-          return
-        }
-
-        // Попытка входа потребляется единственный раз: запись удаляется при любом
-        // исходе, поэтому висящий `state` не засчитается следующему запросу.
-        const { result, attempt } = consumeAuthAttempt(response.state)
-
-        if (response.error) {
-          showAuthError(formatAuthError(response.error))
-          return
-        }
-
-        if (response.token) {
-          const stateError = getStateErrorMessage(result)
-
-          if (stateError) {
-            showAuthError(stateError)
-            return
-          }
-
-          await authorizeToken(response.token)
-          return
-        }
-
-        if (attempt) {
-          showAuthError(getCancelledAuthMessage(result))
-          return
-        }
-
-        if (accessToken) {
-          await syncSession(accessToken)
-        }
-      } finally {
-        clearAuthRedirectUrl()
-        setIsLoading(false)
-
-        if (isPopup) {
-          window.close()
-        }
+      if (response.error) {
+        failAuth(formatAuthError(response.error))
+        return
       }
+
+      if (response.token) {
+        const stateError = getStateErrorMessage(result)
+
+        if (stateError) {
+          failAuth(stateError)
+          return
+        }
+
+        await authorizeToken(response.token)
+        return
+      }
+
+      if (attempt) {
+        failAuth(getCancelledAuthMessage(result))
+        return
+      }
+
+      if (accessToken) {
+        await syncSession(accessToken)
+      }
+    } finally {
+      clearAuthRedirectUrl()
+      setIsLoading(false)
+    }
+  }, [accessToken, authorizeToken, failAuth, syncSession])
+
+  /**
+   * Сообщает о непредвиденной ошибке обработки ответа Twitch.
+   *
+   * @param error - Пойманная ошибка.
+   */
+  const handleAuthInitError = useCallback((error: unknown): void => {
+    console.error(TWITCH_SESSION_ERRORS.INIT_FAILED, error)
+    failAuth(TWITCH_AUTH_UI_MESSAGES.INIT_FAILED)
+  }, [failAuth])
+
+  useEffect(() => {
+    if (isAuthInitStarted.current) return
+    isAuthInitStarted.current = true
+
+    processAuthResponse().catch(handleAuthInitError)
+  }, [processAuthResponse, handleAuthInitError])
+
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent): void => {
+      if (!event.persisted || accessToken) return
+
+      processAuthResponse().catch(handleAuthInitError)
     }
 
-    handleAuthInit().catch(err => {
-      console.error(TWITCH_SESSION_ERRORS.INIT_FAILED, err)
-      showAuthError(TWITCH_AUTH_UI_MESSAGES.INIT_FAILED)
-    })
-  }, [accessToken, authorizeToken, handlePopupResponse, syncSession, showAuthError])
+    window.addEventListener('pageshow', handlePageShow)
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow)
+    }
+  }, [accessToken, processAuthResponse, handleAuthInitError])
 
   useEffect(() => {
     if (!accessToken) return
@@ -292,13 +235,11 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     error,
     channelError: channelManager.channelError,
     logout,
-    login: popupManager.login,
-    loginInCurrentTab: popupManager.loginInCurrentTab,
-    canLoginInCurrentTab,
+    login,
     isStoragePersistent,
-    isModalOpen: popupManager.isModalOpen,
-    authStage: popupManager.authStage,
-    closeModal: popupManager.closeModal,
+    isModalOpen,
+    authStage,
+    closeModal,
     activeChannel: channelManager.activeChannel,
     hasSelectedChannel: channelManager.hasSelectedChannel,
     activeChannelDisplayName,

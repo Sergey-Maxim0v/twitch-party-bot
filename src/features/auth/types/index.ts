@@ -1,4 +1,4 @@
-import { AUTH_CONTEXT_TYPE, AUTH_STATE_VALIDATION_RESULTS, TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
+import { AUTH_STATE_VALIDATION_RESULTS, TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
 
 export { TWITCH_AUTH_STAGES }
 
@@ -8,16 +8,10 @@ export { TWITCH_AUTH_STAGES }
 export type AuthStateValidationResult = typeof AUTH_STATE_VALIDATION_RESULTS[keyof typeof AUTH_STATE_VALIDATION_RESULTS]
 
 /**
- * Контекст входа: всплывающее окно или текущая вкладка.
- */
-export type AuthContextType = typeof AUTH_CONTEXT_TYPE[keyof typeof AUTH_CONTEXT_TYPE]
-
-/**
  * Попытка входа, сохраняемая перед редиректом на Twitch.
  */
 export interface AuthAttempt {
   state: string;
-  contextType: AuthContextType;
   createdAt: number;
 }
 
@@ -68,8 +62,6 @@ export interface TwitchAuthHookResult {
   error: string | null;
   channelError: string | null;
   login: () => void;
-  loginInCurrentTab: () => void;
-  canLoginInCurrentTab: boolean;
   isStoragePersistent: boolean;
   logout: () => void;
   isModalOpen: boolean;
