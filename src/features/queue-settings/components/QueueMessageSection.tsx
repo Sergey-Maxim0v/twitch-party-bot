@@ -5,10 +5,13 @@ import { SettingsNumberInput } from './SettingsNumberInput.tsx'
 import { SettingsTextInput } from './SettingsTextInput.tsx'
 import {
   QUEUE_MESSAGE_PREFIX_LABEL,
+  QUEUE_MESSAGE_PREFIX_MAX_LENGTH,
   QUEUE_NOTIFICATION_LABELS,
+  QUEUE_PREFIX_CONFLICT_MESSAGES,
   QUEUE_SETTING_LABELS,
 } from '../../../constants/queue.constants.ts'
 import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
+import { getPrefixCommandConflict } from '../utils/getPrefixCommandConflict.ts'
 
 interface QueueMessageSectionProps {
   titleClassName?: string;
@@ -20,6 +23,13 @@ interface QueueMessageSectionProps {
 export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = '' }) => {
   const { settings, updateSettings } = useQueueSettings()
   const notificationsDisabled = !settings.chatNotificationPermissions.allowSending
+  const commandNames = Object.values(settings.commands).map(command => command.name)
+
+  const validatePrefix = (value: string): string | null => {
+    const conflict = getPrefixCommandConflict(value, commandNames)
+
+    return conflict ? QUEUE_PREFIX_CONFLICT_MESSAGES.PREFIX(conflict) : null
+  }
 
   const handlePermissionsChange = (key: keyof typeof settings.chatNotificationPermissions, val: boolean) => {
     updateSettings({
@@ -42,9 +52,10 @@ export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassNa
 
       <SettingsTextInput
         label={QUEUE_MESSAGE_PREFIX_LABEL}
-        max={20}
+        max={QUEUE_MESSAGE_PREFIX_MAX_LENGTH}
         onChange={val => { updateSettings({ messagePrefix: val }) }}
         placeholder="Префикс "
+        validate={validatePrefix}
         value={settings.messagePrefix}
       />
 

@@ -32,7 +32,7 @@ export const useChatCommands = () => {
   const commandNames = Object.values(commands).map(command => command.name.toLowerCase())
 
   useEffect(() => {
-    if (!lastMessage?.text) return
+    if (!lastMessage?.text || lastMessage.isAutomated) return
 
     const trimmedText = lastMessage.text.trim()
     const [rawCommandName, ...commandArgs] = trimmedText.split(TWITCH_CHAT_COMMAND_SPLIT_REGEX)

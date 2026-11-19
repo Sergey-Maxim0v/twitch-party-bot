@@ -88,6 +88,7 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchCh
       ...message,
       command: TWITCH_IRC_COMMANDS.PRIV_MSG,
       text: savedText ?? message.text,
+      isAutomated: pendingMessage?.isAutomated,
       user: isPrivmsg
         ? message.user
         : {

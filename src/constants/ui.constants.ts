@@ -79,6 +79,16 @@ export const DANGER_ACTION_BUTTON_CLASS = 'btn btn-block btn-error btn-outline b
 export const SETTINGS_INPUT_CLASS = 'input input-bordered input-sm flex-1 min-w-0 text-sm focus:input-primary focus:outline-none'
 
 /**
+ * CSS-класс поля настройки с ошибкой.
+ */
+export const SETTINGS_INPUT_ERROR_CLASS = 'input-error'
+
+/**
+ * CSS-класс предупреждения под полем настройки.
+ */
+export const SETTINGS_VALIDATION_ERROR_CLASS = 'text-error text-xs'
+
+/**
  * CSS-классы счётчика списка игроков.
  */
 export const QUEUE_BADGE_CLASS = 'badge badge-neutral text-xs font-semibold'

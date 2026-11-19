@@ -1,4 +1,8 @@
 import { type ChangeEvent, type FC, type KeyboardEvent, useState } from 'react'
+import {
+  SETTINGS_INPUT_ERROR_CLASS,
+  SETTINGS_VALIDATION_ERROR_CLASS,
+} from '../../../constants/ui.constants.ts'
 
 interface SettingsTextInputProps {
   label: string;
@@ -8,7 +12,11 @@ interface SettingsTextInputProps {
   max?: number;
   disabled?: boolean;
   className?: string;
+  /** Проверяет значение и возвращает текст ошибки или `null`. */
+  validate?: (value: string) => string | null;
 }
+
+const INPUT_CLASS = 'input input-bordered w-full input-sm focus:input-primary focus:outline-none text-sm min-w-0'
 
 /**
  * Текстовое поле настройки.
@@ -21,6 +29,7 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
   max = 100,
   disabled = false,
   className = '',
+  validate,
 }) => {
   const [inputValue, setInputValue] = useState<string>(value)
   const [prevValue, setPrevValue] = useState<string>(value)
@@ -31,9 +40,13 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
     setInputValue(value)
   }
 
+  const normalizedValue = inputValue.trim().slice(0, max)
+  const validationError = validate?.(normalizedValue) ?? null
+
   const commitValue = (stringValue: string) => {
-    const trimmedValue = stringValue.trim()
-    const finalValue = trimmedValue.slice(0, max)
+    const finalValue = stringValue.trim().slice(0, max)
+
+    if (validate?.(finalValue)) return
 
     onChange(finalValue)
     setInputValue(finalValue)
@@ -66,7 +79,8 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
       </label>
 
       <input
-        className="input input-bordered w-full input-sm focus:input-primary focus:outline-none text-sm min-w-0"
+        aria-invalid={Boolean(validationError)}
+        className={`${INPUT_CLASS}${validationError ? ` ${SETTINGS_INPUT_ERROR_CLASS}` : ''}`}
         disabled={disabled}
         maxLength={max}
         onBlur={handleBlur}
@@ -76,6 +90,10 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
         type="text"
         value={inputValue}
       />
+
+      {validationError && (
+        <span className={SETTINGS_VALIDATION_ERROR_CLASS}>{validationError}</span>
+      )}
     </div>
   )
 }

@@ -1,9 +1,10 @@
 import type { FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import type { QueueSettings } from '../types.ts'
-import { QUEUE_COMMAND_LABELS } from '../../../constants/queue.constants.ts'
+import { QUEUE_COMMAND_LABELS, QUEUE_PREFIX_CONFLICT_MESSAGES } from '../../../constants/queue.constants.ts'
 import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
 import { SettingsCommandInput } from './SettingsCommandInput.tsx'
+import { getPrefixCommandConflict } from '../utils/getPrefixCommandConflict.ts'
 
 interface QueueCommandsSectionProps {
   titleClassName?: string;
@@ -45,6 +46,12 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
     })
   }
 
+  const validateCommandName = (value: string): string | null => {
+    const conflict = getPrefixCommandConflict(settings.messagePrefix, [value])
+
+    return conflict ? QUEUE_PREFIX_CONFLICT_MESSAGES.COMMAND(settings.messagePrefix ?? '') : null
+  }
+
   return (
     <div className={SETTINGS_SECTION_CLASS}>
       <h3 className={titleClassName}>Команды чата</h3>
@@ -57,6 +64,7 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
           label={label}
           onCommandChange={val => { handleCommandChange(key, val) }}
           onModeratorChange={chk => { handleModChange(key, chk) }}
+          validate={validateCommandName}
         />
       ))}
     </div>

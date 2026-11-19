@@ -73,6 +73,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     const actorUsername = userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR
 
     return sendChatMessage(message, {
+      isAutomated: true,
       onConfirmed: () => {
         pushLog({
           message: `Автоматически отправлено сообщение в чат: ${message}`,

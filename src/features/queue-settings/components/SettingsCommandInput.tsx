@@ -1,6 +1,10 @@
 import { type FC, useState, type KeyboardEvent } from 'react'
 import { QUEUE_COMMAND_NAME_MAX_LENGTH } from '../../../constants/queue.constants.ts'
-import { SETTINGS_INPUT_CLASS } from '../../../constants/ui.constants.ts'
+import {
+  SETTINGS_INPUT_CLASS,
+  SETTINGS_INPUT_ERROR_CLASS,
+  SETTINGS_VALIDATION_ERROR_CLASS,
+} from '../../../constants/ui.constants.ts'
 
 interface SettingsCommandInputProps {
   label: string;
@@ -10,6 +14,8 @@ interface SettingsCommandInputProps {
   onModeratorChange: (checked: boolean) => void;
   disabled?: boolean;
   className?: string;
+  /** Проверяет имя команды и возвращает текст ошибки или `null`. */
+  validate?: (value: string) => string | null;
 }
 
 /**
@@ -23,6 +29,7 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
   onModeratorChange,
   disabled = false,
   className = '',
+  validate,
 }) => {
   const [localValue, setLocalValue] = useState(commandValue)
   const [prevCommandValue, setPrevCommandValue] = useState(commandValue)
@@ -33,10 +40,13 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
     setPrevCommandValue(commandValue)
   }
 
+  const validationError = validate?.(localValue) ?? null
+
   const handleSave = () => {
-    if (localValue !== commandValue) {
-      onCommandChange(localValue)
-    }
+    if (localValue === commandValue) return
+    if (validate?.(localValue)) return
+
+    onCommandChange(localValue)
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -59,7 +69,8 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
       </span>
       <div className="flex items-center gap-2 w-full min-w-0">
         <input
-          className={SETTINGS_INPUT_CLASS}
+          aria-invalid={Boolean(validationError)}
+          className={`${SETTINGS_INPUT_CLASS}${validationError ? ` ${SETTINGS_INPUT_ERROR_CLASS}` : ''}`}
           disabled={disabled}
           maxLength={QUEUE_COMMAND_NAME_MAX_LENGTH}
           onBlur={handleSave}
@@ -93,6 +104,10 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
           />
         </label>
       </div>
+
+      {validationError && (
+        <span className={SETTINGS_VALIDATION_ERROR_CLASS}>{validationError}</span>
+      )}
     </div>
   )
 }

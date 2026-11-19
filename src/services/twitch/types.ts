@@ -41,6 +41,9 @@ export interface ParsedIrcMessage {
 
   /** Флаг, указывающий, является ли сообщение объявлением модератора/стримера (команда /announce) */
   isAnnouncement?: boolean;
+
+  /** Сообщение отправлено ботом автоматически. */
+  isAutomated?: boolean;
 }
 
 /**
@@ -116,6 +119,9 @@ export interface IrcUserData {
  * Колбэки отправленного сообщения.
  */
 export interface SendChatMessageOptions {
+  /** Сообщение отправлено автоматически и не должно обрабатываться как команда чата. */
+  isAutomated?: boolean;
+
   /** Подтверждено USERSTATE. */
   onConfirmed?: () => void;
 

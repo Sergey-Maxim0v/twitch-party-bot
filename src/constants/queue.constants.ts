@@ -106,6 +106,11 @@ export const QUEUE_NICKNAME_MAX_LENGTH = 64
 export const QUEUE_COMMAND_NAME_MAX_LENGTH = 20
 
 /**
+ * Максимальная длина префикса автоматических сообщений.
+ */
+export const QUEUE_MESSAGE_PREFIX_MAX_LENGTH = 20
+
+/**
  * Настройки очереди по умолчанию.
  */
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
@@ -166,6 +171,16 @@ export const QUEUE_SETTING_LABELS = {
  * Подпись настройки префикса автоматических сообщений.
  */
 export const QUEUE_MESSAGE_PREFIX_LABEL = 'Префикс для автоматических сообщений в чат Twitch'
+
+/**
+ * Предупреждения о конфликте префикса автоматических сообщений и команды чата.
+ */
+export const QUEUE_PREFIX_CONFLICT_MESSAGES = {
+  PREFIX: (commandName: string): string =>
+    `Префикс совпадает с командой «${commandName}». Выберите другой префикс.`,
+  COMMAND: (prefix: string): string =>
+    `Команда совпадает с префиксом «${prefix}». Выберите другое имя команды.`,
+} as const
 
 /**
  * Подписи разрешений на отправку уведомлений для журнала изменений и панели настроек.
