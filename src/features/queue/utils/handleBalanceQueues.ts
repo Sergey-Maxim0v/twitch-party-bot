@@ -3,6 +3,8 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueuePlayer, QueueState } from '../types.ts'
+import { QUEUE_BALANCE_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
+import { getQueueCooldownRestriction, type QueueCooldownSettings } from './getQueueCooldownRestriction.ts'
 import { normalizeQueueUsername } from './queuePlayerIdentity.ts'
 
 interface HandleBalanceQueuesArgs {
@@ -12,6 +14,8 @@ interface HandleBalanceQueuesArgs {
   moveOnSizeChange: QueueSettings['moveOnSizeChange'];
   /** Разрешена ли запись в список ожидающих. */
   allowPreJoin: QueueSettings['allowPreJoin'];
+  /** Настройки кулдаунов и лимита игр. */
+  cooldowns: QueueCooldownSettings;
   /** Источник вызова команды. */
   source: LogSource;
   /** Никнейм того, кто запустил балансировку. */
@@ -50,6 +54,8 @@ interface DecideBalanceArgs {
   moveOnSizeChange: QueueSettings['moveOnSizeChange'];
   /** Разрешена ли запись в список ожидающих. */
   allowPreJoin: QueueSettings['allowPreJoin'];
+  /** Настройки кулдаунов и лимита игр. */
+  cooldowns: QueueCooldownSettings;
 }
 
 /**
@@ -75,7 +81,7 @@ const decideOverflow = ({
   maxQueueSize,
   moveOnSizeChange,
   allowPreJoin,
-}: DecideBalanceArgs): BalanceDecision => {
+}: Pick<DecideBalanceArgs, 'prev' | 'maxQueueSize' | 'moveOnSizeChange' | 'allowPreJoin'>): BalanceDecision => {
   const overflowCount = prev.activeQueue.length - maxQueueSize
   const activeQueue = prev.activeQueue.slice(0, maxQueueSize)
   const overflowPlayers = prev.activeQueue.slice(maxQueueSize)
@@ -84,7 +90,7 @@ const decideOverflow = ({
   if (!shouldMoveToWaiting) {
     return {
       nextState: { ...prev, activeQueue },
-      logMessage: `Лишние игроки удалены из активной очереди: ${overflowCount}.`,
+      logMessage: QUEUE_BALANCE_LOG_MESSAGES.REMOVED_OVERFLOW(overflowCount),
       movedToActive: [],
       movedToWaiting: [],
     }
@@ -106,26 +112,29 @@ const decideOverflow = ({
   return {
     nextState: { ...prev, activeQueue, waitingQueue: [...playersToAdd, ...prev.waitingQueue] },
     logMessage: hasMovedPlayers
-      ? `Автоматически перенесено игроков из активной очереди в начало списка ожидающих: ${playersToAdd.length}.`
-      : `Лишние игроки удалены из активной очереди: ${overflowCount}.`,
+      ? QUEUE_BALANCE_LOG_MESSAGES.MOVED_TO_WAITING(playersToAdd.length)
+      : QUEUE_BALANCE_LOG_MESSAGES.REMOVED_OVERFLOW(overflowCount),
     movedToActive: [],
     movedToWaiting: playersToAdd.map(p => p.displayedUsername ?? p.username),
   }
 }
 
 /**
- * Переносит игроков из списка ожидающих в конец активной очереди.
+ * Переносит в конец активной очереди только тех игроков из списка ожидающих,
+ * для которых не действуют кулдауны и лимит игр.
  *
  * @returns Новое состояние очереди и описание выполненных переносов.
  */
 const decideMoveFromWaiting = ({
   prev,
   maxQueueSize,
-}: Pick<DecideBalanceArgs, 'prev' | 'maxQueueSize'>): BalanceDecision => {
+  cooldowns,
+}: Pick<DecideBalanceArgs, 'prev' | 'maxQueueSize' | 'cooldowns'>): BalanceDecision => {
   const freeSlots = maxQueueSize - prev.activeQueue.length
   const activeUserIds = new Set(prev.activeQueue.map(p => p.userId))
   const activeUsernames = new Set(prev.activeQueue.map(p => normalizeQueueUsername(p.username)))
   const playersToMove: QueuePlayer[] = []
+  let skippedCount = 0
 
   const waitingQueue = prev.waitingQueue.filter(player => {
     if (playersToMove.length >= freeSlots) return true
@@ -135,6 +144,17 @@ const decideMoveFromWaiting = ({
 
     if (isDuplicate) return true
 
+    const restriction = getQueueCooldownRestriction({
+      username: player.username,
+      state: prev,
+      settings: cooldowns,
+    })
+
+    if (restriction) {
+      skippedCount += 1
+      return true
+    }
+
     playersToMove.push(player)
     activeUserIds.add(player.userId)
     activeUsernames.add(normalizedUsername)
@@ -142,13 +162,20 @@ const decideMoveFromWaiting = ({
     return false
   })
 
-  if (playersToMove.length === 0) {
+  if (playersToMove.length === 0 && skippedCount === 0) {
     return noChanges(prev)
   }
 
+  const logMessageParts = [
+    ...(playersToMove.length > 0 ? [QUEUE_BALANCE_LOG_MESSAGES.MOVED_TO_ACTIVE(playersToMove.length)] : []),
+    ...(skippedCount > 0 ? [QUEUE_BALANCE_LOG_MESSAGES.SKIPPED_BY_RESTRICTION(skippedCount)] : []),
+  ]
+
   return {
-    nextState: { ...prev, activeQueue: [...prev.activeQueue, ...playersToMove], waitingQueue },
-    logMessage: `Автоматически перенесено игроков из списка ожидающих в конец активной очереди: ${playersToMove.length}.`,
+    nextState: playersToMove.length > 0
+      ? { ...prev, activeQueue: [...prev.activeQueue, ...playersToMove], waitingQueue }
+      : prev,
+    logMessage: logMessageParts.join(' '),
     movedToActive: playersToMove.map(p => p.displayedUsername ?? p.username),
     movedToWaiting: [],
   }
@@ -164,6 +191,7 @@ const decideBalance = ({
   maxQueueSize,
   moveOnSizeChange,
   allowPreJoin,
+  cooldowns,
 }: DecideBalanceArgs): BalanceDecision => {
   const activeLength = prev.activeQueue.length
   const waitingLength = prev.waitingQueue.length
@@ -178,7 +206,7 @@ const decideBalance = ({
     return noChanges(prev)
   }
 
-  return decideMoveFromWaiting({ prev, maxQueueSize })
+  return decideMoveFromWaiting({ prev, maxQueueSize, cooldowns })
 }
 
 /**
@@ -189,6 +217,7 @@ export const handleBalanceQueues = ({
   maxQueueSize,
   moveOnSizeChange,
   allowPreJoin,
+  cooldowns,
   source,
   actorUsername,
   getState,
@@ -202,6 +231,7 @@ export const handleBalanceQueues = ({
     maxQueueSize,
     moveOnSizeChange,
     allowPreJoin,
+    cooldowns,
   })
 
   setState(decision.nextState)

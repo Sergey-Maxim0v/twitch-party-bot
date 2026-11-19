@@ -380,6 +380,15 @@ export const QUEUE_LOG_PREFIXES = {
 export const QUEUE_JOIN_LOG_MESSAGES = {
   /** Игрок добавлен в активную очередь. */
   ACTIVE: (name: string): string => `${QUEUE_LOG_PREFIXES.JOIN}: Игрок ${name} добавлен в активную очередь.`,
+  /** Игрок находится в бан-листе. */
+  DENIED_BANNED: (): string =>
+    `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, игрок находится в бан-листе очереди`,
+  /** Очередь закрыта. */
+  DENIED_CLOSED: (): string =>
+    `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, очередь закрыта`,
+  /** Очередь доступна только подписчикам, VIP и модераторам. */
+  DENIED_SUBSCRIBERS_ONLY: (): string =>
+    `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, доступ к очереди только для подписчиков Twitch, VIP и модераторов `,
   /** Игрок уже в активной очереди, а список ожидающих отключён. */
   DENIED_ACTIVE: (name: string): string =>
     `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, игрок ${name} уже в активной очереди, список ожидающих отключен.`,
@@ -401,4 +410,31 @@ export const QUEUE_JOIN_LOG_MESSAGES = {
   /** Игрок добавлен в список ожидания. */
   WAITING: (name: string): string =>
     `${QUEUE_LOG_PREFIXES.JOIN}: Игрок ${name} добавлен в список ожидания.`,
+  /** Игрок исчерпал лимит игр. */
+  DENIED_MAX_GAMES: (name: string, gamesPlayed: number, maxGames: number): string =>
+    `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, игрок ${name} уже сыграл максимальное количество игр (${gamesPlayed}/${maxGames})`,
+  /** У игрока ещё действует кулдаун по времени. */
+  DENIED_TIME_COOLDOWN: (remainingMinutes: number): string =>
+    `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, кулдаун времени (осталось ${remainingMinutes} мин.)`,
+  /** Игроку нужно пропустить игры по кулдауну. */
+  DENIED_GAMES_COOLDOWN: (remainingGames: number): string =>
+    `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, кулдаун сыгранных игр (необходимо пропустить еще ${remainingGames} игр)`,
+} as const
+
+/**
+ * Шаблоны сообщений журнала при балансировке активной очереди и списка ожидающих.
+ */
+export const QUEUE_BALANCE_LOG_MESSAGES = {
+  /** Игроки перенесены из активной очереди в начало списка ожидающих. */
+  MOVED_TO_WAITING: (count: number): string =>
+    `Автоматически перенесено игроков из активной очереди в начало списка ожидающих: ${count}.`,
+  /** Лишние игроки удалены из активной очереди. */
+  REMOVED_OVERFLOW: (count: number): string =>
+    `Лишние игроки удалены из активной очереди: ${count}.`,
+  /** Игроки перенесены из списка ожидающих в конец активной очереди. */
+  MOVED_TO_ACTIVE: (count: number): string =>
+    `Автоматически перенесено игроков из списка ожидающих в конец активной очереди: ${count}.`,
+  /** Игроки оставлены в списке ожидающих из-за кулдауна или лимита игр. */
+  SKIPPED_BY_RESTRICTION: (count: number): string =>
+    `Пропущено из-за кулдауна или лимита игр: ${count}.`,
 } as const

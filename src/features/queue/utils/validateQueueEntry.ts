@@ -2,10 +2,8 @@ import type { QueueState } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
-import { getOwnValue } from '../../../utils/objects.ts'
-
-/** Количество миллисекунд в минуте. */
-const MILLISECONDS_IN_MINUTE = 60_000
+import { QUEUE_JOIN_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
+import { getQueueCooldownRestriction } from './getQueueCooldownRestriction.ts'
 
 /** Данные, необходимые для проверки заявки игрока. */
 interface ValidateQueueEntryArgs {
@@ -46,45 +44,32 @@ export const validateQueueEntry = ({
 
   const isBanned = settings.banList.some(b => b.toLowerCase() === username.toLowerCase())
   if (isBanned) {
-    return 'Добавление в очередь: Отклонено, игрок находится в бан-листе очереди'
+    return QUEUE_JOIN_LOG_MESSAGES.DENIED_BANNED()
   }
 
   if (!isQueueOpen) {
-    return 'Добавление в очередь: Отклонено, очередь закрыта'
+    return QUEUE_JOIN_LOG_MESSAGES.DENIED_CLOSED()
   }
 
   if (settings.subscribersOnly && !isPrivileged) {
-    return 'Добавление в очередь: Отклонено, доступ к очереди только для подписчиков Twitch, VIP и модераторов '
+    return QUEUE_JOIN_LOG_MESSAGES.DENIED_SUBSCRIBERS_ONLY()
   }
 
-  const playerStats = getOwnValue(state.playerHistory, username)
+  const restriction = getQueueCooldownRestriction({ username, state, settings })
 
-  if (!playerStats) {
-    return null
+  if (!restriction) return null
+
+  if (restriction.type === 'gamesLimit') {
+    return QUEUE_JOIN_LOG_MESSAGES.DENIED_MAX_GAMES(
+      username,
+      restriction.gamesPlayed,
+      restriction.maxGames,
+    )
   }
 
-  const { gamesPlayedCooldown, maxGamesPerUser = 0, sessionHistoryCooldown } = settings
-  const isGamesLimitReached = maxGamesPerUser > 0 && playerStats.gamesPlayed >= maxGamesPerUser
-
-  if (isGamesLimitReached) {
-    return `Добавление в очередь: Отклонено, игрок ${username} уже сыграл максимальное количество игр (${playerStats.gamesPlayed}/${maxGamesPerUser})`
+  if (restriction.type === 'timeCooldown') {
+    return QUEUE_JOIN_LOG_MESSAGES.DENIED_TIME_COOLDOWN(restriction.remainingMinutes)
   }
 
-  const minutesPassed = (Date.now() - playerStats.lastPlayedTimestamp) / MILLISECONDS_IN_MINUTE
-  const isTimeCooldownActive = sessionHistoryCooldown > 0 && minutesPassed < sessionHistoryCooldown
-
-  if (isTimeCooldownActive) {
-    const remaining = Math.ceil(sessionHistoryCooldown - minutesPassed)
-    return `Добавление в очередь: Отклонено, кулдаун времени (осталось ${remaining} мин.)`
-  }
-
-  const sessionsPassed = state.globalSessionCounter - playerStats.lastPlayedSessionNumber
-  const isGamesCooldownActive = gamesPlayedCooldown > 0 && sessionsPassed < gamesPlayedCooldown
-
-  if (isGamesCooldownActive) {
-    const remaining = gamesPlayedCooldown - sessionsPassed
-    return `Добавление в очередь: Отклонено, кулдаун сыгранных игр (необходимо пропустить еще ${remaining} игр)`
-  }
-
-  return null
+  return QUEUE_JOIN_LOG_MESSAGES.DENIED_GAMES_COOLDOWN(restriction.remainingGames)
 }

@@ -68,6 +68,7 @@ export const useQueueSession = ({
       maxQueueSize: args.overrideMaxQueueSize ?? settings.maxQueueSize,
       moveOnSizeChange: args.overrideMoveOnSizeChange ?? settings.moveOnSizeChange,
       allowPreJoin: args.overrideAllowPreJoin ?? settings.allowPreJoin,
+      cooldowns: settings,
       getState,
       setState,
       pushLog,
