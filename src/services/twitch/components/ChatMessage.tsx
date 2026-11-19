@@ -1,9 +1,17 @@
 import type { CSSProperties, FC } from 'react'
-import { LuCircleAlert, LuGem, LuSparkles, LuSword, LuTwitch, LuWrench } from 'react-icons/lu'
-import { ChatMessageText } from './ChatMessageText.tsx'
-import { TWITCH_IRC_COMMANDS, TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
+import { LuCircleAlert, LuSparkles, LuWrench } from 'react-icons/lu'
+import {
+  CHAT_MESSAGE_ROLES,
+  CHAT_MESSAGE_STYLES,
+  CHAT_MESSAGE_SYSTEM_KINDS,
+  CHAT_MESSAGE_SYSTEM_STYLES,
+} from '../../../constants/chat-message.constants.ts'
+import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
 import type { ParsedIrcMessage, TwitchEmoteDictionary } from '../types.ts'
 import { getAdaptedTwitchColors } from '../utils/getAdaptedTwitchColors.ts'
+import { getChatMessageSystemKind } from '../utils/getChatMessageSystemKind.ts'
+import { ChatMessageText } from './ChatMessageText.tsx'
+import { ChatRoleBadge } from './ChatRoleBadge.tsx'
 
 interface ChatMessageProps {
   msg: ParsedIrcMessage;
@@ -17,7 +25,7 @@ interface ChatMessageProps {
 }
 
 /**
- * Отображает одно сообщение чата Twitch с учетом ролей, эмоций, модерации и настроек.
+ * Сообщение чата Twitch: системное событие или реплика зрителя с ролями и эмоциями.
  */
 export const ChatMessage: FC<ChatMessageProps> = ({
   msg,
@@ -32,53 +40,38 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   if (msg.isDeleted && !isShowDeletedMessages) return null
   if (msg.isSystem && msg.isChannelEvent && !showSystemNotifications) return null
 
-  let containerClassName = 'text-sm break-words leading-relaxed animate-fadeIn p-1 rounded transition-all block w-full'
+  const role = highlightRoles && !msg.isSystem
+    ? CHAT_MESSAGE_ROLES.find(item => msg.user[item.key])
+    : undefined
+  const isHighlighted = msg.isHighlightedMessage && highlightPointsMessages && !msg.isSystem
+  const containerClassName = [
+    CHAT_MESSAGE_STYLES.BASE,
+    msg.isSystem ? CHAT_MESSAGE_STYLES.SYSTEM : CHAT_MESSAGE_STYLES.USER,
+    role?.messageClassName,
+    isHighlighted ? CHAT_MESSAGE_STYLES.HIGHLIGHT : '',
+    msg.isDeleted ? CHAT_MESSAGE_STYLES.DELETED : '',
+  ].filter(Boolean).join(' ')
 
-  const shouldHighlightRoles = highlightRoles && !msg.isSystem
-
-  if (shouldHighlightRoles && msg.user.isBroadcaster) containerClassName += ' bg-error/10'
-  else if (shouldHighlightRoles && msg.user.isModerator) containerClassName += ' bg-success/10'
-  else if (shouldHighlightRoles && msg.user.isVip) containerClassName += ' bg-info/10'
-
-  if (msg.isHighlightedMessage && highlightPointsMessages && !msg.isSystem) {
-    containerClassName += ' outline outline-2 outline-primary -outline-offset-2'
-  }
-
-  const deletedClassName = msg.isDeleted ? ' opacity-40 select-none' : ''
-  const iconBaseClassName = 'w-4 h-4 inline align-middle'
-  const iconClassName = `${iconBaseClassName} mr-1`
   const adaptedColors = useColoredNames ? getAdaptedTwitchColors(msg.user.color ?? '') : null
-  let nameStyle: CSSProperties | undefined = undefined
-  let nameClassName = 'font-bold text-primary mr-2 break-words'
-
-  if (adaptedColors) {
-    nameStyle = { '--light-color': adaptedColors.lightColor, '--dark-color': adaptedColors.darkColor } as CSSProperties
-    nameClassName = 'font-bold mr-2 break-words text-[var(--light-color)] [:where([data-theme=dim])_&]:text-[var(--dark-color)]'
-  }
-
+  const nameStyle: CSSProperties | undefined = adaptedColors
+    ? { '--dark-color': adaptedColors.darkColor, '--light-color': adaptedColors.lightColor } as CSSProperties
+    : undefined
+  const nameClassName = adaptedColors ? CHAT_MESSAGE_STYLES.COLORED_NAME : CHAT_MESSAGE_STYLES.NAME
+  const textClassName = msg.isDeleted ? CHAT_MESSAGE_STYLES.DELETED_TEXT : CHAT_MESSAGE_STYLES.TEXT
   const displaySenderName = msg.user.displayName || msg.user.nick
 
   if (msg.isSystem) {
-    const isAlert = msg.command === TWITCH_IRC_COMMANDS.USER_NOTICE && !msg.isAnnouncement
-
-    let systemColorClass = 'text-[color-mix(in_oklch,var(--color-warning)_75%,black)] [:where([data-theme=dim])_&]:text-warning/80 font-medium italic'
-
-    if (msg.isAnnouncement) {
-      systemColorClass = 'text-[color-mix(in_oklch,var(--color-secondary)_80%,black)] [:where([data-theme=dim])_&]:text-secondary font-semibold'
-    } else if (isAlert) {
-      systemColorClass = 'text-[color-mix(in_oklch,var(--color-info)_80%,black)] [:where([data-theme=dim])_&]:text-info font-medium'
-    }
+    const systemKind = getChatMessageSystemKind(msg)
+    const SystemIcon = systemKind === CHAT_MESSAGE_SYSTEM_KINDS.DEFAULT ? LuWrench : LuSparkles
 
     return (
-      <div className={`${containerClassName} ${systemColorClass} ${deletedClassName}`}>
-        <span className="text-xs text-base-content/40 mr-2 select-none">{msg.timestamp}</span>
-        <span className="mr-2">
-          {msg.isDeleted && <LuCircleAlert className={iconClassName} />}
-          {isAlert || msg.isAnnouncement ?
-            <LuSparkles className={iconBaseClassName} /> : <LuWrench className={iconBaseClassName} />
-          }
+      <div className={`${containerClassName} ${CHAT_MESSAGE_SYSTEM_STYLES[systemKind]}`}>
+        <span className={CHAT_MESSAGE_STYLES.META}>
+          <span className={CHAT_MESSAGE_STYLES.TIMESTAMP}>{msg.timestamp}</span>
+          {msg.isDeleted && <LuCircleAlert className={CHAT_MESSAGE_STYLES.DELETED_ICON} />}
+          <SystemIcon className={CHAT_MESSAGE_STYLES.ICON} />
         </span>
-        {msg.isAnnouncement && <span className="mr-2">{displaySenderName}:</span>}
+        {msg.isAnnouncement && <span className={CHAT_MESSAGE_STYLES.SENDER}>{displaySenderName}:</span>}
         <span>{msg.text}</span>
       </div>
     )
@@ -87,19 +80,24 @@ export const ChatMessage: FC<ChatMessageProps> = ({
   const emoteTag = msg.tags[TWITCH_IRC_TAGS.EMOTES]
 
   return (
-    <div className={`${containerClassName} ${deletedClassName}`}>
-      <span className="inline-block select-none mr-1.5 align-middle">
-        <span className="text-xs text-base-content/40 mr-1.5">{msg.timestamp}</span>
-        {msg.isDeleted && <LuCircleAlert className={iconClassName} />}
-        {msg.user.isBroadcaster && <LuTwitch className={iconClassName} />}
-        {msg.user.isModerator && <LuSword className={iconClassName} />}
-        {msg.user.isVip && <LuGem className={iconClassName} />}
+    <div className={containerClassName}>
+      <span className={CHAT_MESSAGE_STYLES.META}>
+        <span className={CHAT_MESSAGE_STYLES.TIMESTAMP}>{msg.timestamp}</span>
+        {msg.isDeleted && <LuCircleAlert className={CHAT_MESSAGE_STYLES.DELETED_ICON} />}
+        {CHAT_MESSAGE_ROLES.filter(item => msg.user[item.key]).map(item => (
+          <ChatRoleBadge key={item.key} role={item} />
+        ))}
       </span>
-      <span className={`${nameClassName} break-all inline align-middle`} style={nameStyle}>
+      <span className={nameClassName} style={nameStyle}>
         {displaySenderName}:
       </span>
-      <span className={`${msg.isDeleted ? 'text-base-content/60' : 'text-base-content'} inline align-middle ml-1.5`}>
-        <ChatMessageText emoteDictionary={emoteDictionary} emoteTag={emoteTag} showEmotes={showEmotes} text={msg.text} />
+      <span className={textClassName}>
+        <ChatMessageText
+          emoteDictionary={emoteDictionary}
+          emoteTag={emoteTag}
+          showEmotes={showEmotes}
+          text={msg.text}
+        />
       </span>
     </div>
   )
