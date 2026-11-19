@@ -124,8 +124,8 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
     clear: { name: '!clear', isModeratorOnly: true },
     add: { name: '!add', isModeratorOnly: true },
     delete: { name: '!delete', isModeratorOnly: true },
-    start: { name: '!start', isModeratorOnly: true },
-    stop: { name: '!stop', isModeratorOnly: true },
+    start: { name: '!open', isModeratorOnly: true },
+    stop: { name: '!close', isModeratorOnly: true },
     play: { name: '!play', isModeratorOnly: true },
   },
   chatNotificationPermissions: {

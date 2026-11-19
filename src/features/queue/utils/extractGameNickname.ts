@@ -1,6 +1,5 @@
 import type { QueueGameConfig, QueueGameKey } from '../../queue-settings/types.ts'
 import { QUEUE_GAME_NICKNAME_PATTERNS, QUEUE_NICKNAME_MAX_LENGTH } from '../../../constants/queue.constants.ts'
-import { TWITCH_CHAT_COMMAND_PREFIX } from '../../../constants/twitch.constants.ts'
 
 /** Аргументы извлечения игрового никнейма из сообщения. */
 interface ExtractGameNicknameArgs {
@@ -8,6 +7,8 @@ interface ExtractGameNicknameArgs {
   rawMessage: string;
   /** Выбранная игра */
   gameConfig?: QueueGameConfig;
+  /** Настроенные имена команд чата */
+  commandNames: readonly string[];
 }
 
 /** Скомпилированные правила проверки никнейма по ключу игры. */
@@ -41,12 +42,14 @@ const getGameRegex = (key: QueueGameKey): RegExp | null => {
 /**
  * Сканирует сообщение и извлекает первый никнейм,
  * который строго соответствует правилу выбранной игры.
+ * Первое слово пропускается, если совпадает с именем команды чата без учёта регистра.
  *
  * @returns Найденный никнейм или `null`.
  */
 export const extractGameNickname = ({
   rawMessage,
   gameConfig,
+  commandNames,
 }: ExtractGameNicknameArgs): string | null => {
   if (!gameConfig) return null
 
@@ -54,9 +57,12 @@ export const extractGameNickname = ({
   if (!regex) return null
 
   const words = rawMessage.trim().split(/\s+/)
-  if (!words[0]) return null
+  const firstWord = words[0]
+  if (!firstWord) return null
 
-  const candidates = words[0].startsWith(TWITCH_CHAT_COMMAND_PREFIX) ? words.slice(1) : words
+  const normalizedFirstWord = firstWord.toLowerCase()
+  const isCommand = commandNames.some(name => name.toLowerCase() === normalizedFirstWord)
+  const candidates = isCommand ? words.slice(1) : words
 
   for (const word of candidates) {
     if (word.length <= QUEUE_NICKNAME_MAX_LENGTH && regex.test(word)) {

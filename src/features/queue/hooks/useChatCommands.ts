@@ -7,15 +7,12 @@ import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import { formatPrefixedMessage } from '../../queue-notification/utils/formatPrefixedMessage.ts'
 import { QUEUE_CHAT_NOTIFICATION_MESSAGES } from '../../../constants/queue.constants.ts'
-import { TWITCH_CHAT_COMMAND_PREFIX, TWITCH_CHAT_MENTION_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
-
-/**
- * Отбрасывает упоминание и пробелы вокруг аргумента команды чата.
- */
-const parseCommandTarget = (argument: string): string => argument.trim().replace(TWITCH_CHAT_MENTION_REGEX, '').trim()
+import { TWITCH_CHAT_COMMAND_SPLIT_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
+import { parseCommandTarget } from '../utils/parseCommandTarget.ts'
 
 /**
  * Обрабатывает команды чата Twitch: запись, статус, очистку и управление очередями.
+ * Командой считается первое слово сообщения, совпадающее с именем из настроек без учёта регистра.
  */
 export const useChatCommands = () => {
   const { settings } = useQueueSettings()
@@ -32,73 +29,68 @@ export const useChatCommands = () => {
   } = useQueue()
 
   const { commands } = settings
-  const commandNames = Object.values(commands).map(cmd => cmd.name)
+  const commandNames = Object.values(commands).map(command => command.name.toLowerCase())
 
   useEffect(() => {
     if (!lastMessage?.text) return
-    const trimmedText = lastMessage.text.trim()
-    if (!trimmedText.startsWith(TWITCH_CHAT_COMMAND_PREFIX)) return
 
-    const commandName = trimmedText.split(/\s+/)[0].slice(TWITCH_CHAT_COMMAND_PREFIX.length)
-    if (!commandNames.includes(commandName)) return
+    const trimmedText = lastMessage.text.trim()
+    const [rawCommandName, ...commandArgs] = trimmedText.split(TWITCH_CHAT_COMMAND_SPLIT_REGEX)
+    const commandName = rawCommandName?.toLowerCase() ?? ''
+    if (!commandName || !commandNames.includes(commandName)) return
 
     const isModeratorOrStreamer = lastMessage.user.isBroadcaster || lastMessage.user.isModerator
-
-    const commandArg = trimmedText.split(/\s+/).slice(1).join(' ')
+    const commandArg = commandArgs.join(' ')
 
     const hasAccess = (isModeratorOnly: boolean): boolean => !isModeratorOnly || Boolean(isModeratorOrStreamer)
 
     const userId = lastMessage.user.userId ?? ''
     const username = lastMessage.user.nick
     const displayedUsername = lastMessage.user.displayName ?? lastMessage.user.nick
-    const actorUsername = displayedUsername
-    const isModerator = isModeratorOrStreamer
     const isSubscriber = lastMessage.user.isSubscriber
     const isVip = lastMessage.user.isVip
     const source = isModeratorOrStreamer ? APP_LOG_SOURCES.CHAT_MODERATOR : APP_LOG_SOURCES.CHAT_USER
-    const rawMessage = trimmedText
-    const rawCommand = trimmedText
 
     switch (commandName) {
-      case commands.join.name: {
+      case commands.join.name.toLowerCase(): {
         if (!hasAccess(commands.join.isModeratorOnly)) return
         addPlayerToQueue({
           playerData: {
             userId,
             username,
             displayedUsername,
-            rawMessage,
+            rawMessage: trimmedText,
             playerSource: QUEUE_PLAYER_SOURCE.USER_CMD,
-            isModerator,
+            isModerator: isModeratorOrStreamer,
             isSubscriber,
             isVip,
           },
           source,
-          actorUsername,
-          rawCommand,
+          actorUsername: displayedUsername,
+          rawCommand: trimmedText,
         })
         break
       }
 
-      case commands.leave.name: {
+      case commands.leave.name.toLowerCase(): {
         if (!hasAccess(commands.leave.isModeratorOnly)) return
         removePlayerFromAllQueues({
           userId,
           username,
           source,
-          actorUsername,
-          rawCommand,
+          actorUsername: displayedUsername,
+          rawCommand: trimmedText,
         })
         break
       }
 
-      case commands.show.name: {
+      case commands.show.name.toLowerCase(): {
         if (!hasAccess(commands.show.isModeratorOnly)) return
         sendCurrentQueueStatus()
         break
       }
 
-      case commands.add.name: {
+      case commands.add.name.toLowerCase(): {
         if (!hasAccess(commands.add.isModeratorOnly) || !commandArg) return
         const targetUsername = parseCommandTarget(commandArg)
         if (!TWITCH_LOGIN_PATTERN.test(targetUsername.toLowerCase())) return
@@ -108,20 +100,20 @@ export const useChatCommands = () => {
             userId: targetUsername,
             username: targetUsername.toLowerCase(),
             displayedUsername: targetUsername,
-            rawMessage,
+            rawMessage: trimmedText,
             playerSource: QUEUE_PLAYER_SOURCE.MOD_CMD,
             isModerator: false,
             isSubscriber: false,
             isVip: false,
           },
           source,
-          actorUsername,
-          rawCommand,
+          actorUsername: displayedUsername,
+          rawCommand: trimmedText,
         })
         break
       }
 
-      case commands.delete.name: {
+      case commands.delete.name.toLowerCase(): {
         if (!hasAccess(commands.delete.isModeratorOnly) || !commandArg) return
         const targetUsername = parseCommandTarget(commandArg).toLowerCase()
         if (!targetUsername) return
@@ -130,16 +122,16 @@ export const useChatCommands = () => {
           userId: targetUsername,
           username: targetUsername,
           source,
-          actorUsername,
-          rawCommand,
+          actorUsername: displayedUsername,
+          rawCommand: trimmedText,
         })
         break
       }
 
-      case commands.clear.name: {
+      case commands.clear.name.toLowerCase(): {
         if (!hasAccess(commands.clear.isModeratorOnly)) return
-        clearWaitingQueue({ source, actorUsername })
-        clearActiveQueue({ source, actorUsername })
+        clearWaitingQueue({ source, actorUsername: displayedUsername })
+        clearActiveQueue({ source, actorUsername: displayedUsername })
 
         sendMessage(formatPrefixedMessage(
           QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ALL,
@@ -148,21 +140,21 @@ export const useChatCommands = () => {
         break
       }
 
-      case commands.start.name: {
+      case commands.start.name.toLowerCase(): {
         if (!hasAccess(commands.start.isModeratorOnly)) return
-        openQueue({ source, actorUsername })
+        openQueue({ source, actorUsername: displayedUsername })
         break
       }
 
-      case commands.stop.name: {
+      case commands.stop.name.toLowerCase(): {
         if (!hasAccess(commands.stop.isModeratorOnly)) return
-        closeQueue({ source, actorUsername })
+        closeQueue({ source, actorUsername: displayedUsername })
         break
       }
 
-      case commands.play.name: {
+      case commands.play.name.toLowerCase(): {
         if (!hasAccess(commands.play.isModeratorOnly)) return
-        finishActiveQueue({ source, actorUsername })
+        finishActiveQueue({ source, actorUsername: displayedUsername })
         break
       }
 
@@ -170,7 +162,7 @@ export const useChatCommands = () => {
         break
     }
 
-    // Реагируем только на новое сообщение в чате.
+    // Настройки намеренно не в зависимостях: их изменение не должно повторять последнюю команду.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastMessage])
 }

@@ -28,7 +28,7 @@
 ---
 
 ## How it works
-1. **Viewers type a command** in the chat, such as `!join` (or any other custom command you set), and the bot automatically adds them to the list.
+1. **Viewers type a command** in the chat, such as `!join` (or any other custom command you set; case does not matter), and the bot automatically adds them to the list.
 2. **You get a convenient dashboard** where you can see all interested viewers. You can easily add, reorder, or remove players directly via the UI.
 3. **Waiting list:** You can open a pre-registration queue so that viewers can secure their spot in advance for the next game.
 4. **Automated chat messages:** The bot posts updates when the queue opens, closes, gets full, or changes its lineup. Sending must be enabled in the settings — it is turned off by default.

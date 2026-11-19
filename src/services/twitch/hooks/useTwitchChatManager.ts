@@ -10,7 +10,6 @@ import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
 import {
   CHAT_SEND_FAIL_REASONS,
-  TWITCH_CHAT_COMMAND_PREFIX,
   TWITCH_CHAT_FALLBACK_LOGIN,
   TWITCH_IRC_COMMANDS,
 } from '../../../constants/twitch.constants.ts'
@@ -126,19 +125,6 @@ export const useTwitchChatManager = () => {
    * Обрабатывает входящее IRC-сообщение.
    */
   const handleIncomingMessage = useCallback((message: ParsedIrcMessage) => {
-    if (message.command === TWITCH_IRC_COMMANDS.PRIV_MSG) {
-      setLastMessage(prevMessage => {
-        const currentId = message.tags?.id
-        const prevId = prevMessage?.tags?.id
-
-        if (currentId && currentId === prevId) {
-          return prevMessage
-        }
-
-        return message
-      })
-    }
-
     handleSocketActivity(message.command)
 
     updateChatAccess({
@@ -152,21 +138,14 @@ export const useTwitchChatManager = () => {
       pushLog,
     })
 
-    const isEventOrMod = handleModerationAndEvents(message)
-    if (isEventOrMod) {
-      return
-    }
+    if (handleModerationAndEvents(message)) return
 
     const processedMessage = handleStandardMessage(message, currentUserLogin, client?.currentChannel ?? null)
 
     if (!processedMessage || processedMessage.command !== TWITCH_IRC_COMMANDS.PRIV_MSG) return
 
-    const isCommand = processedMessage.text.trim().startsWith(TWITCH_CHAT_COMMAND_PREFIX)
-    const isFromOtherUser = processedMessage.user.nick !== currentUserLogin
-
-    if (isCommand || isFromOtherUser) {
-      setLastMessage(processedMessage)
-    }
+    // Свои сообщения тоже нужны: команды из интерфейса приложения распознаёт useChatCommands.
+    setLastMessage(processedMessage)
   }, [
     handleSocketActivity,
     handleModerationAndEvents,

@@ -49,9 +49,9 @@ export const TWITCH_PENDING_MESSAGE_SWEEP_INTERVAL_MS = 1000
 export const TWITCH_CHAT_CHANNEL_PREFIX = '#'
 
 /**
- * Префикс команды чата в тексте сообщения.
+ * Разделитель имени команды и её аргументов.
  */
-export const TWITCH_CHAT_COMMAND_PREFIX = '!'
+export const TWITCH_CHAT_COMMAND_SPLIT_REGEX = /\s+/
 
 /**
  * Префикс упоминания пользователя в аргументе команды.

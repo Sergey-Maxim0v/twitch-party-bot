@@ -185,6 +185,7 @@ export const handleJoinPlayer = ({
     gameNickname: extractGameNickname({
       rawMessage: playerData.rawMessage,
       gameConfig: settings.currentGame,
+      commandNames: Object.values(settings.commands).map(command => command.name),
     }),
     isVip: playerData.isVip ?? false,
     isModerator: playerData.isModerator ?? false,
