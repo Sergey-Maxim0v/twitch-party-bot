@@ -1,5 +1,4 @@
 import { type FC, useEffect } from 'react'
-import { LuTriangleAlert } from 'react-icons/lu'
 import { QUEUE_CLEAR_UI } from '../../../constants/queue.constants.ts'
 
 interface QueueClearConfirmModalProps {
@@ -32,10 +31,6 @@ export const QueueClearConfirmModal: FC<QueueClearConfirmModalProps> = ({ onCanc
   return (
     <div className="modal modal-open z-200">
       <div className="modal-box max-w-sm flex flex-col items-center text-center gap-4 p-6">
-        <div className="w-12 h-12 rounded-full bg-error/20 flex items-center justify-center text-error">
-          <LuTriangleAlert className="text-2xl" />
-        </div>
-
         <h3 className="font-bold text-xl text-base-content">
           {title}
         </h3>
