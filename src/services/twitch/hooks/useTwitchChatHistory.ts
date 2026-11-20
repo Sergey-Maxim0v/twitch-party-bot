@@ -55,7 +55,9 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchCh
   }, [])
 
   /**
-   * Добавляет стандартные текстовые сообщения в общую историю чата.
+   * Добавляет в историю сообщение зрителя или своё сообщение, собранное из USERSTATE.
+   * Роли своего сообщения берутся из тегов Twitch, как у входящего PRIVMSG.
+   *
    * @returns Добавленное сообщение или `undefined`, если сообщение не обработано.
    */
   const handleStandardMessage = useCallback((
@@ -82,7 +84,6 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchCh
 
     const cleanChannel = currentChannel?.toLowerCase().replace(TWITCH_CHAT_CHANNEL_PREFIX, '')
     const isBroadcaster = Boolean(cleanChannel) && currentUserLogin.toLowerCase() === cleanChannel
-    const isModerator = isBroadcaster || Boolean(message.user.isModerator)
 
     const messageToPush: ParsedIrcMessage = {
       ...message,
@@ -96,7 +97,6 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchCh
           nick: authorName.toLowerCase(),
           displayName: authorName,
           isBroadcaster,
-          isModerator,
         },
     }
 
