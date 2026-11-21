@@ -17,10 +17,10 @@ interface QueueClearSectionProps {
 }
 
 /**
- * Секция очистки очереди и истории.
+ * Секция очистки очереди и истории: очистка активной очереди подтягивает ожидающих.
  */
 export const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', titleClassName = '' }) => {
-  const { clearActiveQueue, clearQueueHistory, clearWaitingQueue } = useQueue()
+  const { balanceQueues, clearActiveQueue, clearQueueHistory, clearWaitingQueue } = useQueue()
   const { session, userDisplayName } = useAuth()
   const [pendingTarget, setPendingTarget] = useState<QueueClearTarget | null>(null)
 
@@ -30,7 +30,10 @@ export const QueueClearSection: FC<QueueClearSectionProps> = ({ className = '', 
   }
 
   const clearActions: Record<QueueClearTarget, () => void> = {
-    active: () => { clearActiveQueue(clearArgs) },
+    active: () => {
+      clearActiveQueue(clearArgs)
+      balanceQueues(clearArgs)
+    },
     waiting: () => { clearWaitingQueue(clearArgs) },
     history: () => { clearQueueHistory(clearArgs) },
   }
