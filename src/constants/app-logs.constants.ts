@@ -38,6 +38,16 @@ export const APP_LOG_FALLBACK_ACTOR = 'Application'
 export const APP_LOG_SYSTEM_ACTOR = 'Система'
 
 /**
+ * Подписи источников действий для журнала приложения.
+ */
+export const APP_LOG_SOURCE_LABELS = {
+  STREAMER_UI: 'Пользователь приложения',
+  CHAT_MODERATOR: 'Модератор в чате',
+  CHAT_USER: 'Участник чата',
+  APPLICATION: APP_LOG_SYSTEM_ACTOR,
+} as const satisfies Record<keyof typeof APP_LOG_SOURCES, string>
+
+/**
  * Никнейм актора для событий, связанных с чатом Twitch.
  */
 export const APP_LOG_TWITCH_ACTOR = 'twitch'

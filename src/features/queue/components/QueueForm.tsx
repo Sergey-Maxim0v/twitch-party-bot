@@ -48,7 +48,6 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
       playerData,
       source: APP_LOG_SOURCES.STREAMER_UI,
       actorUsername: userDisplayName ?? session?.login ?? '',
-      rawCommand: 'Ручное добавление в очередь',
       customTimestamp: timestamp,
     })
 

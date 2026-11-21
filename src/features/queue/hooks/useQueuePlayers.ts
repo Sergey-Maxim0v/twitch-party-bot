@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { type QueueState, type QueuePlayerFormData, type QueueType, QUEUE_TYPES } from '../types'
+import { type QueueActionLog, type QueueJoinResult, type QueueState, type QueuePlayerFormData, type QueueType, QUEUE_TYPES } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
@@ -62,22 +62,21 @@ export const useQueuePlayers = ({
     playerData: QueuePlayerFormData;
     source: LogSource;
     actorUsername: string;
-    rawCommand?: string;
     customTimestamp?: number;
-  }) => {
+    /** Не писать запись в журнал: результат логирует вызывающая сторона. */
+    silent?: boolean;
+  }): QueueJoinResult => {
     const result = handleJoinPlayer({ ...args, isQueueOpen, settings, getState, setState, pushLog })
 
     if (result.status === QUEUE_JOIN_STATUSES.JOINED) {
       addJoinedUser(args.playerData.username)
-      return
-    }
-
-    if (result.status === QUEUE_JOIN_STATUSES.WAITING) {
+    } else if (result.status === QUEUE_JOIN_STATUSES.WAITING) {
       addWaitingUser(args.playerData.username)
-      return
+    } else {
+      addDeniedUser(args.playerData.username)
     }
 
-    addDeniedUser(args.playerData.username)
+    return result
   }, [isQueueOpen, settings, getState, setState, pushLog, addJoinedUser, addWaitingUser, addDeniedUser])
 
   const removePlayerFromQueue = useCallback((args: QueuePlayerCommandArgs & {
@@ -92,11 +91,14 @@ export const useQueuePlayers = ({
 
   const removePlayerFromAllQueues = useCallback((args: QueuePlayerCommandArgs & {
     userId: string;
-    rawCommand?: string;
-  }) => {
-    handleRemovePlayerFromAll({ ...args, getState, setState, pushLog })
+    /** Не писать запись в журнал: результат логирует вызывающая сторона. */
+    silent?: boolean;
+  }): QueueActionLog => {
+    const result = handleRemovePlayerFromAll({ ...args, getState, setState, pushLog })
     addDeletedUser(args.displayedUsername ?? args.username)
     balanceAfterChange(args)
+
+    return result
   }, [getState, setState, pushLog, addDeletedUser, balanceAfterChange])
 
   const banPlayerFromQueue = useCallback((args: QueuePlayerCommandArgs & {

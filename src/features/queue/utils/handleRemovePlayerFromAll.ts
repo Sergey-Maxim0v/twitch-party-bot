@@ -1,4 +1,4 @@
-import type { QueueHandlerArgs, QueueState } from '../types'
+import type { QueueActionLog, QueueHandlerArgs, QueueState } from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import { QUEUE_LOG_PREFIXES, QUEUE_TYPE_LABELS } from '../../../constants/queue.constants.ts'
 
@@ -9,8 +9,6 @@ interface HandleRemovePlayerFromAllArgs extends QueueHandlerArgs {
   username: string;
   /** Отображаемое имя игрока */
   displayedUsername?: string;
-  /** Исходный текст команды (если вызвано из чата) */
-  rawCommand?: string;
 }
 
 /** Решение по удалению игрока из всех очередей: новое состояние и текст журнала. */
@@ -87,6 +85,8 @@ const decideRemoveFromAll = ({
 
 /**
  * Удаляет игрока из всех существующих очередей одновременно.
+ *
+ * @returns Данные для журнала приложения.
  */
 export const handleRemovePlayerFromAll = ({
   userId,
@@ -94,11 +94,11 @@ export const handleRemovePlayerFromAll = ({
   displayedUsername,
   source,
   actorUsername,
-  rawCommand,
   getState,
   setState,
   pushLog,
-}: HandleRemovePlayerFromAllArgs): void => {
+  silent = false,
+}: HandleRemovePlayerFromAllArgs): QueueActionLog => {
   const decision = decideRemoveFromAll({
     prev: getState(),
     userId,
@@ -108,11 +108,19 @@ export const handleRemovePlayerFromAll = ({
 
   setState(decision.nextState)
 
-  pushLog({
+  const result: QueueActionLog = {
     message: decision.logMessage,
-    status: decision.isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
-    source,
-    actorUsername,
-    rawCommand,
-  })
+    logStatus: decision.isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
+  }
+
+  if (!silent) {
+    pushLog({
+      message: result.message,
+      status: result.logStatus,
+      source,
+      actorUsername,
+    })
+  }
+
+  return result
 }

@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import type { QueueActionLog } from '../types.ts'
 import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 
 interface HandleOpenQueueArgs {
@@ -14,12 +15,20 @@ interface HandleOpenQueueArgs {
   actorUsername: string;
   /** Хелпер провайдера для записи логов. */
   pushLog: AppLogsContextValue['pushLog'];
+  /** Не писать запись в журнал: результат логирует вызывающая сторона. */
+  silent?: boolean;
+}
+
+/** Результат открытия очереди. */
+interface OpenQueueResult extends QueueActionLog {
+  /** Очередь была открыта этим вызовом. */
+  isOpened: boolean;
 }
 
 /**
  * Открывает регистрацию игроков в очередь.
  *
- * @returns `true`, если очередь была открыта этим вызовом.
+ * @returns Признак открытия и данные для журнала приложения.
  */
 export const handleOpenQueue = ({
   isQueueOpen,
@@ -27,26 +36,28 @@ export const handleOpenQueue = ({
   source,
   actorUsername,
   pushLog,
-}: HandleOpenQueueArgs): boolean => {
-  if (isQueueOpen) {
+  silent = false,
+}: HandleOpenQueueArgs): OpenQueueResult => {
+  const isOpened = !isQueueOpen
+
+  if (isOpened) {
+    setIsQueueOpen(true)
+  }
+
+  const result: OpenQueueResult = {
+    isOpened,
+    message: isOpened ? QUEUE_SESSION_LOG_MESSAGES.OPENED : QUEUE_SESSION_LOG_MESSAGES.ALREADY_OPENED,
+    logStatus: APP_LOG_STATUSES.WARNING,
+  }
+
+  if (!silent) {
     pushLog({
-      message: QUEUE_SESSION_LOG_MESSAGES.ALREADY_OPENED,
-      status: APP_LOG_STATUSES.WARNING,
+      message: result.message,
+      status: result.logStatus,
       source,
       actorUsername,
     })
-
-    return false
   }
 
-  setIsQueueOpen(true)
-
-  pushLog({
-    message: QUEUE_SESSION_LOG_MESSAGES.OPENED,
-    status: APP_LOG_STATUSES.WARNING,
-    source,
-    actorUsername,
-  })
-
-  return true
+  return result
 }

@@ -1,7 +1,7 @@
 import { type FC } from 'react'
 import { LuCrown, LuShield, LuMessageSquare, LuCpu } from 'react-icons/lu'
 import { APP_LOG_STATUSES, APP_LOG_SOURCES, type AppLogItem } from '../types.ts'
-import { APP_LOG_SYSTEM_ACTOR } from '../../../constants/app-logs.constants.ts'
+import { APP_LOG_SOURCE_LABELS } from '../../../constants/app-logs.constants.ts'
 
 interface QueueLogsElementProps {
   log: AppLogItem;
@@ -24,17 +24,17 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
   }
 
   let InitiatorIcon = LuCpu
-  let tooltipText = APP_LOG_SYSTEM_ACTOR
+  let tooltipText: string = APP_LOG_SOURCE_LABELS.APPLICATION
 
   if (log.source === APP_LOG_SOURCES.STREAMER_UI) {
     InitiatorIcon = LuCrown
-    tooltipText = 'Пользователь приложения'
+    tooltipText = APP_LOG_SOURCE_LABELS.STREAMER_UI
   } else if (log.source === APP_LOG_SOURCES.CHAT_MODERATOR) {
     InitiatorIcon = LuShield
-    tooltipText = 'Модератор в чате'
+    tooltipText = APP_LOG_SOURCE_LABELS.CHAT_MODERATOR
   } else if (log.source === APP_LOG_SOURCES.CHAT_USER) {
     InitiatorIcon = LuMessageSquare
-    tooltipText = 'Участник чата'
+    tooltipText = APP_LOG_SOURCE_LABELS.CHAT_USER
   }
 
   return (
@@ -54,6 +54,12 @@ export const QueueLogsElement: FC<QueueLogsElementProps> = ({ log }) => {
       <span className="font-bold text-primary mr-1.5">
         {log.actorUsername}:
       </span>
+
+      {log.rawCommand && (
+        <span className="text-base-content/40 mr-1.5">
+          «{log.rawCommand}»
+        </span>
+      )}
 
       <span className={statusClassName}>
         {log.message}

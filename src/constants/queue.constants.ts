@@ -261,15 +261,29 @@ export const QUEUE_TYPE_LABELS_ACCUSATIVE = {
  */
 export const QUEUE_SESSION_LOG_MESSAGES = {
   OPENED: 'Открыта очередь, участники чата могут добавляться.',
-  ALREADY_OPENED: 'Очередь уже открыта.',
+  ALREADY_OPENED: 'Отказано: очередь уже открыта.',
   CLOSED: 'Закрыта очередь, добавлять в очередь могут только модераторы в чате и пользователь приложения.',
-  ALREADY_CLOSED: 'Очередь уже закрыта.',
+  ALREADY_CLOSED: 'Отказано: очередь уже закрыта.',
   FINISHED: (sessionNumber: number, playersCount: number): string =>
     `Состав №${sessionNumber} завершен (игроков: ${playersCount}).`,
   FINISHED_CHAT_HEADER: 'Очередь завершена. Сейчас играют:',
   FINISHED_EMPTY: 'Не удалось завершить сессию: Очередь пуста.',
   AUTO_CLOSED_ON_FINISH: 'Очередь автоматически закрыта в связи с завершением сессии.',
   AUTO_CLOSED_ON_CHANNEL_CHANGE: 'Очередь автоматически закрыта в связи со сменой канала.',
+} as const
+
+/**
+ * Тексты журнала для команд чата.
+ */
+export const QUEUE_CHAT_COMMAND_LOG_MESSAGES = {
+  ACCESS_DENIED: (commandName: string): string =>
+    `Отказано: недостаточно прав для команды «${commandName}».`,
+  MISSING_TARGET: (commandName: string): string =>
+    `Отказано: не указан никнейм для команды «${commandName}».`,
+  INVALID_TARGET: (commandName: string): string =>
+    `Отказано: некорректный никнейм в команде «${commandName}».`,
+  STATUS_SHOWN: 'Запрошен показ сообщений.',
+  CLEARED_ALL: 'Текущая очередь и список ожидающих очищены.',
 } as const
 
 /**

@@ -8,12 +8,18 @@ import { getOwnValue } from '../../../utils/objects.ts'
 interface HandleFinishActiveQueueArgs {
   /** Чтение актуального состояния очереди. */
   getState: () => QueueState;
-  /** Функция обновления состояния */
+  /** Функция обновления состояния. */
   setState: Dispatch<SetStateAction<QueueState>>;
-  /** Колбэк при успешном завершении сессии */
-  onSuccess: (playedPlayers: QueuePlayer[], sessionNumber: number) => void;
-  /** Колбэк, если активная очередь оказалась пуста */
-  onEmpty: () => void;
+}
+
+/** Результат завершения активной сессии. */
+export interface FinishActiveQueueResult {
+  /** Активная очередь оказалась пуста. */
+  isEmpty: boolean;
+  /** Игроки завершённого состава. */
+  playedPlayers: QueuePlayer[];
+  /** Номер завершённой сессии. */
+  sessionNumber: number;
 }
 
 /** Решение по завершению сессии: новое состояние и сыгравший состав. */
@@ -106,21 +112,20 @@ const decideFinish = (prev: QueueState): FinishDecision => {
 /**
  * Завершает текущую сессию: архивирует состав в историю (не более
  * `QUEUE_HISTORY_LIMIT` записей) и фиксирует кулдауны участников.
+ *
+ * @returns Признак пустой очереди и данные завершённой сессии.
  */
 export const handleFinishActiveQueue = ({
   getState,
   setState,
-  onSuccess,
-  onEmpty,
-}: HandleFinishActiveQueueArgs): void => {
+}: HandleFinishActiveQueueArgs): FinishActiveQueueResult => {
   const decision = decideFinish(getState())
 
   setState(decision.nextState)
 
-  if (decision.isEmpty) {
-    onEmpty()
-    return
+  return {
+    isEmpty: decision.isEmpty,
+    playedPlayers: decision.playedPlayers,
+    sessionNumber: decision.sessionNumber,
   }
-
-  onSuccess(decision.playedPlayers, decision.sessionNumber)
 }

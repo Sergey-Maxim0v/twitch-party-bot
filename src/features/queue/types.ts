@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
-import { QUEUE_PLAYER_SOURCE, QUEUE_TYPES } from '../../constants/queue.constants.ts'
-import type { AppLogItem } from '../app-logs/types.ts'
+import { QUEUE_JOIN_STATUSES, QUEUE_PLAYER_SOURCE, QUEUE_TYPES } from '../../constants/queue.constants.ts'
+import type { AppLogItem, AppLogStatus } from '../app-logs/types.ts'
 import type { AppLogsContextValue } from '../app-logs/context/AppLogsInstance.ts'
 
 export { QUEUE_PLAYER_SOURCE, QUEUE_TYPES }
@@ -93,6 +93,27 @@ export interface QueueState {
   playerHistory: Record<BaseQueuePlayer['username'], PlayerHistoryStats>;
 }
 
+/** Статус попытки добавления игрока в очередь. */
+export type QueueJoinStatus = typeof QUEUE_JOIN_STATUSES[keyof typeof QUEUE_JOIN_STATUSES]
+
+/**
+ * Результат действия с очередью для записи в журнал приложения.
+ */
+export interface QueueActionLog {
+  /** Текст записи в журнале. */
+  message: string;
+  /** Статус записи в журнале. */
+  logStatus: AppLogStatus;
+}
+
+/**
+ * Результат добавления игрока в очередь.
+ */
+export interface QueueJoinResult extends QueueActionLog {
+  /** Итоговый статус добавления. */
+  status: QueueJoinStatus;
+}
+
 /**
  * Базовые аргументы обработчиков очереди, работающих со списками игроков.
  */
@@ -107,4 +128,6 @@ export interface QueueHandlerArgs {
   actorUsername: string;
   /** Хелпер провайдера для записи логов. */
   pushLog: AppLogsContextValue['pushLog'];
+  /** Не писать запись в журнал: результат логирует вызывающая сторона. */
+  silent?: boolean;
 }

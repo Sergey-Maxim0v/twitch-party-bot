@@ -1,5 +1,7 @@
 import { createContext } from 'react'
 import {
+  type QueueActionLog,
+  type QueueJoinResult,
   type QueueState,
   type QueuePlayer,
   type QueueSession,
@@ -14,9 +16,9 @@ export interface QueueContextValue {
   /** Текущий статус очереди. */
   isQueueOpen: boolean;
   /** Открыть прием заявок в очередь. */
-  openQueue: (args: { source: LogSource; actorUsername: string }) => void;
+  openQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => QueueActionLog;
   /** Приостановить прием заявок в очередь. */
-  closeQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => void;
+  closeQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => QueueActionLog;
 
   /** Игроки в текущей активной очереди */
   activeQueue: QueuePlayer[];
@@ -28,9 +30,9 @@ export interface QueueContextValue {
   getState: () => QueueState;
 
   /** Очистить текущую активную очередь */
-  clearActiveQueue: (args: { source: LogSource; actorUsername: string; }) => void;
+  clearActiveQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => QueueActionLog;
   /** Очистить список ожидающих */
-  clearWaitingQueue: (args: { source: LogSource; actorUsername: string; }) => void;
+  clearWaitingQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => QueueActionLog;
   /** Очистить историю сыгранных сессий */
   clearQueueHistory: (args: { source: LogSource; actorUsername: string; }) => void;
 
@@ -39,9 +41,9 @@ export interface QueueContextValue {
     playerData: QueuePlayerFormData;
     source: LogSource;
     actorUsername: string;
-    rawCommand?: string;
     customTimestamp?: number;
-  }) => void;
+    silent?: boolean;
+  }) => QueueJoinResult;
 
   /** Удалить первую найденную запись игрока из конкретной очереди (активной или ожидающих) */
   removePlayerFromQueue: (args: {
@@ -61,8 +63,8 @@ export interface QueueContextValue {
     displayedUsername?: string;
     source: LogSource;
     actorUsername: string;
-    rawCommand?: string;
-  }) => void;
+    silent?: boolean;
+  }) => QueueActionLog;
 
   /** Добавить игрока во внутренний бан-лист очереди и удалить его из текущих списков */
   banPlayerFromQueue: (args: {
@@ -101,7 +103,7 @@ export interface QueueContextValue {
   }) => void;
 
   /** Завершить текущую очередь (активная улетает в историю, из ожидающих переносятся) */
-  finishActiveQueue: (args: { source: LogSource; actorUsername: string }) => void;
+  finishActiveQueue: (args: { source: LogSource; actorUsername: string; silent?: boolean }) => QueueActionLog;
 }
 
 /** React-контекст очереди. */

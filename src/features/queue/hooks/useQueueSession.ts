@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState } from '../types'
+import type { QueueActionLog, QueueState } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
@@ -17,6 +17,8 @@ import { useQueueNotification } from '../../queue-notification/hooks/useQueueNot
 interface QueueSessionActionArgs {
   source: LogSource;
   actorUsername: string;
+  /** Не писать запись в журнал: результат логирует вызывающая сторона. */
+  silent?: boolean;
 }
 
 /** Аргументы автоматического закрытия очереди с указанием причины. */
@@ -83,22 +85,30 @@ export const useQueueSession = ({
     })
   }, [settings, getState, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser])
 
-  const openQueue = useCallback((args: QueueSessionActionArgs) => {
-    const isOpened = handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+  const openQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
+    const result = handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
 
-    if (isOpened) {
+    if (result.isOpened) {
       setQueueChannel(activeChannel)
+      sendMessageOpen()
     }
 
-    sendMessageOpen()
     startNotificationCycle()
+
+    return result
   }, [activeChannel, isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageOpen, startNotificationCycle])
 
-  const closeQueue = useCallback((args: QueueSessionActionArgs) => {
-    handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+  const closeQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
+    const result = handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
+
     setQueueChannel(null)
-    sendMessageClose()
     stopNotificationCycle()
+
+    if (result.isClosed) {
+      sendMessageClose()
+    }
+
+    return result
   }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageClose, stopNotificationCycle])
 
   /**
@@ -120,48 +130,62 @@ export const useQueueSession = ({
     })
   }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, stopNotificationCycle])
 
-  const finishActiveQueue = useCallback((args: QueueSessionActionArgs) => {
-    handleFinishActiveQueue({
-      getState,
-      setState,
-      onSuccess: (playedPlayers, sessionNumber) => {
-        const nicknames = playedPlayers
-          .map(user => `@${user.displayedUsername ?? user.username}`)
-        const finishedMessage = formatFinishedQueueMessage({ nicknames, prefix: settings.messagePrefix })
+  const finishActiveQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
+    const decision = handleFinishActiveQueue({ getState, setState })
 
-        sendMessage(finishedMessage)
+    if (decision.isEmpty) {
+      const result: QueueActionLog = {
+        message: QUEUE_SESSION_LOG_MESSAGES.FINISHED_EMPTY,
+        logStatus: APP_LOG_STATUSES.WARNING,
+      }
+
+      if (!args.silent) {
         pushLog({
-          message: QUEUE_SESSION_LOG_MESSAGES.FINISHED(sessionNumber, playedPlayers.length),
-          status: APP_LOG_STATUSES.WARNING,
+          message: result.message,
+          status: result.logStatus,
           source: args.source,
           actorUsername: args.actorUsername,
         })
+      }
 
-        if (isQueueOpen) {
-          pushLog({
-            message: QUEUE_SESSION_LOG_MESSAGES.AUTO_CLOSED_ON_FINISH,
-            status: APP_LOG_STATUSES.INFO,
-            source: args.source,
-            actorUsername: args.actorUsername,
-          })
-          setIsQueueOpen(false)
-          setQueueChannel(null)
-          stopNotificationCycle()
-        }
+      return result
+    }
 
-        if (settings.moveOnSizeChange) {
-          balanceQueues({ source: args.source, actorUsername: args.actorUsername })
-        }
-      },
-      onEmpty: () => {
-        pushLog({
-          message: QUEUE_SESSION_LOG_MESSAGES.FINISHED_EMPTY,
-          status: APP_LOG_STATUSES.WARNING,
-          source: args.source,
-          actorUsername: args.actorUsername,
-        })
-      },
-    })
+    const nicknames = decision.playedPlayers.map(user => `@${user.displayedUsername ?? user.username}`)
+    const finishedMessage = formatFinishedQueueMessage({ nicknames, prefix: settings.messagePrefix })
+    sendMessage(finishedMessage)
+
+    const result: QueueActionLog = {
+      message: QUEUE_SESSION_LOG_MESSAGES.FINISHED(decision.sessionNumber, decision.playedPlayers.length),
+      logStatus: APP_LOG_STATUSES.WARNING,
+    }
+
+    if (!args.silent) {
+      pushLog({
+        message: result.message,
+        status: result.logStatus,
+        source: args.source,
+        actorUsername: args.actorUsername,
+      })
+    }
+
+    if (isQueueOpen) {
+      pushLog({
+        message: QUEUE_SESSION_LOG_MESSAGES.AUTO_CLOSED_ON_FINISH,
+        status: APP_LOG_STATUSES.INFO,
+        source: args.source,
+        actorUsername: args.actorUsername,
+      })
+      setIsQueueOpen(false)
+      setQueueChannel(null)
+      stopNotificationCycle()
+    }
+
+    if (settings.moveOnSizeChange) {
+      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+    }
+
+    return result
   }, [getState, setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, setQueueChannel, stopNotificationCycle, setIsQueueOpen, balanceQueues])
 
   return { openQueue, closeQueue, autoCloseQueue, finishActiveQueue, balanceQueues }

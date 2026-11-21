@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueuePlayer, QueuePlayerFormData, QueueState } from '../types'
+import type { QueueJoinResult, QueueJoinStatus, QueuePlayer, QueuePlayerFormData, QueueState } from '../types'
 import { validateQueueEntry } from './validateQueueEntry'
 import { extractGameNickname } from './extractGameNickname'
 import type { QueueSettings } from '../../queue-settings/types.ts'
@@ -13,13 +13,6 @@ import {
 } from '../../../constants/queue.constants.ts'
 import { hasQueuePlayerWithUsername } from './queuePlayerIdentity.ts'
 
-type JoinQueueResultStatus = typeof QUEUE_JOIN_STATUSES[keyof typeof QUEUE_JOIN_STATUSES]
-
-/** Результат добавления игрока в очередь. */
-interface JoinQueueResult {
-  status: JoinQueueResultStatus;
-}
-
 interface HandleJoinPlayerArgs {
   /** Текущий статус очереди. */
   isQueueOpen: QueueContextValue['isQueueOpen'];
@@ -29,8 +22,6 @@ interface HandleJoinPlayerArgs {
   source: AppLogItem['source'];
   /** Никнейм того, кто добавил игрока. */
   actorUsername: string;
-  /** Исходный текст команды. */
-  rawCommand?: string;
   /** Время добавления (по умолчанию — текущее). */
   customTimestamp?: number;
   /** Настройки очереди. */
@@ -40,13 +31,15 @@ interface HandleJoinPlayerArgs {
   /** Функция обновления состояния очереди. */
   setState: Dispatch<SetStateAction<QueueState>>;
   /** Функция записи логов приложения. */
-  pushLog: AppLogsContextValue['pushLog']
+  pushLog: AppLogsContextValue['pushLog'];
+  /** Не писать запись в журнал: результат логирует вызывающая сторона. */
+  silent?: boolean;
 }
 
 /** Решение по заявке игрока. */
 interface JoinDecision {
   /** Итоговый статус операции. */
-  status: JoinQueueResultStatus;
+  status: QueueJoinStatus;
   /** Текст записи в журнале приложения. */
   logMessage: string;
   /** Состояние очереди после операции. */
@@ -165,20 +158,20 @@ const decideJoin = ({
 /**
  * Добавляет игрока в активную очередь или список ожидающих.
  *
- * @returns Статус операции: `joined`, `waiting` или `denied`.
+ * @returns Статус операции и данные для журнала приложения.
  */
 export const handleJoinPlayer = ({
   isQueueOpen,
   playerData,
   source,
   actorUsername,
-  rawCommand,
   customTimestamp,
   settings,
   getState,
   setState,
   pushLog,
-}: HandleJoinPlayerArgs): JoinQueueResult => {
+  silent = false,
+}: HandleJoinPlayerArgs): QueueJoinResult => {
   const player: QueuePlayer = {
     ...playerData,
     timestamp: customTimestamp || Date.now(),
@@ -203,13 +196,20 @@ export const handleJoinPlayer = ({
 
   setState(decision.nextState)
 
-  pushLog({
+  const result: QueueJoinResult = {
+    status: decision.status,
     message: decision.logMessage,
-    status: decision.status === QUEUE_JOIN_STATUSES.DENIED ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
-    source,
-    actorUsername,
-    rawCommand,
-  })
+    logStatus: decision.status === QUEUE_JOIN_STATUSES.DENIED ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
+  }
 
-  return { status: decision.status }
+  if (!silent) {
+    pushLog({
+      message: result.message,
+      status: result.logStatus,
+      source,
+      actorUsername,
+    })
+  }
+
+  return result
 }
