@@ -124,18 +124,35 @@ export const useChatCommands = () => {
           return
         }
 
-        const targetUsername = parseCommandTarget(commandArg)
-        if (!TWITCH_LOGIN_PATTERN.test(targetUsername.toLowerCase())) {
+        let targetUsername = ''
+        let targetIndex = -1
+
+        for (let i = 0; i < commandArgs.length; i++) {
+          const candidate = parseCommandTarget(commandArgs[i])
+          if (TWITCH_LOGIN_PATTERN.test(candidate.toLowerCase())) {
+            targetUsername = candidate
+            targetIndex = i
+            break
+          }
+        }
+
+        if (!targetUsername) {
           logRefusal(QUEUE_CHAT_COMMAND_LOG_MESSAGES.INVALID_TARGET(commands.add.name))
           return
         }
+
+        // Весь текст после команды (без найденного Twitch-ника, чтобы не мешать парсеру игрового ника)
+        const remainingText = [
+          rawCommandName,
+          ...commandArgs.filter((_, index) => index !== targetIndex),
+        ].join(' ')
 
         logResult(addPlayerToQueue({
           playerData: {
             userId: targetUsername,
             username: targetUsername.toLowerCase(),
             displayedUsername: targetUsername,
-            rawMessage: trimmedText,
+            rawMessage: remainingText,
             playerSource: QUEUE_PLAYER_SOURCE.MOD_CMD,
             isModerator: false,
             isSubscriber: false,
@@ -156,15 +173,18 @@ export const useChatCommands = () => {
           return
         }
 
-        const targetUsername = parseCommandTarget(commandArg).toLowerCase()
-        if (!targetUsername) {
+        const targetCandidate = commandArgs
+          .map(arg => parseCommandTarget(arg).toLowerCase())
+          .find(candidate => Boolean(candidate) && TWITCH_LOGIN_PATTERN.test(candidate))
+
+        if (!targetCandidate) {
           logRefusal(QUEUE_CHAT_COMMAND_LOG_MESSAGES.INVALID_TARGET(commands.delete.name))
           return
         }
 
         logResult(removePlayerFromAllQueues({
-          userId: targetUsername,
-          username: targetUsername,
+          userId: targetCandidate,
+          username: targetCandidate,
           source,
           actorUsername: displayedUsername,
           silentLog: true,
