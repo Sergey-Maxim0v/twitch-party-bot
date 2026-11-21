@@ -70,11 +70,17 @@ interface DecideJoinArgs {
 const insertPlayer = (queue: QueuePlayer[], player: QueuePlayer, prioritize: boolean): QueuePlayer[] => {
   if (!prioritize) return [...queue, player]
 
-  const firstNonSubscriberIndex = queue.findIndex(p => !p.isSubscriber)
-  const insertIndex = firstNonSubscriberIndex === -1 ? queue.length : firstNonSubscriberIndex
+  const firstRegularIndex = queue.findIndex(p => !isPrivilegedPlayer(p))
+  const insertIndex = firstRegularIndex === -1 ? queue.length : firstRegularIndex
 
   return [...queue.slice(0, insertIndex), player, ...queue.slice(insertIndex)]
 }
+
+/**
+ * Проверяет, что игрок имеет привилегии: подписчик, VIP или модератор.
+ */
+const isPrivilegedPlayer = (player: QueuePlayer): boolean =>
+  player.isVip || player.isSubscriber || player.isModerator
 
 /** Формирует отказ по заявке без изменения состояния очереди. */
 const denyJoin = (prev: QueueState, logMessage: string): JoinDecision => ({
@@ -122,6 +128,24 @@ const decideJoin = ({
         ...prev,
         activeQueue: insertPlayer(prev.activeQueue, player, isPrioritized),
       },
+    }
+  }
+
+  // Полная очередь: приоритетный игрок встаёт перед первым простым, очередь сдвигается, а последний игрок уходит в список ожидания.
+  const firstRegularIndex = !isInActive && !isInWaiting && !isActiveQueueNotFull && isPrioritized
+    ? prev.activeQueue.findIndex(queuePlayer => !isPrivilegedPlayer(queuePlayer))
+    : -1
+
+  if (firstRegularIndex !== -1) {
+    const activeQueue = [...prev.activeQueue]
+    activeQueue.splice(firstRegularIndex, 0, player)
+    const displaced = activeQueue.pop()!
+    const waitingQueue = settings.allowPreJoin ? [displaced, ...prev.waitingQueue] : prev.waitingQueue
+
+    return {
+      status: QUEUE_JOIN_STATUSES.JOINED,
+      logMessage: QUEUE_JOIN_LOG_MESSAGES.ACTIVE(displayName),
+      nextState: { ...prev, activeQueue, waitingQueue },
     }
   }
 
