@@ -26,6 +26,7 @@ export const ChannelSelectModal: FC = () => {
     selectOwnChannel,
     selectCustomChannel,
     userDisplayName,
+    expireSession,
   } = useAuth()
 
   const { connect, getClient } = useSocketContext()
@@ -101,6 +102,11 @@ export const ChannelSelectModal: FC = () => {
 
     try {
       const result = await getTwitchChannelProfile(channel, session.accessToken)
+
+      if (result.status === TWITCH_CHANNEL_PROFILE_STATUSES.UNAUTHORIZED) {
+        expireSession()
+        return
+      }
 
       if (result.status !== TWITCH_CHANNEL_PROFILE_STATUSES.FOUND) {
         setProfileFailure(result.status)

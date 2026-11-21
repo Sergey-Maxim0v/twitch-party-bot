@@ -84,6 +84,28 @@ export interface TwitchEmote {
 export type TwitchEmoteDictionary = ReadonlyMap<string, string>
 
 /**
+ * Результат загрузки эмоций Twitch.
+ */
+export interface TwitchEmotesResult {
+  /** Загруженные эмоции. */
+  emotes: TwitchEmote[];
+
+  /** Twitch отклонил токен. */
+  isUnauthorized: boolean;
+}
+
+/**
+ * Результат загрузки словаря эмоций канала.
+ */
+export interface TwitchEmoteDictionaryResult {
+  /** Словарь эмоций. */
+  dictionary: TwitchEmoteDictionary;
+
+  /** Twitch отклонил токен. */
+  isUnauthorized: boolean;
+}
+
+/**
  * Данные пользователя, отправившего IRC-сообщение.
  */
 export interface IrcUserData {

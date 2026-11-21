@@ -242,6 +242,7 @@ export const TWITCH_EMOTE_LOG_PREFIX = '[Twitch Emotes]'
 export const TWITCH_EMOTE_LOG_MESSAGES = {
   HTTP_ERROR: (status: number): string => `Не удалось загрузить эмоции Twitch: HTTP ${status}`,
   NETWORK_ERROR: 'Ошибка сети при загрузке эмоций Twitch:',
+  UNAUTHORIZED: 'Twitch отклонил токен при загрузке эмоций.',
 } as const
 
 /**

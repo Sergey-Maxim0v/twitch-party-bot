@@ -2,6 +2,7 @@ import {
   TWITCH_CHANNEL_PROFILE_LOG_MESSAGES,
   TWITCH_CHANNEL_PROFILE_STATUSES,
   TWITCH_CLIENT_ID,
+  TWITCH_UNAUTHORIZED_STATUS,
 } from '../../../constants/auth.constants.ts'
 import {
   TWITCH_HELIX_BASE_URL,
@@ -28,7 +29,7 @@ export type TwitchChannelProfileFailure =
  */
 export type TwitchChannelProfileResult =
   | { status: typeof TWITCH_CHANNEL_PROFILE_STATUSES.FOUND; data: TwitchChannelData }
-  | { status: TwitchChannelProfileFailure }
+  | { status: TwitchChannelProfileFailure | typeof TWITCH_CHANNEL_PROFILE_STATUSES.UNAUTHORIZED }
 
 interface TwitchHelixUser {
   id: string;
@@ -46,7 +47,7 @@ interface TwitchHelixUsersResponse {
  *
  * @param channelName - Имя проверяемого канала.
  * @param token - Токен доступа пользователя.
- * @returns Данные канала либо статус неудачной проверки.
+ * @returns Данные канала, статус неудачной проверки или признак отклонённого токена.
  */
 export const getTwitchChannelProfile = async (
   channelName: string,
@@ -67,6 +68,10 @@ export const getTwitchChannelProfile = async (
       },
       signal: AbortSignal.timeout(TWITCH_HELIX_REQUEST_TIMEOUT_MS),
     })
+
+    if (response.status === TWITCH_UNAUTHORIZED_STATUS) {
+      return { status: TWITCH_CHANNEL_PROFILE_STATUSES.UNAUTHORIZED }
+    }
 
     if (response.status === 404) {
       return { status: TWITCH_CHANNEL_PROFILE_STATUSES.NOT_FOUND }

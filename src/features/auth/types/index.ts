@@ -58,12 +58,14 @@ export type AuthStage = typeof TWITCH_AUTH_STAGES[keyof typeof TWITCH_AUTH_STAGE
 export interface TwitchAuthHookResult {
   session: TwitchUserSession | null;
   isAuthenticated: boolean;
+  isSessionExpired: boolean;
   isLoading: boolean;
   error: string | null;
   channelError: string | null;
   login: () => void;
   isStoragePersistent: boolean;
   logout: () => void;
+  expireSession: () => void;
   isModalOpen: boolean;
   authStage: AuthStage;
   closeModal: () => void;

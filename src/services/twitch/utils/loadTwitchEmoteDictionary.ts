@@ -5,7 +5,7 @@ import {
   TWITCH_HELIX_EMOTES_PAGE_SIZE,
 } from '../../../constants/twitch.constants.ts'
 import { getTwitchChannelProfile } from '../../../features/auth/utils/getTwitchChannelProfile.ts'
-import type { TwitchEmoteDictionary } from '../types.ts'
+import type { TwitchEmoteDictionaryResult } from '../types.ts'
 import { createTwitchEmoteDictionary } from './createTwitchEmoteDictionary.ts'
 import { fetchTwitchEmotes } from './fetchTwitchEmotes.ts'
 
@@ -14,22 +14,32 @@ import { fetchTwitchEmotes } from './fetchTwitchEmotes.ts'
  *
  * @param channel - Логин канала.
  * @param token - Токен доступа пользователя.
- * @returns Словарь эмоций; только глобальные, если профиль канала недоступен.
+ * @returns Словарь эмоций и признак отклонённого токена.
  */
 export const loadTwitchEmoteDictionary = async (
   channel: string,
   token: string,
-): Promise<TwitchEmoteDictionary> => {
-  const [globalEmotes, channelProfile] = await Promise.all([
+): Promise<TwitchEmoteDictionaryResult> => {
+  const [globalEmotesResult, channelProfile] = await Promise.all([
     fetchTwitchEmotes(TWITCH_HELIX_EMOTE_PATHS.GLOBAL, token),
     getTwitchChannelProfile(channel, token),
   ])
 
-  if (channelProfile.status !== TWITCH_CHANNEL_PROFILE_STATUSES.FOUND) {
-    return createTwitchEmoteDictionary(globalEmotes, [])
+  const globalDictionary = createTwitchEmoteDictionary(globalEmotesResult.emotes, [])
+
+  if (globalEmotesResult.isUnauthorized) {
+    return { dictionary: globalDictionary, isUnauthorized: true }
   }
 
-  const channelEmotes = await fetchTwitchEmotes(
+  if (channelProfile.status === TWITCH_CHANNEL_PROFILE_STATUSES.UNAUTHORIZED) {
+    return { dictionary: globalDictionary, isUnauthorized: true }
+  }
+
+  if (channelProfile.status !== TWITCH_CHANNEL_PROFILE_STATUSES.FOUND) {
+    return { dictionary: globalDictionary, isUnauthorized: false }
+  }
+
+  const channelEmotesResult = await fetchTwitchEmotes(
     TWITCH_HELIX_EMOTE_PATHS.CHANNEL,
     token,
     {
@@ -38,5 +48,8 @@ export const loadTwitchEmoteDictionary = async (
     },
   )
 
-  return createTwitchEmoteDictionary(globalEmotes, channelEmotes)
+  return {
+    dictionary: createTwitchEmoteDictionary(globalEmotesResult.emotes, channelEmotesResult.emotes),
+    isUnauthorized: channelEmotesResult.isUnauthorized,
+  }
 }

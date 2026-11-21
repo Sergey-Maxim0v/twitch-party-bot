@@ -4,16 +4,17 @@ import { getTwitchChannelProfile, type TwitchChannelData } from '../utils/getTwi
 
 interface UseChannelProfileParams {
   channel: string | null;
-  accessToken: string | undefined
+  accessToken: string | undefined;
+  onUnauthorized: () => void;
 }
 
 /**
  * Получает отображаемое имя и аватар канала в фоне.
  *
- * @param params - Канал и токен для запроса профиля.
+ * @param params - Канал, токен и обработчик отклонённого токена.
  * @returns Имя и аватар либо `null`, пока данных нет.
  */
-export const useChannelProfile = ({ channel, accessToken }: UseChannelProfileParams) => {
+export const useChannelProfile = ({ channel, accessToken, onUnauthorized }: UseChannelProfileParams) => {
   const [profile, setProfile] = useState<TwitchChannelData | null>(null)
 
   useEffect(() => {
@@ -24,7 +25,14 @@ export const useChannelProfile = ({ channel, accessToken }: UseChannelProfilePar
     const fetchProfileData = async () => {
       const result = await getTwitchChannelProfile(channel, accessToken)
 
-      if (isMounted && result.status === TWITCH_CHANNEL_PROFILE_STATUSES.FOUND) {
+      if (!isMounted) return
+
+      if (result.status === TWITCH_CHANNEL_PROFILE_STATUSES.UNAUTHORIZED) {
+        onUnauthorized()
+        return
+      }
+
+      if (result.status === TWITCH_CHANNEL_PROFILE_STATUSES.FOUND) {
         setProfile(result.data)
       }
     }
@@ -34,7 +42,7 @@ export const useChannelProfile = ({ channel, accessToken }: UseChannelProfilePar
     return () => {
       isMounted = false
     }
-  }, [channel, accessToken])
+  }, [channel, accessToken, onUnauthorized])
 
   const isProfileValid = profile && channel && profile.login === channel.toLowerCase() && accessToken
 

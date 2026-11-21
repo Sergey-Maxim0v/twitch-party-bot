@@ -7,11 +7,12 @@ const EMPTY_EMOTE_DICTIONARY: TwitchEmoteDictionary = new Map()
 
 /**
  * Загружает словарь эмоций текущего канала и кэширует его на время сессии.
+ * При отказе Twitch в авторизации завершает сессию.
  *
  * @returns Словарь «код эмоции → ID» для сообщений без тега `emotes`.
  */
 export const useTwitchEmoteDictionary = (): TwitchEmoteDictionary => {
-  const { activeChannel, session } = useAuth()
+  const { activeChannel, session, expireSession } = useAuth()
   const [dictionaries, setDictionaries] = useState<ReadonlyMap<string, TwitchEmoteDictionary>>(new Map())
   const accessToken = session?.accessToken
   const dictionary = activeChannel ? dictionaries.get(activeChannel) : undefined
@@ -23,11 +24,16 @@ export const useTwitchEmoteDictionary = (): TwitchEmoteDictionary => {
     let isCancelled = false
 
     const load = async (): Promise<void> => {
-      const loadedDictionary = await loadTwitchEmoteDictionary(activeChannel, accessToken)
+      const result = await loadTwitchEmoteDictionary(activeChannel, accessToken)
 
       if (isCancelled) return
 
-      setDictionaries(prev => new Map(prev).set(activeChannel, loadedDictionary))
+      if (result.isUnauthorized) {
+        expireSession()
+        return
+      }
+
+      setDictionaries(prev => new Map(prev).set(activeChannel, result.dictionary))
     }
 
     void load()
@@ -35,7 +41,7 @@ export const useTwitchEmoteDictionary = (): TwitchEmoteDictionary => {
     return () => {
       isCancelled = true
     }
-  }, [activeChannel, accessToken, dictionaries])
+  }, [activeChannel, accessToken, dictionaries, expireSession])
 
   return dictionary ?? EMPTY_EMOTE_DICTIONARY
 }

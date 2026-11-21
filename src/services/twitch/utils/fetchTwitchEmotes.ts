@@ -1,4 +1,4 @@
-import { TWITCH_CLIENT_ID } from '../../../constants/auth.constants.ts'
+import { TWITCH_CLIENT_ID, TWITCH_UNAUTHORIZED_STATUS } from '../../../constants/auth.constants.ts'
 import {
   TWITCH_EMOTE_LOG_MESSAGES,
   TWITCH_EMOTE_LOG_PREFIX,
@@ -6,7 +6,7 @@ import {
   TWITCH_HELIX_EMOTE_QUERY_PARAMS,
   TWITCH_HELIX_REQUEST_TIMEOUT_MS,
 } from '../../../constants/twitch.constants.ts'
-import type { TwitchEmote } from '../types.ts'
+import type { TwitchEmote, TwitchEmotesResult } from '../types.ts'
 
 interface TwitchHelixEmotesResponse {
   data?: TwitchEmote[];
@@ -19,13 +19,13 @@ interface TwitchHelixEmotesResponse {
  * @param path - Путь запроса, начиная с `/`.
  * @param token - Токен доступа пользователя.
  * @param queryParams - Параметры строки запроса.
- * @returns Уже загруженные эмоции либо пустой массив, если первая страница недоступна.
+ * @returns Уже загруженные эмоции и признак отклонённого токена.
  */
 export const fetchTwitchEmotes = async (
   path: string,
   token: string,
   queryParams: Record<string, string> = {},
-): Promise<TwitchEmote[]> => {
+): Promise<TwitchEmotesResult> => {
   const emotes: TwitchEmote[] = []
   let cursor: string | undefined
 
@@ -50,8 +50,17 @@ export const fetchTwitchEmotes = async (
       })
 
       if (!response.ok) {
-        console.error(`${TWITCH_EMOTE_LOG_PREFIX} ${TWITCH_EMOTE_LOG_MESSAGES.HTTP_ERROR(response.status)}`)
-        return emotes
+        const isUnauthorized = response.status === TWITCH_UNAUTHORIZED_STATUS
+
+        console.error(
+          `${TWITCH_EMOTE_LOG_PREFIX} ${
+            isUnauthorized
+              ? TWITCH_EMOTE_LOG_MESSAGES.UNAUTHORIZED
+              : TWITCH_EMOTE_LOG_MESSAGES.HTTP_ERROR(response.status)
+          }`,
+        )
+
+        return { emotes, isUnauthorized }
       }
 
       const page = await response.json() as TwitchHelixEmotesResponse
@@ -64,5 +73,5 @@ export const fetchTwitchEmotes = async (
     console.error(`${TWITCH_EMOTE_LOG_PREFIX} ${TWITCH_EMOTE_LOG_MESSAGES.NETWORK_ERROR}`, error)
   }
 
-  return emotes
+  return { emotes, isUnauthorized: false }
 }

@@ -53,7 +53,7 @@ export const TWITCH_AUTH_URL_PARAMS = {
 } as const
 
 /**
- * Тексты ошибок процесса авторизации.
+ * Тексты ошибок и сообщений авторизации.
  */
 export const TWITCH_AUTH_UI_MESSAGES = {
   CSRF_FAILED: 'Ошибка безопасности (CSRF): верификация контекста не пройдена.',
@@ -70,6 +70,7 @@ export const TWITCH_AUTH_UI_MESSAGES = {
   VALIDATION_UNAVAILABLE: 'Не удалось проверить токен: Twitch недоступен. Проверьте соединение и попробуйте снова.',
   VALIDATION_FAILED: 'Не удалось подтвердить валидность токена через Twitch API.',
   SESSION_NOT_FOUND: 'Сессия не найдена.',
+  SESSION_EXPIRED: 'Сессия Twitch истекла или была отозвана. Войдите снова — канал и настройки сохранены.',
 }
 
 /**
@@ -105,9 +106,14 @@ export const TWITCH_TOKEN_VALIDATION_STATUSES = {
 } as const
 
 /**
+ * HTTP-статус, которым Twitch сообщает о недействительном токене.
+ */
+export const TWITCH_UNAUTHORIZED_STATUS = 401
+
+/**
  * HTTP-статусы, при которых Twitch отклоняет переданный токен.
  */
-export const TWITCH_TOKEN_REJECTED_STATUSES: readonly number[] = [400, 401]
+export const TWITCH_TOKEN_REJECTED_STATUSES: readonly number[] = [400, TWITCH_UNAUTHORIZED_STATUS]
 
 /**
  * Тексты ошибок сессии и инициализации авторизации.
@@ -169,6 +175,7 @@ export const TWITCH_CHANNEL_PROFILE_STATUSES = {
   FOUND: 'found',
   NOT_FOUND: 'not_found',
   UNAVAILABLE: 'unavailable',
+  UNAUTHORIZED: 'unauthorized',
 } as const
 
 /**

@@ -23,7 +23,7 @@ import { getCancelledAuthMessage } from '../utils/getCancelledAuthMessage.ts'
 
 /**
  * Основной хук авторизации Twitch: хранит сессию текущей вкладки,
- * валидирует токен и обрабатывает результат возврата из Twitch.
+ * валидирует токен, обрабатывает возврат из Twitch и истечение сессии.
  *
  * @returns Полный набор данных и действий для работы с авторизацией.
  */
@@ -31,6 +31,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   const [storedSession, setSession] = useSessionStorage<TwitchUserSession | null>(AUTH_STORAGE_KEYS.SESSION, null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [isSessionExpired, setIsSessionExpired] = useState<boolean>(false)
 
   const isAuthInitStarted = useRef(false)
 
@@ -80,6 +81,7 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
       )
     }
 
+    setIsSessionExpired(false)
     setSession(buildTwitchSession(token, result.user))
   }, [setSession])
 
@@ -94,9 +96,32 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
 
   const channelManager = useTwitchChannelState(session?.login)
 
+  const clearSession = useCallback((): void => {
+    setSession(null)
+    setError(null)
+    closeModal()
+  }, [setSession, closeModal])
+
+  /**
+   * Завершает сессию по действию пользователя.
+   */
+  const logout = useCallback((): void => {
+    setIsSessionExpired(false)
+    clearSession()
+  }, [clearSession])
+
+  /**
+   * Завершает сессию из-за истёкшего или отозванного токена.
+   */
+  const expireSession = useCallback((): void => {
+    setIsSessionExpired(true)
+    clearSession()
+  }, [clearSession])
+
   const { displayName: activeChannelDisplayName, avatarUrl: activeChannelAvatar } = useChannelProfile({
     channel: channelManager.activeChannel,
     accessToken: session?.accessToken,
+    onUnauthorized: expireSession,
   })
 
   const {
@@ -105,16 +130,8 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   } = useChannelProfile({
     channel: session?.login ?? null,
     accessToken: session?.accessToken,
+    onUnauthorized: expireSession,
   })
-
-  /**
-   * Сбрасывает состояние авторизации.
-   */
-  const logout = useCallback((): void => {
-    setSession(null)
-    setError(null)
-    closeModal()
-  }, [setSession, closeModal])
 
   /**
    * Синхронизирует сохранённую сессию с состоянием Twitch.
@@ -125,14 +142,15 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
     const { session: validated, shouldLogout } = await validateSession(token)
 
     if (shouldLogout) {
-      logout()
+      expireSession()
       return
     }
 
     if (validated) {
+      setIsSessionExpired(false)
       setSession(validated)
     }
-  }, [validateSession, setSession, logout])
+  }, [validateSession, setSession, expireSession])
 
   useEffect(() => {
     if (storedSession === null || accessToken) return
@@ -159,14 +177,14 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
         return
       }
 
+      const stateError = response.token ? getStateErrorMessage(result) : null
+
+      if (stateError) {
+        failAuth(stateError)
+        return
+      }
+
       if (response.token) {
-        const stateError = getStateErrorMessage(result)
-
-        if (stateError) {
-          failAuth(stateError)
-          return
-        }
-
         await authorizeToken(response.token)
         return
       }
@@ -231,10 +249,12 @@ export const useTwitchAuth = (): TwitchAuthHookResult => {
   return {
     session,
     isAuthenticated: !!session,
+    isSessionExpired,
     isLoading,
     error,
     channelError: channelManager.channelError,
     logout,
+    expireSession,
     login,
     isStoragePersistent,
     isModalOpen,

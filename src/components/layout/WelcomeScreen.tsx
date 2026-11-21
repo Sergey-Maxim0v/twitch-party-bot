@@ -1,13 +1,14 @@
 import { type FC } from 'react'
-import { LuTwitch } from 'react-icons/lu'
+import { LuClockAlert, LuTwitch } from 'react-icons/lu'
 import { useAuth } from '../../features/auth/hooks/useAuth.ts'
 import { TWITCH_AUTH_UI_MESSAGES } from '../../constants/auth.constants.ts'
 
 /**
  * Экран-приглашение к авторизации через Twitch.
+ * При истечении сессии показывает пояснение.
  */
 export const WelcomeScreen: FC = () => {
-  const { login, isStoragePersistent } = useAuth()
+  const { login, isStoragePersistent, isSessionExpired } = useAuth()
 
   return (
     <div className="flex h-full items-center justify-center p-6 bg-base-100">
@@ -24,6 +25,15 @@ export const WelcomeScreen: FC = () => {
           Собирайте зрителей в пати для совместных игр прямо во время стрима. Управляйте очередью, модерируйте
           заявки и играйте вместе без лишней рутины.
         </p>
+
+        {isSessionExpired && (
+          <div className="alert alert-warning w-full text-left" role="alert">
+            <LuClockAlert className="text-lg shrink-0" />
+            <span className="text-sm">
+              {TWITCH_AUTH_UI_MESSAGES.SESSION_EXPIRED}
+            </span>
+          </div>
+        )}
 
         <button
           className="btn btn-primary mt-2 flex items-center gap-2"
