@@ -97,7 +97,7 @@ export const handleRemovePlayerFromAll = ({
   getState,
   setState,
   pushLog,
-  silent = false,
+  silentLog = false,
 }: HandleRemovePlayerFromAllArgs): QueueActionLog => {
   const decision = decideRemoveFromAll({
     prev: getState(),
@@ -113,7 +113,7 @@ export const handleRemovePlayerFromAll = ({
     logStatus: decision.isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
   }
 
-  if (!silent) {
+  if (!silentLog) {
     pushLog({
       message: result.message,
       status: result.logStatus,

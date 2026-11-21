@@ -13,7 +13,7 @@ export const handleClearWaitingQueue = ({
   source,
   actorUsername,
   pushLog,
-  silent = false,
+  silentLog = false,
 }: QueueHandlerArgs): QueueActionLog => {
   const waitingCount = getState().waitingQueue.length
 
@@ -27,7 +27,7 @@ export const handleClearWaitingQueue = ({
     logStatus: APP_LOG_STATUSES.WARNING,
   }
 
-  if (!silent) {
+  if (!silentLog) {
     pushLog({
       message: result.message,
       status: result.logStatus,

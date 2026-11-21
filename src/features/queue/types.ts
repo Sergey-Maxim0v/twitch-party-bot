@@ -114,6 +114,18 @@ export interface QueueJoinResult extends QueueActionLog {
   status: QueueJoinStatus;
 }
 
+/** Аргументы очистки активной очереди или списка ожидающих. */
+export interface QueueClearArgs {
+  /** Источник вызова команды (чат/интерфейс). */
+  source: AppLogItem['source'];
+  /** Никнейм того, кто выполнил действие. */
+  actorUsername: string;
+  /** Не писать запись в журнал: результат логирует вызывающая сторона. */
+  silentLog?: boolean;
+  /** Отправлять ли сообщение об очистке в чат. */
+  notify?: boolean;
+}
+
 /**
  * Базовые аргументы обработчиков очереди, работающих со списками игроков.
  */
@@ -129,5 +141,5 @@ export interface QueueHandlerArgs {
   /** Хелпер провайдера для записи логов. */
   pushLog: AppLogsContextValue['pushLog'];
   /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-  silent?: boolean;
+  silentLog?: boolean;
 }

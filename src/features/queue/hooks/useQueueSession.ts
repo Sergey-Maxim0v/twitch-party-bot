@@ -18,7 +18,7 @@ interface QueueSessionActionArgs {
   source: LogSource;
   actorUsername: string;
   /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-  silent?: boolean;
+  silentLog?: boolean;
 }
 
 /** Аргументы автоматического закрытия очереди с указанием причины. */
@@ -139,7 +139,7 @@ export const useQueueSession = ({
         logStatus: APP_LOG_STATUSES.WARNING,
       }
 
-      if (!args.silent) {
+      if (!args.silentLog) {
         pushLog({
           message: result.message,
           status: result.logStatus,
@@ -160,7 +160,7 @@ export const useQueueSession = ({
       logStatus: APP_LOG_STATUSES.WARNING,
     }
 
-    if (!args.silent) {
+    if (!args.silentLog) {
       pushLog({
         message: result.message,
         status: result.logStatus,

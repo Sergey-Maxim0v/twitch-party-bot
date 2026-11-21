@@ -6,11 +6,7 @@ import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE, type QueueActionLog } from '../types.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
-import { formatPrefixedMessage } from '../../queue-notification/utils/formatPrefixedMessage.ts'
-import {
-  QUEUE_CHAT_COMMAND_LOG_MESSAGES,
-  QUEUE_CHAT_NOTIFICATION_MESSAGES,
-} from '../../../constants/queue.constants.ts'
+import { QUEUE_CHAT_COMMAND_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 import { TWITCH_CHAT_COMMAND_SPLIT_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
 import { parseCommandTarget } from '../utils/parseCommandTarget.ts'
 
@@ -22,7 +18,7 @@ export const useChatCommands = () => {
   const { settings } = useQueueSettings()
   const { lastMessage } = useTwitchChat()
   const { pushLog } = useAppLogs()
-  const { sendCurrentQueueStatus, sendMessage } = useQueueNotification()
+  const { sendCurrentQueueStatus, sendClearAll } = useQueueNotification()
   const {
     openQueue,
     closeQueue,
@@ -91,7 +87,7 @@ export const useChatCommands = () => {
           },
           source,
           actorUsername: displayedUsername,
-          silent: true,
+          silentLog: true,
         }))
         return
       }
@@ -104,7 +100,7 @@ export const useChatCommands = () => {
           username,
           source,
           actorUsername: displayedUsername,
-          silent: true,
+          silentLog: true,
         }))
         return
       }
@@ -147,7 +143,7 @@ export const useChatCommands = () => {
           },
           source,
           actorUsername: displayedUsername,
-          silent: true,
+          silentLog: true,
         }))
         return
       }
@@ -171,7 +167,7 @@ export const useChatCommands = () => {
           username: targetUsername,
           source,
           actorUsername: displayedUsername,
-          silent: true,
+          silentLog: true,
         }))
         return
       }
@@ -179,38 +175,35 @@ export const useChatCommands = () => {
       case commands.clear.name.toLowerCase(): {
         if (!hasCommandAccess(commands.clear)) return
 
-        clearActiveQueue({ source, actorUsername: displayedUsername, silent: true })
-        clearWaitingQueue({ source, actorUsername: displayedUsername, silent: true })
+        clearActiveQueue({ source, actorUsername: displayedUsername, silentLog: true, notify: false })
+        clearWaitingQueue({ source, actorUsername: displayedUsername, silentLog: true, notify: false })
         logResult({
           message: QUEUE_CHAT_COMMAND_LOG_MESSAGES.CLEARED_ALL,
           logStatus: APP_LOG_STATUSES.WARNING,
         })
 
-        sendMessage(formatPrefixedMessage(
-          QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ALL,
-          settings.messagePrefix,
-        ))
+        sendClearAll()
         return
       }
 
       case commands.start.name.toLowerCase(): {
         if (!hasCommandAccess(commands.start)) return
 
-        logResult(openQueue({ source, actorUsername: displayedUsername, silent: true }))
+        logResult(openQueue({ source, actorUsername: displayedUsername, silentLog: true }))
         return
       }
 
       case commands.stop.name.toLowerCase(): {
         if (!hasCommandAccess(commands.stop)) return
 
-        logResult(closeQueue({ source, actorUsername: displayedUsername, silent: true }))
+        logResult(closeQueue({ source, actorUsername: displayedUsername, silentLog: true }))
         return
       }
 
       case commands.play.name.toLowerCase(): {
         if (!hasCommandAccess(commands.play)) return
 
-        logResult(finishActiveQueue({ source, actorUsername: displayedUsername, silent: true }))
+        logResult(finishActiveQueue({ source, actorUsername: displayedUsername, silentLog: true }))
         return
       }
 

@@ -18,7 +18,7 @@ interface HandleCloseQueueArgs {
   /** Причина закрытия для журнала; по умолчанию — стандартное сообщение. */
   message?: string;
   /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-  silent?: boolean;
+  silentLog?: boolean;
 }
 
 /** Результат закрытия очереди. */
@@ -39,7 +39,7 @@ export const handleCloseQueue = ({
   actorUsername,
   pushLog,
   message = QUEUE_SESSION_LOG_MESSAGES.CLOSED,
-  silent = false,
+  silentLog = false,
 }: HandleCloseQueueArgs): CloseQueueResult => {
   const isClosed = isQueueOpen
 
@@ -53,7 +53,7 @@ export const handleCloseQueue = ({
     logStatus: APP_LOG_STATUSES.WARNING,
   }
 
-  if (!silent) {
+  if (!silentLog) {
     pushLog({
       message: result.message,
       status: result.logStatus,

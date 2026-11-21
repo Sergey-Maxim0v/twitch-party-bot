@@ -64,7 +64,7 @@ export const useQueuePlayers = ({
     actorUsername: string;
     customTimestamp?: number;
     /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-    silent?: boolean;
+    silentLog?: boolean;
   }): QueueJoinResult => {
     const result = handleJoinPlayer({ ...args, isQueueOpen, settings, getState, setState, pushLog })
 
@@ -92,7 +92,7 @@ export const useQueuePlayers = ({
   const removePlayerFromAllQueues = useCallback((args: QueuePlayerCommandArgs & {
     userId: string;
     /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-    silent?: boolean;
+    silentLog?: boolean;
   }): QueueActionLog => {
     const result = handleRemovePlayerFromAll({ ...args, getState, setState, pushLog })
     addDeletedUser(args.displayedUsername ?? args.username)

@@ -16,7 +16,7 @@ interface HandleOpenQueueArgs {
   /** Хелпер провайдера для записи логов. */
   pushLog: AppLogsContextValue['pushLog'];
   /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-  silent?: boolean;
+  silentLog?: boolean;
 }
 
 /** Результат открытия очереди. */
@@ -36,7 +36,7 @@ export const handleOpenQueue = ({
   source,
   actorUsername,
   pushLog,
-  silent = false,
+  silentLog = false,
 }: HandleOpenQueueArgs): OpenQueueResult => {
   const isOpened = !isQueueOpen
 
@@ -50,7 +50,7 @@ export const handleOpenQueue = ({
     logStatus: APP_LOG_STATUSES.WARNING,
   }
 
-  if (!silent) {
+  if (!silentLog) {
     pushLog({
       message: result.message,
       status: result.logStatus,

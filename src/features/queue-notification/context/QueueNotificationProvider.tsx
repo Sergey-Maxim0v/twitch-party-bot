@@ -11,6 +11,7 @@ import { QUEUE_CHAT_MESSAGE_SEPARATOR, QUEUE_CHAT_NOTIFICATION_MESSAGES, QUEUE_F
 import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
 import { formatQueueStatusMessage } from '../utils/formatQueueStatusMessage.ts'
 import { formatPrefixedMessage } from '../utils/formatPrefixedMessage.ts'
+import { resolveClearNotificationMessage } from '../utils/resolveClearNotificationMessage.ts'
 import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
 import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 import { useNotificationGuard } from '../hooks/useNotificationGuard.ts'
@@ -164,7 +165,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendMessage(formatQueueStatus(QUEUE_FULL_STATUS_HEADER))
   }, [formatQueueStatus, sendMessage])
 
-  const sendClearActive = useCallback((): void => {
+  const sendClearActive = useCallback((notify = true): void => {
     if (!permissionsRef.current.onClearActive) {
       return
     }
@@ -175,10 +176,14 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       movedToActive: new Set<string>(),
     }))
 
+    if (!notify) {
+      return
+    }
+
     sendMessage(formatPrefixedMessage(QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ACTIVE, settings.messagePrefix))
   }, [sendMessage, settings.messagePrefix])
 
-  const sendClearWaiting = useCallback((): void => {
+  const sendClearWaiting = useCallback((notify = true): void => {
     if (!permissionsRef.current.onClearWaiting) {
       return
     }
@@ -189,7 +194,20 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
       movedToWaiting: new Set<string>(),
     }))
 
+    if (!notify) {
+      return
+    }
+
     sendMessage(formatPrefixedMessage(QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_WAITING, settings.messagePrefix))
+  }, [sendMessage, settings.messagePrefix])
+
+  const sendClearAll = useCallback((): void => {
+    const message = resolveClearNotificationMessage(permissionsRef.current)
+    if (!message) {
+      return
+    }
+
+    sendMessage(formatPrefixedMessage(message, settings.messagePrefix))
   }, [sendMessage, settings.messagePrefix])
 
   const sendCurrentQueueStatus = useCallback((): void => {
@@ -237,6 +255,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendQueueFullMessage,
     sendClearActive,
     sendClearWaiting,
+    sendClearAll,
     clearBuffer,
     startNotificationCycle,
     stopNotificationCycle,
@@ -257,6 +276,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     sendQueueFullMessage,
     sendClearActive,
     sendClearWaiting,
+    sendClearAll,
     clearBuffer,
     startNotificationCycle,
     stopNotificationCycle,

@@ -12,7 +12,7 @@ export const handleClearActiveQueue = ({
   source,
   actorUsername,
   pushLog,
-  silent = false,
+  silentLog = false,
 }: QueueHandlerArgs): QueueActionLog => {
   setState(prev => ({
     ...prev,
@@ -24,7 +24,7 @@ export const handleClearActiveQueue = ({
     logStatus: APP_LOG_STATUSES.WARNING,
   }
 
-  if (!silent) {
+  if (!silentLog) {
     pushLog({
       message: result.message,
       status: result.logStatus,

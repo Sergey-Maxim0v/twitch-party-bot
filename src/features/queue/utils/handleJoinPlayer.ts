@@ -33,7 +33,7 @@ interface HandleJoinPlayerArgs {
   /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
   /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-  silent?: boolean;
+  silentLog?: boolean;
 }
 
 /** Решение по заявке игрока. */
@@ -170,7 +170,7 @@ export const handleJoinPlayer = ({
   getState,
   setState,
   pushLog,
-  silent = false,
+  silentLog = false,
 }: HandleJoinPlayerArgs): QueueJoinResult => {
   const player: QueuePlayer = {
     ...playerData,
@@ -202,7 +202,7 @@ export const handleJoinPlayer = ({
     logStatus: decision.status === QUEUE_JOIN_STATUSES.DENIED ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
   }
 
-  if (!silent) {
+  if (!silentLog) {
     pushLog({
       message: result.message,
       status: result.logStatus,
