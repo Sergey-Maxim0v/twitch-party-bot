@@ -410,8 +410,8 @@ export const QUEUE_JOIN_LOG_MESSAGES = {
   /** Игрок добавлен в активную очередь. */
   ACTIVE: (name: string): string => `${QUEUE_LOG_PREFIXES.JOIN}: Игрок ${name} добавлен в активную очередь.`,
   /** Игрок находится в бан-листе. */
-  DENIED_BANNED: (): string =>
-    `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, игрок находится в бан-листе очереди`,
+  DENIED_BANNED: (name: string): string =>
+    `${QUEUE_LOG_PREFIXES.JOIN}: ${name} - отклонено, игрок находится в бан-листе очереди`,
   /** Очередь закрыта. */
   DENIED_CLOSED: (): string =>
     `${QUEUE_LOG_PREFIXES.JOIN}: Отклонено, очередь закрыта`,

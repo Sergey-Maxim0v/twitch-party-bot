@@ -44,7 +44,7 @@ export const validateQueueEntry = ({
 
   const isBanned = settings.banList.some(b => b.toLowerCase() === username.toLowerCase())
   if (isBanned) {
-    return QUEUE_JOIN_LOG_MESSAGES.DENIED_BANNED()
+    return QUEUE_JOIN_LOG_MESSAGES.DENIED_BANNED(username)
   }
 
   if (!isQueueOpen) {
