@@ -49,7 +49,14 @@ export const useQueuePlayers = ({
   balanceQueues,
 }: UseQueuePlayersArgs) => {
   const { settings, updateSettings } = useQueueSettings()
-  const { addJoinedUser, addWaitingUser, addDeletedUser, addMovedToActiveUser, addMovedToWaitingUser, addDeniedUser } = useQueueNotification()
+  const {
+    addJoinedUser,
+    addWaitingUser,
+    addDeletedUser,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
+    addDeniedUser,
+  } = useQueueNotification()
 
   /** Синхронизирует списки очередей после изменения состава. */
   const balanceAfterChange = useCallback((args: { source: LogSource; actorUsername: string }) => {
@@ -125,20 +132,47 @@ export const useQueuePlayers = ({
     targetQueueType: Exclude<QueueType, 'history'>;
     targetIndex: number | undefined;
   }) => {
-    const decision = handleMovePlayer({ ...args, getState, setState, pushLog })
+    const decision = handleMovePlayer({
+      ...args,
+      maxQueueSize: settings.maxQueueSize,
+      allowPreJoin: settings.allowPreJoin,
+      getState,
+      setState,
+      pushLog,
+    })
 
-    if (decision.isMoved && decision.sourceQueueType !== args.targetQueueType) {
-      const username = args.displayedUsername ?? args.username
+    if (decision.isMoved) {
+      if (decision.sourceQueueType !== args.targetQueueType) {
+        const username = args.displayedUsername ?? args.username
 
-      if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
-        addMovedToActiveUser(username)
-      } else {
-        addMovedToWaitingUser(username)
+        if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
+          addMovedToActiveUser(username)
+        } else {
+          addMovedToWaitingUser(username)
+        }
       }
+
+      decision.displacedToWaiting.forEach(player => {
+        addMovedToWaitingUser(player.displayedUsername ?? player.username)
+      })
+
+      decision.displacedRemoved.forEach(player => {
+        addDeletedUser(player.displayedUsername ?? player.username)
+      })
     }
 
     balanceAfterChange(args)
-  }, [getState, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser, balanceAfterChange])
+  }, [
+    getState,
+    setState,
+    pushLog,
+    settings.maxQueueSize,
+    settings.allowPreJoin,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
+    addDeletedUser,
+    balanceAfterChange,
+  ])
 
   return {
     addPlayerToQueue,

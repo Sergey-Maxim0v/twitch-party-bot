@@ -1,17 +1,35 @@
-import { QUEUE_TYPES, type QueueHandlerArgs, type QueueState, type QueueType } from '../types'
+import {
+  QUEUE_TYPES,
+  type QueueHandlerArgs,
+  type QueuePlayer,
+  type QueueState,
+  type QueueType,
+} from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
-import { QUEUE_TYPE_LABELS, QUEUE_TYPE_LABELS_ACCUSATIVE, QUEUE_TYPE_LABELS_LOCATIVE, QUEUE_LOG_PREFIXES } from '../../../constants/queue.constants.ts'
-import { hasQueuePlayerWithUsername } from './queuePlayerIdentity.ts'
+import {
+  DEFAULT_QUEUE_SETTINGS,
+  QUEUE_MOVE_LOG_MESSAGES,
+  QUEUE_TYPE_LABELS,
+  QUEUE_TYPE_LABELS_ACCUSATIVE,
+  QUEUE_TYPE_LABELS_LOCATIVE,
+} from '../../../constants/queue.constants.ts'
+import { formatQueuePlayerNames } from './formatQueuePlayerNames.ts'
+import { hasQueuePlayer } from './hasQueuePlayer.ts'
+import { isSameQueuePlayer } from './isSameQueuePlayer.ts'
 
 interface HandleMovePlayerArgs extends QueueHandlerArgs {
-  /** Уникальный ID пользователя на Twitch для перемещения */
+  /** Уникальный ID пользователя на Twitch для перемещения. */
   userId: string;
-  /** Целевой тип очереди, куда перетаскивают игрока */
+  /** Целевой тип очереди, куда перетаскивают игрока. */
   targetQueueType: Exclude<QueueType, 'history'>;
-  /** Индекс (позиция), куда нужно вставить игрока (если не передан — падает в конец) */
+  /** Индекс (позиция), куда нужно вставить игрока (если не передан — падает в конец). */
   targetIndex: number | undefined;
-  /** Никнейм для отображения */
+  /** Никнейм для отображения. */
   displayedUsername?: string;
+  /** Максимальный размер активной очереди. */
+  maxQueueSize: number;
+  /** Разрешена ли запись в список ожидающих. */
+  allowPreJoin: boolean;
 }
 
 /** Решение по перемещению игрока: новое состояние и результат операции. */
@@ -22,10 +40,20 @@ export interface MoveDecision {
   isMoved: boolean;
   /** Было ли перемещение отклонено из-за дубликата. */
   isBlockedByDuplicate: boolean;
+  /** Было ли перемещение отклонено из-за отключённого списка ожидающих. */
+  isBlockedByDisabledWaiting: boolean;
   /** Очередь, из которой перемещён игрок. */
   sourceQueueType: Exclude<QueueType, 'history'> | null;
   /** Отображаемое имя игрока. */
   playerName: string;
+  /** Фактическая позиция вставки (0-based). */
+  insertIndex: number | null;
+  /** Игроки, вытесненные в начало списка ожидающих. */
+  displacedToWaiting: QueuePlayer[];
+  /** Игроки, удалённые из очереди. */
+  displacedRemoved: QueuePlayer[];
+  /** Игроки, удалённые из активной очереди, но уже находящиеся в ожидающих. */
+  displacedAlreadyWaiting: QueuePlayer[];
 }
 
 /** Аргументы расчёта решения по перемещению игрока. */
@@ -40,7 +68,35 @@ interface DecideMoveArgs {
   targetIndex: number | undefined;
   /** Никнейм для отображения. */
   displayedUsername?: string;
+  /** Максимальный размер активной очереди. */
+  maxQueueSize: number;
+  /** Разрешена ли запись в список ожидающих. */
+  allowPreJoin: boolean;
 }
+
+/**
+ * Создаёт решение об отказе от перемещения.
+ *
+ * @returns Решение с исходным состоянием очереди.
+ */
+const createMoveDecision = (
+  prev: QueueState,
+  playerName: string,
+  sourceQueueType: Exclude<QueueType, 'history'> | null,
+  overrides: Partial<MoveDecision> = {},
+): MoveDecision => ({
+  nextState: prev,
+  isMoved: false,
+  isBlockedByDuplicate: false,
+  isBlockedByDisabledWaiting: false,
+  sourceQueueType,
+  playerName,
+  insertIndex: null,
+  displacedToWaiting: [],
+  displacedRemoved: [],
+  displacedAlreadyWaiting: [],
+  ...overrides,
+})
 
 /**
  * Рассчитывает результат перемещения игрока между списками очереди.
@@ -53,61 +109,137 @@ const decideMove = ({
   targetQueueType,
   targetIndex,
   displayedUsername,
+  maxQueueSize,
+  allowPreJoin,
 }: DecideMoveArgs): MoveDecision => {
   const activeIndex = prev.activeQueue.findIndex(p => p.userId === userId)
   const waitingIndex = prev.waitingQueue.findIndex(p => p.userId === userId)
-  const playerInActive = activeIndex !== -1 ? prev.activeQueue[activeIndex] : null
-  const playerInWaiting = waitingIndex !== -1 ? prev.waitingQueue[waitingIndex] : null
-  const player = playerInActive ?? playerInWaiting
+  let player: QueuePlayer | null = null
+
+  if (activeIndex !== -1) player = prev.activeQueue[activeIndex]
+  else if (waitingIndex !== -1) player = prev.waitingQueue[waitingIndex]
 
   if (!player) {
-    return {
-      nextState: prev,
-      isMoved: false,
-      isBlockedByDuplicate: false,
-      sourceQueueType: null,
-      playerName: displayedUsername || '',
-    }
+    return createMoveDecision(prev, displayedUsername || '', null)
   }
 
   const sourceQueueType = activeIndex !== -1 ? QUEUE_TYPES.ACTIVE : QUEUE_TYPES.WAITING
   const playerName = displayedUsername || player.displayedUsername || player.username
-  const activeQueue = [...prev.activeQueue]
-  const waitingQueue = [...prev.waitingQueue]
+  const isCrossQueueMove = sourceQueueType !== targetQueueType
+  const targetQueue = targetQueueType === QUEUE_TYPES.ACTIVE ? prev.activeQueue : prev.waitingQueue
+
+  if (isCrossQueueMove && targetQueueType === QUEUE_TYPES.WAITING && !allowPreJoin) {
+    return createMoveDecision(prev, playerName, sourceQueueType, { isBlockedByDisabledWaiting: true })
+  }
+
+  if (isCrossQueueMove && hasQueuePlayer(targetQueue, player)) {
+    return createMoveDecision(prev, playerName, sourceQueueType, { isBlockedByDuplicate: true })
+  }
+
+  let activeQueue = [...prev.activeQueue]
+  let waitingQueue = [...prev.waitingQueue]
 
   if (sourceQueueType === QUEUE_TYPES.ACTIVE) {
-    activeQueue.splice(activeIndex, 1)
+    activeQueue = activeQueue.filter(item => !isSameQueuePlayer(item, player))
   } else {
-    waitingQueue.splice(waitingIndex, 1)
+    waitingQueue = waitingQueue.filter(item => !isSameQueuePlayer(item, player))
   }
 
-  const targetQueue = targetQueueType === QUEUE_TYPES.ACTIVE ? activeQueue : waitingQueue
-  const isCrossQueueMove = sourceQueueType !== targetQueueType
+  const displacedToWaiting: QueuePlayer[] = []
+  const displacedRemoved: QueuePlayer[] = []
+  const displacedAlreadyWaiting: QueuePlayer[] = []
+  const queueLimit = maxQueueSize > 0 ? maxQueueSize : DEFAULT_QUEUE_SETTINGS.maxQueueSize
 
-  if (isCrossQueueMove && hasQueuePlayerWithUsername(targetQueue, player.username)) {
-    return {
-      nextState: prev,
-      isMoved: false,
-      isBlockedByDuplicate: true,
-      sourceQueueType,
-      playerName,
-    }
+  if (
+    targetQueueType === QUEUE_TYPES.ACTIVE
+    && sourceQueueType === QUEUE_TYPES.WAITING
+    && activeQueue.length >= queueLimit
+  ) {
+    const displacedCount = activeQueue.length - queueLimit + 1
+    const displacedPlayers = activeQueue.slice(activeQueue.length - displacedCount)
+    activeQueue = activeQueue.slice(0, activeQueue.length - displacedCount)
+
+    displacedPlayers.forEach(displaced => {
+      if (!allowPreJoin) {
+        displacedRemoved.push(displaced)
+        return
+      }
+
+      const isAlreadyWaiting = hasQueuePlayer(waitingQueue, displaced)
+        || hasQueuePlayer(displacedToWaiting, displaced)
+
+      if (isAlreadyWaiting) {
+        displacedAlreadyWaiting.push(displaced)
+        return
+      }
+
+      displacedToWaiting.push(displaced)
+    })
+
+    waitingQueue = [...displacedToWaiting, ...waitingQueue]
   }
 
-  const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, targetQueue.length) : targetQueue.length
-  targetQueue.splice(insertIndex, 0, player)
+  const targetQueueLength = targetQueueType === QUEUE_TYPES.ACTIVE ? activeQueue.length : waitingQueue.length
+  const insertIndex = targetIndex !== undefined ? Math.min(targetIndex, targetQueueLength) : targetQueueLength
+
+  if (targetQueueType === QUEUE_TYPES.ACTIVE) {
+    activeQueue.splice(insertIndex, 0, player)
+  } else {
+    waitingQueue.splice(insertIndex, 0, player)
+  }
 
   return {
     nextState: { ...prev, activeQueue, waitingQueue },
     isMoved: true,
     isBlockedByDuplicate: false,
+    isBlockedByDisabledWaiting: false,
     sourceQueueType,
     playerName,
+    insertIndex,
+    displacedToWaiting,
+    displacedRemoved,
+    displacedAlreadyWaiting,
   }
 }
 
 /**
+ * Формирует сообщение журнала о выполненном перемещении.
+ *
+ * @returns Текст записи в журнале.
+ */
+const formatMoveLog = (
+  decision: MoveDecision,
+  targetQueueType: Exclude<QueueType, 'history'>,
+  targetIndex: number | undefined,
+): string => {
+  const fromLabel = decision.sourceQueueType ? QUEUE_TYPE_LABELS[decision.sourceQueueType] : ''
+  const toLabel = QUEUE_TYPE_LABELS_ACCUSATIVE[targetQueueType]
+  const positionLabel = targetIndex === undefined
+    ? ' в конец'
+    : ` на позицию ${(decision.insertIndex ?? 0) + 1}`
+
+  const baseMessage = decision.sourceQueueType === targetQueueType
+    ? QUEUE_MOVE_LOG_MESSAGES.WITHIN(decision.playerName, fromLabel, positionLabel)
+    : QUEUE_MOVE_LOG_MESSAGES.CROSS(decision.playerName, fromLabel, toLabel, positionLabel)
+
+  const details = [
+    ...(decision.displacedToWaiting.length > 0
+      ? [QUEUE_MOVE_LOG_MESSAGES.DISPLACED_TO_WAITING(formatQueuePlayerNames(decision.displacedToWaiting))]
+      : []),
+    ...(decision.displacedRemoved.length > 0
+      ? [QUEUE_MOVE_LOG_MESSAGES.DISPLACED_REMOVED(formatQueuePlayerNames(decision.displacedRemoved))]
+      : []),
+    ...(decision.displacedAlreadyWaiting.length > 0
+      ? [QUEUE_MOVE_LOG_MESSAGES.DISPLACED_ALREADY_WAITING(formatQueuePlayerNames(decision.displacedAlreadyWaiting))]
+      : []),
+  ]
+
+  return [baseMessage, ...details].join(' ')
+}
+
+/**
  * Перемещает игрока внутри одной очереди или между ними (Drag-and-Drop).
+ * При переносе в заполненную активную очередь вытесняет последних игроков.
  *
  * @returns Результат перемещения и состояние очереди после операции.
  */
@@ -116,6 +248,8 @@ export const handleMovePlayer = ({
   targetQueueType,
   targetIndex,
   displayedUsername,
+  maxQueueSize,
+  allowPreJoin,
   source,
   actorUsername,
   getState,
@@ -128,26 +262,38 @@ export const handleMovePlayer = ({
     targetQueueType,
     targetIndex,
     displayedUsername,
+    maxQueueSize,
+    allowPreJoin,
   })
 
   setState(decision.nextState)
 
-  if (decision.isMoved && decision.sourceQueueType) {
-    const fromLabel = QUEUE_TYPE_LABELS[decision.sourceQueueType]
-    const toLabel = QUEUE_TYPE_LABELS_ACCUSATIVE[targetQueueType]
-    const positionLabel = targetIndex !== undefined ? ` на позицию ${targetIndex + 1}` : ' в конец'
-
-    const logMessage = decision.sourceQueueType === targetQueueType
-      ? `Игрок ${decision.playerName} перемещен внутри ${fromLabel}${positionLabel}.`
-      : `Игрок ${decision.playerName} перенесен из ${fromLabel} в ${toLabel}${positionLabel}.`
-
-    pushLog({ message: logMessage, status: APP_LOG_STATUSES.INFO, source, actorUsername })
+  if (decision.isMoved) {
+    pushLog({
+      message: formatMoveLog(decision, targetQueueType, targetIndex),
+      status: APP_LOG_STATUSES.INFO,
+      source,
+      actorUsername,
+    })
     return decision
   }
 
   if (decision.isBlockedByDuplicate) {
     pushLog({
-      message: `${QUEUE_LOG_PREFIXES.MOVE}: Отклонено, игрок ${decision.playerName || 'игрок'} уже находится в ${QUEUE_TYPE_LABELS_LOCATIVE[targetQueueType]}.`,
+      message: QUEUE_MOVE_LOG_MESSAGES.DUPLICATE(
+        decision.playerName,
+        QUEUE_TYPE_LABELS_LOCATIVE[targetQueueType],
+      ),
+      status: APP_LOG_STATUSES.ERROR,
+      source,
+      actorUsername,
+    })
+    return decision
+  }
+
+  if (decision.isBlockedByDisabledWaiting) {
+    pushLog({
+      message: QUEUE_MOVE_LOG_MESSAGES.WAITING_DISABLED(),
       status: APP_LOG_STATUSES.ERROR,
       source,
       actorUsername,
@@ -156,7 +302,7 @@ export const handleMovePlayer = ({
   }
 
   pushLog({
-    message: 'Ошибка перемещения: игрок не найден в списках очередей.',
+    message: QUEUE_MOVE_LOG_MESSAGES.NOT_FOUND(),
     status: APP_LOG_STATUSES.ERROR,
     source,
     actorUsername,

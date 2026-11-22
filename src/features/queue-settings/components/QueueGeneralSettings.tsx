@@ -17,7 +17,7 @@ interface QueueGeneralSettingsProps {
  */
 export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName }) => {
   const { settings, updateSettings } = useQueueSettings()
-  const { clearWaitingQueue, balanceQueues } = useQueue()
+  const { balanceQueues } = useQueue()
   const { session, userDisplayName } = useAuth()
 
   const actorUsername = userDisplayName ?? session?.login ?? ''
@@ -25,14 +25,12 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
   const handleChangeQueueLimit = useCallback((val: number) => {
     updateSettings({ maxQueueSize: val })
 
-    if (settings.moveOnSizeChange) {
-      balanceQueues({
-        source: APP_LOG_SOURCES.STREAMER_UI,
-        actorUsername,
-        overrideMaxQueueSize: val,
-      })
-    }
-  }, [actorUsername, balanceQueues, settings.moveOnSizeChange, updateSettings])
+    balanceQueues({
+      source: APP_LOG_SOURCES.STREAMER_UI,
+      actorUsername,
+      overrideMaxQueueSize: val,
+    })
+  }, [actorUsername, balanceQueues, updateSettings])
 
   const handleChangeMoveOnSizeChange = useCallback((checked: boolean) => {
     updateSettings({ moveOnSizeChange: checked })
@@ -64,7 +62,6 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
 
           if (!checked) {
             updateSettings({ allowMultipleEntries: false })
-            clearWaitingQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername })
           }
         }}
       />
@@ -78,9 +75,8 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
 
       <SettingsCheckbox
         checked={settings.moveOnSizeChange}
-        disabled={!settings.allowPreJoin}
         label={QUEUE_SETTING_LABELS.moveOnSizeChange}
-        onChange={ handleChangeMoveOnSizeChange}
+        onChange={handleChangeMoveOnSizeChange}
       />
 
       <SettingsNumberInput

@@ -5,6 +5,7 @@ import { filterNotNull } from '../../../utils/arrays.ts'
 import { isPlainObject } from '../../../utils/objects.ts'
 import { hasControlCharacters, isFilledString } from '../../../utils/strings.ts'
 import { createInitialState } from './createInitialState.ts'
+import { dedupeQueuePlayers } from './dedupeQueuePlayers.ts'
 
 /** Источники появления игрока, допустимые в сохранённых данных. */
 const QUEUE_PLAYER_SOURCES: readonly string[] = Object.values(QUEUE_PLAYER_SOURCE)
@@ -125,8 +126,8 @@ export const sanitizeQueueState = (stored: unknown): QueueState => {
 
   return {
     ...state,
-    activeQueue: filterNotNull(state.activeQueue.map(toQueuePlayer)),
-    waitingQueue: filterNotNull(state.waitingQueue.map(toQueuePlayer)),
+    activeQueue: dedupeQueuePlayers(filterNotNull(state.activeQueue.map(toQueuePlayer))),
+    waitingQueue: dedupeQueuePlayers(filterNotNull(state.waitingQueue.map(toQueuePlayer))),
     queueHistory: filterNotNull(state.queueHistory.map(toQueueSession)),
     playerHistory: sanitizePlayerHistory(state.playerHistory),
   }

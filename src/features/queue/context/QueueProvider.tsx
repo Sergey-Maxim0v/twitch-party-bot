@@ -8,6 +8,7 @@ import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import { useQueueAutoClose } from '../hooks/useQueueAutoClose.ts'
 import { useQueueSession } from '../hooks/useQueueSession.ts'
+import { useClearWaitingWhenPreJoinDisabled } from '../hooks/useClearWaitingWhenPreJoinDisabled.ts'
 import { useQueueClear } from '../hooks/useQueueClear.ts'
 import { useQueuePlayers } from '../hooks/useQueuePlayers.ts'
 import { useQueueStore } from '../hooks/useQueueStore.ts'
@@ -107,6 +108,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     getState,
     pushLog,
   })
+
+  useClearWaitingWhenPreJoinDisabled({ clearWaitingQueue, getState })
 
   const {
     addPlayerToQueue,

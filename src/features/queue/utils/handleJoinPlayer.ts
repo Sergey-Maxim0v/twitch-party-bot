@@ -11,7 +11,8 @@ import {
   QUEUE_JOIN_LOG_MESSAGES,
   QUEUE_JOIN_STATUSES,
 } from '../../../constants/queue.constants.ts'
-import { hasQueuePlayerWithUsername } from './queuePlayerIdentity.ts'
+import { hasQueuePlayer } from './hasQueuePlayer.ts'
+import { isPrivilegedPlayer } from './isPrivilegedPlayer.ts'
 
 interface HandleJoinPlayerArgs {
   /** Текущий статус очереди. */
@@ -52,8 +53,6 @@ interface DecideJoinArgs {
   prev: QueueState;
   /** Добавляемый игрок. */
   player: QueuePlayer;
-  /** Признак подписчика, VIP или модератора. */
-  isPrivileged: boolean;
   /** Текущий статус очереди. */
   isQueueOpen: QueueContextValue['isQueueOpen'];
   /** Настройки очереди. */
@@ -76,12 +75,6 @@ const insertPlayer = (queue: QueuePlayer[], player: QueuePlayer, prioritize: boo
   return [...queue.slice(0, insertIndex), player, ...queue.slice(insertIndex)]
 }
 
-/**
- * Проверяет, что игрок имеет привилегии: подписчик, VIP или модератор.
- */
-const isPrivilegedPlayer = (player: QueuePlayer): boolean =>
-  player.isVip || player.isSubscriber || player.isModerator
-
 /** Формирует отказ по заявке без изменения состояния очереди. */
 const denyJoin = (prev: QueueState, logMessage: string): JoinDecision => ({
   status: QUEUE_JOIN_STATUSES.DENIED,
@@ -97,11 +90,11 @@ const denyJoin = (prev: QueueState, logMessage: string): JoinDecision => ({
 const decideJoin = ({
   prev,
   player,
-  isPrivileged,
   isQueueOpen,
   settings,
   source,
 }: DecideJoinArgs): JoinDecision => {
+  const isPrivileged = isPrivilegedPlayer(player)
   const validationError = validateQueueEntry({
     isQueueOpen,
     username: player.username,
@@ -117,8 +110,8 @@ const decideJoin = ({
   const maxActiveSize = settings.maxQueueSize || DEFAULT_QUEUE_SETTINGS.maxQueueSize
   const isActiveQueueNotFull = prev.activeQueue.length < maxActiveSize
   const isPrioritized = Boolean(settings.prioritizeSubscribers) && isPrivileged
-  const isInActive = hasQueuePlayerWithUsername(prev.activeQueue, player.username)
-  const isInWaiting = hasQueuePlayerWithUsername(prev.waitingQueue, player.username)
+  const isInActive = hasQueuePlayer(prev.activeQueue, player)
+  const isInWaiting = hasQueuePlayer(prev.waitingQueue, player)
 
   if (!isInActive && isActiveQueueNotFull) {
     return {
@@ -140,7 +133,8 @@ const decideJoin = ({
     const activeQueue = [...prev.activeQueue]
     activeQueue.splice(firstRegularIndex, 0, player)
     const displaced = activeQueue.pop()!
-    const waitingQueue = settings.allowPreJoin ? [displaced, ...prev.waitingQueue] : prev.waitingQueue
+    const canWait = settings.allowPreJoin && !hasQueuePlayer(prev.waitingQueue, displaced)
+    const waitingQueue = canWait ? [displaced, ...prev.waitingQueue] : prev.waitingQueue
 
     return {
       status: QUEUE_JOIN_STATUSES.JOINED,
@@ -212,7 +206,6 @@ export const handleJoinPlayer = ({
   const decision = decideJoin({
     prev: getState(),
     player,
-    isPrivileged: Boolean(playerData.isSubscriber || playerData.isVip || playerData.isModerator),
     isQueueOpen,
     settings,
     source,

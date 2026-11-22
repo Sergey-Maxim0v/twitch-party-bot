@@ -57,7 +57,16 @@ export const useQueueSession = ({
   pushLog,
 }: UseQueueSessionArgs) => {
   const { settings } = useQueueSettings()
-  const { sendMessage, sendMessageOpen, sendMessageClose, startNotificationCycle, stopNotificationCycle, addMovedToActiveUser, addMovedToWaitingUser } = useQueueNotification()
+  const {
+    sendMessage,
+    sendMessageOpen,
+    sendMessageClose,
+    startNotificationCycle,
+    stopNotificationCycle,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
+    addDeletedUser,
+  } = useQueueNotification()
 
   const balanceQueues = useCallback((args: {
     source: LogSource;
@@ -70,6 +79,8 @@ export const useQueueSession = ({
       maxQueueSize: args.overrideMaxQueueSize ?? settings.maxQueueSize,
       moveOnSizeChange: args.overrideMoveOnSizeChange ?? settings.moveOnSizeChange,
       allowPreJoin: args.overrideAllowPreJoin ?? settings.allowPreJoin,
+      prioritizeSubscribers: settings.prioritizeSubscribers,
+      subscribersOnly: settings.subscribersOnly,
       cooldowns: settings,
       getState,
       setState,
@@ -82,8 +93,19 @@ export const useQueueSession = ({
       onPlayersMovedToWaiting: usernames => {
         usernames.forEach(username => addMovedToWaitingUser(username))
       },
+      onPlayersRemoved: usernames => {
+        usernames.forEach(username => addDeletedUser(username))
+      },
     })
-  }, [settings, getState, setState, pushLog, addMovedToActiveUser, addMovedToWaitingUser])
+  }, [
+    settings,
+    getState,
+    setState,
+    pushLog,
+    addMovedToActiveUser,
+    addMovedToWaitingUser,
+    addDeletedUser,
+  ])
 
   const openQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
     const result = handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
