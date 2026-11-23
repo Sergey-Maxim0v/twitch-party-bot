@@ -5,7 +5,7 @@ import { SettingsCheckbox } from './SettingsCheckbox.tsx'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { QUEUE_SETTING_LABELS } from '../../../constants/queue.constants.ts'
+import { QUEUE_SETTING_LABELS, QUEUE_SETTING_VALUE_LABELS } from '../../../constants/queue.constants.ts'
 import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueGeneralSettingsProps {
@@ -49,10 +49,11 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
       <SettingsNumberInput
         label={QUEUE_SETTING_LABELS.maxQueueSize}
         max={99}
-        min={1}
+        min={0}
         onChange={handleChangeQueueLimit}
         value={settings.maxQueueSize}
       />
+      <p className="mt-1 text-[11px] text-base-content/50">0 — {QUEUE_SETTING_VALUE_LABELS.UNLIMITED}</p>
 
       <SettingsCheckbox
         checked={settings.allowPreJoin}

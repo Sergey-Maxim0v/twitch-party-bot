@@ -3,22 +3,20 @@ import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES, type LogSource } from '../../app-logs/types.ts'
 import type { Dispatch, SetStateAction } from 'react'
 import type { QueuePlayer, QueueState } from '../types.ts'
-import { DEFAULT_QUEUE_SETTINGS, QUEUE_BALANCE_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
+import { QUEUE_BALANCE_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
+import { getEffectiveQueueLimit } from './getEffectiveQueueLimit.ts'
 import { getQueueCooldownRestriction, type QueueCooldownSettings } from './getQueueCooldownRestriction.ts'
 import { hasQueuePlayer } from './hasQueuePlayer.ts'
 import { isPrivilegedPlayer } from './isPrivilegedPlayer.ts'
 
-interface HandleBalanceQueuesArgs {
-  /** Максимальный размер активной очереди. */
-  maxQueueSize: QueueSettings['maxQueueSize'];
-  /** Переносить ли игроков при изменении размера очереди. */
-  moveOnSizeChange: QueueSettings['moveOnSizeChange'];
-  /** Разрешена ли запись в список ожидающих. */
-  allowPreJoin: QueueSettings['allowPreJoin'];
-  /** Ставить ли подписчиков в начало очереди. */
-  prioritizeSubscribers: QueueSettings['prioritizeSubscribers'];
-  /** Разрешён ли вход только подписчикам, VIP и модераторам. */
-  subscribersOnly: QueueSettings['subscribersOnly'];
+/** Настройки, влияющие на балансировку активной очереди и списка ожидающих. */
+type QueueBalanceSettings = Pick<
+  QueueSettings,
+  'allowPreJoin' | 'maxQueueSize' | 'moveOnSizeChange' | 'prioritizeSubscribers' | 'subscribersOnly'
+>
+
+/** Аргументы балансировки очередей. */
+interface HandleBalanceQueuesArgs extends QueueBalanceSettings {
   /** Настройки кулдаунов и лимита игр. */
   cooldowns: QueueCooldownSettings;
   /** Источник вызова команды. */
@@ -54,19 +52,9 @@ interface BalanceDecision {
 }
 
 /** Аргументы расчёта решения по балансировке. */
-interface DecideBalanceArgs {
+interface DecideBalanceArgs extends QueueBalanceSettings {
   /** Состояние очереди до балансировки. */
   prev: QueueState;
-  /** Максимальный размер активной очереди. */
-  maxQueueSize: QueueSettings['maxQueueSize'];
-  /** Переносить ли игроков при изменении размера очереди. */
-  moveOnSizeChange: QueueSettings['moveOnSizeChange'];
-  /** Разрешена ли запись в список ожидающих. */
-  allowPreJoin: QueueSettings['allowPreJoin'];
-  /** Ставить ли подписчиков в начало очереди. */
-  prioritizeSubscribers: QueueSettings['prioritizeSubscribers'];
-  /** Разрешён ли вход только подписчикам, VIP и модераторам. */
-  subscribersOnly: QueueSettings['subscribersOnly'];
   /** Настройки кулдаунов и лимита игр. */
   cooldowns: QueueCooldownSettings;
 }
@@ -96,7 +84,7 @@ const decideOverflow = ({
   maxQueueSize,
   allowPreJoin,
 }: Pick<DecideBalanceArgs, 'prev' | 'maxQueueSize' | 'allowPreJoin'>): BalanceDecision => {
-  const queueLimit = maxQueueSize > 0 ? maxQueueSize : DEFAULT_QUEUE_SETTINGS.maxQueueSize
+  const queueLimit = getEffectiveQueueLimit(maxQueueSize)
   const overflowPlayers = prev.activeQueue.slice(queueLimit)
   const activeQueue = prev.activeQueue.slice(0, queueLimit)
 
@@ -156,7 +144,7 @@ const decideMoveFromWaiting = ({
   DecideBalanceArgs,
   'prev' | 'maxQueueSize' | 'cooldowns' | 'prioritizeSubscribers' | 'subscribersOnly'
 >): BalanceDecision => {
-  const freeSlots = maxQueueSize - prev.activeQueue.length
+  const freeSlots = getEffectiveQueueLimit(maxQueueSize) - prev.activeQueue.length
   const playersToMove: QueuePlayer[] = []
   let skippedByRestriction = 0
   let skippedBySubscribersOnly = 0
@@ -248,7 +236,7 @@ const decideBalance = ({
 }: DecideBalanceArgs): BalanceDecision => {
   const activeLength = prev.activeQueue.length
   const waitingLength = prev.waitingQueue.length
-  const queueLimit = maxQueueSize > 0 ? maxQueueSize : DEFAULT_QUEUE_SETTINGS.maxQueueSize
+  const queueLimit = getEffectiveQueueLimit(maxQueueSize)
 
   if (activeLength > queueLimit) {
     return decideOverflow({ prev, maxQueueSize: queueLimit, allowPreJoin })

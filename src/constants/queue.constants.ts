@@ -154,6 +154,26 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   maxGamesPerUser: 0,
 }
 
+/** Подписи значений настроек в журнале и интерфейсе. */
+export const QUEUE_SETTING_VALUE_LABELS = {
+  DISABLED: 'Выкл',
+  ENABLED: 'Вкл',
+  UNLIMITED: 'без лимита',
+  UNSET: 'Не задано',
+} as const
+
+/** Префиксы записей журнала изменений настроек очереди. */
+export const QUEUE_SETTINGS_LOG_PREFIXES = {
+  MESSAGE: 'Настройки изменены (Сообщения):',
+  SETTING: 'Настройки изменены:',
+} as const
+
+/** Значения по умолчанию для журнала настроек из интерфейса. */
+export const QUEUE_SETTINGS_FALLBACKS = {
+  ACTOR: 'Стример',
+  GAME: 'Не выбрано',
+} as const
+
 /**
  * Подписи настроек очереди для журнала изменений и панели настроек.
  */

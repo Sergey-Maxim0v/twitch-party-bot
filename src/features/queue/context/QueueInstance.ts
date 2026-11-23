@@ -13,6 +13,14 @@ import {
 import type { LogSource } from '../../app-logs/types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
+type QueueBalanceOverrideKey = 'allowPreJoin' | 'maxQueueSize' | 'moveOnSizeChange'
+
+/** Аргументы ручной балансировки очередей. */
+export type BalanceQueuesArgs = { source: LogSource; actorUsername: string }
+  & {
+    [Key in QueueBalanceOverrideKey as `override${Capitalize<Key>}`]?: QueueSettings[Key]
+  }
+
 /** Публичный API контекста очереди. */
 export interface QueueContextValue {
   /** Текущий статус очереди. */
@@ -98,13 +106,7 @@ export interface QueueContextValue {
   }) => void;
 
   /** Произвести ручную балансировку игроков между активной очередью и списком ожидания. */
-  balanceQueues: (args: {
-    source: LogSource;
-    actorUsername: string;
-    overrideMaxQueueSize?: QueueSettings['maxQueueSize'];
-    overrideMoveOnSizeChange?: QueueSettings['moveOnSizeChange'];
-    overrideAllowPreJoin?: QueueSettings['allowPreJoin'];
-  }) => void;
+  balanceQueues: (args: BalanceQueuesArgs) => void;
 
   /** Завершить текущую очередь (активная улетает в историю, из ожидающих переносятся) */
   finishActiveQueue: (args: { source: LogSource; actorUsername: string; silentLog?: boolean }) => QueueActionLog;

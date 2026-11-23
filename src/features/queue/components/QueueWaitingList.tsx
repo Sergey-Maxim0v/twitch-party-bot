@@ -6,6 +6,7 @@ import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
+import { formatQueueBadge } from '../utils/formatQueueBadge.ts'
 
 interface QueueWaitingListProps {
   /** Дополнительные CSS-классы списка. */
@@ -26,9 +27,11 @@ export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', on
   const { isOver, setNodeRef } = useDroppable({ id: QUEUE_TYPES.WAITING })
 
   const queueLength = waitingQueue?.length ?? 0
-  const maxPlayers = settings?.maxQueueSize ?? 0
 
-  const badgeText = maxPlayers > 0 ? `${queueLength} / ${maxPlayers}` : `${queueLength}`
+  const badgeText = formatQueueBadge({
+    maxQueueSize: settings?.maxQueueSize ?? 0,
+    queueLength,
+  })
 
   const playerIds = waitingQueue.map(player => player.queueEntryId)
 

@@ -17,6 +17,7 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { QUEUE_HISTORY_LIMIT, PLAYER_HISTORY_LIMIT } from '../../../constants/queue.constants.ts'
 import { limitQueueHistory } from '../utils/limitQueueHistory.ts'
 import { limitPlayerHistory } from '../utils/limitPlayerHistory.ts'
+import { getEffectiveQueueLimit } from '../utils/getEffectiveQueueLimit.ts'
 
 interface QueueProviderProps {
   /** Дочерние элементы, получающие доступ к контексту очереди. */
@@ -72,7 +73,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   // Отслеживание заполнения очереди и отправка уведомления
   useEffect(() => {
-    const isCurrentlyFull = state.activeQueue.length >= settings.maxQueueSize
+    const isCurrentlyFull = state.activeQueue.length >= getEffectiveQueueLimit(settings.maxQueueSize)
 
     if (isCurrentlyFull && !wasFullRef.current) {
       sendQueueFullMessage()

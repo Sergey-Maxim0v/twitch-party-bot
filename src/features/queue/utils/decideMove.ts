@@ -5,8 +5,9 @@ import {
   type QueuePlayer,
   type QueueState,
 } from '../types'
-import { DEFAULT_QUEUE_SETTINGS } from '../../../constants/queue.constants.ts'
+import type { QueueSettings } from '../../queue-settings/types.ts'
 import { createMoveDecision } from './createMoveDecision.ts'
+import { getEffectiveQueueLimit } from './getEffectiveQueueLimit.ts'
 import { getQueueByType } from './getQueueByType.ts'
 import { hasQueuePlayer } from './hasQueuePlayer.ts'
 
@@ -27,7 +28,7 @@ interface DecideMoveArgs {
   /** Никнейм для отображения. */
   displayedUsername?: string;
   /** Максимальный размер активной очереди. */
-  maxQueueSize: number;
+  maxQueueSize: QueueSettings['maxQueueSize'];
   /** Разрешена ли запись в список ожидающих. */
   allowPreJoin: boolean;
 }
@@ -79,7 +80,7 @@ export const decideMove = ({
   const displacedToWaiting: QueuePlayer[] = []
   const displacedRemoved: QueuePlayer[] = []
   const displacedAlreadyWaiting: QueuePlayer[] = []
-  const queueLimit = maxQueueSize > 0 ? maxQueueSize : DEFAULT_QUEUE_SETTINGS.maxQueueSize
+  const queueLimit = getEffectiveQueueLimit(maxQueueSize)
 
   if (
     targetQueueType === QUEUE_TYPES.ACTIVE

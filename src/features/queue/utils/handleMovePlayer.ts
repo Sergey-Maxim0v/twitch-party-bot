@@ -4,6 +4,7 @@ import {
   type QueueHandlerArgs,
 } from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import type { QueueSettings } from '../../queue-settings/types.ts'
 import { QUEUE_MOVE_LOG_MESSAGES, QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
 import { decideMove } from './decideMove.ts'
 import { formatMoveLog } from './formatMoveLog.ts'
@@ -23,7 +24,7 @@ interface HandleMovePlayerArgs extends QueueHandlerArgs {
   /** Никнейм для отображения. */
   displayedUsername?: string;
   /** Максимальный размер активной очереди. */
-  maxQueueSize: number;
+  maxQueueSize: QueueSettings['maxQueueSize'];
   /** Разрешена ли запись в список ожидающих. */
   allowPreJoin: boolean;
 }

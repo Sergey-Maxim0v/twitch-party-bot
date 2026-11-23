@@ -24,7 +24,7 @@ export interface QueueGameConfig {
 
 /** Настройки очереди. */
 export interface QueueSettings {
-  /** Лимит участников в очереди. */
+  /** Лимит участников в очереди; `0` означает отсутствие лимита. */
   maxQueueSize: number;
 
   /** Разрешить список ожидающих. */

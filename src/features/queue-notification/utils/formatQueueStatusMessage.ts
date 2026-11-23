@@ -4,14 +4,14 @@ import {
 } from '../../../constants/queue.constants.ts'
 import { fitChatMessage } from '../../../services/twitch/utils/fitChatMessage.ts'
 import { formatPrefixedMessage } from './formatPrefixedMessage.ts'
+import type { QueueSettings } from '../../queue-settings/types.ts'
+import { isUnlimitedQueueSize } from '../../queue/utils/isUnlimitedQueueSize.ts'
 
-interface FormatQueueStatusMessageArgs {
+interface FormatQueueStatusMessageArgs extends Pick<QueueSettings, 'maxQueueSize'> {
   /** Ники активной очереди. */
   activeUsernames: string[]
   /** Ники ожидающей очереди. */
   waitingUsernames: string[]
-  /** Максимальный размер активной очереди. */
-  maxQueueSize: number
   /** Префикс автоматических сообщений. */
   prefix?: string
   /** Заголовок перед составом очереди. */
@@ -35,7 +35,9 @@ export const formatQueueStatusMessage = ({
   const waitingMembers = waitingUsernames.map(nick => `@${nick}`)
   const head = header ? formatPrefixedMessage(header, prefix) : prefix
   const headWithSeparator = head ? `${head}${separator}` : ''
-  const counter = `(${activeMembers.length}/${maxQueueSize})`
+  const counter = isUnlimitedQueueSize(maxQueueSize)
+    ? `(${activeMembers.length})`
+    : `(${activeMembers.length}/${maxQueueSize})`
 
   return fitChatMessage({
     build: ([visibleActive, visibleWaiting]) => {

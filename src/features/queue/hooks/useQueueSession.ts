@@ -12,6 +12,7 @@ import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
+import type { BalanceQueuesArgs } from '../context/QueueInstance.ts'
 
 /** Аргументы действия с очередью, инициированного пользователем или чатом. */
 interface QueueSessionActionArgs {
@@ -67,13 +68,7 @@ export const useQueueSession = ({
     addDeletedUser,
   } = useQueueNotification()
 
-  const balanceQueues = useCallback((args: {
-    source: LogSource;
-    actorUsername: string;
-    overrideMaxQueueSize?: number;
-    overrideMoveOnSizeChange?: boolean;
-    overrideAllowPreJoin?: boolean;
-  }) => {
+  const balanceQueues = useCallback((args: BalanceQueuesArgs) => {
     handleBalanceQueues({
       maxQueueSize: args.overrideMaxQueueSize ?? settings.maxQueueSize,
       moveOnSizeChange: args.overrideMoveOnSizeChange ?? settings.moveOnSizeChange,

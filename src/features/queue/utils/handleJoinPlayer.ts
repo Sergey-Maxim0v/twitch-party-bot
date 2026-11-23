@@ -7,12 +7,12 @@ import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 import {
-  DEFAULT_QUEUE_SETTINGS,
   QUEUE_ENTRY_ID_PREFIX,
   QUEUE_JOIN_LOG_MESSAGES,
   QUEUE_JOIN_STATUSES,
 } from '../../../constants/queue.constants.ts'
 import { createId } from '../../../utils/createId.ts'
+import { getEffectiveQueueLimit } from './getEffectiveQueueLimit.ts'
 import { hasQueuePlayer } from './hasQueuePlayer.ts'
 import { isPrivilegedPlayer } from './isPrivilegedPlayer.ts'
 
@@ -109,7 +109,7 @@ const decideJoin = ({
   if (validationError) return denyJoin(prev, validationError)
 
   const displayName = player.displayedUsername || player.username
-  const maxActiveSize = settings.maxQueueSize || DEFAULT_QUEUE_SETTINGS.maxQueueSize
+  const maxActiveSize = getEffectiveQueueLimit(settings.maxQueueSize)
   const isActiveQueueNotFull = prev.activeQueue.length < maxActiveSize
   const isPrioritized = Boolean(settings.prioritizeSubscribers) && isPrivileged
   const isInActive = hasQueuePlayer(prev.activeQueue, player)

@@ -42,7 +42,7 @@
 * **Logs panel:** network events, app state, queue changes, and chat command attempts (including refusals).
 * **Queue management:** active roster, waiting list, history, and drag-and-drop player reordering.
 * **Three UI themes:** Nord, Dim, and System.
-* **Flexible settings:** player limit, custom commands, moderator permissions, cooldowns, and a ban list.
+* **Flexible settings:** player limit (`0` means no limit), custom commands, moderator permissions, cooldowns, and a ban list.
 * **Subscriber modes:** subscribers-only access and subscriber priority.
 * **Nickname validation:** checks nicknames for popular games and platforms — Steam, Battle.net, Riot Games, Epic Games, and more.
 * **Cross-tab synchronization:** queue and settings changes appear instantly in every open browser tab.
