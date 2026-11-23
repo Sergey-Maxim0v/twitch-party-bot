@@ -1,25 +1,41 @@
-import type { QueueActionLog } from '../types.ts'
+import { QUEUE_PLAYER_ID_LABEL } from '../../../constants/queue.constants.ts'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import type { QueueActionLog, QueuePlayer, QueueState } from '../types.ts'
 
-/** Общая часть решения об удалении игрока. */
 export interface RemovePlayerDecision {
-  /** Текст для лога. */
   logMessage: string;
-  /** Операция завершилась ошибкой. */
   isError: boolean;
-  /** Имя найденного игрока. */
   playerName: string;
 }
 
-/** Результат удаления: лог, факт удаления и имя игрока. */
+export interface RemoveDecision extends RemovePlayerDecision {
+  nextState: QueueState;
+}
+
 export interface RemovePlayerResult extends QueueActionLog {
-  /** Игрок фактически удалён. */
   isRemoved: boolean;
-  /** Имя найденного игрока. */
   playerName: string;
 }
 
-/** Собирает результат удаления из решения обработчика. */
+interface ResolvePlayerNameArgs {
+  displayedUsername?: string;
+  username?: string;
+  player?: Pick<QueuePlayer, 'displayedUsername' | 'username'>;
+  userId?: string;
+}
+
+export const resolvePlayerName = ({
+  displayedUsername,
+  username,
+  player,
+  userId,
+}: ResolvePlayerNameArgs): string =>
+  displayedUsername
+  || player?.displayedUsername
+  || player?.username
+  || username
+  || (userId ? `${QUEUE_PLAYER_ID_LABEL} ${userId}` : '')
+
 export const toRemovePlayerResult = ({
   logMessage,
   isError,

@@ -25,6 +25,9 @@ export const QUEUE_ENTRY_ID_PREFIX = 'queue-entry'
 /** Префикс уникального идентификатора завершённой сессии. */
 export const QUEUE_SESSION_ID_PREFIX = 'session'
 
+/** Название завершённой сессии в истории. */
+export const QUEUE_SESSION_NAME = (sessionNumber: number): string => `Состав №${sessionNumber}`
+
 /** Максимум игровых сессий в истории — ограничивает рост `twitch_queue_data`. */
 export const QUEUE_HISTORY_LIMIT = 100
 
@@ -318,6 +321,8 @@ export const QUEUE_CHAT_COMMAND_LOG_MESSAGES = {
 export const QUEUE_CLEAR_MESSAGES = {
   ACTIVE: 'Текущая очередь очищена.',
   WAITING: 'Список ожидающих очищен.',
+  HISTORY: 'История сыгранных сессий очищена.',
+  REMOVED_PLAYERS: (count: number): string => ` Удалено ${count} игроков.`,
 } as const
 
 /**
@@ -432,6 +437,9 @@ export const QUEUE_LOG_PREFIXES = {
 /** Подпись резервного имени, когда известен только ID игрока. */
 export const QUEUE_PLAYER_ID_LABEL = 'ID'
 
+/** Префикс сообщения об ошибке в правиле проверки игрового ника. */
+export const QUEUE_INVALID_GAME_PATTERN_LOG = 'Ошибка в регулярном выражении игры:'
+
 /**
  * Шаблоны сообщений журнала при удалении игрока из очередей.
  */
@@ -451,6 +459,8 @@ export const QUEUE_REMOVE_LOG_MESSAGES = {
   /** Игрок удалён из указанных очередей. */
   REMOVED_FROM_ALL: (name: string, removedFrom: string): string =>
     `${QUEUE_LOG_PREFIXES.REMOVE_ALL}: ${name} удален из ${removedFrom}.`,
+  /** Разделитель названий очередей в сообщении об удалении. */
+  QUEUE_TYPES_SEPARATOR: ' и ',
 } as const
 
 /**

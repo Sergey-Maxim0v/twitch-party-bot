@@ -1,11 +1,16 @@
-import type { Dispatch, SetStateAction } from 'react'
-import type { QueueJoinResult, QueueJoinStatus, QueuePlayer, QueuePlayerFormData, QueueState } from '../types'
-import { validateQueueEntry } from './validateQueueEntry'
-import { extractGameNickname } from './extractGameNickname'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
+import {
+  type QueueActionContext,
+  type QueueJoinResult,
+  type QueueJoinStatus,
+  type QueuePlayer,
+  type QueuePlayerFormData,
+  type QueueSetState,
+  type QueueState,
+} from '../types'
 import {
   QUEUE_ENTRY_ID_PREFIX,
   QUEUE_JOIN_LOG_MESSAGES,
@@ -13,61 +18,34 @@ import {
 } from '../../../constants/queue.constants.ts'
 import { createId } from '../../../utils/createId.ts'
 import { getEffectiveQueueLimit } from './getEffectiveQueueLimit.ts'
-import { hasQueuePlayer } from './hasQueuePlayer.ts'
-import { isPrivilegedPlayer } from './isPrivilegedPlayer.ts'
+import { hasQueuePlayer, isPrivilegedPlayer } from './queuePlayers.utils.ts'
+import { extractGameNickname, validateQueueEntry } from './queueValidation.utils.ts'
 
-interface HandleJoinPlayerArgs {
-  /** Текущий статус очереди. */
+interface HandleJoinPlayerArgs extends QueueActionContext {
   isQueueOpen: QueueContextValue['isQueueOpen'];
-  /** Данные добавляемого игрока. */
   playerData: QueuePlayerFormData;
-  /** Источник вызова команды. */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто добавил игрока. */
-  actorUsername: string;
-  /** Время добавления (по умолчанию — текущее). */
   customTimestamp?: number;
-  /** Настройки очереди. */
   settings: QueueSettings;
-  /** Чтение актуального состояния очереди. */
   getState: () => QueueState;
-  /** Функция обновления состояния очереди. */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Функция записи логов приложения. */
+  setState: QueueSetState;
   pushLog: AppLogsContextValue['pushLog'];
-  /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-  silentLog?: boolean;
 }
 
-/** Решение по заявке игрока. */
 interface JoinDecision {
-  /** Итоговый статус операции. */
   status: QueueJoinStatus;
-  /** Текст записи в журнале приложения. */
   logMessage: string;
-  /** Состояние очереди после операции. */
   nextState: QueueState;
 }
 
-/** Аргументы расчёта решения по заявке игрока. */
 interface DecideJoinArgs {
-  /** Состояние очереди до операции. */
   prev: QueueState;
-  /** Добавляемый игрок. */
   player: QueuePlayer;
-  /** Текущий статус очереди. */
   isQueueOpen: QueueContextValue['isQueueOpen'];
-  /** Настройки очереди. */
+  isPrivileged: boolean;
   settings: QueueSettings;
-  /** Источник вызова команды. */
-  source: AppLogItem['source'];
+  source: QueueActionContext['source'];
 }
 
-/**
- * Добавляет игрока в список с учётом приоритета подписчиков.
- *
- * @returns Новый список игроков.
- */
 const insertPlayer = (queue: QueuePlayer[], player: QueuePlayer, prioritize: boolean): QueuePlayer[] => {
   if (!prioritize) return [...queue, player]
 
@@ -77,26 +55,26 @@ const insertPlayer = (queue: QueuePlayer[], player: QueuePlayer, prioritize: boo
   return [...queue.slice(0, insertIndex), player, ...queue.slice(insertIndex)]
 }
 
-/** Формирует отказ по заявке без изменения состояния очереди. */
 const denyJoin = (prev: QueueState, logMessage: string): JoinDecision => ({
   status: QUEUE_JOIN_STATUSES.DENIED,
   logMessage,
   nextState: prev,
 })
 
-/**
- * Рассчитывает результат заявки игрока по правилам очереди.
- *
- * @returns Статус операции, текст журнала и состояние очереди после операции.
- */
+const join = (status: QueueJoinStatus, logMessage: string, nextState: QueueState): JoinDecision => ({
+  status,
+  logMessage,
+  nextState,
+})
+
 const decideJoin = ({
   prev,
   player,
   isQueueOpen,
+  isPrivileged,
   settings,
   source,
 }: DecideJoinArgs): JoinDecision => {
-  const isPrivileged = isPrivilegedPlayer(player)
   const validationError = validateQueueEntry({
     isQueueOpen,
     username: player.username,
@@ -105,7 +83,6 @@ const decideJoin = ({
     settings,
     source,
   })
-
   if (validationError) return denyJoin(prev, validationError)
 
   const displayName = player.displayedUsername || player.username
@@ -116,17 +93,13 @@ const decideJoin = ({
   const isInWaiting = hasQueuePlayer(prev.waitingQueue, player)
 
   if (!isInActive && isActiveQueueNotFull) {
-    return {
-      status: QUEUE_JOIN_STATUSES.JOINED,
-      logMessage: QUEUE_JOIN_LOG_MESSAGES.ACTIVE(displayName),
-      nextState: {
-        ...prev,
-        activeQueue: insertPlayer(prev.activeQueue, player, isPrioritized),
-      },
-    }
+    return join(QUEUE_JOIN_STATUSES.JOINED, QUEUE_JOIN_LOG_MESSAGES.ACTIVE(displayName), {
+      ...prev,
+      activeQueue: insertPlayer(prev.activeQueue, player, isPrioritized),
+    })
   }
 
-  // Полная очередь: приоритетный игрок встаёт перед первым простым, очередь сдвигается, а последний игрок уходит в список ожидания.
+  // Приоритетный игрок занимает место первого простого, который уходит в ожидание.
   const firstRegularIndex = !isInActive && !isInWaiting && !isActiveQueueNotFull && isPrioritized
     ? prev.activeQueue.findIndex(queuePlayer => !isPrivilegedPlayer(queuePlayer))
     : -1
@@ -136,50 +109,36 @@ const decideJoin = ({
     activeQueue.splice(firstRegularIndex, 0, player)
     const displaced = activeQueue.pop()!
     const canWait = settings.allowPreJoin && !hasQueuePlayer(prev.waitingQueue, displaced)
-    const waitingQueue = canWait ? [displaced, ...prev.waitingQueue] : prev.waitingQueue
 
-    return {
-      status: QUEUE_JOIN_STATUSES.JOINED,
-      logMessage: QUEUE_JOIN_LOG_MESSAGES.ACTIVE(displayName),
-      nextState: { ...prev, activeQueue, waitingQueue },
-    }
+    return join(QUEUE_JOIN_STATUSES.JOINED, QUEUE_JOIN_LOG_MESSAGES.ACTIVE(displayName), {
+      ...prev,
+      activeQueue,
+      waitingQueue: canWait ? [displaced, ...prev.waitingQueue] : prev.waitingQueue,
+    })
   }
 
   if (!settings.allowPreJoin) {
-    return denyJoin(prev, isInActive
+    const message = isInActive
       ? QUEUE_JOIN_LOG_MESSAGES.DENIED_ACTIVE(displayName)
-      : QUEUE_JOIN_LOG_MESSAGES.DENIED_FULL())
+      : QUEUE_JOIN_LOG_MESSAGES.DENIED_FULL()
+
+    return denyJoin(prev, message)
   }
 
-  if (isInActive && !settings.allowMultipleEntries) {
-    return denyJoin(prev, QUEUE_JOIN_LOG_MESSAGES.DENIED_REJOIN(displayName))
-  }
+  if (isInActive && !settings.allowMultipleEntries) return denyJoin(prev, QUEUE_JOIN_LOG_MESSAGES.DENIED_REJOIN(displayName))
+  if (isInActive && isInWaiting) return denyJoin(prev, QUEUE_JOIN_LOG_MESSAGES.DENIED_ACTIVE_AND_WAITING(displayName))
+  if (!isInActive && isInWaiting) return denyJoin(prev, QUEUE_JOIN_LOG_MESSAGES.DENIED_WAITING(displayName))
 
-  if (isInActive && isInWaiting) {
-    return denyJoin(prev, QUEUE_JOIN_LOG_MESSAGES.DENIED_ACTIVE_AND_WAITING(displayName))
-  }
+  const message = isInActive
+    ? QUEUE_JOIN_LOG_MESSAGES.PREJOIN(displayName)
+    : QUEUE_JOIN_LOG_MESSAGES.WAITING(displayName)
 
-  if (!isInActive && isInWaiting) {
-    return denyJoin(prev, QUEUE_JOIN_LOG_MESSAGES.DENIED_WAITING(displayName))
-  }
-
-  return {
-    status: QUEUE_JOIN_STATUSES.WAITING,
-    logMessage: isInActive
-      ? QUEUE_JOIN_LOG_MESSAGES.PREJOIN(displayName)
-      : QUEUE_JOIN_LOG_MESSAGES.WAITING(displayName),
-    nextState: {
-      ...prev,
-      waitingQueue: insertPlayer(prev.waitingQueue, player, isPrioritized),
-    },
-  }
+  return join(QUEUE_JOIN_STATUSES.WAITING, message, {
+    ...prev,
+    waitingQueue: insertPlayer(prev.waitingQueue, player, isPrioritized),
+  })
 }
 
-/**
- * Добавляет игрока в активную очередь или список ожидающих.
- *
- * @returns Статус операции и данные для журнала приложения.
- */
 export const handleJoinPlayer = ({
   isQueueOpen,
   playerData,
@@ -206,10 +165,12 @@ export const handleJoinPlayer = ({
     isSubscriber: playerData.isSubscriber ?? false,
   }
 
+  const prev = getState()
   const decision = decideJoin({
-    prev: getState(),
+    prev,
     player,
     isQueueOpen,
+    isPrivileged: isPrivilegedPlayer(player),
     settings,
     source,
   })

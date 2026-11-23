@@ -1,25 +1,19 @@
 import { useCallback } from 'react'
-import type { Dispatch, SetStateAction } from 'react'
-import type { QueueActionLog, QueueClearArgs, QueueState } from '../types'
-import type { LogSource } from '../../app-logs/types.ts'
+import type { QueueActionLog, QueueActorContext, QueueClearArgs, QueueSetState, QueueState } from '../types'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
-import { handleClearActiveQueue } from '../utils/handleClearActiveQueue.ts'
-import { handleClearWaitingQueue } from '../utils/handleClearWaitingQueue.ts'
-import { handleClearQueueHistory } from '../utils/handleClearQueueHistory.ts'
+import {
+  handleClearActiveQueue,
+  handleClearQueueHistory,
+  handleClearWaitingQueue,
+} from '../utils/queueSessionHandlers.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 
 interface UseQueueClearArgs {
-  /** Функция обновления состояния очереди. */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Чтение актуального состояния очереди. */
+  setState: QueueSetState;
   getState: () => QueueState;
-  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
 }
 
-/**
- * Хук очистки активной очереди, списка ожидающих и истории сессий.
- */
 export const useQueueClear = ({ setState, getState, pushLog }: UseQueueClearArgs) => {
   const { sendClearActive, sendClearWaiting } = useQueueNotification()
 
@@ -39,10 +33,7 @@ export const useQueueClear = ({ setState, getState, pushLog }: UseQueueClearArgs
     return result
   }, [getState, setState, pushLog, sendClearWaiting])
 
-  const clearQueueHistory = useCallback((args: {
-    source: LogSource;
-    actorUsername: string;
-  }) => {
+  const clearQueueHistory = useCallback((args: QueueActorContext): void => {
     handleClearQueueHistory({ ...args, getState, setState, pushLog })
   }, [getState, setState, pushLog])
 

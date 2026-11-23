@@ -1,54 +1,42 @@
 import { useCallback } from 'react'
-import type { Dispatch, SetStateAction } from 'react'
 import {
-  type QueueActionLog,
-  type QueueJoinResult,
-  type QueueState,
-  type QueuePlayerFormData,
-  type QueueType,
-  type MutableQueueType,
   QUEUE_TYPES,
+  type MutableQueueType,
+  type QueueActionContext,
+  type QueueActionLog,
+  type QueueActorContext,
+  type QueueJoinResult,
+  type QueuePlayerFormData,
+  type QueueSetState,
+  type QueueState,
+  type QueueType,
 } from '../types'
-import type { LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import type { BalanceQueuesArgs } from '../context/QueueInstance.ts'
 import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
 import { handleRemovePlayer } from '../utils/handleRemovePlayer.ts'
 import { handleRemovePlayerFromAll } from '../utils/handleRemovePlayerFromAll.ts'
 import { handleBanPlayer } from '../utils/handleBanPlayer.ts'
 import { handleUnbanPlayer } from '../utils/handleUnbanPlayer.ts'
 import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
+import { getQueuePlayerName } from '../utils/queuePlayers.utils.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import { QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
 
 interface UseQueuePlayersArgs {
-  /** Функция обновления состояния очереди. */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Чтение актуального состояния очереди. */
+  setState: QueueSetState;
   getState: () => QueueState;
-  /** Текущий статус очереди. */
   isQueueOpen: boolean;
-  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
-  /** Функция балансировки активной очереди и списка ожидающих. */
-  balanceQueues: (args: { source: LogSource; actorUsername: string }) => void;
+  balanceQueues: (args: BalanceQueuesArgs) => void;
 }
 
-/** Аргументы операций над игроками очереди. */
-interface QueuePlayerCommandArgs {
-  /** Никнейм игрока. */
+type QueuePlayerCommandArgs = QueueActionContext & {
   username: string;
-  /** Отображаемое имя игрока. */
   displayedUsername?: string;
-  /** Источник вызова команды. */
-  source: LogSource;
-  /** Никнейм того, кто выполнил операцию. */
-  actorUsername: string;
 }
 
-/**
- * Хук управления игроками: добавление, удаление, бан и перемещение.
- */
 export const useQueuePlayers = ({
   setState,
   getState,
@@ -66,20 +54,15 @@ export const useQueuePlayers = ({
     addDeniedUser,
   } = useQueueNotification()
 
-  /** Синхронизирует списки очередей после изменения состава. */
-  const balanceAfterChange = useCallback((args: { source: LogSource; actorUsername: string }) => {
+  const balanceAfterChange = useCallback((args: QueueActorContext) => {
     if (!settings.moveOnSizeChange) return
 
     balanceQueues({ source: args.source, actorUsername: args.actorUsername })
   }, [settings.moveOnSizeChange, balanceQueues])
 
-  const addPlayerToQueue = useCallback((args: {
+  const addPlayerToQueue = useCallback((args: QueueActionContext & {
     playerData: QueuePlayerFormData;
-    source: LogSource;
-    actorUsername: string;
     customTimestamp?: number;
-    /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-    silentLog?: boolean;
   }): QueueJoinResult => {
     const result = handleJoinPlayer({ ...args, isQueueOpen, settings, getState, setState, pushLog })
 
@@ -110,8 +93,6 @@ export const useQueuePlayers = ({
 
   const removePlayerFromAllQueues = useCallback((args: QueuePlayerCommandArgs & {
     userId: string;
-    /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-    silentLog?: boolean;
   }): QueueActionLog => {
     const result = handleRemovePlayerFromAll({ ...args, getState, setState, pushLog })
 
@@ -133,11 +114,7 @@ export const useQueuePlayers = ({
     removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
   }, [settings, updateSettings, pushLog, removePlayerFromAllQueues])
 
-  const unbanPlayerFromQueue = useCallback((args: {
-    username: string;
-    source: LogSource;
-    actorUsername: string;
-  }) => {
+  const unbanPlayerFromQueue = useCallback((args: QueueActorContext & { username: string }) => {
     handleUnbanPlayer({ ...args, settings, updateSettings, pushLog })
   }, [settings, updateSettings, pushLog])
 
@@ -159,24 +136,16 @@ export const useQueuePlayers = ({
 
     if (decision.isNoop) return
 
+    if (decision.isMoved && decision.sourceQueueType !== args.targetQueueType) {
+      const username = args.displayedUsername ?? args.username
+      const notify = args.targetQueueType === QUEUE_TYPES.ACTIVE ? addMovedToActiveUser : addMovedToWaitingUser
+
+      notify(username)
+    }
+
     if (decision.isMoved) {
-      if (decision.sourceQueueType !== args.targetQueueType) {
-        const username = args.displayedUsername ?? args.username
-
-        if (args.targetQueueType === QUEUE_TYPES.ACTIVE) {
-          addMovedToActiveUser(username)
-        } else {
-          addMovedToWaitingUser(username)
-        }
-      }
-
-      decision.displacedToWaiting.forEach(player => {
-        addMovedToWaitingUser(player.displayedUsername ?? player.username)
-      })
-
-      decision.displacedRemoved.forEach(player => {
-        addDeletedUser(player.displayedUsername ?? player.username)
-      })
+      decision.displacedToWaiting.forEach(player => addMovedToWaitingUser(getQueuePlayerName(player)))
+      decision.displacedRemoved.forEach(player => addDeletedUser(getQueuePlayerName(player)))
     }
 
     balanceAfterChange(args)

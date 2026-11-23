@@ -1,99 +1,85 @@
 import { createContext } from 'react'
 import {
+  type MutableQueueType,
+  type QueueActionContext,
   type QueueActionLog,
+  type QueueActorContext,
   type QueueClearArgs,
   type QueueJoinResult,
-  type QueueState,
   type QueuePlayer,
-  type QueueSession,
   type QueuePlayerFormData,
+  type QueueSession,
+  type QueueState,
   type QueueType,
-  type MutableQueueType,
 } from '../types'
-import type { LogSource } from '../../app-logs/types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
 type QueueBalanceOverrideKey = 'allowPreJoin' | 'maxQueueSize' | 'moveOnSizeChange'
 
 /** Аргументы ручной балансировки очередей. */
-export type BalanceQueuesArgs = { source: LogSource; actorUsername: string }
-  & {
-    [Key in QueueBalanceOverrideKey as `override${Capitalize<Key>}`]?: QueueSettings[Key]
-  }
+export type BalanceQueuesArgs = QueueActorContext & {
+  [Key in QueueBalanceOverrideKey as `override${Capitalize<Key>}`]?: QueueSettings[Key]
+}
 
 /** Публичный API контекста очереди. */
 export interface QueueContextValue {
   /** Текущий статус очереди. */
   isQueueOpen: boolean;
-  /** Открыть прием заявок в очередь. */
-  openQueue: (args: { source: LogSource; actorUsername: string; silentLog?: boolean }) => QueueActionLog;
-  /** Приостановить прием заявок в очередь. */
-  closeQueue: (args: { source: LogSource; actorUsername: string; silentLog?: boolean }) => QueueActionLog;
+  /** Открыть приём заявок в очередь. */
+  openQueue: (args: QueueActionContext) => QueueActionLog;
+  /** Приостановить приём заявок в очередь. */
+  closeQueue: (args: QueueActionContext) => QueueActionLog;
 
-  /** Игроки в текущей активной очереди */
+  /** Игроки в активной очереди. */
   activeQueue: QueuePlayer[];
-  /** Игроки в списке ожидающих */
+  /** Игроки в списке ожидающих. */
   waitingQueue: QueuePlayer[];
-  /** История завершенных игровых сессий (составов) */
+  /** История завершённых сессий. */
   queueHistory: QueueSession[];
-  /** Чтение актуального состояния очереди без подписки на изменения */
+  /** Чтение актуального состояния без подписки на изменения. */
   getState: () => QueueState;
 
-  /** Очистить текущую активную очередь. */
+  /** Очистить активную очередь. */
   clearActiveQueue: (args: QueueClearArgs) => QueueActionLog;
   /** Очистить список ожидающих. */
   clearWaitingQueue: (args: QueueClearArgs) => QueueActionLog;
-  /** Очистить историю сыгранных сессий */
-  clearQueueHistory: (args: { source: LogSource; actorUsername: string; }) => void;
+  /** Очистить историю сыгранных сессий. */
+  clearQueueHistory: (args: QueueActorContext) => void;
 
-  /** Добавить игрока в очередь (в активную или список ожидающих на основе правил) */
-  addPlayerToQueue: (args: {
+  /** Добавить игрока в активную очередь или список ожидающих. */
+  addPlayerToQueue: (args: QueueActionContext & {
     playerData: QueuePlayerFormData;
-    source: LogSource;
-    actorUsername: string;
     customTimestamp?: number;
-    silentLog?: boolean;
   }) => QueueJoinResult;
 
-  /** Удалить первую найденную запись игрока из конкретной очереди (активной или ожидающих) */
-  removePlayerFromQueue: (args: {
+  /** Удалить запись игрока из конкретной очереди. */
+  removePlayerFromQueue: (args: QueueActorContext & {
     userId: string;
     username: string;
     displayedUsername?: string;
     targetQueueType: QueueType;
-    source: LogSource;
-    actorUsername: string;
     rawCommand?: string;
   }) => void;
 
-  /** Полностью удалить игрока из всех существующих очередей (например, при команде !leave) */
-  removePlayerFromAllQueues: (args: {
+  /** Полностью удалить игрока из всех очередей. */
+  removePlayerFromAllQueues: (args: QueueActionContext & {
     userId: string;
     username: string;
     displayedUsername?: string;
-    source: LogSource;
-    actorUsername: string;
-    silentLog?: boolean;
   }) => QueueActionLog;
 
-  /** Добавить игрока во внутренний бан-лист очереди и удалить его из текущих списков */
-  banPlayerFromQueue: (args: {
+  /** Добавить игрока в бан-лист и удалить его из текущих списков. */
+  banPlayerFromQueue: (args: QueueActorContext & {
     userId?: string;
     username: string;
     displayedUsername?: string;
-    source: LogSource;
-    actorUsername: string;
   }) => void;
 
-  /** Удалить игрока из внутреннего бан-листа очереди и зафиксировать амнистию в логах */
-  unbanPlayerFromQueue: (args: {
-    username: string;
-    source: LogSource;
-    actorUsername: string;
-  }) => void;
+  /** Удалить игрока из бан-листа. */
+  unbanPlayerFromQueue: (args: QueueActorContext & { username: string }) => void;
 
-  /** Универсальное перемещение игрока внутри списков или между ними (Drag-and-Drop) */
-  movePlayer: (args: {
+  /** Переместить игрока внутри списка или между списками. */
+  movePlayer: (args: QueueActorContext & {
     queueEntryId: string;
     userId: string;
     username: string;
@@ -101,15 +87,13 @@ export interface QueueContextValue {
     sourceQueueType: MutableQueueType;
     targetQueueType: MutableQueueType;
     targetIndex: number | undefined;
-    source: LogSource;
-    actorUsername: string;
   }) => void;
 
-  /** Произвести ручную балансировку игроков между активной очередью и списком ожидания. */
+  /** Произвести ручную балансировку игроков между очередями. */
   balanceQueues: (args: BalanceQueuesArgs) => void;
 
-  /** Завершить текущую очередь (активная улетает в историю, из ожидающих переносятся) */
-  finishActiveQueue: (args: { source: LogSource; actorUsername: string; silentLog?: boolean }) => QueueActionLog;
+  /** Завершить текущую сессию. */
+  finishActiveQueue: (args: QueueActionContext) => QueueActionLog;
 }
 
 /** React-контекст очереди. */

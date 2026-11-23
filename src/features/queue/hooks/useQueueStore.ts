@@ -1,38 +1,26 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import type { Dispatch, SetStateAction } from 'react'
-import type { QueueState } from '../types.ts'
+import type { QueueSetState, QueueState } from '../types.ts'
 import { QUEUE_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { readStoredValue, serializeStoredValue } from '../../../hooks/utils/storage.utils.ts'
 import { readWebStorage, writeWebStorage } from '../../../hooks/utils/webStorage.utils.ts'
-import { createInitialState } from '../utils/createInitialState.ts'
-import { sanitizeQueueState } from '../utils/sanitizeQueueState.ts'
+import { createInitialState, sanitizeQueueState } from '../utils/queueState.utils.ts'
 import { createQueueStore, type QueueStore } from '../store/queueStore.ts'
 
 interface UseQueueStoreResult {
   /** Актуальное состояние очереди. */
   state: QueueState;
   /** Обновляет состояние очереди. */
-  setState: Dispatch<SetStateAction<QueueState>>;
+  setState: QueueSetState;
   /** Читает актуальное состояние очереди без подписки на изменения. */
   getState: () => QueueState;
 }
 
-/**
- * Читает состояние очереди из localStorage и отбрасывает повреждённые записи.
- *
- * @returns Состояние очереди, восстановленное из хранилища.
- */
+/** Читает состояние очереди из localStorage, отбрасывая повреждённые записи. */
 const readStoredState = (): QueueState => (
   sanitizeQueueState(readStoredValue('localStorage', QUEUE_STORAGE_KEYS.DATA, createInitialState()))
 )
 
-/**
- * Хранит состояние очереди в синхронном хранилище: обновления применяются
- * сразу при вызове, поэтому результат операции известен до следующего рендера.
- * Состояние сохраняется в localStorage и синхронизируется между вкладками.
- *
- * @returns Состояние очереди и функции его обновления.
- */
+/** Хранит состояние очереди в localStorage и синхронизирует его между вкладками. */
 export const useQueueStore = (): UseQueueStoreResult => {
   const [store] = useState<QueueStore>(() => createQueueStore(readStoredState()))
   const isFirstRunRef = useRef(true)

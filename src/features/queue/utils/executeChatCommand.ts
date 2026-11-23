@@ -7,7 +7,7 @@ import { QUEUE_CHAT_COMMAND_LOG_MESSAGES } from '../../../constants/queue.consta
 import { TWITCH_CHAT_COMMAND_SPLIT_REGEX, TWITCH_LOGIN_PATTERN } from '../../../constants/twitch.constants.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 import { QUEUE_PLAYER_SOURCE, type QueueActionLog } from '../types.ts'
-import { parseCommandTarget } from './parseCommandTarget.ts'
+import { parseCommandTarget } from './queueValidation.utils.ts'
 
 type QueueChatActions = Pick<
   QueueContextValue,

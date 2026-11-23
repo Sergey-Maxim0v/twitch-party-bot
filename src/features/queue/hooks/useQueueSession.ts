@@ -1,53 +1,31 @@
 import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueActionLog, QueueState } from '../types'
-import type { LogSource } from '../../app-logs/types.ts'
+import type { QueueActionContext, QueueActionLog, QueueSetState, QueueState } from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 import { formatFinishedQueueMessage } from '../../queue-notification/utils/formatFinishedQueueMessage.ts'
-import { handleOpenQueue } from '../utils/handleOpenQueue.ts'
-import { handleCloseQueue } from '../utils/handleCloseQueue.ts'
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
+import { handleCloseQueue, handleOpenQueue } from '../utils/queueSessionHandlers.ts'
 import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import type { BalanceQueuesArgs } from '../context/QueueInstance.ts'
 
-/** Аргументы действия с очередью, инициированного пользователем или чатом. */
-interface QueueSessionActionArgs {
-  source: LogSource;
-  actorUsername: string;
-  /** Не писать запись в журнал: результат логирует вызывающая сторона. */
-  silentLog?: boolean;
-}
-
-/** Аргументы автоматического закрытия очереди с указанием причины. */
-interface AutoCloseQueueArgs extends QueueSessionActionArgs {
+interface AutoCloseQueueArgs extends QueueActionContext {
   message: string;
 }
 
 interface UseQueueSessionArgs {
-  /** Функция обновления состояния очереди. */
-  setState: Dispatch<SetStateAction<QueueState>>;
-  /** Чтение актуального состояния очереди. */
+  setState: QueueSetState;
   getState: () => QueueState;
-  /** Текущий статус очереди. */
   isQueueOpen: boolean;
-  /** Функция изменения статуса очереди. */
   setIsQueueOpen: Dispatch<SetStateAction<boolean>>;
-  /** Канал, к которому привязывается открытая очередь. */
   activeChannel: string | null;
-  /** Сохраняет канал, к которому привязана очередь. */
   setQueueChannel: Dispatch<SetStateAction<string | null>>;
-  /** Функция записи логов приложения. */
   pushLog: AppLogsContextValue['pushLog'];
 }
 
-/**
- * Управляет жизненным циклом очереди: открытие, закрытие,
- * завершение сессии и балансировка списков.
- */
 export const useQueueSession = ({
   setState,
   getState,
@@ -101,7 +79,7 @@ export const useQueueSession = ({
     addDeletedUser,
   ])
 
-  const openQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
+  const openQueue = useCallback((args: QueueActionContext): QueueActionLog => {
     const result = handleOpenQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
 
     if (result.isOpened) {
@@ -112,7 +90,7 @@ export const useQueueSession = ({
     return result
   }, [activeChannel, isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageOpen])
 
-  const closeQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
+  const closeQueue = useCallback((args: QueueActionContext): QueueActionLog => {
     const result = handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
 
     setQueueChannel(null)
@@ -140,7 +118,7 @@ export const useQueueSession = ({
     })
   }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, clearBuffer])
 
-  const finishActiveQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
+  const finishActiveQueue = useCallback((args: QueueActionContext): QueueActionLog => {
     const decision = handleFinishActiveQueue({ getState, setState })
     const logContext = { source: args.source, actorUsername: args.actorUsername }
     const result: QueueActionLog = decision.isEmpty

@@ -11,7 +11,7 @@ import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts
 import { QueueElement } from './QueueElement.tsx'
 import type { QueueEntry } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
-import { findQueueEntry } from '../utils/findQueueEntry.ts'
+import { findQueueEntry } from '../utils/queuePlayers.utils.ts'
 import { useChatCommands } from '../hooks/useChatCommands.ts'
 
 /**

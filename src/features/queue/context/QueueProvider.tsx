@@ -15,8 +15,7 @@ import { useQueueStore } from '../hooks/useQueueStore.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { QUEUE_HISTORY_LIMIT, PLAYER_HISTORY_LIMIT } from '../../../constants/queue.constants.ts'
-import { limitQueueHistory } from '../utils/limitQueueHistory.ts'
-import { limitPlayerHistory } from '../utils/limitPlayerHistory.ts'
+import { limitPlayerHistory, limitQueueHistory } from '../utils/queueState.utils.ts'
 import { getEffectiveQueueLimit } from '../utils/getEffectiveQueueLimit.ts'
 
 interface QueueProviderProps {
@@ -24,9 +23,7 @@ interface QueueProviderProps {
   children: ReactNode;
 }
 
-/**
- * Провайдер состояния и методов управления очередью.
- */
+/** Провайдер состояния и методов управления очередью. */
 export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
   const { state, setState, getState } = useQueueStore()
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage(QUEUE_STORAGE_KEYS.STATUS, false)
@@ -46,8 +43,7 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
 
   const playerHistorySize = Object.keys(state.playerHistory).length
 
-  // Подрезает историю сессий и игроков, если в localStorage остались данные сверх лимита
-  // или другая вкладка прислала больше лимита.
+  // Подрезает историю, если в хранилище или другой вкладке данные сверх лимита.
   useEffect(() => {
     if (state.queueHistory.length <= QUEUE_HISTORY_LIMIT && playerHistorySize <= PLAYER_HISTORY_LIMIT) return
 

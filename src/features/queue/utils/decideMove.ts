@@ -6,38 +6,44 @@ import {
   type QueueState,
 } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
-import { createMoveDecision } from './createMoveDecision.ts'
 import { getEffectiveQueueLimit } from './getEffectiveQueueLimit.ts'
-import { getQueueByType } from './getQueueByType.ts'
-import { hasQueuePlayer } from './hasQueuePlayer.ts'
+import { getQueueByType, hasQueuePlayer } from './queuePlayers.utils.ts'
 
-/** Аргументы расчёта решения по перемещению игрока. */
-interface DecideMoveArgs {
-  /** Состояние очереди до перемещения. */
-  prev: QueueState;
-  /** Уникальный идентификатор перемещаемой записи. */
+export type MovePlayerArgs = {
   queueEntryId: string;
-  /** Уникальный ID пользователя на Twitch для перемещения. */
   userId: string;
-  /** Список, из которого перемещают игрока. */
   sourceQueueType: MutableQueueType;
-  /** Целевой тип очереди, куда перемещают игрока. */
   targetQueueType: MutableQueueType;
-  /** Индекс (позиция), куда нужно вставить игрока. */
   targetIndex: number | undefined;
-  /** Никнейм для отображения. */
   displayedUsername?: string;
-  /** Максимальный размер активной очереди. */
   maxQueueSize: QueueSettings['maxQueueSize'];
-  /** Разрешена ли запись в список ожидающих. */
   allowPreJoin: boolean;
 }
 
-/**
- * Рассчитывает решение о перемещении игрока внутри списка или между списками.
- *
- * @returns Новое состояние очереди и результат операции.
- */
+export type DecideMoveArgs = MovePlayerArgs & {
+  prev: QueueState;
+}
+
+const createMoveDecision = (
+  prev: QueueState,
+  playerName: string,
+  sourceQueueType: MoveDecision['sourceQueueType'],
+  overrides: Partial<MoveDecision> = {},
+): MoveDecision => ({
+  nextState: prev,
+  isMoved: false,
+  isNoop: false,
+  isBlockedByDuplicate: false,
+  isBlockedByDisabledWaiting: false,
+  sourceQueueType,
+  playerName,
+  insertIndex: null,
+  displacedToWaiting: [],
+  displacedRemoved: [],
+  displacedAlreadyWaiting: [],
+  ...overrides,
+})
+
 export const decideMove = ({
   prev,
   queueEntryId,

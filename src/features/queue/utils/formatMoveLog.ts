@@ -5,14 +5,9 @@ import {
   QUEUE_TYPE_LABELS,
   QUEUE_TYPE_LABELS_ACCUSATIVE,
 } from '../../../constants/queue.constants.ts'
-import { formatQueuePlayerNames } from './formatQueuePlayerNames.ts'
-import { getQueueByType } from './getQueueByType.ts'
+import { formatQueuePlayerNames, getQueueByType } from './queuePlayers.utils.ts'
 
-/**
- * Формирует сообщение журнала о выполненном перемещении.
- *
- * @returns Текст записи в журнале.
- */
+/** Формирует текст записи журнала о перемещении игрока. */
 export const formatMoveLog = (
   decision: MoveDecision,
   targetQueueType: MutableQueueType,

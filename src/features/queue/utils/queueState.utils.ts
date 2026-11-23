@@ -1,41 +1,61 @@
-import type { PlayerHistoryStats, QueuePlayer, QueuePlayerSource, QueueSession, QueueState } from '../types.ts'
-import { QUEUE_ENTRY_ID_PREFIX, QUEUE_PLAYER_SOURCE } from '../../../constants/queue.constants.ts'
-import { createId } from '../../../utils/createId.ts'
+import {
+  PLAYER_HISTORY_LIMIT,
+  QUEUE_ENTRY_ID_PREFIX,
+  QUEUE_HISTORY_LIMIT,
+  QUEUE_PLAYER_SOURCE,
+} from '../../../constants/queue.constants.ts'
 import { mergeWithDefaults } from '../../../hooks/utils/storage.utils.ts'
 import { filterNotNull } from '../../../utils/arrays.ts'
+import { createId } from '../../../utils/createId.ts'
 import { isPlainObject } from '../../../utils/objects.ts'
 import { hasControlCharacters, isFilledString } from '../../../utils/strings.ts'
-import { createInitialState } from './createInitialState.ts'
-import { dedupeQueuePlayers } from './dedupeQueuePlayers.ts'
-import { normalizeQueueUsername } from './normalizeQueueUsername.ts'
+import type {
+  PlayerHistoryStats,
+  QueuePlayer,
+  QueuePlayerSource,
+  QueueSession,
+  QueueState,
+} from '../types.ts'
+import { dedupeQueuePlayers, normalizeQueueUsername } from './queuePlayers.utils.ts'
 
-/** Источники появления игрока, допустимые в сохранённых данных. */
+type PlayerHistory = QueueState['playerHistory']
+
 const QUEUE_PLAYER_SOURCES: readonly string[] = Object.values(QUEUE_PLAYER_SOURCE)
 
-/**
- * Проверяет, что значение — конечное число.
- *
- * @param value - Проверяемое значение.
- * @returns `true`, если значение — число без `NaN` и `Infinity`.
- */
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
 
-/**
- * Проверяет, что значение — поддерживаемый источник появления игрока.
- *
- * @param value - Проверяемое значение.
- * @returns `true`, если значение входит в `QUEUE_PLAYER_SOURCE`.
- */
 const isQueuePlayerSource = (value: unknown): value is QueuePlayerSource =>
   typeof value === 'string' && QUEUE_PLAYER_SOURCES.includes(value)
 
-/**
- * Восстанавливает игрока, нормализуя логин и отбрасывая некорректные никнеймы.
- *
- * @param value - Значение из хранилища.
- * @returns Игрок или `null`, если в записи нет корректного никнейма.
- */
+export const createInitialState = (): QueueState => ({
+  activeQueue: [],
+  waitingQueue: [],
+  queueHistory: [],
+  globalSessionCounter: 0,
+  playerHistory: {},
+})
+
+// Новые сессии хранятся в начале массива, поэтому отбрасываются самые старые.
+export const limitQueueHistory = (history: QueueSession[]): QueueSession[] =>
+  history.length > QUEUE_HISTORY_LIMIT ? history.slice(0, QUEUE_HISTORY_LIMIT) : history
+
+/** Время последней игры; повреждённые данные считаются как `0`. */
+const getLastPlayedTimestamp = (stats: PlayerHistoryStats | null | undefined): number =>
+  typeof stats?.lastPlayedTimestamp === 'number' ? stats.lastPlayedTimestamp : 0
+
+export const limitPlayerHistory = (playerHistory: PlayerHistory): PlayerHistory => {
+  const entries = Object.entries(playerHistory)
+
+  if (entries.length <= PLAYER_HISTORY_LIMIT) return playerHistory
+
+  return Object.fromEntries(
+    entries
+      .sort(([, left], [, right]) => getLastPlayedTimestamp(right) - getLastPlayedTimestamp(left))
+      .slice(0, PLAYER_HISTORY_LIMIT),
+  )
+}
+
 const toQueuePlayer = (value: unknown): QueuePlayer | null => {
   if (!isPlainObject(value) || !isFilledString(value.username) || hasControlCharacters(value.username)) return null
 
@@ -63,12 +83,6 @@ const toQueuePlayer = (value: unknown): QueuePlayer | null => {
   }
 }
 
-/**
- * Восстанавливает сессию из сохранённых данных, отбрасывая некорректных участников.
- *
- * @param value - Значение из хранилища.
- * @returns Сессия или `null`, если в записи нет идентификатора или списка игроков.
- */
 const toQueueSession = (value: unknown): QueueSession | null => {
   if (!isPlainObject(value) || !isFilledString(value.id) || !Array.isArray(value.players)) return null
 
@@ -81,12 +95,6 @@ const toQueueSession = (value: unknown): QueueSession | null => {
   }
 }
 
-/**
- * Восстанавливает статистику игрока из сохранённых данных.
- *
- * @param value - Значение из хранилища.
- * @returns Статистика или `null`, если обязательные поля повреждены.
- */
 const toPlayerHistoryStats = (value: unknown): PlayerHistoryStats | null => {
   if (!isPlainObject(value)) return null
 
@@ -105,13 +113,6 @@ const toPlayerHistoryStats = (value: unknown): PlayerHistoryStats | null => {
   return { lastPlayedTimestamp, lastPlayedSessionNumber, gamesPlayed, userID, username }
 }
 
-/**
- * Объединяет статистику одного игрока, оказавшуюся под разными ключами.
- *
- * @param current - Уже сохранённая статистика.
- * @param incoming - Статистика из повторной записи.
- * @returns Суммарное число игр и данные последней сессии.
- */
 const mergePlayerHistoryStats = (
   current: PlayerHistoryStats,
   incoming: PlayerHistoryStats,
@@ -124,12 +125,6 @@ const mergePlayerHistoryStats = (
   return { ...latestStats, gamesPlayed: current.gamesPlayed + incoming.gamesPlayed }
 }
 
-/**
- * Нормализует логины в истории и объединяет дубли, отбрасывая повреждённые записи.
- *
- * @param history - Сохранённый индекс истории игроков.
- * @returns Индекс с нормализованными ключами и без повреждённых записей.
- */
 const sanitizePlayerHistory = (history: QueueState['playerHistory']): QueueState['playerHistory'] => {
   const normalizedHistory = new Map<string, PlayerHistoryStats>()
 
@@ -149,13 +144,7 @@ const sanitizePlayerHistory = (history: QueueState['playerHistory']): QueueState
   return Object.fromEntries(normalizedHistory)
 }
 
-/**
- * Приводит сохранённое состояние к актуальной структуре и отбрасывает записи,
- * которые ломают отображение очереди и проверки кулдаунов.
- *
- * @param stored - Значение из хранилища.
- * @returns Валидное состояние очереди.
- */
+/** Приводит сохранённое состояние к актуальной структуре и отбрасывает повреждённые записи. */
 export const sanitizeQueueState = (stored: unknown): QueueState => {
   const state = mergeWithDefaults(createInitialState(), stored)
 

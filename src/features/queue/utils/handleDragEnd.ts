@@ -2,26 +2,17 @@ import { type DragEndEvent } from '@dnd-kit/core'
 import { QUEUE_TYPES, type MutableQueueType, type QueuePlayer } from '../types.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
-import { findQueueEntry } from './findQueueEntry.ts'
-import { getQueueByType } from './getQueueByType.ts'
+import { findQueueEntry, getQueueByType } from './queuePlayers.utils.ts'
 
-/** Аргументы обработки события перетаскивания. */
 interface HandleDragEndArgs {
-  /** Событие завершения Drag-and-Drop. */
   event: DragEndEvent
-  /** Игроки в активной очереди. */
   activeQueue: QueuePlayer[]
-  /** Игроки в списке ожидающих. */
   waitingQueue: QueuePlayer[]
-  /** Функция перемещения игрока. */
   movePlayer: QueueContextValue['movePlayer']
-  /** Никнейм того, кто выполнил перемещение. */
   actorUsername: string
 }
 
-/**
- * Обрабатывает завершение Drag-and-Drop и делегирует перемещение игрока.
- */
+/** Обрабатывает завершение Drag-and-Drop и делегирует перемещение игрока. */
 export const handleDragEnd = ({
   event,
   activeQueue,
@@ -40,17 +31,17 @@ export const handleDragEnd = ({
   if (!sourceEntry) return
 
   const isContainerDrop = overId === QUEUE_TYPES.ACTIVE || overId === QUEUE_TYPES.WAITING
+  const targetEntry = isContainerDrop ? null : findQueueEntry(activeQueue, waitingQueue, overId)
   let targetQueueType: MutableQueueType
   let targetEntryId: string | null = null
 
   if (isContainerDrop) {
     targetQueueType = overId
-  } else {
-    const targetEntry = findQueueEntry(activeQueue, waitingQueue, overId)
-    if (!targetEntry) return
-
+  } else if (targetEntry) {
     targetQueueType = targetEntry.queueType
     targetEntryId = overId
+  } else {
+    return
   }
 
   const sourceQueue = getQueueByType(activeQueue, waitingQueue, sourceEntry.queueType)

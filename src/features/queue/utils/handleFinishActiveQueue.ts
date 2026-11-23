@@ -1,51 +1,27 @@
-import type { Dispatch, SetStateAction } from 'react'
-import type { PlayerHistoryStats, QueueSession, QueueState, QueuePlayer } from '../types'
-import { QUEUE_SESSION_ID_PREFIX } from '../../../constants/queue.constants.ts'
-import { limitQueueHistory } from './limitQueueHistory.ts'
-import { limitPlayerHistory } from './limitPlayerHistory.ts'
-import { normalizeQueueUsername } from './normalizeQueueUsername.ts'
+import { QUEUE_SESSION_ID_PREFIX, QUEUE_SESSION_NAME } from '../../../constants/queue.constants.ts'
 import { createId } from '../../../utils/createId.ts'
 import { getOwnValue } from '../../../utils/objects.ts'
+import type {
+  PlayerHistoryStats,
+  QueuePlayer,
+  QueueSession,
+  QueueSetState,
+  QueueState,
+} from '../types'
+import { normalizeQueueUsername } from './queuePlayers.utils.ts'
+import { limitPlayerHistory, limitQueueHistory } from './queueState.utils.ts'
 
 interface HandleFinishActiveQueueArgs {
-  /** Чтение актуального состояния очереди. */
   getState: () => QueueState;
-  /** Функция обновления состояния. */
-  setState: Dispatch<SetStateAction<QueueState>>;
+  setState: QueueSetState;
 }
 
-/** Результат завершения активной сессии. */
 export interface FinishActiveQueueResult {
-  /** Активная очередь оказалась пуста. */
   isEmpty: boolean;
-  /** Игроки завершённого состава. */
   playedPlayers: QueuePlayer[];
-  /** Номер завершённой сессии. */
   sessionNumber: number;
 }
 
-/** Решение по завершению сессии: новое состояние и сыгравший состав. */
-interface FinishDecision {
-  /** Состояние очереди после завершения сессии. */
-  nextState: QueueState;
-  /** Игроки завершённого состава. */
-  playedPlayers: QueuePlayer[];
-  /** Номер завершённой сессии. */
-  sessionNumber: number;
-  /** Была ли активная очередь пуста. */
-  isEmpty: boolean;
-}
-
-/**
- * Собирает статистику игрока после завершённой сессии.
- *
- * @param player - Игрок завершённого состава.
- * @param username - Нормализованный логин игрока.
- * @param existingStats - Статистика игрока до завершения сессии.
- * @param sessionNumber - Номер завершённой сессии.
- * @param playedAt - Время завершения сессии.
- * @returns Обновлённая статистика игрока.
- */
 const createFinishedPlayerStats = (
   player: Pick<QueuePlayer, 'userId'>,
   username: string,
@@ -60,16 +36,17 @@ const createFinishedPlayerStats = (
   username,
 })
 
-/**
- * Рассчитывает результат завершения текущей сессии: архивирует состав
- * в историю и фиксирует кулдауны участников.
- *
- * @param prev - Состояние очереди до завершения сессии.
- * @returns Новое состояние очереди и сыгравший состав.
- */
-const decideFinish = (prev: QueueState): FinishDecision => {
+/** Архивирует активный состав в историю и фиксирует кулдауны участников. */
+export const handleFinishActiveQueue = ({
+  getState,
+  setState,
+}: HandleFinishActiveQueueArgs): FinishActiveQueueResult => {
+  const prev = getState()
+
   if (prev.activeQueue.length === 0) {
-    return { nextState: prev, playedPlayers: [], sessionNumber: prev.globalSessionCounter, isEmpty: true }
+    setState(prev)
+
+    return { isEmpty: true, playedPlayers: [], sessionNumber: prev.globalSessionCounter }
   }
 
   const playedPlayers = [...prev.activeQueue]
@@ -94,47 +71,21 @@ const decideFinish = (prev: QueueState): FinishDecision => {
     }),
   )
 
-  const playerHistory = { ...prev.playerHistory, ...finishedStats }
-
   const finishedSession: QueueSession = {
     id: createId(QUEUE_SESSION_ID_PREFIX),
-    name: `Состав №${sessionNumber}`,
+    name: QUEUE_SESSION_NAME(sessionNumber),
     createdAt: playedPlayers[0]?.timestamp || playedAt,
     playedAt,
     players: playedPlayers,
   }
 
-  return {
-    nextState: {
-      ...prev,
-      activeQueue: [],
-      queueHistory: limitQueueHistory([finishedSession, ...prev.queueHistory]),
-      globalSessionCounter: sessionNumber,
-      playerHistory: limitPlayerHistory(playerHistory),
-    },
-    playedPlayers,
-    sessionNumber,
-    isEmpty: false,
-  }
-}
+  setState({
+    ...prev,
+    activeQueue: [],
+    queueHistory: limitQueueHistory([finishedSession, ...prev.queueHistory]),
+    globalSessionCounter: sessionNumber,
+    playerHistory: limitPlayerHistory({ ...prev.playerHistory, ...finishedStats }),
+  })
 
-/**
- * Завершает текущую сессию: архивирует состав в историю (не более
- * `QUEUE_HISTORY_LIMIT` записей) и фиксирует кулдауны участников.
- *
- * @returns Признак пустой очереди и данные завершённой сессии.
- */
-export const handleFinishActiveQueue = ({
-  getState,
-  setState,
-}: HandleFinishActiveQueueArgs): FinishActiveQueueResult => {
-  const decision = decideFinish(getState())
-
-  setState(decision.nextState)
-
-  return {
-    isEmpty: decision.isEmpty,
-    playedPlayers: decision.playedPlayers,
-    sessionNumber: decision.sessionNumber,
-  }
+  return { isEmpty: false, playedPlayers, sessionNumber }
 }
