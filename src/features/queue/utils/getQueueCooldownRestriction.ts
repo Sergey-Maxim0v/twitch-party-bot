@@ -1,6 +1,7 @@
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import type { QueueState } from '../types.ts'
 import { getOwnValue } from '../../../utils/objects.ts'
+import { normalizeQueueUsername } from './normalizeQueueUsername.ts'
 
 /** Настройки, влияющие на повторное участие игрока. */
 export type QueueCooldownSettings = Pick<
@@ -40,7 +41,7 @@ export const getQueueCooldownRestriction = ({
   settings,
   now = Date.now(),
 }: GetQueueCooldownRestrictionArgs): QueueCooldownRestriction | null => {
-  const playerStats = getOwnValue(state.playerHistory, username)
+  const playerStats = getOwnValue(state.playerHistory, normalizeQueueUsername(username))
 
   if (!playerStats) return null
 

@@ -22,6 +22,9 @@ export const QUEUE_TYPES = {
 /** Префикс уникального идентификатора записи в очереди. */
 export const QUEUE_ENTRY_ID_PREFIX = 'queue-entry'
 
+/** Префикс уникального идентификатора завершённой сессии. */
+export const QUEUE_SESSION_ID_PREFIX = 'session'
+
 /** Максимум игровых сессий в истории — ограничивает рост `twitch_queue_data`. */
 export const QUEUE_HISTORY_LIMIT = 100
 

@@ -178,7 +178,7 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
             <button
               className="btn btn-sm h-9 min-h-9 gap-1.5 rounded-xl border-error/25 bg-error/5 px-3 text-error
                 shadow-none hover:border-error/50 hover:bg-error/10 hover:text-error"
-              onClick={() => { onBan?.(); onClose() }}
+              onClick={() => { onClose(); onBan?.() }}
               type="button"
             >
               <LuUserX className="h-4 w-4" /> Забанить
@@ -188,7 +188,7 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
                 shadow-sm shadow-error/20 hover:brightness-105 disabled:border-base-300/40 disabled:bg-base-300
                 disabled:text-base-content/30 disabled:shadow-none"
               disabled={queueType === QUEUE_TYPES.HISTORY}
-              onClick={() => { onDelete?.(); onClose() }}
+              onClick={() => { onClose(); onDelete?.() }}
               type="button"
             >
               <LuTrash2 className="h-4 w-4" /> Удалить
@@ -198,7 +198,7 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
                 shadow-none hover:border-error/50 hover:bg-error/10 hover:text-error
                 disabled:border-base-300/40 disabled:bg-transparent disabled:text-base-content/30"
               disabled={queueType === QUEUE_TYPES.HISTORY}
-              onClick={() => { onDeleteEverywhere?.(); onClose() }}
+              onClick={() => { onClose(); onDeleteEverywhere?.() }}
               type="button"
             >
               <LuTrash2 className="h-4 w-4" /> Удалить из всех очередей

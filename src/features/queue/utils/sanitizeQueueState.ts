@@ -7,6 +7,7 @@ import { isPlainObject } from '../../../utils/objects.ts'
 import { hasControlCharacters, isFilledString } from '../../../utils/strings.ts'
 import { createInitialState } from './createInitialState.ts'
 import { dedupeQueuePlayers } from './dedupeQueuePlayers.ts'
+import { normalizeQueueUsername } from './normalizeQueueUsername.ts'
 
 /** Источники появления игрока, допустимые в сохранённых данных. */
 const QUEUE_PLAYER_SOURCES: readonly string[] = Object.values(QUEUE_PLAYER_SOURCE)
@@ -30,14 +31,16 @@ const isQueuePlayerSource = (value: unknown): value is QueuePlayerSource =>
   typeof value === 'string' && QUEUE_PLAYER_SOURCES.includes(value)
 
 /**
- * Восстанавливает игрока из сохранённых данных, подставляя безопасные значения
- * для некорректных полей и отбрасывая никнеймы с управляющими символами.
+ * Восстанавливает игрока, нормализуя логин и отбрасывая некорректные никнеймы.
  *
  * @param value - Значение из хранилища.
  * @returns Игрок или `null`, если в записи нет корректного никнейма.
  */
 const toQueuePlayer = (value: unknown): QueuePlayer | null => {
   if (!isPlainObject(value) || !isFilledString(value.username) || hasControlCharacters(value.username)) return null
+
+  const username = normalizeQueueUsername(value.username)
+  if (!username) return null
 
   const displayedUsername = isFilledString(value.displayedUsername) && !hasControlCharacters(value.displayedUsername)
     ? value.displayedUsername
@@ -47,8 +50,8 @@ const toQueuePlayer = (value: unknown): QueuePlayer | null => {
     // Идентификатор записи не зависит от данных игрока и используется для Drag-and-Drop.
     queueEntryId: isFilledString(value.queueEntryId) ? value.queueEntryId : createId(QUEUE_ENTRY_ID_PREFIX),
     // Пустой userId подставляем никнеймом, чтобы работали поиск и удаление.
-    userId: isFilledString(value.userId) ? value.userId : value.username,
-    username: value.username,
+    userId: isFilledString(value.userId) ? value.userId : username,
+    username,
     displayedUsername,
     rawMessage: typeof value.rawMessage === 'string' ? value.rawMessage : '',
     playerSource: isQueuePlayerSource(value.playerSource) ? value.playerSource : QUEUE_PLAYER_SOURCE.APP,
@@ -103,19 +106,48 @@ const toPlayerHistoryStats = (value: unknown): PlayerHistoryStats | null => {
 }
 
 /**
- * Оставляет в индексе истории игроков только записи с корректной статистикой.
+ * Объединяет статистику одного игрока, оказавшуюся под разными ключами.
+ *
+ * @param current - Уже сохранённая статистика.
+ * @param incoming - Статистика из повторной записи.
+ * @returns Суммарное число игр и данные последней сессии.
+ */
+const mergePlayerHistoryStats = (
+  current: PlayerHistoryStats,
+  incoming: PlayerHistoryStats,
+): PlayerHistoryStats => {
+  const isIncomingNewer = incoming.lastPlayedTimestamp > current.lastPlayedTimestamp
+    || (incoming.lastPlayedTimestamp === current.lastPlayedTimestamp
+      && incoming.lastPlayedSessionNumber > current.lastPlayedSessionNumber)
+  const latestStats = isIncomingNewer ? incoming : current
+
+  return { ...latestStats, gamesPlayed: current.gamesPlayed + incoming.gamesPlayed }
+}
+
+/**
+ * Нормализует логины в истории и объединяет дубли, отбрасывая повреждённые записи.
  *
  * @param history - Сохранённый индекс истории игроков.
- * @returns Индекс без повреждённых записей.
+ * @returns Индекс с нормализованными ключами и без повреждённых записей.
  */
-const sanitizePlayerHistory = (history: QueueState['playerHistory']): QueueState['playerHistory'] =>
-  Object.fromEntries(
-    Object.entries(history).flatMap(([username, stats]) => {
-      const validStats = toPlayerHistoryStats(stats)
+const sanitizePlayerHistory = (history: QueueState['playerHistory']): QueueState['playerHistory'] => {
+  const normalizedHistory = new Map<string, PlayerHistoryStats>()
 
-      return validStats ? [[username, validStats] as const] : []
-    }),
-  )
+  Object.entries(history).forEach(([key, stats]) => {
+    const username = normalizeQueueUsername(key)
+    const validStats = toPlayerHistoryStats(stats)
+    if (!username || !validStats) return
+
+    const incomingStats: PlayerHistoryStats = { ...validStats, username }
+    const currentStats = normalizedHistory.get(username)
+
+    normalizedHistory.set(username, currentStats
+      ? mergePlayerHistoryStats(currentStats, incomingStats)
+      : incomingStats)
+  })
+
+  return Object.fromEntries(normalizedHistory)
+}
 
 /**
  * Приводит сохранённое состояние к актуальной структуре и отбрасывает записи,

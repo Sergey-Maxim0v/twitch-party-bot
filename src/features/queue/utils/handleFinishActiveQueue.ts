@@ -1,7 +1,9 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { PlayerHistoryStats, QueueSession, QueueState, QueuePlayer } from '../types'
+import { QUEUE_SESSION_ID_PREFIX } from '../../../constants/queue.constants.ts'
 import { limitQueueHistory } from './limitQueueHistory.ts'
 import { limitPlayerHistory } from './limitPlayerHistory.ts'
+import { normalizeQueueUsername } from './normalizeQueueUsername.ts'
 import { createId } from '../../../utils/createId.ts'
 import { getOwnValue } from '../../../utils/objects.ts'
 
@@ -38,13 +40,15 @@ interface FinishDecision {
  * Собирает статистику игрока после завершённой сессии.
  *
  * @param player - Игрок завершённого состава.
+ * @param username - Нормализованный логин игрока.
  * @param existingStats - Статистика игрока до завершения сессии.
  * @param sessionNumber - Номер завершённой сессии.
  * @param playedAt - Время завершения сессии.
  * @returns Обновлённая статистика игрока.
  */
 const createFinishedPlayerStats = (
-  player: QueuePlayer,
+  player: Pick<QueuePlayer, 'userId'>,
+  username: string,
   existingStats: PlayerHistoryStats | undefined,
   sessionNumber: number,
   playedAt: number,
@@ -53,7 +57,7 @@ const createFinishedPlayerStats = (
   lastPlayedSessionNumber: sessionNumber,
   gamesPlayed: (existingStats?.gamesPlayed ?? 0) + 1,
   userID: player.userId,
-  username: player.username,
+  username,
 })
 
 /**
@@ -74,21 +78,26 @@ const decideFinish = (prev: QueueState): FinishDecision => {
 
   // `fromEntries` создаёт обычное поле даже для ника `__proto__`, а присваивание по ключу меняет прототип.
   const finishedStats = Object.fromEntries(
-    playedPlayers.map(player => [
-      player.username,
-      createFinishedPlayerStats(
-        player,
-        getOwnValue(prev.playerHistory, player.username),
-        sessionNumber,
-        playedAt,
-      ),
-    ] as const),
+    playedPlayers.map(player => {
+      const username = normalizeQueueUsername(player.username)
+
+      return [
+        username,
+        createFinishedPlayerStats(
+          player,
+          username,
+          getOwnValue(prev.playerHistory, username),
+          sessionNumber,
+          playedAt,
+        ),
+      ] as const
+    }),
   )
 
   const playerHistory = { ...prev.playerHistory, ...finishedStats }
 
   const finishedSession: QueueSession = {
-    id: createId('session'),
+    id: createId(QUEUE_SESSION_ID_PREFIX),
     name: `Состав №${sessionNumber}`,
     createdAt: playedPlayers[0]?.timestamp || playedAt,
     playedAt,
