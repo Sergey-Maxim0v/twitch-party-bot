@@ -68,6 +68,12 @@ export const QueueElement: FC<QueueElementProps> = ({
 
   const formattedTime = formatTimeWithSeconds(timestamp)
 
+  const accentClass = isHistory
+    ? 'before:bg-base-300/70'
+    : queueType === QUEUE_TYPES.ACTIVE
+      ? 'before:bg-primary/70'
+      : 'before:bg-warning/80'
+
   const handleCopyNickname = (): void => {
     const nameToCopy = gameNickname || displayedUsername || username
     navigator.clipboard.writeText(nameToCopy).catch(err => {
@@ -109,9 +115,11 @@ export const QueueElement: FC<QueueElementProps> = ({
 
   return (
     <div
-      className={`py-1.5 px-2.5 rounded-lg border border-base-content/5 bg-base-200/30
-        hover:bg-base-200/60 transition-all flex items-start gap-2 shadow-xs
-        ${isDragging ? 'opacity-0 border-primary/30 bg-base-300' : ''}
+      className={`group relative flex items-start gap-2 rounded-xl border border-base-300/60 bg-base-100/70
+        p-2.5 shadow-xs transition-colors duration-200 before:absolute before:inset-y-2 before:left-0
+        before:w-0.75 before:rounded-full ${accentClass}
+        hover:border-base-300/80 hover:bg-base-100
+        ${isDragging ? 'border-primary/40 bg-base-100 opacity-0' : ''}
         ${className}`}
       ref={setNodeRef}
       style={style}
@@ -120,95 +128,109 @@ export const QueueElement: FC<QueueElementProps> = ({
         <div
           {...attributes}
           {...listeners}
-          className={'shrink-0 self-center p-0.5 cursor-grab active:cursor-grabbing text-base-content/30 hover:text-base-content/70'
-              + ' transition-colors rounded-sm hover:bg-base-content/5 tooltip tooltip-right  active:before:hidden active:after:hidden'}
+          className="tooltip tooltip-right mt-0.5 shrink-0 cursor-grab touch-none rounded-lg p-1
+            text-base-content/25 transition-colors hover:bg-base-200/70 hover:text-base-content/60
+            active:cursor-grabbing active:before:hidden active:after:hidden"
           data-tip="Зажмите, чтобы перетащить игрока"
         >
-          <LuGripVertical className="w-4 h-4" />
+          <LuGripVertical className="h-4 w-4" />
         </div>
       )}
 
-      <div className="flex-1 min-h-0 flex flex-col gap-0.5">
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0 w-full">
-          <span className="text-[11px] text-base-content/40 font-mono flex items-center gap-0.5 shrink-0 select-none">
-            <LuClock className="w-2.5 h-2.5 opacity-70" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+          <span
+            className="inline-flex shrink-0 select-none items-center gap-1 rounded-md bg-base-200/70 px-1.5
+              py-0.5 font-mono text-[10px] font-medium tabular-nums text-base-content/45"
+          >
+            <LuClock className="h-2.5 w-2.5 opacity-70" />
             {formattedTime}
           </span>
 
-          <div className="flex items-center gap-0.5 h-3.5 shrink-0">
+          <div className="flex h-4 shrink-0 items-center gap-1.5">
             {isModerator && (
-              <span className="badge badge-success text-[9px] font-bold h-3.5 px-1 text-success-content border-none">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-base-content/45">
+                <span className="h-1.5 w-1.5 rounded-full bg-success ring-1 ring-base-content/15" />
                 Модер
               </span>
             )}
 
             {isVip && (
-              <span className="badge badge-warning text-[9px] font-bold h-3.5 px-1 text-warning-content border-none">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-base-content/45">
+                <span className="h-1.5 w-1.5 rounded-full bg-warning ring-1 ring-base-content/15" />
                 VIP
               </span>
             )}
 
             {isSubscriber && (
-              <span className="badge badge-primary text-[9px] font-bold h-3.5 px-1 text-primary-content border-none">
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-base-content/45">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-base-content/15" />
                 Саб
               </span>
             )}
           </div>
 
-          <span className="font-semibold text-xs text-base-content tracking-wide wrap-break-word">
+          <span className="min-w-0 wrap-break-word text-[13px] font-semibold leading-tight text-base-content">
             {displayedUsername || username}
           </span>
 
           {settings?.currentGame && gameNickname && (
-            <span
-              className={'text-[10px] h-3.5 px-1 rounded bg-base-300 text-success font-mono font-bold'
-                      + ' inline-flex items-center gap-0.5 border border-base-content/5 shrink-0'
-                      + ' cursor-pointer select-none hover:bg-base-300/80 transition-colors'}
+            <button
+              className="inline-flex shrink-0 cursor-pointer select-none items-center gap-1 rounded-md border
+                border-base-300/60 bg-base-200/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold
+                text-base-content/70 transition-colors hover:border-base-300 hover:bg-base-200 hover:text-base-content"
               onClick={handleCopyNickname}
               title="Кликните, чтобы скопировать ник"
+              type="button"
             >
-              <LuGamepad className="w-2.5 h-2.5" />
+              <LuGamepad className="h-2.5 w-2.5 text-base-content/40" />
               {gameNickname}
-            </span>
+            </button>
           )}
         </div>
 
         {rawMessage && (
           <p
-            className="text-[11px] text-base-content/40 truncate w-full italic mt-0.5 leading-tight"
+            className="line-clamp-2 w-full text-[11px] italic leading-snug text-base-content/45"
             title={rawMessage}
           >
             {rawMessage}
           </p>
         )}
 
-        <div className="flex items-center justify-end gap-1 h-5 mt-1">
+        <div className="flex items-center justify-end gap-0.5">
           <button
-            className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/40 hover:text-info hover:bg-base-300/50 flex items-center gap-1"
+            aria-label="Подробнее"
+            className="tooltip tooltip-top rounded-lg p-1.5 text-base-content/30 transition-colors
+              hover:bg-base-200/70 hover:text-base-content/70"
+            data-tip="Подробнее"
             onClick={openModal}
-            title="Подробнее"
+            type="button"
           >
-            <LuInfo className="w-3 h-3" />
-            <span>Подробно</span>
+            <LuInfo className="h-3.5 w-3.5" />
           </button>
 
           <button
-            className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/20 hover:text-error hover:bg-error/10 flex items-center gap-1"
+            aria-label="Забанить"
+            className="tooltip tooltip-top rounded-lg p-1.5 text-base-content/25 transition-colors
+              hover:bg-error/10 hover:text-error"
+            data-tip="Забанить"
             onClick={handleBan}
-            title="Забанить"
+            type="button"
           >
-            <LuUserX className="w-3 h-3" />
-            <span>Бан</span>
+            <LuUserX className="h-3.5 w-3.5" />
           </button>
 
           {queueType !== QUEUE_TYPES.HISTORY && (
             <button
-              className="btn btn-ghost btn-xs h-5 px-1.5 min-h-0 text-[10px] text-base-content/20 hover:text-error hover:bg-error/10 flex items-center gap-1"
+              aria-label={QUEUE_COMMAND_LABELS.delete}
+              className="tooltip tooltip-top rounded-lg p-1.5 text-base-content/25 transition-colors
+                hover:bg-error/10 hover:text-error"
+              data-tip={QUEUE_COMMAND_LABELS.delete}
               onClick={handleDelete}
-              title={QUEUE_COMMAND_LABELS.delete}
+              type="button"
             >
-              <LuTrash2 className="w-3 h-3" />
-              <span>Удалить</span>
+              <LuTrash2 className="h-3.5 w-3.5" />
             </button>
           )}
         </div>

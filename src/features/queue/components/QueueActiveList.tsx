@@ -6,7 +6,6 @@ import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts
 import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
-import { QUEUE_BADGE_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueActiveListProps {
   /** Дополнительные CSS-классы списка. */
@@ -24,7 +23,7 @@ export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOp
   const { activeQueue } = useQueue()
   const { settings } = useQueueSettings()
 
-  const { setNodeRef } = useDroppable({ id: QUEUE_TYPES.ACTIVE })
+  const { isOver, setNodeRef } = useDroppable({ id: QUEUE_TYPES.ACTIVE })
 
   const queueLength = activeQueue?.length ?? 0
   const maxPlayers = settings?.maxQueueSize ?? 0
@@ -36,15 +35,25 @@ export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOp
   return (
     <QueueCollapse
       badge={
-        <span className={QUEUE_BADGE_CLASS}>{badgeText}</span>
+        <span
+          className="inline-flex h-5 min-w-6 items-center justify-center gap-1 rounded-md border border-base-300/60
+            bg-base-200/80 px-1.5 font-mono text-[10px] font-bold tabular-nums text-base-content/60"
+        >
+          <span className="h-1 w-1 shrink-0 rounded-full bg-primary" />
+          {badgeText}
+        </span>
       }
-      className={className}
+      className={`${className} rounded-xl! shadow-xs`}
       onOpenChange={onOpenChange}
       open={open}
       title="Текущая очередь"
     >
       <SortableContext items={playerIds} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2 min-h-10" ref={setNodeRef}>
+        <div
+          className={`flex min-h-10 flex-col gap-1.5 rounded-lg transition-colors duration-200
+            ${isOver ? 'bg-primary/5 ring-1 ring-primary/15' : ''}`}
+          ref={setNodeRef}
+        >
           {activeQueue.map(player => (
             <QueueElement key={player.queueEntryId} player={player} queueType={QUEUE_TYPES.ACTIVE} />
           ))}

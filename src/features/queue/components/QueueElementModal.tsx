@@ -2,7 +2,7 @@ import { forwardRef, type MouseEvent } from 'react'
 import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
 import { QUEUE_PLAYER_SOURCE_META } from '../../../constants/queue.constants.ts'
 import { formatDateTime } from '../../../utils/dateTime.ts'
-import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX } from 'react-icons/lu'
+import { LuCopy, LuMessageSquare, LuTrash2, LuUser, LuUserX, LuX } from 'react-icons/lu'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 
 interface QueueElementModalProps {
@@ -61,95 +61,167 @@ export const QueueElementModal = forwardRef<HTMLDialogElement, QueueElementModal
 
   return (
     <dialog
-      className={`modal modal-bottom sm:modal-middle bg-black/60 ${className}`}
+      className={`modal modal-bottom bg-black/65 sm:modal-middle ${className}`}
       onClick={handleBackdropClick}
       ref={ref}
     >
-      <div className="modal-box border border-base-content/10 bg-base-100 text-base-content">
-        <h3 className="font-bold text-lg flex items-center gap-2 border-b border-base-content/10 pb-2">
-          <LuUser className="text-primary" /> Карта участника очереди
-        </h3>
+      <div
+        className="modal-box max-w-lg overflow-x-hidden overflow-y-auto overscroll-contain rounded-t-3xl
+          border border-base-300/70 bg-base-100 p-0 text-base-content shadow-2xl sm:rounded-3xl"
+      >
+        <div className="relative overflow-hidden border-b border-base-300/60 bg-linear-to-br from-primary/15 via-base-100 to-base-100 px-5 py-4">
+          <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-primary/20 blur-2xl" />
 
-        <div className="py-4 space-y-3 text-sm">
-          <div className="grid grid-cols-3 gap-2 bg-base-200/50 p-3 rounded-lg border border-base-content/5 font-mono text-xs">
-            <span className="text-base-content/50">Twitch Login:</span>
-            <span className="col-span-2 text-base-content font-bold">{displayedUsername ?? username}</span>
+          <div className="relative flex items-center gap-3 pr-8">
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10
+                text-primary ring-1 ring-primary/20"
+            >
+              <LuUser className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-bold text-base-content">Карта участника очереди</h3>
+              <p className="truncate text-xs text-base-content/50">@{displayedUsername ?? username}</p>
+            </div>
+          </div>
 
-            <span className="text-base-content/50">Игровой ник:</span>
-            <span className="col-span-2 text-success font-bold">
+          <button
+            aria-label="Закрыть"
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-base-content/40 transition-colors
+              hover:bg-base-200/80 hover:text-base-content"
+            onClick={onClose}
+            type="button"
+          >
+            <LuX className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-3 px-5 py-4 text-sm">
+          <div
+            className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2.5 rounded-2xl border
+              border-base-300/60 bg-base-200/40 p-3.5 text-xs"
+          >
+            <span className="text-base-content/50">Twitch login</span>
+            <span className="truncate text-right font-mono font-semibold text-base-content">
+              {displayedUsername ?? username}
+            </span>
+
+            <span className="text-base-content/50">Игровой ник</span>
+            <span
+              className={`truncate text-right font-mono font-semibold
+                ${gameNickname ? 'text-base-content' : 'italic text-base-content/40'}`}
+            >
               {gameNickname ?? (!settings?.currentGame ? 'Игра не выбрана в настройках' : 'Не определен')}
             </span>
 
-            <span className="text-base-content/50">Добавлен в:</span>
-            <span className="col-span-2 text-base-content">
+            <span className="text-base-content/50">Добавлен в</span>
+            <span className="text-right font-mono text-[11px] text-base-content/60">
               {formatDateTime(timestamp)}
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-1">
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-base-200 border border-base-content/5 text-xs">
-              <span className="text-base-content/50">Источник:</span>
-              <span className={`badge badge-sm font-semibold ${sourceMeta.badgeClass}`}>{sourceMeta.label}</span>
+          <div className="flex flex-wrap gap-1.5">
+            <div
+              className="flex items-center gap-1.5 rounded-lg border border-base-300/60 bg-base-200/40
+                px-2 py-1 text-[11px]"
+            >
+              <span className="text-base-content/50">Источник</span>
+              <span className={`badge badge-xs font-semibold ${sourceMeta.badgeClass}`}>{sourceMeta.label}</span>
             </div>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-base-200 border border-base-content/5 text-xs">
-              <span className="text-base-content/50">Модератор:</span>
-              <span className={`badge badge-sm ${isModerator ? 'badge-success text-success-content' : 'badge-ghost text-base-content/40'}`}>
+            <div
+              className="flex items-center gap-1.5 rounded-lg border border-base-300/60 bg-base-200/40
+                px-2 py-1 text-[11px]"
+            >
+              <span className="text-base-content/50">Модератор</span>
+              <span className={`badge badge-xs ${isModerator ? 'badge-success text-success-content' : 'badge-ghost text-base-content/40'}`}>
                 {isModerator ? 'Да' : 'Нет'}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-base-200 border border-base-content/5 text-xs">
-              <span className="text-base-content/50">VIP-статус:</span>
-              <span className={`badge badge-sm ${isVip ? 'badge-warning text-warning-content' : 'badge-ghost text-base-content/40'}`}>
+            <div
+              className="flex items-center gap-1.5 rounded-lg border border-base-300/60 bg-base-200/40
+                px-2 py-1 text-[11px]"
+            >
+              <span className="text-base-content/50">VIP-статус</span>
+              <span className={`badge badge-xs ${isVip ? 'badge-warning text-warning-content' : 'badge-ghost text-base-content/40'}`}>
                 {isVip ? 'Да' : 'Нет'}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-base-200 border border-base-content/5 text-xs">
-              <span className="text-base-content/50">Подписчик:</span>
-              <span className={`badge badge-sm ${isSubscriber ? 'badge-primary text-primary-content' : 'badge-ghost text-base-content/40'}`}>
+            <div
+              className="flex items-center gap-1.5 rounded-lg border border-base-300/60 bg-base-200/40
+                px-2 py-1 text-[11px]"
+            >
+              <span className="text-base-content/50">Подписчик</span>
+              <span className={`badge badge-xs ${isSubscriber ? 'badge-primary text-primary-content' : 'badge-ghost text-base-content/40'}`}>
                 {isSubscriber ? 'Да' : 'Нет'}
               </span>
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 p-3 bg-base-200/30 border border-base-content/5 rounded-lg">
-            <span className="text-xs text-base-content/50 flex items-center gap-1">
-              <LuMessageSquare className="w-3 h-3" /> Текст сообщения:
+          <div className="rounded-2xl border border-base-300/60 bg-base-200/30 p-3">
+            <span className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-base-content/50">
+              <LuMessageSquare className="h-3 w-3" /> Текст сообщения
             </span>
-            <p className="text-xs italic whitespace-pre-wrap break-all bg-base-300/40 p-2 rounded border border-base-content/5">
+            <p
+              className="whitespace-pre-wrap break-all rounded-xl bg-base-100/60 p-2.5 text-xs italic
+                leading-relaxed text-base-content/70 ring-1 ring-base-300/40"
+            >
               {rawMessage || <span className="text-base-content/30">Сообщение отсутствует</span>}
             </p>
           </div>
         </div>
 
-        <div className="modal-action border-t border-base-content/10 pt-3 flex flex-wrap gap-2 justify-between">
-          <div className="flex gap-2">
+        <div
+          className="modal-action m-0 flex flex-wrap items-center justify-between gap-2 border-t
+            border-base-300/60 bg-base-200/30 px-5 py-3.5"
+        >
+          <div className="flex flex-wrap gap-1.5">
             <button
-              className="btn btn-error btn-outline btn-sm gap-1"
+              className="btn btn-sm h-9 min-h-9 gap-1.5 rounded-xl border-error/25 bg-error/5 px-3 text-error
+                shadow-none hover:border-error/50 hover:bg-error/10 hover:text-error"
               onClick={() => { onBan?.(); onClose() }}
+              type="button"
             >
-              <LuUserX className="w-4 h-4" /> Забанить
+              <LuUserX className="h-4 w-4" /> Забанить
             </button>
             <button
-              className="btn btn-error btn-sm gap-1"
+              className="btn btn-sm h-9 min-h-9 gap-1.5 rounded-xl border-0 bg-error px-3 text-error-content
+                shadow-sm shadow-error/20 hover:brightness-105 disabled:border-base-300/40 disabled:bg-base-300
+                disabled:text-base-content/30 disabled:shadow-none"
               disabled={queueType === QUEUE_TYPES.HISTORY}
               onClick={() => { onDelete?.(); onClose() }}
+              type="button"
             >
-              <LuTrash2 className="w-4 h-4" /> Удалить
+              <LuTrash2 className="h-4 w-4" /> Удалить
             </button>
             <button
-              className="btn btn-error btn-sm gap-1"
+              className="btn btn-sm h-9 min-h-9 gap-1.5 rounded-xl border-error/25 bg-error/5 px-3 text-error
+                shadow-none hover:border-error/50 hover:bg-error/10 hover:text-error
+                disabled:border-base-300/40 disabled:bg-transparent disabled:text-base-content/30"
               disabled={queueType === QUEUE_TYPES.HISTORY}
               onClick={() => { onDeleteEverywhere?.(); onClose() }}
+              type="button"
             >
-              <LuTrash2 className="w-4 h-4" /> Удалить из всех очередей
+              <LuTrash2 className="h-4 w-4" /> Удалить из всех очередей
             </button>
           </div>
 
-          <div className="flex gap-2">
-            <button className="btn btn-neutral btn-sm gap-1" disabled={!settings.currentGame} onClick={onCopy}>
-              <LuCopy className="w-4 h-4" /> Копировать ник
+          <div className="ml-auto flex items-center gap-1.5">
+            <button
+              className="btn btn-sm h-9 min-h-9 gap-1.5 rounded-xl border border-base-300/70 bg-base-100/60 px-3
+                text-base-content/70 shadow-none hover:border-primary/30 hover:bg-primary/10 hover:text-primary
+                disabled:border-base-300/40 disabled:bg-transparent disabled:text-base-content/30"
+              disabled={!gameNickname}
+              onClick={onCopy}
+              type="button"
+            >
+              <LuCopy className="h-4 w-4" /> Копировать ник
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={onClose}>
+            <button
+              className="btn btn-sm h-9 min-h-9 rounded-xl border-0 bg-base-content px-4 text-base-100
+                shadow-sm hover:bg-base-content/85"
+              onClick={onClose}
+              type="button"
+            >
               Закрыть
             </button>
           </div>

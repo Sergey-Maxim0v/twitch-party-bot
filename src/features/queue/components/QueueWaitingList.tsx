@@ -6,7 +6,6 @@ import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
-import { QUEUE_BADGE_CLASS } from '../../../constants/ui.constants.ts'
 
 interface QueueWaitingListProps {
   /** Дополнительные CSS-классы списка. */
@@ -33,7 +32,7 @@ export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', on
     onOpenChange(settings.allowPreJoin)
   }, [settings.allowPreJoin, onOpenChange])
 
-  const { setNodeRef } = useDroppable({ id: QUEUE_TYPES.WAITING, disabled: !!disabled })
+  const { isOver, setNodeRef } = useDroppable({ id: QUEUE_TYPES.WAITING, disabled: !!disabled })
 
   const queueLength = waitingQueue?.length ?? 0
   const maxPlayers = settings?.maxQueueSize ?? 0
@@ -46,9 +45,14 @@ export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', on
   return (
     <QueueCollapse
       badge={
-        <span className={QUEUE_BADGE_CLASS}>{badgeText}</span>
+        <span
+          className="inline-flex h-5 min-w-6 items-center justify-center rounded-md border border-base-300/60
+            bg-base-200/80 px-1.5 font-mono text-[10px] font-bold tabular-nums text-base-content/55"
+        >
+          {badgeText}
+        </span>
       }
-      className={className}
+      className={`${className} rounded-xl! shadow-xs`}
       disabled={disabled}
       onOpenChange={onOpenChange}
       open={isOpen}
@@ -56,7 +60,11 @@ export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', on
       tooltipText={disabled ? 'Список ожидающих отключен в настройках' : undefined}
     >
       <SortableContext items={playerIds} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2 min-h-10" ref={setNodeRef}>
+        <div
+          className={`flex min-h-10 flex-col gap-1.5 rounded-lg transition-colors duration-200
+            ${isOver && !disabled ? 'bg-warning/5 ring-1 ring-warning/15' : ''}`}
+          ref={setNodeRef}
+        >
           {waitingQueue.map(player => (
             <QueueElement key={player.queueEntryId} player={player} queueType={QUEUE_TYPES.WAITING} />
           ))}

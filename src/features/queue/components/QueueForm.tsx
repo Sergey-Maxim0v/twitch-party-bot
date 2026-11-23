@@ -1,5 +1,5 @@
 import { type FC, useState, type MouseEvent } from 'react'
-import { LuUserRoundPlus } from 'react-icons/lu'
+import { LuMessageSquare, LuUserRound, LuUserRoundPlus } from 'react-icons/lu'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
@@ -59,70 +59,102 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
   }
 
   return (
-    <form className={`flex flex-col gap-2 ${className}`}>
-      <div className="flex flex-col gap-2 w-full">
-        <input
-          className="input input-bordered input-sm w-full font-medium focus:outline-none"
-          onChange={e => { setUsername(e.target.value) }}
-          placeholder="Никнейм Twitch..."
-          required
-          type="text"
-          value={username}
-        />
-        <input
-          className="input input-bordered input-sm w-full focus:outline-none"
-          onChange={e => { setMessageText(e.target.value) }}
-          placeholder="Сообщение или игровой ник..."
-          type="text"
-          value={messageText}
-        />
+    <form className={`flex flex-col gap-2.5 ${className}`}>
+      <div className="flex w-full flex-col gap-2">
+        <label
+          className="input input-sm h-9 w-full gap-2 rounded-xl border-base-300/70 bg-base-100/60 px-3
+            text-sm transition-all focus-within:border-primary/50 focus-within:ring-2
+            focus-within:ring-primary/15 focus-within:outline-none"
+        >
+          <LuUserRound className="h-3.5 w-3.5 shrink-0 text-base-content/35" />
+          <input
+            aria-label="Никнейм Twitch"
+            autoComplete="off"
+            className="grow border-0 bg-transparent p-0 text-sm font-medium outline-none
+              placeholder:text-base-content/30 focus:outline-none"
+            onChange={e => { setUsername(e.target.value) }}
+            placeholder="Никнейм Twitch..."
+            required
+            type="text"
+            value={username}
+          />
+        </label>
+
+        <label
+          className="input input-sm h-9 w-full gap-2 rounded-xl border-base-300/70 bg-base-100/60 px-3
+            text-sm transition-all focus-within:border-primary/50 focus-within:ring-2
+            focus-within:ring-primary/15 focus-within:outline-none"
+        >
+          <LuMessageSquare className="h-3.5 w-3.5 shrink-0 text-base-content/35" />
+          <input
+            aria-label="Сообщение или игровой ник"
+            autoComplete="off"
+            className="grow border-0 bg-transparent p-0 text-sm outline-none
+              placeholder:text-base-content/30 focus:outline-none"
+            onChange={e => { setMessageText(e.target.value) }}
+            placeholder="Сообщение или игровой ник..."
+            type="text"
+            value={messageText}
+          />
+        </label>
       </div>
 
-      <div className="flex flex-row items-center gap-4 px-1">
-        <div className="form-control">
-          <label className="label cursor-pointer gap-2 py-1 hover:text-primary transition-all justify-center">
-            <span className="label-text font-semibold text-xs select-none">Mod</span>
-            <input
-              checked={isMod}
-              className="checkbox checkbox-primary checkbox-sm"
-              onChange={e => setIsMod(e.target.checked)}
-              type="checkbox"
-            />
-          </label>
-        </div>
+      <div className="flex flex-row items-center gap-1.5">
+        <label
+          className="flex flex-1 cursor-pointer select-none items-center justify-center gap-1.5 rounded-xl
+            border border-base-300/70 bg-base-100/40 px-2 py-1.5 text-[11px] font-semibold
+            text-base-content/50 transition-all hover:border-base-content/20 hover:text-base-content/70
+            has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-base-content"
+        >
+          <span>Mod</span>
+          <input
+            checked={isMod}
+            className="toggle toggle-success toggle-xs"
+            onChange={e => setIsMod(e.target.checked)}
+            type="checkbox"
+          />
+        </label>
 
-        <div className="form-control">
-          <label className="label cursor-pointer gap-2 py-1 hover:text-primary transition-all justify-center">
-            <span className="label-text font-semibold text-xs select-none">Sub</span>
-            <input
-              checked={isSub}
-              className="checkbox checkbox-primary checkbox-sm"
-              onChange={e => setIsSub(e.target.checked)}
-              type="checkbox"
-            />
-          </label>
-        </div>
+        <label
+          className="flex flex-1 cursor-pointer select-none items-center justify-center gap-1.5 rounded-xl
+            border border-base-300/70 bg-base-100/40 px-2 py-1.5 text-[11px] font-semibold
+            text-base-content/50 transition-all hover:border-base-content/20 hover:text-base-content/70
+            has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-base-content"
+        >
+          <span>Sub</span>
+          <input
+            checked={isSub}
+            className="toggle toggle-primary toggle-xs"
+            onChange={e => setIsSub(e.target.checked)}
+            type="checkbox"
+          />
+        </label>
 
-        <div className="form-control">
-          <label className="label cursor-pointer gap-2 py-1 hover:text-primary transition-all justify-center">
-            <span className="label-text font-semibold text-xs select-none">VIP</span>
-            <input
-              checked={isVip}
-              className="checkbox checkbox-primary checkbox-sm"
-              onChange={e => setIsVip(e.target.checked)}
-              type="checkbox"
-            />
-          </label>
-        </div>
+        <label
+          className="flex flex-1 cursor-pointer select-none items-center justify-center gap-1.5 rounded-xl
+            border border-base-300/70 bg-base-100/40 px-2 py-1.5 text-[11px] font-semibold
+            text-base-content/50 transition-all hover:border-base-content/20 hover:text-base-content/70
+            has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-base-content"
+        >
+          <span>VIP</span>
+          <input
+            checked={isVip}
+            className="toggle toggle-warning toggle-xs"
+            onChange={e => setIsVip(e.target.checked)}
+            type="checkbox"
+          />
+        </label>
       </div>
 
       <button
-        className="btn btn-primary btn-outline btn-sm w-full font-semibold flex items-center justify-center gap-1.5"
+        className="btn btn-primary btn-sm h-9 min-h-9 w-full gap-2 rounded-xl border-0 font-semibold
+          shadow-sm shadow-primary/20 transition-all duration-200 hover:shadow-md hover:brightness-105
+          active:scale-[0.99] disabled:bg-base-300 disabled:text-base-content/35 disabled:shadow-none"
         disabled={!username.trim()}
         onClick={handleAddPlayer}
         type="submit"
       >
-        <LuUserRoundPlus className="w-4 h-4 shrink-0" />
+        <LuUserRoundPlus className="h-4 w-4 shrink-0" />
         <span>Добавить в очередь</span>
       </button>
     </form>

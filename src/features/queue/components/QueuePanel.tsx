@@ -61,11 +61,16 @@ export const QueuePanel: FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden text-sm text-base-content/80">
-      <QueueControls className="shrink-0 p-4 pb-2 bg-transparent relative z-10" />
+    <div className="flex h-full flex-col overflow-hidden text-sm text-base-content/80">
+      <QueueControls className="relative z-10 shrink-0 border-b border-base-300/70 bg-base-100/40 px-3 py-3 backdrop-blur-md" />
 
       <DndContext onDragEnd={onDragEnd} onDragStart={handleDragStart} sensors={sensors}>
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-4">
+        <div
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto overscroll-contain p-3
+            [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-base-content/15 [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar]:w-1.5"
+        >
           <QueueActiveList className="w-full" onOpenChange={setIsActiveListOpen} open={isActiveListOpen} />
 
           <QueueWaitingList
@@ -81,14 +86,14 @@ export const QueuePanel: FC = () => {
         {/* Оверлей поверх всех overflow-контейнеров */}
         <DragOverlay dropAnimation={null}>
           {draggingEntry ? (
-            <div className="w-[calc(100%-8px)] pointer-events-none strict-dragging-preview">
+            <div className="pointer-events-none w-[calc(100%-8px)] rotate-2 opacity-95 drop-shadow-2xl">
               <QueueElement player={draggingEntry.player} queueType={draggingEntry.queueType} />
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      <QueueForm className="shrink-0 p-4 bg-transparent relative z-10" />
+      <QueueForm className="relative z-10 shrink-0 border-t border-base-300/70 bg-base-100/40 px-3 py-3 backdrop-blur-md" />
     </div>
   )
 }
