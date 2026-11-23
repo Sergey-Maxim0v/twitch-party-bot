@@ -1,4 +1,5 @@
 import { createContext } from 'react'
+import type { MessageEmitter } from '../utils/createMessageEmitter.ts'
 import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
 
 /**
@@ -7,7 +8,7 @@ import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
 interface TwitchChatContextType {
   messages: ParsedIrcMessage[]
   sendChatMessage: (message: string, options?: SendChatMessageOptions) => boolean
-  lastMessage: ParsedIrcMessage | null
+  subscribeToChatCommands: MessageEmitter['subscribe']
 }
 
 /**

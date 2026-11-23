@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useSocketContext } from '../../socket/hooks/useSocketContext.ts'
 import { useTwitchPendingMessages } from './useTwitchPendingMessages.ts'
 import { useTwitchChatHistory } from './useTwitchChatHistory.ts'
 import { useTwitchChannelChange } from './useTwitchChannelChange.ts'
 import { useChatAccessFacts } from './useChatAccessFacts.ts'
 import { updateChatAccess } from '../utils/updateChatAccess.ts'
+import { createMessageEmitter, type MessageCallback } from '../utils/createMessageEmitter.ts'
 import { useTwitchSubscription } from './useTwitchSubscription.ts'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { useTwitchHeartbeat } from './useTwitchHeartbeat.ts'
@@ -30,7 +31,12 @@ export const useTwitchChatManager = () => {
   const socketContext = useSocketContext()
   const { session } = useAuth()
   const { pushLog } = useAppLogs()
-  const [lastMessage, setLastMessage] = useState<ParsedIrcMessage | null>(null)
+  const [commandEmitter] = useState(() => createMessageEmitter())
+
+  const subscribeToChatCommands = useCallback(
+    (handler: MessageCallback) => commandEmitter.subscribe(handler),
+    [commandEmitter],
+  )
 
   const { handleSocketActivity } = useTwitchHeartbeat()
 
@@ -144,9 +150,9 @@ export const useTwitchChatManager = () => {
 
     if (!processedMessage || processedMessage.command !== TWITCH_IRC_COMMANDS.PRIV_MSG) return
 
-    // Свои сообщения тоже нужны: команды из интерфейса приложения распознаёт useChatCommands.
-    setLastMessage(processedMessage)
+    commandEmitter.emit(processedMessage)
   }, [
+    commandEmitter,
     handleSocketActivity,
     handleModerationAndEvents,
     handleStandardMessage,
@@ -160,10 +166,10 @@ export const useTwitchChatManager = () => {
     pushLog,
   ])
 
-  // Стабильная ссылка защищает от переподписок при батчинге пачек сообщений
+  // Синхронизируем ref до того, как браузер доставит следующее сообщение.
   const incomingMessageRef = useRef(handleIncomingMessage)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     incomingMessageRef.current = handleIncomingMessage
   }, [handleIncomingMessage])
 
@@ -176,6 +182,6 @@ export const useTwitchChatManager = () => {
   return {
     messages,
     sendChatMessage,
-    lastMessage,
+    subscribeToChatCommands,
   }
 }
