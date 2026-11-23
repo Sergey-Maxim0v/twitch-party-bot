@@ -106,6 +106,32 @@ export interface QueueState {
   playerHistory: Record<BaseQueuePlayer['username'], PlayerHistoryStats>;
 }
 
+/** Решение по перемещению игрока: новое состояние и результат операции. */
+export interface MoveDecision {
+  /** Состояние очереди после перемещения. */
+  nextState: QueueState;
+  /** Был ли игрок перемещён. */
+  isMoved: boolean;
+  /** Была ли попытка перемещения без изменения порядка. */
+  isNoop: boolean;
+  /** Было ли перемещение отклонено из-за дубликата. */
+  isBlockedByDuplicate: boolean;
+  /** Было ли перемещение отклонено из-за отключённого списка ожидающих. */
+  isBlockedByDisabledWaiting: boolean;
+  /** Очередь, из которой перемещён игрок. */
+  sourceQueueType: MutableQueueType | null;
+  /** Отображаемое имя игрока. */
+  playerName: string;
+  /** Фактическая позиция вставки (0-based). */
+  insertIndex: number | null;
+  /** Игроки, вытесненные в начало списка ожидающих. */
+  displacedToWaiting: QueuePlayer[];
+  /** Игроки, удалённые из очереди. */
+  displacedRemoved: QueuePlayer[];
+  /** Игроки, удалённые из активной очереди, но уже находящиеся в ожидающих. */
+  displacedAlreadyWaiting: QueuePlayer[];
+}
+
 /** Статус попытки добавления игрока в очередь. */
 export type QueueJoinStatus = typeof QUEUE_JOIN_STATUSES[keyof typeof QUEUE_JOIN_STATUSES]
 

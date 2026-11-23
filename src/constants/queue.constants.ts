@@ -454,6 +454,16 @@ export const QUEUE_JOIN_LOG_MESSAGES = {
 } as const
 
 /**
+ * Подписи позиции игрока в сообщениях журнала о перемещении.
+ */
+export const QUEUE_MOVE_LOG_POSITIONS = {
+  /** Игрок вставлен в конец списка. */
+  END: ' в конец',
+  /** Игрок вставлен на конкретную позицию. */
+  AT: (position: number): string => ` на позицию ${position}`,
+} as const
+
+/**
  * Шаблоны сообщений журнала при перемещении игрока между списками.
  */
 export const QUEUE_MOVE_LOG_MESSAGES = {

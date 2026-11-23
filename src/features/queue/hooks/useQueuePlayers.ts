@@ -151,6 +151,8 @@ export const useQueuePlayers = ({
       pushLog,
     })
 
+    if (decision.isNoop) return
+
     if (decision.isMoved) {
       if (decision.sourceQueueType !== args.targetQueueType) {
         const username = args.displayedUsername ?? args.username

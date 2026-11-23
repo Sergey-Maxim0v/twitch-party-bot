@@ -3,6 +3,7 @@ import { QUEUE_TYPES, type MutableQueueType, type QueuePlayer } from '../types.t
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 import { findQueueEntry } from './findQueueEntry.ts'
+import { getQueueByType } from './getQueueByType.ts'
 
 /** Аргументы обработки события перетаскивания. */
 interface HandleDragEndArgs {
@@ -38,10 +39,11 @@ export const handleDragEnd = ({
   const sourceEntry = findQueueEntry(activeQueue, waitingQueue, activeEntryId)
   if (!sourceEntry) return
 
+  const isContainerDrop = overId === QUEUE_TYPES.ACTIVE || overId === QUEUE_TYPES.WAITING
   let targetQueueType: MutableQueueType
   let targetEntryId: string | null = null
 
-  if (overId === QUEUE_TYPES.ACTIVE || overId === QUEUE_TYPES.WAITING) {
+  if (isContainerDrop) {
     targetQueueType = overId
   } else {
     const targetEntry = findQueueEntry(activeQueue, waitingQueue, overId)
@@ -51,17 +53,17 @@ export const handleDragEnd = ({
     targetEntryId = overId
   }
 
-  const targetQueue = targetQueueType === QUEUE_TYPES.ACTIVE ? activeQueue : waitingQueue
+  const sourceQueue = getQueueByType(activeQueue, waitingQueue, sourceEntry.queueType)
+  const targetQueue = getQueueByType(activeQueue, waitingQueue, targetQueueType)
+  // Бросок на контейнер означает вставку в конец списка.
   const targetIndex = targetEntryId
     ? targetQueue.findIndex(player => player.queueEntryId === targetEntryId)
-    : targetQueue.length
+    : undefined
   if (targetIndex === -1) return
 
-  if (sourceEntry.queueType === targetQueueType) {
-    const sourceQueue = sourceEntry.queueType === QUEUE_TYPES.ACTIVE ? activeQueue : waitingQueue
-    const sourceIndex = sourceQueue.findIndex(player => player.queueEntryId === activeEntryId)
-    if (sourceIndex === targetIndex) return
-  }
+  const sourceIndex = sourceQueue.findIndex(player => player.queueEntryId === activeEntryId)
+  const destinationIndex = targetIndex ?? sourceQueue.length - 1
+  if (sourceEntry.queueType === targetQueueType && sourceIndex === destinationIndex) return
 
   movePlayer({
     queueEntryId: sourceEntry.player.queueEntryId,
