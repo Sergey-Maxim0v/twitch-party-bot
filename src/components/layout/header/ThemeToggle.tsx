@@ -27,7 +27,7 @@ export const ThemeToggle: FC = () => {
 
   return (
     <div
-      className="flex items-center justify-between w-full h-full px-3 py-2.5 rounded-md transition-colors select-none"
+      className="flex items-center justify-between w-full h-full px-3 py-2.5 rounded-lg transition-colors select-none"
       onClick={toggleTheme}
       role="button"
     >

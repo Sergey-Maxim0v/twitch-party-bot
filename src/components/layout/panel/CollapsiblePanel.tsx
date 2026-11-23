@@ -78,7 +78,9 @@ export const CollapsiblePanel: FC<CollapsiblePanelProps> = ({
       className={`
         flex flex-col bg-base-200 relative border-r border-base-300
         transition-all duration-300 ease-in-out
-        shadow-[inset_-4px_0_4px_-4px,inset_0_4px_4px_-4px]
+        after:pointer-events-none after:absolute after:inset-0 after:z-20
+        after:shadow-[inset_-6px_0_12px_-6px_rgba(0,0,0,0.18),inset_0_6px_12px_-6px_rgba(0,0,0,0.18)]
+        [:where([data-theme=dim])_&]:after:shadow-[inset_-6px_0_12px_-6px_rgba(0,0,0,0.3),inset_0_6px_12px_-6px_rgba(0,0,0,0.3)]
         ${sizeClasses}
       `}
       onTransitionEnd={handleTransitionEnd}

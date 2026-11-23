@@ -20,7 +20,7 @@ export const ChannelSelectToggle: FC = () => {
     <div
       className="flex items-center justify-between px-3 py-2.5
             hover:bg-base-100 active:bg-primary active:text-primary-content
-            rounded-md transition-colors select-none"
+            rounded-lg transition-colors select-none"
       onClick={openChannelModal}
       role="button"
     >

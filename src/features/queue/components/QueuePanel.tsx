@@ -67,7 +67,7 @@ export const QueuePanel: FC = () => {
       <DndContext onDragEnd={onDragEnd} onDragStart={handleDragStart} sensors={sensors}>
         <div
           className="flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto overscroll-contain p-3
-            [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full
+            scrollbar-thin [&::-webkit-scrollbar-thumb]:rounded-full
             [&::-webkit-scrollbar-thumb]:bg-base-content/15 [&::-webkit-scrollbar-track]:bg-transparent
             [&::-webkit-scrollbar]:w-1.5"
         >

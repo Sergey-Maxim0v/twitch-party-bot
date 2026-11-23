@@ -16,7 +16,7 @@ export const Header: FC = () => {
 
   return (
     <header
-      className="navbar bg-base-200 border-b border-base-300 px-6 flex justify-between items-center select-none"
+      className="navbar relative z-50 min-h-14 py-2 bg-base-200/80 backdrop-blur-md border-b border-base-content/10 px-6 flex justify-between items-center select-none"
     >
       <div className="flex items-end gap-2 h-7">
         <LuTwitch className="text-2xl font-black text-primary self-center" />
@@ -37,9 +37,9 @@ export const Header: FC = () => {
 
             <div className="dropdown dropdown-end">
               <div
-                className={`btn btn-ghost btn-sm flex items-center gap-1.5 normal-case px-3
-                        hover:bg-base-100 bg-base-300 transition-colors text-sm font-medium
-                        text-base-content border border-base-100`}
+                className="btn btn-ghost btn-sm h-8 min-h-8 flex items-center gap-1.5 normal-case px-3 rounded-xl
+                        bg-base-content/6 hover:bg-base-content/12 transition-colors text-sm font-medium
+                        text-base-content border border-base-content/10"
                 role="button"
                 tabIndex={0}
               >
@@ -47,8 +47,9 @@ export const Header: FC = () => {
               </div>
 
               <ul
-                className={`dropdown-content menu p-1 shadow-xl bg-base-300 rounded-box
-                        w-88 gap-0.5 z-50 mt-2 border border-base-100 right-0`}
+                className="dropdown-content menu p-1.5 bg-base-200 rounded-xl w-88 gap-1 z-50 mt-2
+                   border border-base-content/15 right-0
+                   shadow-[0_12px_24px_-4px_rgba(0,0,0,0.35)] [:where([data-theme=dim])_&]:shadow-[0_12px_24px_-4px_rgba(0,0,0,0.75)]"
                 tabIndex={0}
               >
                 <li className="p-0">
@@ -69,7 +70,7 @@ export const Header: FC = () => {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <button
-              className="btn btn-primary btn-sm flex items-center gap-2"
+              className="btn btn-primary btn-sm rounded-xl flex items-center gap-2"
               onClick={login}
             >
               <LuTwitch className="text-lg" />

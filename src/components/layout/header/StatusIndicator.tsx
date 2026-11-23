@@ -37,8 +37,8 @@ export const StatusIndicator: FC<StatusIndicatorProps> = ({
       className="lg:tooltip lg:tooltip-bottom lg:tooltip-neutral text-left z-100"
       data-tip={tooltipText}
     >
-      <div className="flex items-center gap-1.5 px-3 h-8 bg-base-300 rounded-lg border border-base-100
-            hover:bg-base-200 transition-colors select-none"
+      <div className="flex items-center gap-1.5 px-3 h-8 bg-base-content/6 rounded-xl border border-base-content/10
+            hover:bg-base-content/10 transition-colors select-none"
       >
         <span className="text-xs opacity-60 font-medium">
           {label}:
@@ -47,7 +47,7 @@ export const StatusIndicator: FC<StatusIndicatorProps> = ({
         <div className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
             {isPulsing && (
-              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75
                             ${BADGE_COLORS[badgeType]}`}
               ></span>
             )}

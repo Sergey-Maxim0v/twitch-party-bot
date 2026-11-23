@@ -29,7 +29,7 @@ export const ChatList = ({
   const reversedMessages = [...messages].reverse()
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-2 flex flex-col-reverse">
+    <div className="flex-1 overflow-y-auto p-4 gap-1 flex flex-col-reverse">
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <span className="text-xs text-base-content/40 italic">

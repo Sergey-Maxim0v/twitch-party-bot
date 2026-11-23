@@ -30,7 +30,7 @@ export const LogoutToggle: FC = () => {
     <>
       <div
         className="flex items-center justify-between px-3 py-2.5
-              hover:bg-error/10 rounded-md transition-colors select-none"
+              hover:bg-error/10 rounded-lg transition-colors select-none"
         onClick={openConfirm}
         role="button"
       >
