@@ -10,6 +10,9 @@ import { markDeletedMessages } from '../utils/markDeletedMessages.ts'
 import { createSystemMessage } from '../utils/createSystemMessage.ts'
 import { trimChatHistory } from '../utils/trimChatHistory.ts'
 import { useTwitchChannelChange } from './useTwitchChannelChange.ts'
+import { useAppLogs } from '../../../features/app-logs/hooks/useAppLogs.ts'
+import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../../features/app-logs/types.ts'
+import { APP_LOG_SYSTEM_ACTOR } from '../../../constants/app-logs.constants.ts'
 import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
 
 interface UseTwitchChatHistoryProps {
@@ -21,11 +24,19 @@ interface UseTwitchChatHistoryProps {
  * Хук для управления историей сообщений чата Twitch и модерацией.
  */
 export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchChatHistoryProps) => {
+  const { pushLog } = useAppLogs()
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
   // Смена канала очищает историю сообщений
   useTwitchChannelChange(client, () => {
     setMessages([])
+
+    pushLog({
+      message: 'История чата очищена (смена канала).',
+      status: APP_LOG_STATUSES.WARNING,
+      source: APP_LOG_SOURCES.APPLICATION,
+      actorUsername: APP_LOG_SYSTEM_ACTOR,
+    })
   })
 
   /**
