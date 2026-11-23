@@ -5,7 +5,6 @@ import { QueueWaitingList } from './QueueWaitingList.tsx'
 import { QueueHistoryList } from './QueueHistoryList.tsx'
 import { QueueControls } from './QueueControls.tsx'
 import { QueueForm } from './QueueForm.tsx'
-import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
@@ -19,18 +18,15 @@ import { useChatCommands } from '../hooks/useChatCommands.ts'
  * Главная панель очереди: списки участников, Drag-and-Drop и форма добавления.
  */
 export const QueuePanel: FC = () => {
-  const { settings } = useQueueSettings()
   const { movePlayer, activeQueue, waitingQueue } = useQueue()
   const { userDisplayName, session } = useAuth()
 
   useChatCommands()
 
   const [isActiveListOpen, setIsActiveListOpen] = useState<boolean>(true)
-  const [isWaitingListOpen, setIsWaitingListOpen] = useState<boolean>(settings?.allowPreJoin)
+  const [isWaitingListOpen, setIsWaitingListOpen] = useState<boolean>(true)
   const [isHistoryListOpen, setIsHistoryListOpen] = useState<boolean>(true)
   const [draggingEntry, setDraggingEntry] = useState<QueueEntry | null>(null)
-
-  const disabledWaiting = !settings?.allowPreJoin
 
   // Клики по кнопкам внутри карточки не должны начинать перетаскивание.
   const sensors = useSensors(
@@ -75,7 +71,6 @@ export const QueuePanel: FC = () => {
 
           <QueueWaitingList
             className="w-full"
-            disabled={disabledWaiting}
             onOpenChange={setIsWaitingListOpen}
             open={isWaitingListOpen}
           />

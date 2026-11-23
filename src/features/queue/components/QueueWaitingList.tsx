@@ -1,4 +1,4 @@
-import { type FC, useEffect } from 'react'
+import { type FC } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useQueue } from '../hooks/useQueue.ts'
@@ -14,31 +14,21 @@ interface QueueWaitingListProps {
   open: boolean;
   /** Обработчик изменения состояния списка. */
   onOpenChange: (open: boolean) => void;
-  /** Отключён ли список в настройках. */
-  disabled?: boolean
 }
 
 /**
  * Список игроков, ожидающих своей очереди.
  */
-export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', onOpenChange, open, disabled }) => {
+export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', onOpenChange, open }) => {
   const { waitingQueue } = useQueue()
   const { settings } = useQueueSettings()
 
-  // Раскрываем список ожидающих при включении pre-join.
-  useEffect(() => {
-    if (!settings.allowPreJoin) return
-
-    onOpenChange(settings.allowPreJoin)
-  }, [settings.allowPreJoin, onOpenChange])
-
-  const { isOver, setNodeRef } = useDroppable({ id: QUEUE_TYPES.WAITING, disabled: !!disabled })
+  const { isOver, setNodeRef } = useDroppable({ id: QUEUE_TYPES.WAITING })
 
   const queueLength = waitingQueue?.length ?? 0
   const maxPlayers = settings?.maxQueueSize ?? 0
 
   const badgeText = maxPlayers > 0 ? `${queueLength} / ${maxPlayers}` : `${queueLength}`
-  const isOpen = open && !disabled
 
   const playerIds = waitingQueue.map(player => player.queueEntryId)
 
@@ -53,16 +43,14 @@ export const QueueWaitingList: FC<QueueWaitingListProps> = ({ className = '', on
         </span>
       }
       className={`${className} rounded-xl! shadow-xs`}
-      disabled={disabled}
       onOpenChange={onOpenChange}
-      open={isOpen}
+      open={open}
       title="Список ожидающих"
-      tooltipText={disabled ? 'Список ожидающих отключен в настройках' : undefined}
     >
       <SortableContext items={playerIds} strategy={verticalListSortingStrategy}>
         <div
           className={`flex min-h-10 flex-col gap-1.5 rounded-lg transition-colors duration-200
-            ${isOver && !disabled ? 'bg-warning/5 ring-1 ring-warning/15' : ''}`}
+            ${isOver ? 'bg-warning/5 ring-1 ring-warning/15' : ''}`}
           ref={setNodeRef}
         >
           {waitingQueue.map(player => (

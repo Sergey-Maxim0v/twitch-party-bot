@@ -204,7 +204,11 @@ export const useQueueSession = ({
     }
 
     if (settings.moveOnSizeChange) {
-      balanceQueues({ source: args.source, actorUsername: args.actorUsername })
+      balanceQueues({
+        actorUsername: args.actorUsername,
+        overrideAllowPreJoin: true,
+        source: args.source,
+      })
     }
 
     return result
