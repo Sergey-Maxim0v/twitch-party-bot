@@ -128,9 +128,7 @@ export const useQueuePlayers = ({
     userId?: string;
   }) => {
     const { userId = '', source, actorUsername, username, displayedUsername } = args
-    const { isBanned } = handleBanPlayer({ ...args, settings, updateSettings, pushLog })
-
-    if (!isBanned) return
+    handleBanPlayer({ ...args, settings, updateSettings, pushLog })
 
     removePlayerFromAllQueues({ userId, actorUsername, source, username, displayedUsername })
   }, [settings, updateSettings, pushLog, removePlayerFromAllQueues])
