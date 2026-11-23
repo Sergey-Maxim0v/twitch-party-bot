@@ -99,8 +99,12 @@ export const useQueuePlayers = ({
     targetQueueType: QueueType;
     rawCommand?: string;
   }) => {
-    handleRemovePlayer({ ...args, getState, setState, pushLog })
-    addDeletedUser(args.displayedUsername ?? args.username)
+    const result = handleRemovePlayer({ ...args, getState, setState, pushLog })
+
+    if (result.isRemoved) {
+      addDeletedUser(result.playerName)
+    }
+
     balanceAfterChange(args)
   }, [getState, setState, pushLog, addDeletedUser, balanceAfterChange])
 
@@ -110,7 +114,11 @@ export const useQueuePlayers = ({
     silentLog?: boolean;
   }): QueueActionLog => {
     const result = handleRemovePlayerFromAll({ ...args, getState, setState, pushLog })
-    addDeletedUser(args.displayedUsername ?? args.username)
+
+    if (result.isRemoved) {
+      addDeletedUser(result.playerName)
+    }
+
     balanceAfterChange(args)
 
     return result

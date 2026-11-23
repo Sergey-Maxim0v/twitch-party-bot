@@ -1,48 +1,35 @@
-import { QUEUE_TYPES, type QueueHandlerArgs, type QueueState, type QueueType } from '../types'
-import { APP_LOG_STATUSES, APP_LOG_SOURCES } from '../../app-logs/types.ts'
-import { QUEUE_LOG_PREFIXES, QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
+import { QUEUE_TYPES, type QueueHandlerArgs, type QueueState } from '../types'
+import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
+import { QUEUE_REMOVE_LOG_MESSAGES, QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
+import type { QueueContextValue } from '../context/QueueInstance.ts'
+import { isSameQueuePlayer } from './isSameQueuePlayer.ts'
+import { resolvePlayerName } from './resolvePlayerName.ts'
+import { toRemovePlayerResult, type RemovePlayerDecision, type RemovePlayerResult } from './removePlayerResult.ts'
 
-interface HandleRemovePlayerArgs extends QueueHandlerArgs {
-  /** Уникальный ID пользователя на Twitch для удаления */
-  userId: string;
-  /** Из какой именно очереди нужно удалить игрока */
-  targetQueueType: QueueType;
-  /** Имя игрока для отображения */
-  displayedUsername?: string;
-  /** Исходный текст команды (если вызвано из чата) */
-  rawCommand?: string;
-}
+/** Аргументы удаления из одной очереди. */
+type HandleRemovePlayerArgs = QueueHandlerArgs & Pick<
+  Parameters<QueueContextValue['removePlayerFromQueue']>[0],
+  'userId' | 'username' | 'targetQueueType' | 'displayedUsername' | 'rawCommand'
+>
 
-/** Решение по удалению игрока: новое состояние и текст журнала. */
-interface RemoveDecision {
+interface RemoveDecision extends RemovePlayerDecision {
   /** Состояние очереди после удаления. */
   nextState: QueueState;
-  /** Текст для журнала приложения. */
-  logMessage: string;
-  /** Была ли операция ошибочной. */
-  isError: boolean;
 }
 
-/** Аргументы расчёта решения по удалению игрока. */
-interface DecideRemoveArgs {
+type DecideRemoveArgs = Pick<
+  HandleRemovePlayerArgs,
+  'userId' | 'username' | 'targetQueueType' | 'displayedUsername'
+> & {
   /** Состояние очереди до удаления. */
   prev: QueueState;
-  /** Уникальный ID пользователя на Twitch для удаления. */
-  userId: string;
-  /** Очередь, из которой удаляется игрок. */
-  targetQueueType: QueueType;
-  /** Имя игрока для отображения. */
-  displayedUsername?: string;
 }
 
-/**
- * Рассчитывает результат удаления игрока из указанной очереди.
- *
- * @returns Новое состояние очереди и текст для журнала.
- */
+/** Рассчитывает состояние и лог удаления из одной очереди. */
 const decideRemove = ({
   prev,
   userId,
+  username,
   targetQueueType,
   displayedUsername,
 }: DecideRemoveArgs): RemoveDecision => {
@@ -51,36 +38,45 @@ const decideRemove = ({
   const queueLabel = isTargetActive
     ? QUEUE_TYPE_LABELS_LOCATIVE.active
     : QUEUE_TYPE_LABELS_LOCATIVE.waiting
-  const index = queue.findIndex(p => p.userId === userId)
+  const target = { userId, username }
+  const index = queue.findIndex(player => isSameQueuePlayer(target, player))
 
   if (index === -1) {
-    const nameOrId = displayedUsername || `ID ${userId}`
+    const playerName = resolvePlayerName({ displayedUsername, userId })
 
     return {
       nextState: prev,
-      logMessage: `${QUEUE_LOG_PREFIXES.REMOVE}: Ошибка, игрок ${nameOrId} не найден в ${queueLabel}.`,
+      logMessage: QUEUE_REMOVE_LOG_MESSAGES.NOT_FOUND(playerName, queueLabel),
       isError: true,
+      playerName,
     }
   }
 
   const player = queue[index]
-  const playerName = displayedUsername || player.displayedUsername || player.username
+  const playerName = resolvePlayerName({ displayedUsername, username, player })
   const nextQueue = queue.filter((_, playerIndex) => playerIndex !== index)
 
   return {
     nextState: isTargetActive
       ? { ...prev, activeQueue: nextQueue }
       : { ...prev, waitingQueue: nextQueue },
-    logMessage: `${QUEUE_LOG_PREFIXES.REMOVE}: ${playerName} удален из ${queueLabel}.`,
+    logMessage: QUEUE_REMOVE_LOG_MESSAGES.REMOVED(playerName, queueLabel),
     isError: false,
+    playerName,
   }
 }
 
-/**
- * Удаляет первую найденную запись игрока из указанной очереди.
- */
+const createHistoryErrorResult = (playerName: string): RemovePlayerResult =>
+  toRemovePlayerResult({
+    logMessage: QUEUE_REMOVE_LOG_MESSAGES.HISTORY_FORBIDDEN(),
+    isError: true,
+    playerName,
+  })
+
+/** Удаляет игрока из указанной очереди и возвращает результат операции. */
 export const handleRemovePlayer = ({
   userId,
+  username,
   targetQueueType,
   displayedUsername,
   source,
@@ -89,31 +85,40 @@ export const handleRemovePlayer = ({
   getState,
   setState,
   pushLog,
-}: HandleRemovePlayerArgs): void => {
+}: HandleRemovePlayerArgs): RemovePlayerResult => {
   if (targetQueueType === QUEUE_TYPES.HISTORY) {
+    const playerName = resolvePlayerName({ displayedUsername, username, userId })
+    const result = createHistoryErrorResult(playerName)
+
     pushLog({
-      message: `${QUEUE_LOG_PREFIXES.REMOVE}: Ошибка, из истории нельзя удалить игрока`,
+      message: result.message,
+      status: result.logStatus,
       source: APP_LOG_SOURCES.APPLICATION,
-      status: APP_LOG_STATUSES.ERROR,
       actorUsername,
     })
-    return
+
+    return result
   }
 
   const decision = decideRemove({
     prev: getState(),
     userId,
+    username,
     targetQueueType,
     displayedUsername,
   })
 
   setState(decision.nextState)
 
+  const result = toRemovePlayerResult(decision)
+
   pushLog({
-    message: decision.logMessage,
-    status: decision.isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
+    message: result.message,
+    status: result.logStatus,
     source,
     actorUsername,
     rawCommand,
   })
+
+  return result
 }

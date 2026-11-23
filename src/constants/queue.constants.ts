@@ -406,6 +406,30 @@ export const QUEUE_LOG_PREFIXES = {
   MOVE: 'Перемещение игрока',
 } as const
 
+/** Подпись резервного имени, когда известен только ID игрока. */
+export const QUEUE_PLAYER_ID_LABEL = 'ID'
+
+/**
+ * Шаблоны сообщений журнала при удалении игрока из очередей.
+ */
+export const QUEUE_REMOVE_LOG_MESSAGES = {
+  /** Игрок не найден в указанной очереди. */
+  NOT_FOUND: (name: string, queueLabel: string): string =>
+    `${QUEUE_LOG_PREFIXES.REMOVE}: Ошибка, игрок ${name} не найден в ${queueLabel}.`,
+  /** Игрок удалён из указанной очереди. */
+  REMOVED: (name: string, queueLabel: string): string =>
+    `${QUEUE_LOG_PREFIXES.REMOVE}: ${name} удален из ${queueLabel}.`,
+  /** Попытка удалить игрока из истории. */
+  HISTORY_FORBIDDEN: (): string =>
+    `${QUEUE_LOG_PREFIXES.REMOVE}: Ошибка, из истории нельзя удалить игрока`,
+  /** Игрок не найден ни в одной из очередей. */
+  NOT_FOUND_ANYWHERE: (name: string): string =>
+    `${QUEUE_LOG_PREFIXES.REMOVE_ALL}: Ошибка, игрок ${name} не найден ни в одном из списков.`,
+  /** Игрок удалён из указанных очередей. */
+  REMOVED_FROM_ALL: (name: string, removedFrom: string): string =>
+    `${QUEUE_LOG_PREFIXES.REMOVE_ALL}: ${name} удален из ${removedFrom}.`,
+} as const
+
 /**
  * Шаблоны сообщений журнала при добавлении игрока в очередь.
  */

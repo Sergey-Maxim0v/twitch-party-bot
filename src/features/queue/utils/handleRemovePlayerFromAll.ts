@@ -1,93 +1,73 @@
-import type { QueueActionLog, QueueHandlerArgs, QueueState } from '../types'
-import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
-import { QUEUE_LOG_PREFIXES, QUEUE_TYPE_LABELS } from '../../../constants/queue.constants.ts'
+import type { QueueHandlerArgs, QueuePlayer, QueueState } from '../types'
+import { QUEUE_REMOVE_LOG_MESSAGES, QUEUE_TYPE_LABELS } from '../../../constants/queue.constants.ts'
+import type { QueueContextValue } from '../context/QueueInstance.ts'
+import { isSameQueuePlayer } from './isSameQueuePlayer.ts'
+import { resolvePlayerName } from './resolvePlayerName.ts'
+import { toRemovePlayerResult, type RemovePlayerDecision, type RemovePlayerResult } from './removePlayerResult.ts'
 
-interface HandleRemovePlayerFromAllArgs extends QueueHandlerArgs {
-  /** Уникальный ID пользователя на Twitch */
-  userId: string;
-  /** Логин пользователя на Twitch */
-  username: string;
-  /** Отображаемое имя игрока */
-  displayedUsername?: string;
-}
+/** Аргументы удаления из всех очередей. */
+type HandleRemovePlayerFromAllArgs = QueueHandlerArgs & Pick<
+  Parameters<QueueContextValue['removePlayerFromAllQueues']>[0],
+  'userId' | 'username' | 'displayedUsername' | 'silentLog'
+>
 
-/** Решение по удалению игрока из всех очередей: новое состояние и текст журнала. */
-interface RemoveFromAllDecision {
+interface RemoveFromAllDecision extends RemovePlayerDecision {
   /** Состояние очереди после удаления. */
   nextState: QueueState;
-  /** Текст для журнала приложения. */
-  logMessage: string;
-  /** Была ли операция ошибочной. */
-  isError: boolean;
 }
 
-/** Аргументы расчёта решения по удалению игрока из всех очередей. */
-interface DecideRemoveFromAllArgs {
+type DecideRemoveFromAllArgs = Pick<
+  HandleRemovePlayerFromAllArgs,
+  'userId' | 'username' | 'displayedUsername'
+> & {
   /** Состояние очереди до удаления. */
   prev: QueueState;
-  /** Уникальный ID пользователя на Twitch. */
-  userId: string;
-  /** Логин пользователя на Twitch. */
-  username: string;
-  /** Отображаемое имя игрока. */
-  displayedUsername?: string;
 }
 
-/**
- * Рассчитывает результат удаления игрока из всех списков очереди.
- *
- * @returns Новое состояние очереди и текст для журнала.
- */
+/** Рассчитывает состояние и лог удаления из всех очередей. */
 const decideRemoveFromAll = ({
   prev,
   userId,
   username,
   displayedUsername,
 }: DecideRemoveFromAllArgs): RemoveFromAllDecision => {
-  const targetUsername = username.toLowerCase()
-  const isTargetPlayer = (p: { userId: string; username: string }): boolean =>
-    p.userId === userId || p.username.toLowerCase() === targetUsername
+  const target = { userId, username }
+  const isTargetPlayer = (player: QueuePlayer): boolean => isSameQueuePlayer(target, player)
 
   const activeMatches = prev.activeQueue.filter(isTargetPlayer)
   const waitingMatches = prev.waitingQueue.filter(isTargetPlayer)
 
   if (activeMatches.length === 0 && waitingMatches.length === 0) {
-    const nameToLog = displayedUsername || username
+    const playerName = resolvePlayerName({ displayedUsername, username, userId })
 
     return {
       nextState: prev,
-      logMessage: `${QUEUE_LOG_PREFIXES.REMOVE_ALL}: Ошибка, игрок ${nameToLog} не найден ни в одном из списков.`,
+      logMessage: QUEUE_REMOVE_LOG_MESSAGES.NOT_FOUND_ANYWHERE(playerName),
       isError: true,
+      playerName,
     }
   }
 
-  const activePlayerName = activeMatches[0]?.displayedUsername || activeMatches[0]?.username
-  const waitingPlayerName = waitingMatches[0]?.displayedUsername || waitingMatches[0]?.username
-  const playerName = displayedUsername || activePlayerName || waitingPlayerName || username
-
-  const removedFromActive = activeMatches.length > 0
-  const removedFromWaiting = waitingMatches.length > 0
+  const foundPlayer = activeMatches[0] ?? waitingMatches[0]
+  const playerName = resolvePlayerName({ displayedUsername, username, player: foundPlayer })
   const removedFrom = [
-    removedFromActive ? QUEUE_TYPE_LABELS.active : null,
-    removedFromWaiting ? QUEUE_TYPE_LABELS.waiting : null,
+    activeMatches.length > 0 ? QUEUE_TYPE_LABELS.active : null,
+    waitingMatches.length > 0 ? QUEUE_TYPE_LABELS.waiting : null,
   ].filter(label => label !== null).join(' и ')
 
   return {
     nextState: {
       ...prev,
-      activeQueue: prev.activeQueue.filter(p => !isTargetPlayer(p)),
-      waitingQueue: prev.waitingQueue.filter(p => !isTargetPlayer(p)),
+      activeQueue: prev.activeQueue.filter(player => !isTargetPlayer(player)),
+      waitingQueue: prev.waitingQueue.filter(player => !isTargetPlayer(player)),
     },
-    logMessage: `${QUEUE_LOG_PREFIXES.REMOVE_ALL}: ${playerName} удален из ${removedFrom}.`,
+    logMessage: QUEUE_REMOVE_LOG_MESSAGES.REMOVED_FROM_ALL(playerName, removedFrom),
     isError: false,
+    playerName,
   }
 }
 
-/**
- * Удаляет игрока из всех существующих очередей одновременно.
- *
- * @returns Данные для журнала приложения.
- */
+/** Удаляет игрока из всех очередей и возвращает результат операции. */
 export const handleRemovePlayerFromAll = ({
   userId,
   username,
@@ -98,7 +78,7 @@ export const handleRemovePlayerFromAll = ({
   setState,
   pushLog,
   silentLog = false,
-}: HandleRemovePlayerFromAllArgs): QueueActionLog => {
+}: HandleRemovePlayerFromAllArgs): RemovePlayerResult => {
   const decision = decideRemoveFromAll({
     prev: getState(),
     userId,
@@ -108,10 +88,7 @@ export const handleRemovePlayerFromAll = ({
 
   setState(decision.nextState)
 
-  const result: QueueActionLog = {
-    message: decision.logMessage,
-    logStatus: decision.isError ? APP_LOG_STATUSES.ERROR : APP_LOG_STATUSES.INFO,
-  }
+  const result = toRemovePlayerResult(decision)
 
   if (!silentLog) {
     pushLog({
