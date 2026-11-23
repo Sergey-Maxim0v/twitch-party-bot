@@ -7,6 +7,7 @@ import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import { useQueueAutoClose } from '../hooks/useQueueAutoClose.ts'
+import { useNotificationCycleOwner } from '../hooks/useNotificationCycleOwner.ts'
 import { useQueueSession } from '../hooks/useQueueSession.ts'
 import { useQueueClear } from '../hooks/useQueueClear.ts'
 import { useQueuePlayers } from '../hooks/useQueuePlayers.ts'
@@ -80,7 +81,8 @@ export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
     wasFullRef.current = isCurrentlyFull
   }, [state.activeQueue.length, settings.maxQueueSize, sendQueueFullMessage])
 
-  // Стабильная обёртка над логгером приложения.
+  useNotificationCycleOwner({ isQueueOpen, queueChannel })
+
   const pushLog: AppLogsContextValue['pushLog'] = useCallback(({ message, status, source, actorUsername, rawCommand }) => {
     pushAppLog({ message, status, source, actorUsername, rawCommand })
   }, [pushAppLog])

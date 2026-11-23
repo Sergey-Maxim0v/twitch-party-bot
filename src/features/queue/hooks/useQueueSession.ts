@@ -61,8 +61,7 @@ export const useQueueSession = ({
     sendMessage,
     sendMessageOpen,
     sendMessageClose,
-    startNotificationCycle,
-    stopNotificationCycle,
+    clearBuffer,
     addMovedToActiveUser,
     addMovedToWaitingUser,
     addDeletedUser,
@@ -115,34 +114,28 @@ export const useQueueSession = ({
       sendMessageOpen()
     }
 
-    startNotificationCycle()
-
     return result
-  }, [activeChannel, isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageOpen, startNotificationCycle])
+  }, [activeChannel, isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageOpen])
 
   const closeQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
     const result = handleCloseQueue({ ...args, isQueueOpen, setIsQueueOpen, pushLog })
 
     setQueueChannel(null)
-    stopNotificationCycle()
 
     if (result.isClosed) {
       sendMessageClose()
     }
 
     return result
-  }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageClose, stopNotificationCycle])
+  }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageClose])
 
-  /**
-   * Закрывает очередь без сообщения в чат: используется при смене канала,
-   * когда уведомление ушло бы уже в новый канал.
-   */
+  /** Закрывает очередь и сбрасывает буфер уведомлений без сообщения в чат. */
   const autoCloseQueue = useCallback(({ source, actorUsername, message }: AutoCloseQueueArgs) => {
     if (!isQueueOpen) return
 
     setIsQueueOpen(false)
     setQueueChannel(null)
-    stopNotificationCycle()
+    clearBuffer()
 
     pushLog({
       message,
@@ -150,57 +143,38 @@ export const useQueueSession = ({
       source,
       actorUsername,
     })
-  }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, stopNotificationCycle])
+  }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, clearBuffer])
 
   const finishActiveQueue = useCallback((args: QueueSessionActionArgs): QueueActionLog => {
     const decision = handleFinishActiveQueue({ getState, setState })
-
-    if (decision.isEmpty) {
-      const result: QueueActionLog = {
-        message: QUEUE_SESSION_LOG_MESSAGES.FINISHED_EMPTY,
+    const logContext = { source: args.source, actorUsername: args.actorUsername }
+    const result: QueueActionLog = decision.isEmpty
+      ? { message: QUEUE_SESSION_LOG_MESSAGES.FINISHED_EMPTY, logStatus: APP_LOG_STATUSES.WARNING }
+      : {
+        message: QUEUE_SESSION_LOG_MESSAGES.FINISHED(decision.sessionNumber, decision.playedPlayers.length),
         logStatus: APP_LOG_STATUSES.WARNING,
       }
 
-      if (!args.silentLog) {
-        pushLog({
-          message: result.message,
-          status: result.logStatus,
-          source: args.source,
-          actorUsername: args.actorUsername,
-        })
-      }
-
-      return result
-    }
-
-    const nicknames = decision.playedPlayers.map(user => `@${user.displayedUsername ?? user.username}`)
-    const finishedMessage = formatFinishedQueueMessage({ nicknames, prefix: settings.messagePrefix })
-    sendMessage(finishedMessage)
-
-    const result: QueueActionLog = {
-      message: QUEUE_SESSION_LOG_MESSAGES.FINISHED(decision.sessionNumber, decision.playedPlayers.length),
-      logStatus: APP_LOG_STATUSES.WARNING,
+    if (!decision.isEmpty) {
+      const nicknames = decision.playedPlayers.map(user => `@${user.displayedUsername ?? user.username}`)
+      sendMessage(formatFinishedQueueMessage({ nicknames, prefix: settings.messagePrefix }))
     }
 
     if (!args.silentLog) {
-      pushLog({
-        message: result.message,
-        status: result.logStatus,
-        source: args.source,
-        actorUsername: args.actorUsername,
-      })
+      pushLog({ ...logContext, message: result.message, status: result.logStatus })
     }
+
+    if (decision.isEmpty) return result
 
     if (isQueueOpen) {
       pushLog({
+        ...logContext,
         message: QUEUE_SESSION_LOG_MESSAGES.AUTO_CLOSED_ON_FINISH,
         status: APP_LOG_STATUSES.INFO,
-        source: args.source,
-        actorUsername: args.actorUsername,
       })
       setIsQueueOpen(false)
       setQueueChannel(null)
-      stopNotificationCycle()
+      clearBuffer()
     }
 
     if (settings.moveOnSizeChange) {
@@ -212,7 +186,7 @@ export const useQueueSession = ({
     }
 
     return result
-  }, [getState, setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, setQueueChannel, stopNotificationCycle, setIsQueueOpen, balanceQueues])
+  }, [getState, setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, setQueueChannel, clearBuffer, setIsQueueOpen, balanceQueues])
 
   return { openQueue, closeQueue, autoCloseQueue, finishActiveQueue, balanceQueues }
 }

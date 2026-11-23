@@ -224,13 +224,6 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     clearBuffer,
   })
 
-  useEffect(() => {
-    startNotificationCycle()
-    return () => {
-      stopNotificationCycle()
-    }
-  }, [startNotificationCycle, stopNotificationCycle])
-
   const {
     addJoinedUser,
     addWaitingUser,
