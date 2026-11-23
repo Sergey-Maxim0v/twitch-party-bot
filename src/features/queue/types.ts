@@ -23,6 +23,8 @@ interface BaseQueuePlayer {
  * Данные игрока в очереди
  */
 export interface QueuePlayer extends BaseQueuePlayer {
+  /** Уникальный идентификатор записи, не зависящий от данных игрока. */
+  queueEntryId: string;
   timestamp: number;
   isSubscriber: boolean;
   isModerator: boolean;
@@ -44,6 +46,17 @@ export interface QueuePlayerFormData extends BaseQueuePlayer {
  * Типы очередей в приложении
  */
 export type QueueType = typeof QUEUE_TYPES[keyof typeof QUEUE_TYPES]
+
+/** Тип списка очереди, доступного для перемещения игроков. */
+export type MutableQueueType = Exclude<QueueType, typeof QUEUE_TYPES.HISTORY>
+
+/** Запись игрока и список, в котором она находится. */
+export interface QueueEntry {
+  /** Игрок в списке. */
+  player: QueuePlayer;
+  /** Список, в котором находится игрок. */
+  queueType: MutableQueueType;
+}
 
 /**
  * Структура одной игровой сессии (состава) в истории

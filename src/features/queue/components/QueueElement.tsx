@@ -36,6 +36,7 @@ export const QueueElement: FC<QueueElementProps> = ({
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   const {
+    queueEntryId,
     userId,
     username,
     displayedUsername,
@@ -56,7 +57,7 @@ export const QueueElement: FC<QueueElementProps> = ({
     transition,
     isDragging,
   } = useSortable({
-    id: userId,
+    id: queueEntryId,
     disabled: isHistory,
   })
 

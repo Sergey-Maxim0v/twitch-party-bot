@@ -31,7 +31,7 @@ export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOp
 
   const badgeText = maxPlayers > 0 ? `${queueLength} / ${maxPlayers}` : `${queueLength}`
 
-  const playerIds = activeQueue.map(p => p.userId)
+  const playerIds = activeQueue.map(player => player.queueEntryId)
 
   return (
     <QueueCollapse
@@ -46,7 +46,7 @@ export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOp
       <SortableContext items={playerIds} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-2 min-h-10" ref={setNodeRef}>
           {activeQueue.map(player => (
-            <QueueElement key={player.userId + player.timestamp} player={player} queueType={QUEUE_TYPES.ACTIVE} />
+            <QueueElement key={player.queueEntryId} player={player} queueType={QUEUE_TYPES.ACTIVE} />
           ))}
         </div>
       </SortableContext>

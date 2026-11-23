@@ -10,8 +10,9 @@ import { useQueue } from '../hooks/useQueue.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
 import { QueueElement } from './QueueElement.tsx'
-import { QUEUE_TYPES, type QueuePlayer } from '../types.ts'
+import type { QueueEntry } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
+import { findQueueEntry } from '../utils/findQueueEntry.ts'
 import { useChatCommands } from '../hooks/useChatCommands.ts'
 
 /**
@@ -27,7 +28,7 @@ export const QueuePanel: FC = () => {
   const [isActiveListOpen, setIsActiveListOpen] = useState<boolean>(true)
   const [isWaitingListOpen, setIsWaitingListOpen] = useState<boolean>(settings?.allowPreJoin)
   const [isHistoryListOpen, setIsHistoryListOpen] = useState<boolean>(true)
-  const [draggingPlayer, setDraggingPlayer] = useState<QueuePlayer | null>(null)
+  const [draggingEntry, setDraggingEntry] = useState<QueueEntry | null>(null)
 
   const disabledWaiting = !settings?.allowPreJoin
 
@@ -41,28 +42,22 @@ export const QueuePanel: FC = () => {
   )
 
   const handleDragStart = (event: DragStartEvent): void => {
-    const activeId = event.active.id as string
-    const player = activeQueue.find(p => p.userId === activeId) || waitingQueue.find(p => p.userId === activeId)
-    if (player) {
-      setDraggingPlayer(player)
-    }
+    const entry = findQueueEntry(activeQueue, waitingQueue, event.active.id as string)
+    if (entry) setDraggingEntry(entry)
   }
 
   const onDragEnd = (event: DragEndEvent): void => {
-    if(!draggingPlayer) return
-
-    const currentUsername = draggingPlayer.username
+    if (!draggingEntry) return
 
     handleDragEnd({
       event,
       activeQueue,
-      waitingQueue: waitingQueue,
+      waitingQueue,
       movePlayer,
       actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
-      username: currentUsername,
     })
 
-    setDraggingPlayer(null)
+    setDraggingEntry(null)
   }
 
   return (
@@ -85,12 +80,9 @@ export const QueuePanel: FC = () => {
 
         {/* Оверлей поверх всех overflow-контейнеров */}
         <DragOverlay dropAnimation={null}>
-          {draggingPlayer ? (
+          {draggingEntry ? (
             <div className="w-[calc(100%-8px)] pointer-events-none strict-dragging-preview">
-              <QueueElement
-                player={draggingPlayer}
-                queueType={activeQueue.some(p => p.userId === draggingPlayer.userId) ? QUEUE_TYPES.ACTIVE : QUEUE_TYPES.WAITING}
-              />
+              <QueueElement player={draggingEntry.player} queueType={draggingEntry.queueType} />
             </div>
           ) : null}
         </DragOverlay>

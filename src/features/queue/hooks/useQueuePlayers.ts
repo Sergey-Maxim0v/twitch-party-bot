@@ -1,6 +1,14 @@
 import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { type QueueActionLog, type QueueJoinResult, type QueueState, type QueuePlayerFormData, type QueueType, QUEUE_TYPES } from '../types'
+import {
+  type QueueActionLog,
+  type QueueJoinResult,
+  type QueueState,
+  type QueuePlayerFormData,
+  type QueueType,
+  type MutableQueueType,
+  QUEUE_TYPES,
+} from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { handleJoinPlayer } from '../utils/handleJoinPlayer.ts'
@@ -128,8 +136,10 @@ export const useQueuePlayers = ({
   }, [settings, updateSettings, pushLog])
 
   const movePlayer = useCallback((args: QueuePlayerCommandArgs & {
+    queueEntryId: string;
     userId: string;
-    targetQueueType: Exclude<QueueType, 'history'>;
+    sourceQueueType: MutableQueueType;
+    targetQueueType: MutableQueueType;
     targetIndex: number | undefined;
   }) => {
     const decision = handleMovePlayer({

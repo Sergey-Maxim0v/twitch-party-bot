@@ -8,6 +8,7 @@ import {
   type QueueSession,
   type QueuePlayerFormData,
   type QueueType,
+  type MutableQueueType,
 } from '../types'
 import type { LogSource } from '../../app-logs/types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
@@ -85,10 +86,12 @@ export interface QueueContextValue {
 
   /** Универсальное перемещение игрока внутри списков или между ними (Drag-and-Drop) */
   movePlayer: (args: {
+    queueEntryId: string;
     userId: string;
     username: string;
     displayedUsername?: string;
-    targetQueueType: Exclude<QueueType, 'history'>;
+    sourceQueueType: MutableQueueType;
+    targetQueueType: MutableQueueType;
     targetIndex: number | undefined;
     source: LogSource;
     actorUsername: string;

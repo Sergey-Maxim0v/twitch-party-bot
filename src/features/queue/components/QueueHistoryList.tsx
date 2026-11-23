@@ -53,7 +53,7 @@ export const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', on
                 {session.players.length ? (
                   session.players.map(player => (
                     <QueueElement
-                      key={`${player.userId}-${player.timestamp}`}
+                      key={player.queueEntryId}
                       player={player}
                       queueType={QUEUE_TYPES.HISTORY}
                     />

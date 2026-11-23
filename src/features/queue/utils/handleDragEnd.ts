@@ -1,66 +1,74 @@
 import { type DragEndEvent } from '@dnd-kit/core'
-import { QUEUE_TYPES, type QueueType } from '../types.ts'
+import { QUEUE_TYPES, type MutableQueueType, type QueuePlayer } from '../types.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
+import { findQueueEntry } from './findQueueEntry.ts'
 
 /** Аргументы обработки события перетаскивания. */
 interface HandleDragEndArgs {
   /** Событие завершения Drag-and-Drop. */
   event: DragEndEvent
   /** Игроки в активной очереди. */
-  activeQueue: QueueContextValue['activeQueue']
+  activeQueue: QueuePlayer[]
   /** Игроки в списке ожидающих. */
-  waitingQueue: QueueContextValue['waitingQueue']
+  waitingQueue: QueuePlayer[]
   /** Функция перемещения игрока. */
   movePlayer: QueueContextValue['movePlayer']
   /** Никнейм того, кто выполнил перемещение. */
   actorUsername: string
-  /** Логин перемещаемого игрока. */
-  username: string
 }
 
 /**
  * Обрабатывает завершение Drag-and-Drop и делегирует перемещение игрока.
  */
-export const handleDragEnd = ({ event, activeQueue, waitingQueue, movePlayer, actorUsername, username }: HandleDragEndArgs): void => {
+export const handleDragEnd = ({
+  event,
+  activeQueue,
+  waitingQueue,
+  movePlayer,
+  actorUsername,
+}: HandleDragEndArgs): void => {
   const { active, over } = event
   if (!over) return
 
-  const activeId = active.id as string
+  const activeEntryId = active.id as string
   const overId = over.id as string
+  if (activeEntryId === overId) return
 
-  if (activeId === overId) return
+  const sourceEntry = findQueueEntry(activeQueue, waitingQueue, activeEntryId)
+  if (!sourceEntry) return
 
-  const isInActive = activeQueue.some(p => p.userId === activeId)
-  const sourceQueue = isInActive ? QUEUE_TYPES.ACTIVE : QUEUE_TYPES.WAITING
+  let targetQueueType: MutableQueueType
+  let targetEntryId: string | null = null
 
-  let targetQueueType: Exclude<QueueType, 'history'>
-  let targetIndex: number | undefined
-
-  if (overId === QUEUE_TYPES.ACTIVE) {
-    targetQueueType = QUEUE_TYPES.ACTIVE
-    targetIndex = activeQueue.length
-  } else if (overId === QUEUE_TYPES.WAITING) {
-    targetQueueType = QUEUE_TYPES.WAITING
-    targetIndex = waitingQueue.length
+  if (overId === QUEUE_TYPES.ACTIVE || overId === QUEUE_TYPES.WAITING) {
+    targetQueueType = overId
   } else {
-    const isOverActive = activeQueue.some(p => p.userId === overId)
-    targetQueueType = isOverActive ? QUEUE_TYPES.ACTIVE : QUEUE_TYPES.WAITING
+    const targetEntry = findQueueEntry(activeQueue, waitingQueue, overId)
+    if (!targetEntry) return
 
-    const targetList = isOverActive ? activeQueue : waitingQueue
-    const index = targetList.findIndex(p => p.userId === overId)
-    targetIndex = index !== -1 ? index : undefined
+    targetQueueType = targetEntry.queueType
+    targetEntryId = overId
   }
 
-  if (sourceQueue === targetQueueType && targetIndex !== undefined) {
-    const sourceList = sourceQueue === QUEUE_TYPES.ACTIVE ? activeQueue : waitingQueue
-    const currentIndex = sourceList.findIndex(p => p.userId === activeId)
-    if (currentIndex === targetIndex) return
+  const targetQueue = targetQueueType === QUEUE_TYPES.ACTIVE ? activeQueue : waitingQueue
+  const targetIndex = targetEntryId
+    ? targetQueue.findIndex(player => player.queueEntryId === targetEntryId)
+    : targetQueue.length
+  if (targetIndex === -1) return
+
+  if (sourceEntry.queueType === targetQueueType) {
+    const sourceQueue = sourceEntry.queueType === QUEUE_TYPES.ACTIVE ? activeQueue : waitingQueue
+    const sourceIndex = sourceQueue.findIndex(player => player.queueEntryId === activeEntryId)
+    if (sourceIndex === targetIndex) return
   }
 
   movePlayer({
-    userId: activeId,
-    username: username,
+    queueEntryId: sourceEntry.player.queueEntryId,
+    userId: sourceEntry.player.userId,
+    username: sourceEntry.player.username,
+    displayedUsername: sourceEntry.player.displayedUsername,
+    sourceQueueType: sourceEntry.queueType,
     targetQueueType,
     targetIndex,
     source: APP_LOG_SOURCES.STREAMER_UI,

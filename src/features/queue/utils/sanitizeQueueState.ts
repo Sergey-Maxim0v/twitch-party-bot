@@ -1,5 +1,6 @@
 import type { PlayerHistoryStats, QueuePlayer, QueuePlayerSource, QueueSession, QueueState } from '../types.ts'
-import { QUEUE_PLAYER_SOURCE } from '../../../constants/queue.constants.ts'
+import { QUEUE_ENTRY_ID_PREFIX, QUEUE_PLAYER_SOURCE } from '../../../constants/queue.constants.ts'
+import { createId } from '../../../utils/createId.ts'
 import { mergeWithDefaults } from '../../../hooks/utils/storage.utils.ts'
 import { filterNotNull } from '../../../utils/arrays.ts'
 import { isPlainObject } from '../../../utils/objects.ts'
@@ -43,7 +44,9 @@ const toQueuePlayer = (value: unknown): QueuePlayer | null => {
     : undefined
 
   return {
-    // Пустой ID ломает drag-and-drop, поэтому подставляем никнейм.
+    // Идентификатор записи не зависит от данных игрока и используется для Drag-and-Drop.
+    queueEntryId: isFilledString(value.queueEntryId) ? value.queueEntryId : createId(QUEUE_ENTRY_ID_PREFIX),
+    // Пустой userId подставляем никнеймом, чтобы работали поиск и удаление.
     userId: isFilledString(value.userId) ? value.userId : value.username,
     username: value.username,
     displayedUsername,

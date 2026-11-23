@@ -8,9 +8,11 @@ import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance
 import type { QueueContextValue } from '../context/QueueInstance.ts'
 import {
   DEFAULT_QUEUE_SETTINGS,
+  QUEUE_ENTRY_ID_PREFIX,
   QUEUE_JOIN_LOG_MESSAGES,
   QUEUE_JOIN_STATUSES,
 } from '../../../constants/queue.constants.ts'
+import { createId } from '../../../utils/createId.ts'
 import { hasQueuePlayer } from './hasQueuePlayer.ts'
 import { isPrivilegedPlayer } from './isPrivilegedPlayer.ts'
 
@@ -192,6 +194,7 @@ export const handleJoinPlayer = ({
 }: HandleJoinPlayerArgs): QueueJoinResult => {
   const player: QueuePlayer = {
     ...playerData,
+    queueEntryId: createId(QUEUE_ENTRY_ID_PREFIX),
     timestamp: customTimestamp || Date.now(),
     gameNickname: extractGameNickname({
       rawMessage: playerData.rawMessage,

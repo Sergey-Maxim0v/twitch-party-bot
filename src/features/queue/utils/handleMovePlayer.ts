@@ -1,9 +1,9 @@
 import {
   QUEUE_TYPES,
+  type MutableQueueType,
   type QueueHandlerArgs,
   type QueuePlayer,
   type QueueState,
-  type QueueType,
 } from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import {
@@ -15,13 +15,16 @@ import {
 } from '../../../constants/queue.constants.ts'
 import { formatQueuePlayerNames } from './formatQueuePlayerNames.ts'
 import { hasQueuePlayer } from './hasQueuePlayer.ts'
-import { isSameQueuePlayer } from './isSameQueuePlayer.ts'
 
 interface HandleMovePlayerArgs extends QueueHandlerArgs {
+  /** Уникальный идентификатор перемещаемой записи. */
+  queueEntryId: string;
   /** Уникальный ID пользователя на Twitch для перемещения. */
   userId: string;
+  /** Список, из которого перемещают игрока. */
+  sourceQueueType: MutableQueueType;
   /** Целевой тип очереди, куда перетаскивают игрока. */
-  targetQueueType: Exclude<QueueType, 'history'>;
+  targetQueueType: MutableQueueType;
   /** Индекс (позиция), куда нужно вставить игрока (если не передан — падает в конец). */
   targetIndex: number | undefined;
   /** Никнейм для отображения. */
@@ -43,7 +46,7 @@ export interface MoveDecision {
   /** Было ли перемещение отклонено из-за отключённого списка ожидающих. */
   isBlockedByDisabledWaiting: boolean;
   /** Очередь, из которой перемещён игрок. */
-  sourceQueueType: Exclude<QueueType, 'history'> | null;
+  sourceQueueType: MutableQueueType | null;
   /** Отображаемое имя игрока. */
   playerName: string;
   /** Фактическая позиция вставки (0-based). */
@@ -60,10 +63,14 @@ export interface MoveDecision {
 interface DecideMoveArgs {
   /** Состояние очереди до перемещения. */
   prev: QueueState;
+  /** Уникальный идентификатор перемещаемой записи. */
+  queueEntryId: string;
   /** Уникальный ID пользователя на Twitch для перемещения. */
   userId: string;
+  /** Список, из которого перемещают игрока. */
+  sourceQueueType: MutableQueueType;
   /** Целевой тип очереди, куда перемещают игрока. */
-  targetQueueType: Exclude<QueueType, 'history'>;
+  targetQueueType: MutableQueueType;
   /** Индекс (позиция), куда нужно вставить игрока. */
   targetIndex: number | undefined;
   /** Никнейм для отображения. */
@@ -82,7 +89,7 @@ interface DecideMoveArgs {
 const createMoveDecision = (
   prev: QueueState,
   playerName: string,
-  sourceQueueType: Exclude<QueueType, 'history'> | null,
+  sourceQueueType: MutableQueueType | null,
   overrides: Partial<MoveDecision> = {},
 ): MoveDecision => ({
   nextState: prev,
@@ -105,25 +112,22 @@ const createMoveDecision = (
  */
 const decideMove = ({
   prev,
+  queueEntryId,
   userId,
+  sourceQueueType,
   targetQueueType,
   targetIndex,
   displayedUsername,
   maxQueueSize,
   allowPreJoin,
 }: DecideMoveArgs): MoveDecision => {
-  const activeIndex = prev.activeQueue.findIndex(p => p.userId === userId)
-  const waitingIndex = prev.waitingQueue.findIndex(p => p.userId === userId)
-  let player: QueuePlayer | null = null
+  const sourceQueue = sourceQueueType === QUEUE_TYPES.ACTIVE ? prev.activeQueue : prev.waitingQueue
+  const player = sourceQueue.find(item => item.queueEntryId === queueEntryId)
 
-  if (activeIndex !== -1) player = prev.activeQueue[activeIndex]
-  else if (waitingIndex !== -1) player = prev.waitingQueue[waitingIndex]
-
-  if (!player) {
+  if (!player || player.userId !== userId) {
     return createMoveDecision(prev, displayedUsername || '', null)
   }
 
-  const sourceQueueType = activeIndex !== -1 ? QUEUE_TYPES.ACTIVE : QUEUE_TYPES.WAITING
   const playerName = displayedUsername || player.displayedUsername || player.username
   const isCrossQueueMove = sourceQueueType !== targetQueueType
   const targetQueue = targetQueueType === QUEUE_TYPES.ACTIVE ? prev.activeQueue : prev.waitingQueue
@@ -140,9 +144,9 @@ const decideMove = ({
   let waitingQueue = [...prev.waitingQueue]
 
   if (sourceQueueType === QUEUE_TYPES.ACTIVE) {
-    activeQueue = activeQueue.filter(item => !isSameQueuePlayer(item, player))
+    activeQueue = activeQueue.filter(item => item.queueEntryId !== player.queueEntryId)
   } else {
-    waitingQueue = waitingQueue.filter(item => !isSameQueuePlayer(item, player))
+    waitingQueue = waitingQueue.filter(item => item.queueEntryId !== player.queueEntryId)
   }
 
   const displacedToWaiting: QueuePlayer[] = []
@@ -209,7 +213,7 @@ const decideMove = ({
  */
 const formatMoveLog = (
   decision: MoveDecision,
-  targetQueueType: Exclude<QueueType, 'history'>,
+  targetQueueType: MutableQueueType,
   targetIndex: number | undefined,
 ): string => {
   const fromLabel = decision.sourceQueueType ? QUEUE_TYPE_LABELS[decision.sourceQueueType] : ''
@@ -244,7 +248,9 @@ const formatMoveLog = (
  * @returns Результат перемещения и состояние очереди после операции.
  */
 export const handleMovePlayer = ({
+  queueEntryId,
   userId,
+  sourceQueueType,
   targetQueueType,
   targetIndex,
   displayedUsername,
@@ -258,7 +264,9 @@ export const handleMovePlayer = ({
 }: HandleMovePlayerArgs): MoveDecision => {
   const decision = decideMove({
     prev: getState(),
+    queueEntryId,
     userId,
+    sourceQueueType,
     targetQueueType,
     targetIndex,
     displayedUsername,
