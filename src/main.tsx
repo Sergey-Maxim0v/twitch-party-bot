@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
+import { App } from './App.tsx'
 import { ErrorBoundary } from './components/error-boundary/components/ErrorBoundary.tsx'
 import { FrameBlockedScreen } from './components/FrameBlockedScreen.tsx'
 import { ERROR_SOURCES } from './constants/error.constants.ts'

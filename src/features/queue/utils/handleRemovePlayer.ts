@@ -1,7 +1,6 @@
-import { QUEUE_TYPES, type QueueHandlerArgs } from '../types.ts'
+import { QUEUE_TYPES, type QueueHandlerArgs, type RemoveQueuePlayerArgs } from '../types.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_REMOVE_LOG_MESSAGES, QUEUE_TYPE_LABELS_LOCATIVE } from '../../../constants/queue.constants.ts'
-import type { QueueContextValue } from '../context/QueueInstance.ts'
 import { isSameQueuePlayer } from './queuePlayers.utils.ts'
 import {
   resolvePlayerName,
@@ -10,10 +9,7 @@ import {
   type RemovePlayerResult,
 } from './removePlayerResult.ts'
 
-type HandleRemovePlayerArgs = Pick<
-  Parameters<QueueContextValue['removePlayerFromQueue']>[0],
-  'userId' | 'username' | 'targetQueueType' | 'displayedUsername' | 'rawCommand'
-> & QueueHandlerArgs
+type HandleRemovePlayerArgs = RemoveQueuePlayerArgs & QueueHandlerArgs
 
 const createHistoryErrorResult = (playerName: string): RemovePlayerResult =>
   toRemovePlayerResult({

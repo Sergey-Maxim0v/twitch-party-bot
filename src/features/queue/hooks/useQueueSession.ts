@@ -1,8 +1,7 @@
 import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueActionContext, QueueActionLog, QueueSetState, QueueState } from '../types'
+import type { QueueActionContext, QueueActionLog, QueueStateAccess } from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 import { formatFinishedQueueMessage } from '../../queue-notification/utils/formatFinishedQueueMessage.ts'
 import { handleBalanceQueues } from '../utils/handleBalanceQueues.ts'
@@ -16,16 +15,16 @@ interface AutoCloseQueueArgs extends QueueActionContext {
   message: string;
 }
 
-interface UseQueueSessionArgs {
-  setState: QueueSetState;
-  getState: () => QueueState;
+interface UseQueueSessionArgs extends QueueStateAccess {
   isQueueOpen: boolean;
   setIsQueueOpen: Dispatch<SetStateAction<boolean>>;
   activeChannel: string | null;
   setQueueChannel: Dispatch<SetStateAction<string | null>>;
-  pushLog: AppLogsContextValue['pushLog'];
 }
 
+/**
+ * Управление сессией очереди: открытие, закрытие, автозакрытие и балансировка.
+ */
 export const useQueueSession = ({
   setState,
   getState,

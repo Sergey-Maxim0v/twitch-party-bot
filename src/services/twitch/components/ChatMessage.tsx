@@ -7,20 +7,14 @@ import {
   CHAT_MESSAGE_SYSTEM_STYLES,
 } from '../../../constants/chat-message.constants.ts'
 import { TWITCH_IRC_TAGS } from '../../../constants/twitch.constants.ts'
-import type { ParsedIrcMessage, TwitchEmoteDictionary } from '../types.ts'
+import type { ChatDisplayOptions, ParsedIrcMessage, TwitchEmoteDictionary } from '../types.ts'
 import { getAdaptedTwitchColors } from '../utils/getAdaptedTwitchColors.ts'
 import { getChatMessageSystemKind } from '../utils/getChatMessageSystemKind.ts'
 import { ChatMessageText } from './ChatMessageText.tsx'
 import { ChatRoleBadge } from './ChatRoleBadge.tsx'
 
-interface ChatMessageProps {
+interface ChatMessageProps extends ChatDisplayOptions {
   msg: ParsedIrcMessage;
-  useColoredNames: boolean;
-  highlightRoles: boolean;
-  isShowDeletedMessages: boolean;
-  showSystemNotifications: boolean;
-  highlightPointsMessages: boolean;
-  showEmotes: boolean;
   emoteDictionary: TwitchEmoteDictionary;
 }
 

@@ -1,10 +1,11 @@
-import { type FC, useState, type KeyboardEvent } from 'react'
+import { type FC, type KeyboardEvent } from 'react'
 import { QUEUE_COMMAND_NAME_MAX_LENGTH } from '../../../constants/queue.constants.ts'
 import {
   SETTINGS_INPUT_CLASS,
   SETTINGS_INPUT_ERROR_CLASS,
   SETTINGS_VALIDATION_ERROR_CLASS,
 } from '../../../constants/ui.constants.ts'
+import { useSyncedInput } from '../../../hooks/useSyncedInput.ts'
 
 interface SettingsCommandInputProps {
   label: string;
@@ -31,14 +32,7 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
   className = '',
   validate,
 }) => {
-  const [localValue, setLocalValue] = useState(commandValue)
-  const [prevCommandValue, setPrevCommandValue] = useState(commandValue)
-
-  // Синхронизируем локальное значение, если проп изменился извне.
-  if (commandValue !== prevCommandValue) {
-    setLocalValue(commandValue)
-    setPrevCommandValue(commandValue)
-  }
+  const [localValue, setLocalValue] = useSyncedInput(commandValue, String)
 
   const validationError = validate?.(localValue) ?? null
 

@@ -14,7 +14,7 @@ export const TwitchChat: FC = () => {
   const [useColoredNames, setUseColoredNames] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.COLORED_NAMES, true)
   const [showEmotes, setShowEmotes] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.SHOW_EMOTES, true)
   const [highlightRoles, setHighlightRoles] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.HIGHLIGHT_ROLES, true)
-  const [IsShowDeletedMessages, setIsShowDeletedMessages] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.SHOW_MODERATION_LOGS, true)
+  const [isShowDeletedMessages, setIsShowDeletedMessages] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.SHOW_MODERATION_LOGS, true)
   const [showSystemNotifications, setShowSystemNotifications] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.SHOW_SYSTEM_NOTIFICATIONS, true)
   const [highlightPointsMessages, setHighlightPointsMessages] = useLocalStorage<boolean>(TWITCH_CHAT_STORAGE_KEYS.HIGHLIGHT_MESSAGES, true)
 
@@ -27,7 +27,7 @@ export const TwitchChat: FC = () => {
         emoteDictionary={emoteDictionary}
         highlightPointsMessages={highlightPointsMessages}
         highlightRoles={highlightRoles}
-        IsShowDeletedMessages={IsShowDeletedMessages}
+        isShowDeletedMessages={isShowDeletedMessages}
         messages={messages}
         showEmotes={showEmotes}
         showSystemNotifications={showSystemNotifications}
@@ -39,7 +39,7 @@ export const TwitchChat: FC = () => {
           <ChatSettings
             highlightPointsMessages={highlightPointsMessages}
             highlightRoles={highlightRoles}
-            IsShowDeletedMessages={IsShowDeletedMessages}
+            isShowDeletedMessages={isShowDeletedMessages}
             setHighlightPointsMessages={setHighlightPointsMessages}
             setHighlightRoles={setHighlightRoles}
             setIsShowDeletedMessages={setIsShowDeletedMessages}

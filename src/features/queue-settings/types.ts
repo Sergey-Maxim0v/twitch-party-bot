@@ -1,15 +1,15 @@
 /** Ключи поддерживаемых игр. */
 export type QueueGameKey =
-    | 'RIOT'
-    | 'STEAM'
-    | 'UBISOFT'
-    | 'BATTLE_NET'
-    | 'APEX'
-    | 'PUBG'
-    | 'FORTNITE'
-    | 'NARAKA'
-    | 'GOOSE_GOOSE'
-    | 'AMONG_US'
+  | 'RIOT'
+  | 'STEAM'
+  | 'UBISOFT'
+  | 'BATTLE_NET'
+  | 'APEX'
+  | 'PUBG'
+  | 'FORTNITE'
+  | 'NARAKA'
+  | 'GOOSE_GOOSE'
+  | 'AMONG_US'
 
 /** Конфигурация команды чата. */
 interface QueueCommandConfig {
@@ -114,4 +114,12 @@ export interface QueueSettings {
 
   /** Максимально возможное количество игр для одного участника. */
   maxGamesPerUser?: number;
+}
+
+/** Общие пропсы секции панели настроек. */
+export interface SettingsSectionProps {
+  /** Дополнительные CSS-классы секции. */
+  className?: string;
+  /** Дополнительные CSS-классы заголовка секции. */
+  titleClassName?: string;
 }

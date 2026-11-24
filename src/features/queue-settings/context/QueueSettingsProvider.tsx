@@ -1,19 +1,16 @@
-import { type FC, type ReactNode } from 'react'
+import { type FC } from 'react'
 import type { QueueSettings } from '../types.ts'
 import { DEFAULT_QUEUE_SETTINGS } from '../../../constants/queue.constants.ts'
 import { QUEUE_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
 import { QueueSettingsContext } from './QueueSettingsInstance.ts'
 import { useLocalStorage } from '../../../hooks/useLocalStorage.ts'
 import { parseQueueSettings } from '../utils/parseQueueSettings.ts'
-
-interface QueueSettingsProviderProps {
-  children: ReactNode;
-}
+import type { ChildrenProps } from '../../../types/common.types.ts'
 
 /**
  * Провайдер настроек очереди с сохранением в localStorage.
  */
-export const QueueSettingsProvider: FC<QueueSettingsProviderProps> = ({ children }) => {
+export const QueueSettingsProvider: FC<ChildrenProps> = ({ children }) => {
   const [settings, setSettings] = useLocalStorage<QueueSettings>(
     QUEUE_STORAGE_KEYS.SETTINGS,
     DEFAULT_QUEUE_SETTINGS,

@@ -1,24 +1,15 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 import { LuClock } from 'react-icons/lu'
 import { useQueue } from '../hooks/useQueue.ts'
-import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
+import { QueueCollapse, type QueueListProps } from '../../../components/QueueCollapse.tsx'
 import { QueueElement } from './QueueElement.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 import { formatTime } from '../../../utils/dateTime.ts'
 
-interface QueueHistoryListProps {
-  /** Дополнительные CSS-классы списка. */
-  className?: string;
-  /** Открыт ли список. */
-  open: boolean;
-  /** Обработчик изменения состояния списка. */
-  onOpenChange: (open: boolean) => void;
-}
-
 /**
  * История завершённых игровых сессий.
  */
-export const QueueHistoryList: FC<QueueHistoryListProps> = ({ className = '', onOpenChange, open }) => {
+export const QueueHistoryList: FC<QueueListProps> = ({ className = '', onOpenChange, open }) => {
   const { queueHistory } = useQueue()
 
   const queueLength = queueHistory?.length ?? 0

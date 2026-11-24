@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { parseStoredValueSafe, readStoredValue, serializeStoredValue } from './utils/storage.utils.ts'
+import { parseStoredValueSafe, readStoredValue } from './utils/storage.utils.ts'
 import { sanitizeStoredValue } from './utils/sanitizeStoredValue.ts'
-import { readWebStorage, writeWebStorage } from './utils/webStorage.utils.ts'
 import type { LocalStorageOptions, SanitizedValue } from './types/storage.types.ts'
+import { useStorageWrite } from './useStorageWrite.ts'
 
 /**
  * Хранит состояние в localStorage и синхронизирует его между вкладками.
@@ -18,11 +18,11 @@ import type { LocalStorageOptions, SanitizedValue } from './types/storage.types.
  * @param options - Проверка и нормализация значения.
  * @returns Текущее значение, функция его обновления и признак некорректного значения.
  */
-export function useLocalStorage<T>(
+export const useLocalStorage = <T>(
   key: string,
   initialValue: T,
   { sanitize }: LocalStorageOptions<T> = {},
-): [T, (value: T | ((val: T) => T)) => void, boolean] {
+): [T, (value: T | ((val: T) => T)) => void, boolean] => {
   const initialValueRef = useRef(initialValue)
   const sanitizeRef = useRef(sanitize)
 
@@ -35,18 +35,7 @@ export function useLocalStorage<T>(
     sanitizeStoredValue(readStoredValue('localStorage', key, initialValue), sanitize)
   ))
 
-  const isFirstRunRef = useRef(true)
-
-  useEffect(() => {
-    const serialized = serializeStoredValue('localStorage', key, storedValue.value)
-    const { value: item } = readWebStorage('localStorage', key)
-    const isFirstRun = isFirstRunRef.current
-    isFirstRunRef.current = false
-
-    if (serialized === null || (isFirstRun && item === null) || item === serialized) return
-
-    writeWebStorage('localStorage', key, serialized)
-  }, [key, storedValue])
+  useStorageWrite(key, storedValue.value, storedValue)
 
   const setValue = useCallback((value: T | ((val: T) => T)) => {
     setStoredValue(currentValue => {

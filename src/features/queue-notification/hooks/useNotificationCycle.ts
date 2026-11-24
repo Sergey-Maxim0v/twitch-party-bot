@@ -2,22 +2,21 @@ import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import type { TwitchNotificationState } from '../types.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { formatNotificationMessage } from '../utils/formatNotificationMessage.ts'
+import type { QueueNotificationContextType } from '../context/QueueNotificationInstance.ts'
 
 interface UseNotificationCycleParams {
   /** Задержка между отправками, сек. */
-  botMessageCooldown: number
+  botMessageCooldown: number;
   /** Отправляет текст; `true` — буфер можно очистить. */
-  sendMessage: (text: string) => boolean
+  sendMessage: (text: string) => boolean;
   /** Буфер уведомлений. */
-  stateRef: RefObject<TwitchNotificationState>
+  stateRef: RefObject<TwitchNotificationState>;
   /** Очищает буфер после успешной отправки. */
-  clearBuffer: () => void
+  clearBuffer: () => void;
 }
 
-interface UseNotificationCycleReturn {
-  startNotificationCycle: () => void
-  stopNotificationCycle: () => void
-}
+/** Управление циклическим таймером отправки уведомлений. */
+type UseNotificationCycleReturn = Pick<QueueNotificationContextType, 'startNotificationCycle' | 'stopNotificationCycle'>
 
 /**
  * Цикл отправки накопленных уведомлений в чат Twitch.

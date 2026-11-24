@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { TWITCH_CHAT_ACCESS_STATUSES, type ChatAccessStatus } from '../types.ts'
 import type { TwitchIrcClient } from '../../twitch/twitchIrcClient.ts'
 
-interface UseSocketNetworkSyncProps {
+export interface UseSocketNetworkSyncProps {
   client: TwitchIrcClient;
   setChatAccessStatus: (status: ChatAccessStatus) => void;
 }

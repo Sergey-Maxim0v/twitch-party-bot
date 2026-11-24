@@ -1,21 +1,18 @@
 import { type FC, useState, type MouseEvent } from 'react'
 import { LuMessageSquare, LuUserRound, LuUserRoundPlus } from 'react-icons/lu'
 import { useQueue } from '../hooks/useQueue.ts'
-import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_PLAYER_SOURCE, type QueuePlayerFormData } from '../types.ts'
-
-interface QueueFormProps {
-  /** Дополнительные CSS-классы формы. */
-  className?: string;
-}
+import { QueueRoleToggle } from './QueueRoleToggle.tsx'
+import type { ClassNameProps } from '../../../types/common.types.ts'
 
 /**
  * Форма ручного добавления игрока в очередь.
  */
-export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
+export const QueueForm: FC<ClassNameProps> = ({ className = '' }) => {
   const { addPlayerToQueue } = useQueue()
-  const { session, userDisplayName } = useAuth()
+  const actorUsername = useActorUsername('')
 
   const [username, setUsername] = useState<string>('')
   const [messageText, setMessageText] = useState<string>('')
@@ -47,7 +44,7 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
     addPlayerToQueue({
       playerData,
       source: APP_LOG_SOURCES.STREAMER_UI,
-      actorUsername: userDisplayName ?? session?.login ?? '',
+      actorUsername,
       customTimestamp: timestamp,
     })
 
@@ -72,7 +69,7 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
             autoComplete="off"
             className="grow border-0 bg-transparent p-0 text-sm font-medium outline-none
               placeholder:text-base-content/30 focus:outline-none"
-            onChange={e => { setUsername(e.target.value) }}
+            onChange={e => setUsername(e.target.value)}
             placeholder="Никнейм Twitch..."
             required
             type="text"
@@ -91,7 +88,7 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
             autoComplete="off"
             className="grow border-0 bg-transparent p-0 text-sm outline-none
               placeholder:text-base-content/30 focus:outline-none"
-            onChange={e => { setMessageText(e.target.value) }}
+            onChange={e => setMessageText(e.target.value)}
             placeholder="Сообщение или игровой ник..."
             type="text"
             value={messageText}
@@ -100,50 +97,9 @@ export const QueueForm: FC<QueueFormProps> = ({ className = '' }) => {
       </div>
 
       <div className="flex flex-row items-center gap-1.5">
-        <label
-          className="flex flex-1 cursor-pointer select-none items-center justify-center gap-1.5 rounded-xl
-            border border-base-300/70 bg-base-100/40 px-2 py-1.5 text-[11px] font-semibold
-            text-base-content/50 transition-all hover:border-base-content/20 hover:text-base-content/70
-            has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-base-content"
-        >
-          <span>Mod</span>
-          <input
-            checked={isMod}
-            className="toggle toggle-success toggle-xs"
-            onChange={e => setIsMod(e.target.checked)}
-            type="checkbox"
-          />
-        </label>
-
-        <label
-          className="flex flex-1 cursor-pointer select-none items-center justify-center gap-1.5 rounded-xl
-            border border-base-300/70 bg-base-100/40 px-2 py-1.5 text-[11px] font-semibold
-            text-base-content/50 transition-all hover:border-base-content/20 hover:text-base-content/70
-            has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-base-content"
-        >
-          <span>Sub</span>
-          <input
-            checked={isSub}
-            className="toggle toggle-primary toggle-xs"
-            onChange={e => setIsSub(e.target.checked)}
-            type="checkbox"
-          />
-        </label>
-
-        <label
-          className="flex flex-1 cursor-pointer select-none items-center justify-center gap-1.5 rounded-xl
-            border border-base-300/70 bg-base-100/40 px-2 py-1.5 text-[11px] font-semibold
-            text-base-content/50 transition-all hover:border-base-content/20 hover:text-base-content/70
-            has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-base-content"
-        >
-          <span>VIP</span>
-          <input
-            checked={isVip}
-            className="toggle toggle-warning toggle-xs"
-            onChange={e => setIsVip(e.target.checked)}
-            type="checkbox"
-          />
-        </label>
+        <QueueRoleToggle checked={isMod} label="Mod" onChange={setIsMod} toggleClassName="toggle-success" />
+        <QueueRoleToggle checked={isSub} label="Sub" onChange={setIsSub} toggleClassName="toggle-primary" />
+        <QueueRoleToggle checked={isVip} label="VIP" onChange={setIsVip} toggleClassName="toggle-warning" />
       </div>
 
       <button

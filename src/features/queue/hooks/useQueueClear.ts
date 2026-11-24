@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
-import type { QueueActionLog, QueueActorContext, QueueClearArgs, QueueSetState, QueueState } from '../types'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import type { QueueActionLog, QueueActorContext, QueueClearArgs, QueueStateAccess } from '../types'
 import {
   handleClearActiveQueue,
   handleClearQueueHistory,
@@ -8,13 +7,8 @@ import {
 } from '../utils/queueSessionHandlers.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 
-interface UseQueueClearArgs {
-  setState: QueueSetState;
-  getState: () => QueueState;
-  pushLog: AppLogsContextValue['pushLog'];
-}
-
-export const useQueueClear = ({ setState, getState, pushLog }: UseQueueClearArgs) => {
+/** Очистка очередей и истории с уведомлением в чат. */
+export const useQueueClear = ({ setState, getState, pushLog }: QueueStateAccess) => {
   const { sendClearActive, sendClearWaiting } = useQueueNotification()
 
   const clearActiveQueue = useCallback((args: QueueClearArgs): QueueActionLog => {

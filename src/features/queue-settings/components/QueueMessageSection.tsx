@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import { SettingsCheckbox } from './SettingsCheckbox.tsx'
 import { SettingsNumberInput } from './SettingsNumberInput.tsx'
@@ -10,17 +10,14 @@ import {
   QUEUE_PREFIX_CONFLICT_MESSAGES,
   QUEUE_SETTING_LABELS,
 } from '../../../constants/queue.constants.ts'
-import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
 import { getPrefixCommandConflict } from '../utils/getPrefixCommandConflict.ts'
-
-interface QueueMessageSectionProps {
-  titleClassName?: string;
-}
+import type { SettingsSectionProps } from '../types.ts'
+import { SettingsSection } from './SettingsSection.tsx'
 
 /**
  * Секция разрешений и настроек сообщений бота.
  */
-export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassName = '' }) => {
+export const QueueMessageSection: FC<Pick<SettingsSectionProps, 'titleClassName'>> = ({ titleClassName = '' }) => {
   const { settings, updateSettings } = useQueueSettings()
   const notificationsDisabled = !settings.chatNotificationPermissions.allowSending
   const commandNames = Object.values(settings.commands).map(command => command.name)
@@ -41,13 +38,12 @@ export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassNa
   }
 
   return (
-    <div className={SETTINGS_SECTION_CLASS}>
-      <h3 className={titleClassName}>Разрешения боту на отправку сообщений</h3>
+    <SettingsSection title="Разрешения боту на отправку сообщений" titleClassName={titleClassName}>
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.allowSending}
         label={QUEUE_NOTIFICATION_LABELS.allowSending}
-        onChange={checked => { handlePermissionsChange('allowSending', checked) }}
+        onChange={checked => handlePermissionsChange('allowSending', checked)}
       />
 
       <SettingsTextInput
@@ -63,35 +59,35 @@ export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassNa
         checked={settings.chatNotificationPermissions.onQueueOpen}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onQueueOpen}
-        onChange={checked => { handlePermissionsChange('onQueueOpen', checked) }}
+        onChange={checked => handlePermissionsChange('onQueueOpen', checked)}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onQueueFull}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onQueueFull}
-        onChange={checked => { handlePermissionsChange('onQueueFull', checked) }}
+        onChange={checked => handlePermissionsChange('onQueueFull', checked)}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onQueueClose}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onQueueClose}
-        onChange={checked => { handlePermissionsChange('onQueueClose', checked) }}
+        onChange={checked => handlePermissionsChange('onQueueClose', checked)}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onClearActive}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onClearActive}
-        onChange={checked => { handlePermissionsChange('onClearActive', checked) }}
+        onChange={checked => handlePermissionsChange('onClearActive', checked)}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onClearWaiting}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onClearWaiting}
-        onChange={checked => { handlePermissionsChange('onClearWaiting', checked) }}
+        onChange={checked => handlePermissionsChange('onClearWaiting', checked)}
       />
 
       <SettingsNumberInput
@@ -107,22 +103,22 @@ export const QueueMessageSection: FC<QueueMessageSectionProps> = ({ titleClassNa
         checked={settings.chatNotificationPermissions.onMemberAdd}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onMemberAdd}
-        onChange={checked => { handlePermissionsChange('onMemberAdd', checked) }}
+        onChange={checked => handlePermissionsChange('onMemberAdd', checked)}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onMemberRemove}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onMemberRemove}
-        onChange={checked => { handlePermissionsChange('onMemberRemove', checked) }}
+        onChange={checked => handlePermissionsChange('onMemberRemove', checked)}
       />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onMemberMove}
         disabled={notificationsDisabled}
         label={QUEUE_NOTIFICATION_LABELS.onMemberMove}
-        onChange={checked => { handlePermissionsChange('onMemberMove', checked) }}
+        onChange={checked => handlePermissionsChange('onMemberMove', checked)}
       />
-    </div>
+    </SettingsSection>
   )
 }

@@ -2,13 +2,13 @@ import { TWITCH_CHAT_MESSAGE_MAX_LENGTH } from '../../../constants/twitch.consta
 
 interface FitChatMessageArgs {
   /** Собирает сообщение по числу видимых элементов каждой группы. */
-  build: (visibleCounts: number[]) => string
+  build: (visibleCounts: number[]) => string;
   /** Размеры групп; элементы скрываются с конца. */
-  counts: number[]
+  counts: number[];
   /** Минимум видимых элементов для каждой группы. */
-  minVisible?: number[]
+  minVisible?: number[];
   /** Предельная длина сообщения. */
-  maxLength?: number
+  maxLength?: number;
 }
 
 /**

@@ -1,7 +1,8 @@
 import type { Dispatch, SetStateAction } from 'react'
-import { QUEUE_JOIN_STATUSES, QUEUE_PLAYER_SOURCE, QUEUE_TYPES } from '../../constants/queue.constants.ts'
+import { type QUEUE_JOIN_STATUSES, QUEUE_PLAYER_SOURCE, QUEUE_TYPES } from '../../constants/queue.constants.ts'
 import type { AppLogItem, AppLogStatus } from '../app-logs/types.ts'
 import type { AppLogsContextValue } from '../app-logs/context/AppLogsInstance.ts'
+import type { ClassNameProps } from '../../types/common.types.ts'
 
 export { QUEUE_PLAYER_SOURCE, QUEUE_TYPES }
 
@@ -42,6 +43,14 @@ export type MutableQueueType = Exclude<QueueType, typeof QUEUE_TYPES.HISTORY>
 export interface QueueEntry {
   player: QueuePlayer;
   queueType: MutableQueueType;
+}
+
+/** Общие пропсы компонентов карточки игрока. */
+export interface QueueEntryProps extends ClassNameProps {
+  /** Данные игрока. */
+  player: QueuePlayer;
+  /** Очередь, в которой находится игрок. */
+  queueType: QueueType;
 }
 
 /** Одна игровая сессия (состав) в истории. */
@@ -120,4 +129,50 @@ export interface QueueHandlerArgs extends QueueActionContext {
   setState: QueueSetState;
   getState: () => QueueState;
   pushLog: AppLogsContextValue['pushLog'];
+}
+
+/** Доступ к состоянию очереди и журналу, общий для обработчиков и хуков. */
+export type QueueStateAccess = Pick<QueueHandlerArgs, 'setState' | 'getState' | 'pushLog'>
+
+/** Действие над игроком, вызванное из интерфейса или из чата. */
+export type QueuePlayerCommandArgs = QueueActionContext & {
+  username: string;
+  displayedUsername?: string;
+}
+
+/** Аргументы добавления игрока в очередь. */
+export type AddQueuePlayerArgs = QueueActionContext & {
+  playerData: QueuePlayerFormData;
+  customTimestamp?: number;
+}
+
+/** Аргументы удаления записи игрока из конкретной очереди. */
+export type RemoveQueuePlayerArgs = QueuePlayerCommandArgs & {
+  userId: string;
+  targetQueueType: QueueType;
+  rawCommand?: string;
+}
+
+/** Аргументы полного удаления игрока из всех очередей. */
+export type RemovePlayerEverywhereArgs = QueuePlayerCommandArgs & {
+  userId: string;
+}
+
+/** Аргументы бана игрока. */
+export type BanQueuePlayerArgs = Omit<QueuePlayerCommandArgs, 'userId'> & {
+  userId?: string;
+}
+
+/** Аргументы перемещения игрока внутри списка или между списками. */
+export type MoveQueuePlayerArgs = QueuePlayerCommandArgs & {
+  queueEntryId: string;
+  userId: string;
+  sourceQueueType: MutableQueueType;
+  targetQueueType: MutableQueueType;
+  targetIndex: number | undefined;
+}
+
+/** Аргументы разбана игрока. */
+export type UnbanQueuePlayerArgs = QueueActorContext & {
+  username: string;
 }

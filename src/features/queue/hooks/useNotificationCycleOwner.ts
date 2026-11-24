@@ -5,7 +5,7 @@ import type { QueueContextValue } from '../context/QueueInstance.ts'
 
 type NotificationCycleOwnerArgs = Pick<QueueContextValue, 'isQueueOpen'> & {
   /** Канал, к которому привязана открытая очередь. */
-  queueChannel: string | null
+  queueChannel: string | null;
 }
 
 /**

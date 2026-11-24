@@ -1,15 +1,12 @@
-import { type FC, type ReactNode } from 'react'
+import { type FC } from 'react'
 import { useAppLogsObserver } from '../hooks/useAppLogsObserver.ts'
-
-interface AppLogsConsumerWrapperProps {
-  children: ReactNode;
-}
+import type { ChildrenProps } from '../../../types/common.types.ts'
 
 /**
  * Промежуточный компонент, гарантирующий легитимный доступ хука-обсервера
  * к уже инициализированному выше по дереву контексту AppLogsContext.
  */
-export const AppLogsConsumerWrapper: FC<AppLogsConsumerWrapperProps> = ({ children }) => {
+export const AppLogsConsumerWrapper: FC<ChildrenProps> = ({ children }) => {
   useAppLogsObserver()
 
   return children

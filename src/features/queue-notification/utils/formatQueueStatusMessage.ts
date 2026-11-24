@@ -9,15 +9,15 @@ import { isUnlimitedQueueSize } from '../../queue/utils/isUnlimitedQueueSize.ts'
 
 interface FormatQueueStatusMessageArgs extends Pick<QueueSettings, 'maxQueueSize'> {
   /** Ники активной очереди. */
-  activeUsernames: string[]
+  activeUsernames: string[];
   /** Ники ожидающей очереди. */
-  waitingUsernames: string[]
+  waitingUsernames: string[];
   /** Префикс автоматических сообщений. */
-  prefix?: string
+  prefix?: string;
   /** Заголовок перед составом очереди. */
-  header?: string
+  header?: string;
   /** Разделитель между заголовком и составом. */
-  separator?: string
+  separator?: string;
 }
 
 /**

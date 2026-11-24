@@ -2,13 +2,11 @@ import { useEffect, type RefObject } from 'react'
 import { SOCKET_CONNECTION_STATUSES } from '../types.ts'
 import type { ChatAccessStatus, ConnectionStatus } from '../types.ts'
 import { SOCKET_STATUS_WATCHDOG_TIMEOUT_MS } from '../../../constants/socket.constants.ts'
-import type { TwitchIrcClient } from '../../twitch/twitchIrcClient.ts'
+import type { UseSocketNetworkSyncProps } from './useSocketNetworkSync.ts'
 
-interface UseSocketWatchdogProps {
-  client: TwitchIrcClient;
+interface UseSocketWatchdogProps extends UseSocketNetworkSyncProps {
   connectionStatus: ConnectionStatus;
   lastActiveChatStatusRef: RefObject<ChatAccessStatus>;
-  setChatAccessStatus: (status: ChatAccessStatus) => void;
 }
 
 /**

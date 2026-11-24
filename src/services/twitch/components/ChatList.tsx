@@ -1,14 +1,8 @@
 import { ChatMessage } from './ChatMessage.tsx'
-import type { ParsedIrcMessage, TwitchEmoteDictionary } from '../types.ts'
+import type { ChatDisplayOptions, ParsedIrcMessage, TwitchEmoteDictionary } from '../types.ts'
 
-interface ChatListProps {
+interface ChatListProps extends ChatDisplayOptions {
   messages: ParsedIrcMessage[];
-  useColoredNames: boolean;
-  highlightRoles: boolean;
-  IsShowDeletedMessages: boolean;
-  showSystemNotifications: boolean;
-  highlightPointsMessages: boolean;
-  showEmotes: boolean;
   emoteDictionary: TwitchEmoteDictionary;
 }
 
@@ -18,14 +12,13 @@ interface ChatListProps {
 export const ChatList = ({
   messages,
   useColoredNames,
-  IsShowDeletedMessages,
+  isShowDeletedMessages,
   highlightRoles,
   showSystemNotifications,
   highlightPointsMessages,
   showEmotes,
   emoteDictionary,
 }: ChatListProps) => {
-
   const reversedMessages = [...messages].reverse()
 
   return (
@@ -42,7 +35,7 @@ export const ChatList = ({
             emoteDictionary={emoteDictionary}
             highlightPointsMessages={highlightPointsMessages}
             highlightRoles={highlightRoles}
-            isShowDeletedMessages={IsShowDeletedMessages}
+            isShowDeletedMessages={isShowDeletedMessages}
             key={msg.id}
             msg={msg}
             showEmotes={showEmotes}

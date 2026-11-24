@@ -1,19 +1,19 @@
 import { useEffect } from 'react'
 import { type Breakpoint, BREAKPOINTS } from '../../../../hooks/types/breakpoint.types.ts'
 
-interface UseWorkspacePanelProps {
+export interface UseWorkspacePanelProps {
   /** Текущий брейкпоинт экрана. */
-  currentBreakpoint: Breakpoint
+  currentBreakpoint: Breakpoint;
   /** Состояния раскрытия панелей. */
-  isOpenSettings: boolean
-  isOpenQueue: boolean
-  isOpenLogs: boolean
-  isOpenChat: boolean
+  isOpenSettings: boolean;
+  isOpenQueue: boolean;
+  isOpenLogs: boolean;
+  isOpenChat: boolean;
   /** Обработчики изменения состояния панелей. */
-  setIsOpenSettings: (isOpen: boolean) => void
-  setIsOpenQueue: (isOpen: boolean) => void
-  setIsOpenLogs: (isOpen: boolean) => void
-  setIsOpenChat: (isOpen: boolean) => void
+  setIsOpenSettings: (isOpen: boolean) => void;
+  setIsOpenQueue: (isOpen: boolean) => void;
+  setIsOpenLogs: (isOpen: boolean) => void;
+  setIsOpenChat: (isOpen: boolean) => void;
 }
 
 /**

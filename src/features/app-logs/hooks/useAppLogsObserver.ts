@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
 import { useAppLogs } from './useAppLogs.ts'
-import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES } from '../types.ts'
-import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
+import { APP_LOG_STATUSES, APP_LOG_SOURCES, type AppLogItem } from '../types.ts'
 import {
   SOCKET_CONNECTION_STATUSES,
   SOCKET_FAILURE_LOG_MESSAGES,
@@ -14,12 +13,10 @@ import {
   type SocketFailureReason,
 } from '../../../services/socket/types.ts'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 
 /** Запись журнала о системном событии. */
-interface SystemLogEntry {
-  message: string;
-  status: AppLogStatus;
-}
+type SystemLogEntry = Pick<AppLogItem, 'message' | 'status'>
 
 /** Состояние соединения, о котором формируется запись журнала. */
 interface ConnectionLogContext {
@@ -124,6 +121,7 @@ const getChatAccessLogEntry = (status: ChatAccessStatus, channel: string | null)
 export const useAppLogsObserver = (): void => {
   const { connectionStatus, chatAccessStatus, getClient } = useSocketContext()
   const { session, userDisplayName } = useAuth()
+  const actorUsername = useActorUsername()
   const { pushLog } = useAppLogs()
 
   const lastStatusRef = useRef(connectionStatus)
@@ -137,9 +135,9 @@ export const useAppLogsObserver = (): void => {
       message: entry.message,
       status: entry.status,
       source: APP_LOG_SOURCES.APPLICATION,
-      actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
+      actorUsername,
     })
-  }, [pushLog, userDisplayName, session?.login])
+  }, [pushLog, actorUsername])
 
   useEffect(() => {
     const login = session?.login

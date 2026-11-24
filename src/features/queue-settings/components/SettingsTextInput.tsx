@@ -1,8 +1,9 @@
-import { type ChangeEvent, type FC, type KeyboardEvent, useState } from 'react'
+import { type ChangeEvent, type FC, type KeyboardEvent } from 'react'
 import {
   SETTINGS_INPUT_ERROR_CLASS,
   SETTINGS_VALIDATION_ERROR_CLASS,
 } from '../../../constants/ui.constants.ts'
+import { useSyncedInput } from '../../../hooks/useSyncedInput.ts'
 
 interface SettingsTextInputProps {
   label: string;
@@ -31,14 +32,7 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
   className = '',
   validate,
 }) => {
-  const [inputValue, setInputValue] = useState<string>(value)
-  const [prevValue, setPrevValue] = useState<string>(value)
-
-  // Синхронизируем локальное значение, если проп изменился извне.
-  if (value !== prevValue) {
-    setPrevValue(value)
-    setInputValue(value)
-  }
+  const [inputValue, setInputValue] = useSyncedInput(value, String)
 
   const normalizedValue = inputValue.trim().slice(0, max)
   const validationError = validate?.(normalizedValue) ?? null

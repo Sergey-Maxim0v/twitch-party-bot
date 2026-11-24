@@ -1,12 +1,11 @@
-import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { TwitchNotificationState } from '../types.ts'
 import { createInitialNotificationState } from '../utils/createInitialNotificationState.ts'
 import { useTwitchChat } from '../../../services/twitch/hooks/useTwitchChat.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { APP_LOG_STATUSES, APP_LOG_SOURCES } from '../../app-logs/types.ts'
-import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
 import { QUEUE_CHAT_MESSAGE_SEPARATOR, QUEUE_CHAT_NOTIFICATION_MESSAGES, QUEUE_FULL_STATUS_HEADER } from '../../../constants/queue.constants.ts'
 import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
 import { formatQueueStatusMessage } from '../utils/formatQueueStatusMessage.ts'
@@ -18,18 +17,19 @@ import { useNotificationGuard } from '../hooks/useNotificationGuard.ts'
 import { useNotificationActions } from '../hooks/useNotificationActions.ts'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
 import { TWITCH_CHAT_ACCESS_STATUSES } from '../../../services/socket/types.ts'
+import type { ChildrenProps } from '../../../types/common.types.ts'
 
 /**
  * Провайдер автоматических уведомлений о событиях очереди.
  * Накапливает изменения в буфере и периодически отправляет их в чат Twitch.
  */
-export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ children }) => {
+export const QueueNotificationProvider: FC<ChildrenProps> = ({ children }) => {
   const [state, setState] = useState<TwitchNotificationState>(createInitialNotificationState())
 
   const { sendChatMessage } = useTwitchChat()
   const { settings } = useQueueSettings()
   const { pushLog } = useAppLogs()
-  const { userDisplayName, session } = useAuth()
+  const actorUsername = useActorUsername()
   const socketContext = useSocketContext()
 
   const chatAccessStatus = socketContext?.chatAccessStatus ?? TWITCH_CHAT_ACCESS_STATUSES.OFFLINE
@@ -70,40 +70,34 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     setState(createInitialNotificationState())
   }, [])
 
-  const sendAndLogNotification = useCallback((message: string): boolean => {
-    const actorUsername = userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR
+  const sendAndLogNotification = useCallback((message: string): boolean => sendChatMessage(message, {
+    isAutomated: true,
+    onConfirmed: () => {
+      pushLog({
+        message: `Автоматически отправлено сообщение в чат: ${message}`,
+        status: APP_LOG_STATUSES.SUCCESS,
+        source: APP_LOG_SOURCES.APPLICATION,
+        actorUsername,
+      })
+    },
+    onFailed: reason => {
+      pushLog({
+        message: `Не удалось отправить сообщение в чат: ${message}. Причина: ${reason}`,
+        status: APP_LOG_STATUSES.ERROR,
+        source: APP_LOG_SOURCES.APPLICATION,
+        actorUsername,
+      })
+    },
+  }), [sendChatMessage, pushLog, actorUsername])
 
-    return sendChatMessage(message, {
-      isAutomated: true,
-      onConfirmed: () => {
-        pushLog({
-          message: `Автоматически отправлено сообщение в чат: ${message}`,
-          status: APP_LOG_STATUSES.SUCCESS,
-          source: APP_LOG_SOURCES.APPLICATION,
-          actorUsername,
-        })
-      },
-      onFailed: reason => {
-        pushLog({
-          message: `Не удалось отправить сообщение в чат: ${message}. Причина: ${reason}`,
-          status: APP_LOG_STATUSES.ERROR,
-          source: APP_LOG_SOURCES.APPLICATION,
-          actorUsername,
-        })
-      },
-    })
-  }, [sendChatMessage, pushLog, session?.login, userDisplayName])
-
-  const formatQueueStatus = useCallback((header?: string, separator?: string): string => {
-    return formatQueueStatusMessage({
-      activeUsernames: activeQueueRef.current,
-      waitingUsernames: waitingQueueRef.current,
-      maxQueueSize,
-      prefix: settings.messagePrefix,
-      header,
-      separator,
-    })
-  }, [maxQueueSize, settings.messagePrefix])
+  const formatQueueStatus = useCallback((header?: string, separator?: string): string => formatQueueStatusMessage({
+    activeUsernames: activeQueueRef.current,
+    waitingUsernames: waitingQueueRef.current,
+    maxQueueSize,
+    prefix: settings.messagePrefix,
+    header,
+    separator,
+  }), [maxQueueSize, settings.messagePrefix])
 
   const sendMessage = useCallback((text: string): boolean => {
     if (!permissionsRef.current.allowSending) {
@@ -120,7 +114,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
         message: 'Отправка уведомлений приостановлена: аккаунт забанен. Накопленные события будут отправлены после восстановления доступа.',
         status: APP_LOG_STATUSES.WARNING,
         source: APP_LOG_SOURCES.APPLICATION,
-        actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
+        actorUsername,
       })
       isBannedNotificationLoggedRef.current = true
     }
@@ -134,7 +128,7 @@ export const QueueNotificationProvider: FC<{ children: ReactNode }> = ({ childre
     }
 
     return sendAndLogNotification(text)
-  }, [sendAndLogNotification, isReadyForAutomations, chatAccessStatus, pushLog, session?.login, userDisplayName])
+  }, [sendAndLogNotification, isReadyForAutomations, chatAccessStatus, pushLog, actorUsername])
 
   const sendMessageOpen = useCallback((): void => {
     setState(createInitialNotificationState())

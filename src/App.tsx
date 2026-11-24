@@ -12,32 +12,28 @@ import { QueueProvider } from './features/queue/context/QueueProvider.tsx'
 import { TwitchChatProvider } from './services/twitch/context/TwitchChatProvider.tsx'
 import { QueueNotificationProvider } from './features/queue-notification/context/QueueNotificationProvider.tsx'
 
-function App() {
-  return (
-    <SocketProvider>
-      <AuthProvider>
-        <SocketInitializer />
+export const App = () => (
+  <SocketProvider>
+    <AuthProvider>
+      <SocketInitializer />
 
-        <ChannelInfoProvider>
-          <PageLayout>
-            <AppLogsProvider>
-              <ProtectedView fallback={<WelcomeScreen />}>
-                <QueueSettingsProvider>
-                  <TwitchChatProvider>
-                    <QueueNotificationProvider>
-                      <QueueProvider>
-                        <StreamerWorkspace />
-                      </QueueProvider>
-                    </QueueNotificationProvider>
-                  </TwitchChatProvider>
-                </QueueSettingsProvider>
-              </ProtectedView>
-            </AppLogsProvider>
-          </PageLayout>
-        </ChannelInfoProvider>
-      </AuthProvider>
-    </SocketProvider>
-  )
-}
-
-export default App
+      <ChannelInfoProvider>
+        <PageLayout>
+          <AppLogsProvider>
+            <ProtectedView fallback={<WelcomeScreen />}>
+              <QueueSettingsProvider>
+                <TwitchChatProvider>
+                  <QueueNotificationProvider>
+                    <QueueProvider>
+                      <StreamerWorkspace />
+                    </QueueProvider>
+                  </QueueNotificationProvider>
+                </TwitchChatProvider>
+              </QueueSettingsProvider>
+            </ProtectedView>
+          </AppLogsProvider>
+        </PageLayout>
+      </ChannelInfoProvider>
+    </AuthProvider>
+  </SocketProvider>
+)

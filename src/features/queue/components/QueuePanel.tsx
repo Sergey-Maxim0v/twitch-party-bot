@@ -6,8 +6,7 @@ import { QueueHistoryList } from './QueueHistoryList.tsx'
 import { QueueControls } from './QueueControls.tsx'
 import { QueueForm } from './QueueForm.tsx'
 import { useQueue } from '../hooks/useQueue.ts'
-import { useAuth } from '../../auth/hooks/useAuth.ts'
-import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { QueueElement } from './QueueElement.tsx'
 import type { QueueEntry } from '../types.ts'
 import { handleDragEnd } from '../utils/handleDragEnd.ts'
@@ -19,7 +18,7 @@ import { useChatCommands } from '../hooks/useChatCommands.ts'
  */
 export const QueuePanel: FC = () => {
   const { movePlayer, activeQueue, waitingQueue } = useQueue()
-  const { userDisplayName, session } = useAuth()
+  const actorUsername = useActorUsername()
 
   useChatCommands()
 
@@ -50,7 +49,7 @@ export const QueuePanel: FC = () => {
       activeQueue,
       waitingQueue,
       movePlayer,
-      actorUsername: userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR,
+      actorUsername,
     })
 
     setDraggingEntry(null)

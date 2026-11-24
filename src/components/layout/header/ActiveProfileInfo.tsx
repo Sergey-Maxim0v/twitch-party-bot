@@ -1,16 +1,12 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 import { useAuth } from '../../../features/auth/hooks/useAuth.ts'
 import { Avatar } from '../../Avatar.tsx'
-
-interface ActiveProfileInfoProps {
-  /** Дополнительные CSS-классы контейнера. */
-  className?: string;
-}
+import type { ClassNameProps } from '../../../types/common.types.ts'
 
 /**
  * Краткая информация об активном канале и текущем аккаунте.
  */
-export const ActiveProfileInfo: FC<ActiveProfileInfoProps> = ({ className = '' }) => {
+export const ActiveProfileInfo: FC<ClassNameProps> = ({ className = '' }) => {
   const {
     session,
     activeChannel,

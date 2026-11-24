@@ -1,4 +1,5 @@
-import { type ChangeEvent, type FC, type KeyboardEvent, useState } from 'react'
+import { type ChangeEvent, type FC, type KeyboardEvent } from 'react'
+import { useSyncedInput } from '../../../hooks/useSyncedInput.ts'
 
 interface SettingsNumberInputProps {
   label: string;
@@ -22,14 +23,7 @@ export const SettingsNumberInput: FC<SettingsNumberInputProps> = ({
   disabled = false,
   className = '',
 }) => {
-  const [inputValue, setInputValue] = useState<string>(String(value))
-  const [prevValue, setPrevValue] = useState<number>(value)
-
-  // Синхронизируем локальное значение, если проп изменился извне.
-  if (value !== prevValue) {
-    setPrevValue(value)
-    setInputValue(String(value))
-  }
+  const [inputValue, setInputValue] = useSyncedInput(value, String)
 
   const commitValue = (stringValue: string) => {
     if (stringValue === '') {

@@ -50,7 +50,7 @@ export class TwitchIrcClient {
   private readonly sendToSocket = (text: string): boolean => this.socketManager.send(text)
   private reconnectManager = new TwitchReconnectManager({
     maxAttempts: SOCKET_RECONNECT_MAX_ATTEMPTS,
-    onReconnectTriggered: () => { this.runReconnectAttempt() },
+    onReconnectTriggered: () => this.runReconnectAttempt(),
   })
 
   // Задержка гасит двойную инициализацию сокета в React Strict Mode
@@ -311,9 +311,9 @@ export class TwitchIrcClient {
 
     this.connectTimeoutId = setTimeout(() => {
       this.socketManager.create({
-        onOpen: () => { this.handleSocketOpen() },
-        onMessage: event => { this.handleSocketMessage(event) },
-        onClose: () => { this.handleSocketClose() },
+        onOpen: () => this.handleSocketOpen(),
+        onMessage: event => this.handleSocketMessage(event),
+        onClose: () => this.handleSocketClose(),
         onError: error => { console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} ${TWITCH_IRC_CLIENT_LOG_MESSAGES.SOCKET_ERROR}:`, error) },
       })
       this.connectTimeoutId = null
@@ -384,7 +384,7 @@ export class TwitchIrcClient {
     this.socketManager.destroy()
     this.stateManager.emit(SOCKET_CONNECTION_STATUSES.FAILED)
 
-    this.authFailureCallbacks.forEach(callback => { callback() })
+    this.authFailureCallbacks.forEach(callback => callback())
   }
 
   /**

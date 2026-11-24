@@ -1,4 +1,4 @@
-import { type ReactNode, type FC, useMemo, useCallback, useEffect, useRef } from 'react'
+import { type FC, useMemo, useCallback, useEffect, useRef } from 'react'
 import { QueueContext } from './QueueInstance'
 import type { QueueContextValue } from './QueueInstance'
 import { QUEUE_STORAGE_KEYS } from '../../../constants/storage.constants.ts'
@@ -17,14 +17,10 @@ import { useAuth } from '../../auth/hooks/useAuth.ts'
 import { QUEUE_HISTORY_LIMIT, PLAYER_HISTORY_LIMIT } from '../../../constants/queue.constants.ts'
 import { limitPlayerHistory, limitQueueHistory } from '../utils/queueState.utils.ts'
 import { getEffectiveQueueLimit } from '../utils/getEffectiveQueueLimit.ts'
-
-interface QueueProviderProps {
-  /** Дочерние элементы, получающие доступ к контексту очереди. */
-  children: ReactNode;
-}
+import type { ChildrenProps } from '../../../types/common.types.ts'
 
 /** Провайдер состояния и методов управления очередью. */
-export const QueueProvider: FC<QueueProviderProps> = ({ children }) => {
+export const QueueProvider: FC<ChildrenProps> = ({ children }) => {
   const { state, setState, getState } = useQueueStore()
   const [isQueueOpen, setIsQueueOpen] = useLocalStorage(QUEUE_STORAGE_KEYS.STATUS, false)
   const [queueChannel, setQueueChannel] = useLocalStorage<string | null>(QUEUE_STORAGE_KEYS.CHANNEL, null)

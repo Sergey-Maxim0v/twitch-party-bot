@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react'
 
-interface QueueCollapseProps {
+export interface QueueCollapseProps {
   /** Дополнительные CSS-классы контейнера. */
   className?: string;
   /** Заголовок блока. */
@@ -18,6 +18,9 @@ interface QueueCollapseProps {
   /** Текст подсказки при наведении. */
   tooltipText?: string;
 }
+
+/** Пропсы списка очереди: заголовок и содержимое задаёт сам список. */
+export type QueueListProps = Pick<QueueCollapseProps, 'className' | 'open' | 'onOpenChange'>
 
 /**
  * Сворачиваемый блок списка очереди с заголовком, счётчиком и подсказкой.

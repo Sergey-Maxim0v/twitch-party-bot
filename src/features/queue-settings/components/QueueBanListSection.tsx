@@ -1,21 +1,17 @@
 import { useState, type FC, type KeyboardEvent } from 'react'
-import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { LuPlus, LuTrash2 } from 'react-icons/lu'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
-import { SETTINGS_SECTION_SPACED_CLASS } from '../../../constants/ui.constants.ts'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { SETTINGS_INPUT_CLASS } from '../../../constants/ui.constants.ts'
-
-interface QueueBanListSectionProps {
-  titleClassName?: string;
-  className?: string;
-}
+import { SettingsSection } from './SettingsSection.tsx'
+import type { SettingsSectionProps } from '../types.ts'
 
 /**
  * Секция управления банлистом очереди.
  */
-export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
+export const QueueBanListSection: FC<SettingsSectionProps> = ({
   titleClassName = '',
   className = '',
 }) => {
@@ -23,8 +19,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
   const { settings } = useQueueSettings()
   const banList = settings.banList || []
 
-  const { userDisplayName, session } = useAuth()
-  const actorUsername = userDisplayName ?? session?.login ?? ''
+  const actorUsername = useActorUsername('')
 
   const [newUsername, setNewUsername] = useState('')
 
@@ -58,11 +53,12 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
   }
 
   return (
-    <div
-      className={`${SETTINGS_SECTION_SPACED_CLASS} ${className}`}
+    <SettingsSection
+      className={className}
+      spaced
+      title="Банлист очереди"
+      titleClassName={titleClassName}
     >
-      <h3 className={titleClassName}>Банлист очереди</h3>
-
       <div className="p-3 rounded-xl bg-base-200/40 border border-base-300 space-y-2 w-full min-w-0">
 
         {banList.length > 0 && (
@@ -77,7 +73,7 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
                 />
                 <button
                   className="btn btn-square btn-sm btn-error btn-outline shrink-0"
-                  onClick={() => { handleRemoveRow(username) }}
+                  onClick={() => handleRemoveRow(username)}
                   title="Удалить из списка"
                   type="button"
                 >
@@ -109,6 +105,6 @@ export const QueueBanListSection: FC<QueueBanListSectionProps> = ({
         </div>
 
       </div>
-    </div>
+    </SettingsSection>
   )
 }

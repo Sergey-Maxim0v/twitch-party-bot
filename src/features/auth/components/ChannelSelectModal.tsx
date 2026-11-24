@@ -1,4 +1,4 @@
-import { useState, type FC, type ChangeEvent, type SyntheticEvent, useEffect } from 'react'
+import { useState, type FC, type ChangeEvent, type SyntheticEvent } from 'react'
 import { useAuth } from '../hooks/useAuth.ts'
 import { useSocketContext } from '../../../services/socket/hooks/useSocketContext.ts'
 import { validateChannelName } from '../utils/validateChannelName.ts'
@@ -11,6 +11,7 @@ import {
 import { isChannelConnectRequired } from '../utils/isChannelConnectRequired.ts'
 import { TWITCH_CHANNEL_PROFILE_STATUSES } from '../../../constants/auth.constants.ts'
 import { ChannelInfoCard } from '../../channel-info/components/ChannelInfoCard.tsx'
+import { useEscapeKey } from '../../../hooks/useEscapeKey.ts'
 
 /**
  * Модальное окно выбора канала чата: свой канал или ручной ввод.
@@ -36,21 +37,7 @@ export const ChannelSelectModal: FC = () => {
   const [profileFailure, setProfileFailure] = useState<TwitchChannelProfileFailure | null>(null)
   const [isValidationTriggered, setIsValidationTriggered] = useState(false)
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && hasSelectedChannel) {
-        closeChannelModal()
-      }
-    }
-
-    if (isChannelModalOpen) {
-      window.addEventListener('keydown', handleKeyDown)
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isChannelModalOpen, hasSelectedChannel, closeChannelModal])
+  useEscapeKey(closeChannelModal, isChannelModalOpen && hasSelectedChannel)
 
   const currentError = getChannelSelectCurrentError({
     channelError,

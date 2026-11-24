@@ -1,16 +1,19 @@
 import { createContext } from 'react'
-import {
-  type MutableQueueType,
-  type QueueActionContext,
-  type QueueActionLog,
-  type QueueActorContext,
-  type QueueClearArgs,
-  type QueueJoinResult,
-  type QueuePlayer,
-  type QueuePlayerFormData,
-  type QueueSession,
-  type QueueState,
-  type QueueType,
+import type {
+  AddQueuePlayerArgs,
+  BanQueuePlayerArgs,
+  MoveQueuePlayerArgs,
+  QueueActionContext,
+  QueueActionLog,
+  QueueActorContext,
+  QueueClearArgs,
+  QueueJoinResult,
+  QueuePlayer,
+  QueueSession,
+  QueueState,
+  RemovePlayerEverywhereArgs,
+  RemoveQueuePlayerArgs,
+  UnbanQueuePlayerArgs,
 } from '../types'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 
@@ -47,47 +50,22 @@ export interface QueueContextValue {
   clearQueueHistory: (args: QueueActorContext) => void;
 
   /** Добавить игрока в активную очередь или список ожидающих. */
-  addPlayerToQueue: (args: QueueActionContext & {
-    playerData: QueuePlayerFormData;
-    customTimestamp?: number;
-  }) => QueueJoinResult;
+  addPlayerToQueue: (args: AddQueuePlayerArgs) => QueueJoinResult;
 
   /** Удалить запись игрока из конкретной очереди. */
-  removePlayerFromQueue: (args: QueueActorContext & {
-    userId: string;
-    username: string;
-    displayedUsername?: string;
-    targetQueueType: QueueType;
-    rawCommand?: string;
-  }) => void;
+  removePlayerFromQueue: (args: RemoveQueuePlayerArgs) => void;
 
   /** Полностью удалить игрока из всех очередей. */
-  removePlayerFromAllQueues: (args: QueueActionContext & {
-    userId: string;
-    username: string;
-    displayedUsername?: string;
-  }) => QueueActionLog;
+  removePlayerFromAllQueues: (args: RemovePlayerEverywhereArgs) => QueueActionLog;
 
   /** Добавить игрока в бан-лист и удалить его из текущих списков. */
-  banPlayerFromQueue: (args: QueueActorContext & {
-    userId?: string;
-    username: string;
-    displayedUsername?: string;
-  }) => void;
+  banPlayerFromQueue: (args: BanQueuePlayerArgs) => void;
 
   /** Удалить игрока из бан-листа. */
-  unbanPlayerFromQueue: (args: QueueActorContext & { username: string }) => void;
+  unbanPlayerFromQueue: (args: UnbanQueuePlayerArgs) => void;
 
   /** Переместить игрока внутри списка или между списками. */
-  movePlayer: (args: QueueActorContext & {
-    queueEntryId: string;
-    userId: string;
-    username: string;
-    displayedUsername?: string;
-    sourceQueueType: MutableQueueType;
-    targetQueueType: MutableQueueType;
-    targetIndex: number | undefined;
-  }) => void;
+  movePlayer: (args: MoveQueuePlayerArgs) => void;
 
   /** Произвести ручную балансировку игроков между очередями. */
   balanceQueues: (args: BalanceQueuesArgs) => void;

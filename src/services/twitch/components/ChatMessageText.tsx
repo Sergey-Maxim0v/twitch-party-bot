@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 import type { TwitchEmoteDictionary } from '../types.ts'
 import { splitTextByEmoteDictionary } from '../utils/splitTextByEmoteDictionary.ts'
 import { splitTextByEmotes } from '../utils/splitTextByEmotes.ts'

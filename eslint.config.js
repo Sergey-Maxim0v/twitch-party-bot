@@ -76,6 +76,18 @@ export default defineConfig([
       '@stylistic/comma-dangle': ['error', 'always-multiline'],
       '@stylistic/comma-spacing': ['error', { before: false, after: true }],
       '@stylistic/arrow-parens': ['error', 'as-needed'],
+      '@stylistic/member-delimiter-style': ['error', {
+        multiline: { delimiter: 'semi', requireLast: true },
+        singleline: { delimiter: 'semi', requireLast: false },
+      }],
+      '@stylistic/padded-blocks': ['error', 'never'],
+      'arrow-body-style': ['error', 'as-needed'],
+
+      // === ЕДИНООБРАЗИЕ ИМПОРТОВ ТИПОВ ===
+      '@typescript-eslint/consistent-type-imports': ['error', {
+        prefer: 'type-imports',
+        fixStyle: 'inline-type-imports',
+      }],
 
       // === БАЗОВАЯ ГИГИЕНА КОДА ===
       'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],

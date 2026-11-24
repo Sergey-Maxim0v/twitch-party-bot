@@ -1,16 +1,10 @@
 import { type FC } from 'react'
 import { STATUS_BADGE_TYPES } from '../../../constants/ui.constants.ts'
-import type { StatusBadgeType } from './types'
+import type { StatusBadgeType, StatusConfig } from './types'
 
-interface StatusIndicatorProps {
+interface StatusIndicatorProps extends StatusConfig {
   /** Заголовок группы статуса (например, "Сеть" или "Чат"). */
   label: string;
-  /** Короткое слово состояния (например, "Подключен", "Ожидание"). */
-  statusText: string;
-  /** Тип окраски индикатора в стиле DaisyUI. */
-  badgeType: StatusBadgeType;
-  /** Текст подробной подсказки при наведении. */
-  tooltipText: string;
 }
 
 const BADGE_COLORS: Record<StatusBadgeType, string> = {

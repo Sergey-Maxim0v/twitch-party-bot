@@ -5,16 +5,12 @@ import { CONNECTION_ACTION_TEXTS, RECONNECT_BUTTON_CLASS } from '../../../consta
 import { StatusIndicator } from './StatusIndicator.tsx'
 import { getNetworkConfig } from './utils/getNetworkConfig.ts'
 import { getChatConfig } from './utils/getChatConfig.ts'
-
-interface ConnectionStatusPanelProps {
-  /** Дополнительные CSS-классы контейнера. */
-  className?: string;
-}
+import type { ClassNameProps } from '../../../types/common.types.ts'
 
 /**
  * Индикаторы состояния сетевого соединения и доступа к чату.
  */
-export const ConnectionStatusPanel: FC<ConnectionStatusPanelProps> = ({ className = '' }) => {
+export const ConnectionStatusPanel: FC<ClassNameProps> = ({ className = '' }) => {
   const { connectionStatus, chatAccessStatus, getClient, reconnect } = useSocketContext()
 
   const network = getNetworkConfig(connectionStatus)

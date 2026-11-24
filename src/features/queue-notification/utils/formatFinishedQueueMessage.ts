@@ -4,9 +4,9 @@ import { formatPrefixedMessage } from './formatPrefixedMessage.ts'
 
 interface FormatFinishedQueueMessageArgs {
   /** Ники завершивших сессию игроков. */
-  nicknames: string[]
+  nicknames: string[];
   /** Префикс автоматических сообщений. */
-  prefix?: string
+  prefix?: string;
 }
 
 /**

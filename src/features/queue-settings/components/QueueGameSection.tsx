@@ -1,18 +1,13 @@
 import type { ChangeEvent, FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
 import { QUEUE_GAME_DISPLAY_NAMES, QUEUE_GAME_NICKNAME_PATTERNS } from '../../../constants/queue.constants.ts'
-import type { QueueGameKey } from '../types.ts'
-import { SETTINGS_SECTION_SPACED_CLASS } from '../../../constants/ui.constants.ts'
-
-interface QueueGameSectionProps {
-  className?: string;
-  titleClassName?: string;
-}
+import type { QueueGameKey, SettingsSectionProps } from '../types.ts'
+import { SettingsSection } from './SettingsSection.tsx'
 
 /**
  * Секция выбора игры и проверки игрового никнейма.
  */
-export const QueueGameSection: FC<QueueGameSectionProps> = ({
+export const QueueGameSection: FC<SettingsSectionProps> = ({
   className = '',
   titleClassName = '',
 }) => {
@@ -34,13 +29,12 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
   }
 
   return (
-    <div
-      className={`${SETTINGS_SECTION_SPACED_CLASS} ${className}`}
+    <SettingsSection
+      className={className}
+      spaced
+      title="Валидация никнеймов для игры"
+      titleClassName={titleClassName}
     >
-      <h3 className={titleClassName}>
-        Валидация никнеймов для игры
-      </h3>
-
       <div className="flex flex-col gap-1 w-full min-w-0">
         <select
           className="select select-bordered select-sm w-full
@@ -67,6 +61,6 @@ export const QueueGameSection: FC<QueueGameSectionProps> = ({
           ) : ' не выбрано'}
         </p>
       </div>
-    </div>
+    </SettingsSection>
   )
 }

@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 import type { ChatMessageSegment } from '../types.ts'
 import { ChatEmote } from './ChatEmote.tsx'
 

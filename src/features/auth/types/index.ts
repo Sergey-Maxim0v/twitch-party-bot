@@ -1,4 +1,4 @@
-import { AUTH_STATE_VALIDATION_RESULTS, TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
+import { type AUTH_STATE_VALIDATION_RESULTS, TWITCH_AUTH_STAGES } from '../../../constants/auth.constants.ts'
 
 export { TWITCH_AUTH_STAGES }
 

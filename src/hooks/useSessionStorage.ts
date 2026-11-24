@@ -13,7 +13,7 @@ import { readWebStorage, writeWebStorage } from './utils/webStorage.utils.ts'
  * @param initialValue - Значение по умолчанию и эталон структуры.
  * @returns Текущее значение и функция его обновления.
  */
-export function useSessionStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
+export const useSessionStorage = <T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] => {
   const [storedValue, setStoredValue] = useState<T>(() => readStoredValue('sessionStorage', key, initialValue))
 
   const isFirstRunRef = useRef(true)

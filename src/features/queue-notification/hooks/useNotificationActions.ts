@@ -1,6 +1,7 @@
 import { type RefObject, type Dispatch, type SetStateAction, useCallback } from 'react'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import type { TwitchNotificationState } from '../types.ts'
+import type { QueueNotificationContextType } from '../context/QueueNotificationInstance.ts'
 
 /** Все группы событий буфера. */
 const NOTIFICATION_FIELDS = [
@@ -39,20 +40,12 @@ interface UseNotificationActionsArgs {
   setState: Dispatch<SetStateAction<TwitchNotificationState>>;
 }
 
-interface UseNotificationActionsReturn {
-  /** Добавляет пользователя в список успешно присоединившихся к активной очереди. */
-  addJoinedUser: (username: string) => void;
-  /** Добавляет пользователя в список ожидающих участников. */
-  addWaitingUser: (username: string) => void;
-  /** Добавляет пользователя в список удаленных из очереди. */
-  addDeletedUser: (username: string) => void;
-  /** Добавляет пользователя в список перемещенных в активный состав. */
-  addMovedToActiveUser: (username: string) => void;
-  /** Добавляет пользователя в список перемещенных в список ожидания. */
-  addMovedToWaitingUser: (username: string) => void;
-  /** Добавляет пользователя в список отклоненных при попытке входа. */
-  addDeniedUser: (username: string) => void;
-}
+/** Коллбэки изменения буфера уведомлений. */
+type UseNotificationActionsReturn = Pick<
+  QueueNotificationContextType,
+  'addJoinedUser' | 'addWaitingUser' | 'addDeletedUser'
+  | 'addMovedToActiveUser' | 'addMovedToWaitingUser' | 'addDeniedUser'
+>
 
 /**
  * Хук для генерации коллбэков изменения состояния буфера автоматических уведомлений.

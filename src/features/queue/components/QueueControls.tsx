@@ -1,33 +1,29 @@
 import { type FC, useCallback } from 'react'
 import { LuFlag, LuPower } from 'react-icons/lu'
 import { useQueue } from '../hooks/useQueue.ts'
-import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
 import { QUEUE_COMMAND_LABELS } from '../../../constants/queue.constants.ts'
-
-interface QueueControlsProps {
-  /** Дополнительные CSS-классы контейнера. */
-  className?: string;
-}
+import type { ClassNameProps } from '../../../types/common.types.ts'
 
 /**
  * Кнопки открытия и закрытия очереди, а также завершения текущей сессии.
  */
-export const QueueControls: FC<QueueControlsProps> = ({ className = '' }) => {
+export const QueueControls: FC<ClassNameProps> = ({ className = '' }) => {
   const { isQueueOpen, openQueue, closeQueue, finishActiveQueue } = useQueue()
-  const { session, userDisplayName } = useAuth()
+  const actorUsername = useActorUsername('')
 
   const handleFinishActiveQueue = useCallback(() => {
-    finishActiveQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
-  }, [finishActiveQueue, session?.login, userDisplayName])
+    finishActiveQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername })
+  }, [finishActiveQueue, actorUsername])
 
   const handleQueueToggle = useCallback(() => {
     if(isQueueOpen) {
-      closeQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
+      closeQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername })
     } else {
-      openQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername: userDisplayName ?? session?.login ?? '' })
+      openQueue({ source: APP_LOG_SOURCES.STREAMER_UI, actorUsername })
     }
-  }, [isQueueOpen, closeQueue, userDisplayName, session?.login, openQueue])
+  }, [isQueueOpen, closeQueue, actorUsername, openQueue])
 
   const toggleButtonClass = isQueueOpen
     ? 'border-error/30 bg-error/10 text-error shadow-none hover:border-error/60 hover:bg-error/15'

@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 import {
   CHAT_MESSAGE_STYLES,
   type ChatMessageRole,

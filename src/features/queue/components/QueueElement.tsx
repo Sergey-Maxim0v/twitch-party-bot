@@ -2,35 +2,25 @@ import { type FC, useRef } from 'react'
 import { LuTrash2, LuUserX, LuInfo, LuClock, LuGamepad, LuGripVertical } from 'react-icons/lu'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { QUEUE_TYPES, type QueuePlayer, type QueueType } from '../types.ts'
+import { QUEUE_TYPES, type QueueEntryProps } from '../types.ts'
 import { QueueElementModal } from './QueueElementModal.tsx'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueue } from '../hooks/useQueue.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
-import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
 import { QUEUE_COMMAND_LABELS } from '../../../constants/queue.constants.ts'
 import { formatTimeWithSeconds } from '../../../utils/dateTime.ts'
-import { useAuth } from '../../auth/hooks/useAuth.ts'
-
-interface QueueElementProps {
-  /** Дополнительные CSS-классы карточки. */
-  className?: string;
-  /** Данные игрока. */
-  player: QueuePlayer;
-  /** Очередь, в которой находится игрок. */
-  queueType: QueueType;
-}
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 
 /**
  * Карточка участника очереди с ролями, игровым ником и действиями.
  */
-export const QueueElement: FC<QueueElementProps> = ({
+export const QueueElement: FC<QueueEntryProps> = ({
   className = '',
   player,
   queueType,
 }) => {
   const { settings } = useQueueSettings()
-  const { userDisplayName } = useAuth()
+  const actorUsername = useActorUsername()
   const { removePlayerFromQueue, banPlayerFromQueue, removePlayerFromAllQueues } = useQueue()
 
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -86,7 +76,7 @@ export const QueueElement: FC<QueueElementProps> = ({
       userId,
       username,
       displayedUsername: displayedUsername,
-      actorUsername: userDisplayName ?? APP_LOG_FALLBACK_ACTOR,
+      actorUsername,
       source: APP_LOG_SOURCES.STREAMER_UI,
     })
   }
@@ -96,7 +86,7 @@ export const QueueElement: FC<QueueElementProps> = ({
       userId,
       username,
       source: APP_LOG_SOURCES.STREAMER_UI,
-      actorUsername: userDisplayName ?? APP_LOG_FALLBACK_ACTOR,
+      actorUsername,
       targetQueueType: queueType,
     })
   }
@@ -106,7 +96,7 @@ export const QueueElement: FC<QueueElementProps> = ({
       userId,
       username,
       source: APP_LOG_SOURCES.STREAMER_UI,
-      actorUsername: userDisplayName ?? APP_LOG_FALLBACK_ACTOR,
+      actorUsername,
     })
   }
 
@@ -148,26 +138,19 @@ export const QueueElement: FC<QueueElementProps> = ({
           </span>
 
           <div className="flex h-4 shrink-0 items-center gap-1.5">
-            {isModerator && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-base-content/45">
-                <span className="h-1.5 w-1.5 rounded-full bg-success ring-1 ring-base-content/15" />
-                Модер
+            {[
+              { isVisible: isModerator, label: 'Модер', dotClassName: 'bg-success' },
+              { isVisible: isVip, label: 'VIP', dotClassName: 'bg-warning' },
+              { isVisible: isSubscriber, label: 'Саб', dotClassName: 'bg-primary' },
+            ].filter(role => role.isVisible).map(role => (
+              <span
+                className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-base-content/45"
+                key={role.label}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ring-1 ring-base-content/15 ${role.dotClassName}`} />
+                {role.label}
               </span>
-            )}
-
-            {isVip && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-base-content/45">
-                <span className="h-1.5 w-1.5 rounded-full bg-warning ring-1 ring-base-content/15" />
-                VIP
-              </span>
-            )}
-
-            {isSubscriber && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide text-base-content/45">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-base-content/15" />
-                Саб
-              </span>
-            )}
+            ))}
           </div>
 
           <span className="min-w-0 wrap-break-word text-[13px] font-semibold leading-tight text-base-content">

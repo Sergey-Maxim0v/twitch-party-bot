@@ -1,4 +1,4 @@
-import { type FC, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   SOCKET_CONNECTION_STATUSES,
   type ConnectionStatus,
@@ -12,15 +12,12 @@ import { TwitchIrcClient } from '../../twitch/twitchIrcClient'
 import { useSocketNetworkSync } from '../hooks/useSocketNetworkSync'
 import { useSocketWatchdog } from '../hooks/useSocketWatchdog'
 import type { MessageCallback } from '../../twitch/utils/createMessageEmitter'
-
-interface SocketProviderProps {
-  children: ReactNode;
-}
+import type { ChildrenProps } from '../../../types/common.types.ts'
 
 /**
  * Провайдер сокетов для управления WebSocket соединением.
  */
-export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
+export const SocketProvider: FC<ChildrenProps> = ({ children }) => {
   const [client] = useState<TwitchIrcClient>(() => new TwitchIrcClient())
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(SOCKET_CONNECTION_STATUSES.DISCONNECTED)
   const [chatAccessStatus, setChatAccessStatus] = useState<ChatAccessStatus>(TWITCH_CHAT_ACCESS_STATUSES.OFFLINE)
@@ -77,25 +74,17 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     client.disconnect()
   }, [client])
 
-  const subscribe = useCallback((callback: MessageCallback): (() => void) => {
-    return client.subscribe(callback)
-  }, [client])
+  const subscribe = useCallback((callback: MessageCallback): (() => void) => client.subscribe(callback), [client])
 
-  const sendMessage = useCallback((text: string): boolean => {
-    return client.sendMessage(text)
-  }, [client])
+  const sendMessage = useCallback((text: string): boolean => client.sendMessage(text), [client])
 
-  const getClient = useCallback((): TwitchIrcClient => {
-    return client
-  }, [client])
+  const getClient = useCallback((): TwitchIrcClient => client, [client])
 
   const updateChatAccessStatus = useCallback((status: ChatAccessStatus): void => {
     setChatAccessStatus(status)
   }, [])
 
-  const onAuthFailure = useCallback((callback: () => void): (() => void) => {
-    return client.onAuthFailure(callback)
-  }, [client])
+  const onAuthFailure = useCallback((callback: () => void): (() => void) => client.onAuthFailure(callback), [client])
 
   const reconnect = useCallback((): void => {
     client.reconnect()

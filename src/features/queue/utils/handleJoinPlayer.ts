@@ -1,15 +1,14 @@
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import type { QueueContextValue } from '../context/QueueInstance.ts'
-import {
-  type QueueActionContext,
-  type QueueJoinResult,
-  type QueueJoinStatus,
-  type QueuePlayer,
-  type QueuePlayerFormData,
-  type QueueSetState,
-  type QueueState,
+import type {
+  QueueActionContext,
+  QueueJoinResult,
+  QueueJoinStatus,
+  QueuePlayer,
+  QueuePlayerFormData,
+  QueueState,
+  QueueStateAccess,
 } from '../types'
 import {
   QUEUE_ENTRY_ID_PREFIX,
@@ -21,14 +20,11 @@ import { getEffectiveQueueLimit } from './getEffectiveQueueLimit.ts'
 import { hasQueuePlayer, isPrivilegedPlayer } from './queuePlayers.utils.ts'
 import { extractGameNickname, validateQueueEntry } from './queueValidation.utils.ts'
 
-interface HandleJoinPlayerArgs extends QueueActionContext {
+interface HandleJoinPlayerArgs extends QueueActionContext, QueueStateAccess {
   isQueueOpen: QueueContextValue['isQueueOpen'];
   playerData: QueuePlayerFormData;
   customTimestamp?: number;
   settings: QueueSettings;
-  getState: () => QueueState;
-  setState: QueueSetState;
-  pushLog: AppLogsContextValue['pushLog'];
 }
 
 interface JoinDecision {

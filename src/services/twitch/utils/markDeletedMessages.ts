@@ -2,8 +2,8 @@ import { TWITCH_IRC_COMMANDS, TWITCH_IRC_MOD_ACTIONS, TWITCH_IRC_TAG_ENABLED, TW
 import type { ParsedIrcMessage } from '../types.ts'
 
 interface MarkDeletedMessagesProps {
-  modMessage: ParsedIrcMessage,
-  currentMessages: ParsedIrcMessage[]
+  modMessage: ParsedIrcMessage;
+  currentMessages: ParsedIrcMessage[];
 }
 
 /**

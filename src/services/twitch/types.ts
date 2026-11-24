@@ -1,4 +1,4 @@
-import { TWITCH_IRC_COMMANDS } from '../../constants/twitch.constants.ts'
+import { type TWITCH_IRC_COMMANDS } from '../../constants/twitch.constants.ts'
 
 export type TwitchIrcCommandType = typeof TWITCH_IRC_COMMANDS[keyof typeof TWITCH_IRC_COMMANDS]
 
@@ -7,6 +7,16 @@ export type TwitchIrcCommandType = typeof TWITCH_IRC_COMMANDS[keyof typeof TWITC
  * @returns `true`, если данные переданы сокету.
  */
 export type SocketSender = (text: string) => boolean
+
+/** Настройки отображения сообщений чата. */
+export interface ChatDisplayOptions {
+  useColoredNames: boolean;
+  highlightRoles: boolean;
+  isShowDeletedMessages: boolean;
+  showSystemNotifications: boolean;
+  highlightPointsMessages: boolean;
+  showEmotes: boolean;
+}
 
 export interface ParsedIrcMessage {
   /** Уникальный идентификатор сообщения: тег id Twitch или локальный fallback */

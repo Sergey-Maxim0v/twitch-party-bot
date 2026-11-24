@@ -4,23 +4,18 @@ import { SettingsNumberInput } from './SettingsNumberInput.tsx'
 import { SettingsCheckbox } from './SettingsCheckbox.tsx'
 import { useQueue } from '../../queue/hooks/useQueue.ts'
 import { APP_LOG_SOURCES } from '../../app-logs/types.ts'
-import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { QUEUE_SETTING_LABELS, QUEUE_SETTING_VALUE_LABELS } from '../../../constants/queue.constants.ts'
-import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
-
-interface QueueGeneralSettingsProps {
-  titleClassName?: string;
-}
+import type { SettingsSectionProps } from '../types.ts'
+import { SettingsSection } from './SettingsSection.tsx'
 
 /**
  * Секция основных настроек очереди.
  */
-export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClassName }) => {
+export const QueueGeneralSettings: FC<Pick<SettingsSectionProps, 'titleClassName'>> = ({ titleClassName }) => {
   const { settings, updateSettings } = useQueueSettings()
   const { balanceQueues } = useQueue()
-  const { session, userDisplayName } = useAuth()
-
-  const actorUsername = userDisplayName ?? session?.login ?? ''
+  const actorUsername = useActorUsername('')
 
   const handleChangeQueueLimit = useCallback((val: number) => {
     updateSettings({ maxQueueSize: val })
@@ -41,10 +36,7 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
   }, [actorUsername, balanceQueues, updateSettings])
 
   return (
-    <div className={SETTINGS_SECTION_CLASS}>
-      <h3 className={titleClassName}>
-        Основные настройки
-      </h3>
+    <SettingsSection title="Основные настройки" titleClassName={titleClassName}>
 
       <SettingsNumberInput
         label={QUEUE_SETTING_LABELS.maxQueueSize}
@@ -116,6 +108,6 @@ export const QueueGeneralSettings: FC<QueueGeneralSettingsProps> = ({ titleClass
         label={QUEUE_SETTING_LABELS.subscribersOnly}
         onChange={checked => { updateSettings({ subscribersOnly: checked }) }}
       />
-    </div>
+    </SettingsSection>
   )
 }

@@ -109,11 +109,9 @@ export const useTwitchPendingMessages = () => {
   }, [stopSweepTimer])
 
   // Таймеры не должны пережить размонтирование компонента
-  useEffect(() => {
-    return () => {
-      clearChatTimeout()
-      stopSweepTimer()
-    }
+  useEffect(() => () => {
+    clearChatTimeout()
+    stopSweepTimer()
   }, [clearChatTimeout, stopSweepTimer])
 
   return {

@@ -1,30 +1,17 @@
-import type { FC } from 'react'
-import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { type FC } from 'react'
 import { useQueue } from '../hooks/useQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
-import { QueueCollapse } from '../../../components/QueueCollapse.tsx'
-import { QueueElement } from './QueueElement.tsx'
+import type { QueueListProps } from '../../../components/QueueCollapse.tsx'
+import { QueueDropList } from './QueueDropList.tsx'
 import { QUEUE_TYPES } from '../types.ts'
 import { formatQueueBadge } from '../utils/formatQueueBadge.ts'
-
-interface QueueActiveListProps {
-  /** Дополнительные CSS-классы списка. */
-  className?: string;
-  /** Открыт ли список. */
-  open: boolean;
-  /** Обработчик изменения состояния списка. */
-  onOpenChange: (open: boolean) => void;
-}
 
 /**
  * Список игроков текущей активной очереди.
  */
-export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOpenChange, open }) => {
+export const QueueActiveList: FC<QueueListProps> = ({ className = '', onOpenChange, open }) => {
   const { activeQueue } = useQueue()
   const { settings } = useQueueSettings()
-
-  const { isOver, setNodeRef } = useDroppable({ id: QUEUE_TYPES.ACTIVE })
 
   const queueLength = activeQueue?.length ?? 0
 
@@ -33,10 +20,8 @@ export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOp
     queueLength,
   })
 
-  const playerIds = activeQueue.map(player => player.queueEntryId)
-
   return (
-    <QueueCollapse
+    <QueueDropList
       badge={
         <span
           className="inline-flex h-5 min-w-6 items-center justify-center gap-1 rounded-md border border-base-300/60
@@ -46,22 +31,13 @@ export const QueueActiveList: FC<QueueActiveListProps> = ({ className = '', onOp
           {badgeText}
         </span>
       }
-      className={`${className} rounded-xl! shadow-xs`}
+      className={className}
+      highlightClassName="bg-primary/5 ring-1 ring-primary/15"
       onOpenChange={onOpenChange}
       open={open}
+      players={activeQueue}
+      queueType={QUEUE_TYPES.ACTIVE}
       title="Текущая очередь"
-    >
-      <SortableContext items={playerIds} strategy={verticalListSortingStrategy}>
-        <div
-          className={`flex min-h-10 flex-col gap-1.5 rounded-lg transition-colors duration-200
-            ${isOver ? 'bg-primary/5 ring-1 ring-primary/15' : ''}`}
-          ref={setNodeRef}
-        >
-          {activeQueue.map(player => (
-            <QueueElement key={player.queueEntryId} player={player} queueType={QUEUE_TYPES.ACTIVE} />
-          ))}
-        </div>
-      </SortableContext>
-    </QueueCollapse>
+    />
   )
 }

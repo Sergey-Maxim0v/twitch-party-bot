@@ -1,18 +1,18 @@
 import { type Dispatch, type SetStateAction, useEffect } from 'react'
 import { useAuth } from '../../auth/hooks/useAuth.ts'
+import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
-import { APP_LOG_FALLBACK_ACTOR } from '../../../constants/app-logs.constants.ts'
 import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 
 interface UseQueueAutoCloseProps {
   /** Текущий статус активности очереди. */
-  isQueueOpen: boolean
+  isQueueOpen: boolean;
   /** Канал, к которому привязана открытая очередь. */
-  queueChannel: string | null
+  queueChannel: string | null;
   /** Сохраняет канал, к которому привязана очередь. */
-  setQueueChannel: Dispatch<SetStateAction<string | null>>
+  setQueueChannel: Dispatch<SetStateAction<string | null>>;
   /** Закрывает очередь при смене канала. */
-  autoCloseQueue: (args: { source: LogSource; actorUsername: string; message: string }) => void
+  autoCloseQueue: (args: { source: LogSource; actorUsername: string; message: string }) => void;
 }
 
 /**
@@ -25,8 +25,8 @@ export const useQueueAutoClose = ({
   setQueueChannel,
   autoCloseQueue,
 }: UseQueueAutoCloseProps): void => {
-  const { activeChannel, userDisplayName, session } = useAuth()
-  const actorUsername = userDisplayName ?? session?.login ?? APP_LOG_FALLBACK_ACTOR
+  const { activeChannel } = useAuth()
+  const actorUsername = useActorUsername()
 
   useEffect(() => {
     if (!isQueueOpen) return

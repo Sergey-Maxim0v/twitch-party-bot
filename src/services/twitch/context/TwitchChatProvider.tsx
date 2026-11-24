@@ -1,15 +1,12 @@
-import type { ReactNode } from 'react'
+import { type FC } from 'react'
 import { useTwitchChatManager } from '../hooks/useTwitchChatManager.ts'
 import { TwitchChatContext } from './TwitchChatInstance.ts'
-
-interface TwitchChatProviderProps {
-  children: ReactNode
-}
+import type { ChildrenProps } from '../../../types/common.types.ts'
 
 /**
  * Провайдер контекста чата Twitch.
  */
-export const TwitchChatProvider = ({ children }: TwitchChatProviderProps) => {
+export const TwitchChatProvider: FC<ChildrenProps> = ({ children }) => {
   const chatValue = useTwitchChatManager()
 
   return (

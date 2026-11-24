@@ -1,21 +1,8 @@
-import type { QueueSettings } from '../../queue-settings/types.ts'
-import { APP_LOG_STATUSES, type AppLogItem } from '../../app-logs/types.ts'
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
+import type { HandleBanPlayerArgs } from './handleBanPlayer.ts'
 
-interface HandleUnbanPlayerArgs {
-  /** Логин/никнейм пользователя для удаления из бан-листа */
-  username: string;
-  /** Источник вызова команды */
-  source: AppLogItem['source'];
-  /** Никнейм того, кто убрал из бана */
-  actorUsername: string;
-  /** Текущие настройки очереди */
-  settings: QueueSettings;
-  /** Функция обновления настроек */
-  updateSettings: (newSettings: Partial<QueueSettings>) => void;
-  /** Хелпер провайдера для записи логов */
-  pushLog: AppLogsContextValue['pushLog']
-}
+/** Аргументы разбана совпадают с баном, кроме отображаемого имени. */
+type HandleUnbanPlayerArgs = Omit<HandleBanPlayerArgs, 'displayedUsername'>
 
 /**
  * Удаляет игрока из внутреннего бан-листа настроек очереди.

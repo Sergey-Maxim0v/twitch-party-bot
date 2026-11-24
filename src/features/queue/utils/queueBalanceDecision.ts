@@ -1,18 +1,14 @@
-import type { AppLogsContextValue } from '../../app-logs/context/AppLogsInstance.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { QUEUE_BALANCE_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
-import type { QueueActorContext, QueuePlayer, QueueSetState, QueueState } from '../types.ts'
+import type { QueueActorContext, QueuePlayer, QueueState, QueueStateAccess } from '../types.ts'
 import { getEffectiveQueueLimit } from './getEffectiveQueueLimit.ts'
 import { getQueuePlayerName, hasQueuePlayer, isPrivilegedPlayer } from './queuePlayers.utils.ts'
 import { getQueueCooldownRestriction, type QueueCooldownSettings } from './queueValidation.utils.ts'
 
 export type QueueBalanceSettings = Pick<QueueSettings, 'allowPreJoin' | 'maxQueueSize' | 'moveOnSizeChange' | 'prioritizeSubscribers' | 'subscribersOnly'>
 
-export interface QueueBalanceArgs extends QueueBalanceSettings, QueueActorContext {
+export interface QueueBalanceArgs extends QueueBalanceSettings, QueueActorContext, QueueStateAccess {
   cooldowns: QueueCooldownSettings;
-  getState: () => QueueState;
-  setState: QueueSetState;
-  pushLog: AppLogsContextValue['pushLog'];
   onPlayersMovedToActive?: (usernames: string[]) => void;
   onPlayersMovedToWaiting?: (usernames: string[]) => void;
   onPlayersRemoved?: (usernames: string[]) => void;

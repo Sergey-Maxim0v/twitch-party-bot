@@ -5,11 +5,11 @@ import type { QueueContextValue } from '../context/QueueInstance.ts'
 import { findQueueEntry, getQueueByType } from './queuePlayers.utils.ts'
 
 interface HandleDragEndArgs {
-  event: DragEndEvent
-  activeQueue: QueuePlayer[]
-  waitingQueue: QueuePlayer[]
-  movePlayer: QueueContextValue['movePlayer']
-  actorUsername: string
+  event: DragEndEvent;
+  activeQueue: QueuePlayer[];
+  waitingQueue: QueuePlayer[];
+  movePlayer: QueueContextValue['movePlayer'];
+  actorUsername: string;
 }
 
 /** Обрабатывает завершение Drag-and-Drop и делегирует перемещение игрока. */

@@ -19,9 +19,7 @@ export const useSocketInit = (): void => {
     }
   }, [isAuthenticated, session?.accessToken, session?.login, connect, disconnect, activeChannel])
 
-  useEffect(() => {
-    return onAuthFailure(() => {
-      expireSession()
-    })
-  }, [onAuthFailure, expireSession])
+  useEffect(() => onAuthFailure(() => {
+    expireSession()
+  }), [onAuthFailure, expireSession])
 }

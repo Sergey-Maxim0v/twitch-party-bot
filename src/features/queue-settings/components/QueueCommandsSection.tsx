@@ -1,14 +1,10 @@
-import type { FC } from 'react'
+import { type FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
-import type { QueueSettings } from '../types.ts'
+import type { QueueSettings, SettingsSectionProps } from '../types.ts'
 import { QUEUE_COMMAND_LABELS, QUEUE_PREFIX_CONFLICT_MESSAGES } from '../../../constants/queue.constants.ts'
-import { SETTINGS_SECTION_CLASS } from '../../../constants/ui.constants.ts'
 import { SettingsCommandInput } from './SettingsCommandInput.tsx'
 import { getPrefixCommandConflict } from '../utils/getPrefixCommandConflict.ts'
-
-interface QueueCommandsSectionProps {
-  titleClassName?: string;
-}
+import { SettingsSection } from './SettingsSection.tsx'
 
 /** Описание команды чата для отображения в настройках. */
 interface CommandField {
@@ -23,7 +19,7 @@ const COMMAND_FIELDS: CommandField[] = (
 /**
  * Секция команд чата.
  */
-export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
+export const QueueCommandsSection: FC<Pick<SettingsSectionProps, 'titleClassName'>> = ({
   titleClassName = '',
 }) => {
   const { settings, updateSettings } = useQueueSettings()
@@ -53,20 +49,18 @@ export const QueueCommandsSection: FC<QueueCommandsSectionProps> = ({
   }
 
   return (
-    <div className={SETTINGS_SECTION_CLASS}>
-      <h3 className={titleClassName}>Команды чата</h3>
-
+    <SettingsSection title="Команды чата" titleClassName={titleClassName}>
       {COMMAND_FIELDS.map(({ key, label }) => (
         <SettingsCommandInput
           commandValue={settings.commands[key].name}
           isModeratorValue={settings.commands[key].isModeratorOnly}
           key={key}
           label={label}
-          onCommandChange={val => { handleCommandChange(key, val) }}
-          onModeratorChange={chk => { handleModChange(key, chk) }}
+          onCommandChange={val => handleCommandChange(key, val)}
+          onModeratorChange={chk => handleModChange(key, chk)}
           validate={validateCommandName}
         />
       ))}
-    </div>
+    </SettingsSection>
   )
 }

@@ -6,9 +6,9 @@ import type { ParsedIrcMessage, SendChatMessageOptions } from '../types.ts'
  * Интерфейс контекста управления чатом Twitch.
  */
 interface TwitchChatContextType {
-  messages: ParsedIrcMessage[]
-  sendChatMessage: (message: string, options?: SendChatMessageOptions) => boolean
-  subscribeToChatCommands: MessageEmitter['subscribe']
+  messages: ParsedIrcMessage[];
+  sendChatMessage: (message: string, options?: SendChatMessageOptions) => boolean;
+  subscribeToChatCommands: MessageEmitter['subscribe'];
 }
 
 /**
