@@ -1,21 +1,21 @@
 import { useEffect, useRef } from 'react'
 import type { TwitchIrcClient } from '../twitchIrcClient.ts'
+import type { ChannelChangeCallback } from '../types.ts'
 
 /**
- * Вызывает обработчик при фактической смене канала.
+ * Вызывает обработчик при изменении канала IRC-сессии.
  *
- * Канал сравнивается с предыдущим значением, поэтому повторное подключение
- * к тому же каналу обработчик не вызывает.
+ * Первое подключение и отключение не считаются сменой и не вызывают обработчик.
  *
  * @param client - Клиент соединения с Twitch IRC.
- * @param onChannelChanged - Действие, выполняемое при смене канала.
+ * @param onChannelChanged - Обработчик изменения канала.
  */
 export const useTwitchChannelChange = (
   client: TwitchIrcClient | null,
-  onChannelChanged: () => void,
+  onChannelChanged: ChannelChangeCallback,
 ): void => {
   const onChannelChangedRef = useRef(onChannelChanged)
-  const lastChannelRef = useRef<string | null>(null)
+  const hasConnectedRef = useRef(false)
 
   useEffect(() => {
     onChannelChangedRef.current = onChannelChanged
@@ -24,19 +24,17 @@ export const useTwitchChannelChange = (
   useEffect(() => {
     if (!client) return
 
-    if (client.currentChannel) {
-      lastChannelRef.current = client.currentChannel
-    }
+    hasConnectedRef.current = client.currentChannel !== null
 
-    return client.onChannelChange(() => {
-      const nextChannel = client.currentChannel
-      const isChannelChanged = nextChannel !== lastChannelRef.current
+    return client.onChannelChange(change => {
+      if (!change.current) return
 
-      lastChannelRef.current = nextChannel
+      const isFirstConnection = !hasConnectedRef.current
+      hasConnectedRef.current = true
 
-      if (!isChannelChanged) return
+      if (isFirstConnection) return
 
-      onChannelChangedRef.current()
+      onChannelChangedRef.current(change)
     })
   }, [client])
 }

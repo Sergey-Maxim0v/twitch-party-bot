@@ -328,6 +328,13 @@ export const CHAT_SEND_FAIL_REASONS = {
 } as const
 
 /**
+ * Тексты сообщений журнала приложения об истории чата Twitch.
+ */
+export const TWITCH_CHAT_HISTORY_LOG_MESSAGES = {
+  CHANNEL_CHANGED: 'История чата очищена (смена канала).',
+} as const
+
+/**
  * Тексты сообщений журнала приложения о доступе к чату Twitch.
  */
 export const TWITCH_CHAT_ACCESS_LOG_MESSAGES = {

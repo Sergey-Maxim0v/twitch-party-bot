@@ -3,6 +3,7 @@ import type { TwitchIrcClient } from '../twitchIrcClient.ts'
 import {
   TWITCH_CHAT_CHANNEL_PREFIX,
   TWITCH_CHAT_FALLBACK_AUTHOR_NAME,
+  TWITCH_CHAT_HISTORY_LOG_MESSAGES,
   TWITCH_IRC_COMMANDS,
   TWITCH_IRC_TAGS,
 } from '../../../constants/twitch.constants.ts'
@@ -27,12 +28,14 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchCh
   const { pushLog } = useAppLogs()
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
 
-  // Смена канала очищает историю сообщений
-  useTwitchChannelChange(client, () => {
+  useTwitchChannelChange(client, ({ previous, current }) => {
     setMessages([])
 
+    const isChannelSwitched = previous !== null && current !== null && previous !== current
+    if (!isChannelSwitched) return
+
     pushLog({
-      message: 'История чата очищена (смена канала).',
+      message: TWITCH_CHAT_HISTORY_LOG_MESSAGES.CHANNEL_CHANGED,
       status: APP_LOG_STATUSES.WARNING,
       source: APP_LOG_SOURCES.APPLICATION,
       actorUsername: APP_LOG_SYSTEM_ACTOR,

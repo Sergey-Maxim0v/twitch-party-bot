@@ -3,6 +3,20 @@ import { type TWITCH_IRC_COMMANDS } from '../../constants/twitch.constants.ts'
 export type TwitchIrcCommandType = typeof TWITCH_IRC_COMMANDS[keyof typeof TWITCH_IRC_COMMANDS]
 
 /**
+ * Изменение канала IRC-сессии.
+ */
+export interface ChannelChange {
+  /** Канал до изменения; `null` при первом подключении. */
+  previous: string | null;
+
+  /** Текущий канал; `null` после отключения. */
+  current: string | null;
+}
+
+/** Обработчик изменения канала IRC-сессии. */
+export type ChannelChangeCallback = (change: ChannelChange) => void
+
+/**
  * Функция отправки данных в сокет.
  * @returns `true`, если данные переданы сокету.
  */

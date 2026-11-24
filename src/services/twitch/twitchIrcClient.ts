@@ -18,7 +18,7 @@ import {
 import { ConnectionStateManager } from './utils/ConnectionStateManager.ts'
 import { TwitchReconnectManager } from './utils/TwitchReconnectManager.ts'
 import { SocketLifecycleManager } from './utils/SocketLifecycleManager.ts'
-import type { ParsedIrcMessage } from './types.ts'
+import type { ChannelChange, ChannelChangeCallback, ParsedIrcMessage } from './types.ts'
 import {
   TWITCH_CHAT_MESSAGE_MAX_LENGTH,
   TWITCH_IRC_CLIENT_LOG_MESSAGES,
@@ -39,7 +39,7 @@ interface TwitchSession {
 export class TwitchIrcClient {
   private session: TwitchSession | null = null
   private emitter: MessageEmitter = createMessageEmitter()
-  private readonly onChannelChangeCallbacks = new Set<() => void>()
+  private readonly onChannelChangeCallbacks = new Set<ChannelChangeCallback>()
   private isNetworkOffline = false
   private failure: SocketFailureReason | null = null
   private connectedAt: number | null = null
@@ -57,10 +57,10 @@ export class TwitchIrcClient {
   private connectTimeoutId: ReturnType<typeof setTimeout> | null = null
 
   /**
-   * Подписывается на смену канала.
+   * Подписывается на изменение канала IRC-сессии.
    * @returns Функция отписки.
    */
-  public onChannelChange(callback: () => void): () => void {
+  public onChannelChange(callback: ChannelChangeCallback): () => void {
     this.onChannelChangeCallbacks.add(callback)
 
     return () => {
@@ -157,6 +157,7 @@ export class TwitchIrcClient {
     const targetChannel = channel.toLowerCase()
     const targetLogin = userLogin.toLowerCase()
     const currentSession = this.session
+    const previousChannel = currentSession?.channel ?? null
 
     const isSameSession = currentSession !== null
       && currentSession.channel === targetChannel
@@ -172,7 +173,7 @@ export class TwitchIrcClient {
     this.reconnectManager.resume()
     this.reconnectManager.setIntentionallyDisconnected(false)
     this.failure = null
-    this.emitChannelChange()
+    this.emitChannelChange({ previous: previousChannel, current: targetChannel })
 
     this.openSocket()
 
@@ -197,6 +198,7 @@ export class TwitchIrcClient {
    */
   public disconnect(): void {
     const isAuthFailure = this.failure === SOCKET_FAILURE_REASONS.AUTH
+    const previousChannel = this.currentChannel
 
     this.clearConnectTimeout()
     this.reconnectManager.setIntentionallyDisconnected(true)
@@ -205,6 +207,10 @@ export class TwitchIrcClient {
     this.session = null
     this.isNetworkOffline = false
     this.failure = null
+
+    if (previousChannel !== null) {
+      this.emitChannelChange({ previous: previousChannel, current: null })
+    }
 
     if (isAuthFailure) return
 
@@ -285,12 +291,12 @@ export class TwitchIrcClient {
   }
 
   /**
-   * Оповещает подписчиков о смене канала.
+   * Оповещает подписчиков об изменении канала IRC-сессии.
    */
-  private emitChannelChange(): void {
+  private emitChannelChange(change: ChannelChange): void {
     this.onChannelChangeCallbacks.forEach(callback => {
       try {
-        callback()
+        callback(change)
       } catch (error) {
         console.error(`${TWITCH_IRC_CLIENT_LOG_PREFIX} ${TWITCH_IRC_CLIENT_LOG_MESSAGES.CHANNEL_CHANGE_ERROR}:`, error)
       }
