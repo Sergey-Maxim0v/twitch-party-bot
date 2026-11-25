@@ -7,7 +7,7 @@ import { formatPrefixedMessage } from './formatPrefixedMessage.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { isUnlimitedQueueSize } from '../../queue/utils/isUnlimitedQueueSize.ts'
 
-interface FormatQueueStatusMessageArgs extends Pick<QueueSettings, 'maxQueueSize'> {
+export interface FormatQueueStatusMessageArgs extends Pick<QueueSettings, 'maxQueueSize'> {
   /** Ники активной очереди. */
   activeUsernames: string[];
   /** Ники ожидающей очереди. */

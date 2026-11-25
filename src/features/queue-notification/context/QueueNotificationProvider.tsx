@@ -10,6 +10,7 @@ import { QUEUE_CHAT_MESSAGE_SEPARATOR, QUEUE_CHAT_NOTIFICATION_MESSAGES, QUEUE_F
 import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
 import { formatQueueStatusMessage } from '../utils/formatQueueStatusMessage.ts'
 import { formatPrefixedMessage } from '../utils/formatPrefixedMessage.ts'
+import { removeActiveQueueUsersFromBuffer } from '../utils/removeActiveQueueUsersFromBuffer.ts'
 import { resolveClearNotificationMessage } from '../utils/resolveClearNotificationMessage.ts'
 import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
 import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
@@ -156,7 +157,17 @@ export const QueueNotificationProvider: FC<ChildrenProps> = ({ children }) => {
       return
     }
 
-    sendMessage(formatQueueStatus(QUEUE_FULL_STATUS_HEADER))
+    const messageText = formatQueueStatus(QUEUE_FULL_STATUS_HEADER)
+    const isSent = sendMessage(messageText)
+
+    if (!isSent || !permissionsRef.current.allowSending) {
+      return
+    }
+
+    setState(currentState => removeActiveQueueUsersFromBuffer({
+      state: currentState,
+      activeUsernames: activeQueueRef.current,
+    }))
   }, [formatQueueStatus, sendMessage])
 
   const sendClearActive = useCallback((notify = true): void => {

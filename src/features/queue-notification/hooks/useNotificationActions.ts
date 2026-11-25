@@ -2,36 +2,8 @@ import { type RefObject, type Dispatch, type SetStateAction, useCallback } from 
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import type { TwitchNotificationState } from '../types.ts'
 import type { QueueNotificationContextType } from '../context/QueueNotificationInstance.ts'
-
-/** Все группы событий буфера. */
-const NOTIFICATION_FIELDS = [
-  'joined',
-  'waiting',
-  'deleted',
-  'movedToActive',
-  'movedToWaiting',
-  'denied',
-] as const satisfies readonly (keyof TwitchNotificationState)[]
-
-/**
- * Удаляет никнейм из группы без учёта регистра.
- * Возвращает `null`, если совпадений не было, чтобы не создавать лишний `Set`.
- */
-const removeUsername = (members: Set<string>, normalizedUsername: string): Set<string> | null => {
-  let hasMatch = false
-  const nextMembers = new Set<string>()
-
-  members.forEach(nickname => {
-    if (nickname.toLowerCase() === normalizedUsername) {
-      hasMatch = true
-      return
-    }
-
-    nextMembers.add(nickname)
-  })
-
-  return hasMatch ? nextMembers : null
-}
+import { NOTIFICATION_FIELDS } from '../constants.ts'
+import { removeUsername } from '../utils/removeUsername.ts'
 
 interface UseNotificationActionsArgs {
   /** Актуальная ссылка на конфигурацию разрешений автоматических уведомлений. */
