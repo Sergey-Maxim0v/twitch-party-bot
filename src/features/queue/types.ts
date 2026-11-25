@@ -101,6 +101,15 @@ export interface MoveDecision {
 
 export type QueueJoinStatus = typeof QUEUE_JOIN_STATUSES[keyof typeof QUEUE_JOIN_STATUSES]
 
+/** Вытесненные из активной очереди игроки. */
+export type QueueJoinDisplaced = Pick<MoveDecision, 'displacedToWaiting' | 'displacedRemoved' | 'displacedAlreadyWaiting'>
+
+/** Состояние очереди и добавляемый игрок. */
+export interface JoinPlayerStateArgs {
+  prev: QueueState;
+  player: QueuePlayer;
+}
+
 export interface QueueActionLog {
   message: string;
   logStatus: AppLogStatus;
@@ -108,6 +117,14 @@ export interface QueueActionLog {
 
 export interface QueueJoinResult extends QueueActionLog {
   status: QueueJoinStatus;
+  /** Игроки, вытесненные из активной очереди при добавлении. */
+  displaced: QueueJoinDisplaced;
+}
+
+/** Решение о добавлении игрока. */
+export type JoinDecision = Omit<QueueJoinResult, 'message' | 'logStatus'> & {
+  logMessage: string;
+  nextState: QueueState;
 }
 
 /** Общий контекст действия с очередью. */

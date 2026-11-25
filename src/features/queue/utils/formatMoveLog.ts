@@ -5,7 +5,8 @@ import {
   QUEUE_TYPE_LABELS,
   QUEUE_TYPE_LABELS_ACCUSATIVE,
 } from '../../../constants/queue.constants.ts'
-import { formatQueuePlayerNames, getQueueByType } from './queuePlayers.utils.ts'
+import { formatDisplacedLog } from './formatDisplacedLog.ts'
+import { getQueueByType } from './queuePlayers.utils.ts'
 
 /** Формирует текст записи журнала о перемещении игрока. */
 export const formatMoveLog = (
@@ -29,17 +30,5 @@ export const formatMoveLog = (
     ? QUEUE_MOVE_LOG_MESSAGES.WITHIN(decision.playerName, fromLabel, positionLabel)
     : QUEUE_MOVE_LOG_MESSAGES.CROSS(decision.playerName, fromLabel, toLabel, positionLabel)
 
-  const details = [
-    ...(decision.displacedToWaiting.length > 0
-      ? [QUEUE_MOVE_LOG_MESSAGES.DISPLACED_TO_WAITING(formatQueuePlayerNames(decision.displacedToWaiting))]
-      : []),
-    ...(decision.displacedRemoved.length > 0
-      ? [QUEUE_MOVE_LOG_MESSAGES.DISPLACED_REMOVED(formatQueuePlayerNames(decision.displacedRemoved))]
-      : []),
-    ...(decision.displacedAlreadyWaiting.length > 0
-      ? [QUEUE_MOVE_LOG_MESSAGES.DISPLACED_ALREADY_WAITING(formatQueuePlayerNames(decision.displacedAlreadyWaiting))]
-      : []),
-  ]
-
-  return [baseMessage, ...details].join(' ')
+  return [baseMessage, ...formatDisplacedLog(decision)].join(' ')
 }

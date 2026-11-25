@@ -19,9 +19,9 @@ import { handleRemovePlayerFromAll } from '../utils/handleRemovePlayerFromAll.ts
 import { handleBanPlayer } from '../utils/handleBanPlayer.ts'
 import { handleUnbanPlayer } from '../utils/handleUnbanPlayer.ts'
 import { handleMovePlayer } from '../utils/handleMovePlayer.ts'
-import { getQueuePlayerName } from '../utils/queuePlayers.utils.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
+import { notifyDisplacedPlayers } from '../../queue-notification/utils/notifyDisplacedPlayers.ts'
 import { QUEUE_JOIN_STATUSES } from '../../../constants/queue.constants.ts'
 
 interface UseQueuePlayersArgs extends QueueStateAccess {
@@ -66,8 +66,21 @@ export const useQueuePlayers = ({
       addDeniedUser(args.playerData.username)
     }
 
+    notifyDisplacedPlayers({ displaced: result.displaced, addDeletedUser, addMovedToWaitingUser })
+
     return result
-  }, [isQueueOpen, settings, getState, setState, pushLog, addJoinedUser, addWaitingUser, addDeniedUser])
+  }, [
+    isQueueOpen,
+    settings,
+    getState,
+    setState,
+    pushLog,
+    addJoinedUser,
+    addWaitingUser,
+    addDeniedUser,
+    addDeletedUser,
+    addMovedToWaitingUser,
+  ])
 
   const removePlayerFromQueue = useCallback((args: RemoveQueuePlayerArgs) => {
     const result = handleRemovePlayer({ ...args, getState, setState, pushLog })
@@ -126,10 +139,7 @@ export const useQueuePlayers = ({
       notify(username)
     }
 
-    decision.displacedToWaiting.forEach(player => addMovedToWaitingUser(getQueuePlayerName(player)))
-
-    const removedPlayers = [...decision.displacedRemoved, ...decision.displacedAlreadyWaiting]
-    removedPlayers.forEach(player => addDeletedUser(getQueuePlayerName(player)))
+    notifyDisplacedPlayers({ displaced: decision, addDeletedUser, addMovedToWaitingUser })
 
     balanceAfterChange(args)
   }, [
