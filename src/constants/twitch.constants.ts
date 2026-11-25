@@ -176,28 +176,6 @@ export const TWITCH_IRC_CAPABILITIES = {
   COMMANDS: 'twitch.tv/commands',
 } as const
 
-/** Тексты и CSS-классы панели настроек чата. */
-export const TWITCH_CHAT_SETTINGS = {
-  BUTTON_LABEL: 'Настройки чата',
-  BUTTON_CLASS: 'btn btn-ghost btn-sm btn-square',
-  PANEL_CLASS: 'dropdown-content pointer-events-auto z-50 p-4 shadow-2xl bg-base-100 border border-base-300 rounded-box w-72 mb-2 flex flex-col gap-3 overflow-hidden box-border',
-  TITLE: 'Отображение чата',
-  TOGGLE_LABELS: {
-    COLORED_NAMES: 'Цветные ники',
-    EMOTES: 'Смайлики Twitch',
-    ROLES: 'Стили модеров, випов',
-    HIGHLIGHTS: 'Выделенные сообщения',
-    DELETED: 'Показать удаленные сообщения',
-    SYSTEM: 'Показать системные сообщения',
-  },
-  DROPDOWN: {
-    BASE_CLASS: 'dropdown dropdown-top',
-    OPEN_CLASS: 'dropdown-open',
-    CLOSE_CLASS: 'dropdown-close',
-    FOCUS_VISIBLE: ':focus-visible',
-  },
-} as const
-
 /**
  * Команды управления, отправляемые из основного потока React в Web Worker.
  */

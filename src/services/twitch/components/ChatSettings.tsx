@@ -1,33 +1,91 @@
 import { type FC } from 'react'
 import { LuSettings } from 'react-icons/lu'
-import { TWITCH_CHAT_SETTINGS } from '../../../constants/twitch.constants.ts'
-import { ChatSettingsPanel } from './ChatSettingsPanel.tsx'
-import { useChatSettingsDropdown } from '../hooks/useChatSettingsDropdown.ts'
-import type { ChatSettingsProps } from '../types.ts'
+import { ChatSettingsToggle } from './ChatSettingsToggle.tsx'
+import type { ChatDisplayOptions } from '../types.ts'
 
-/** Кнопка и состояние выпадающей панели настроек чата. */
-export const ChatSettings: FC<ChatSettingsProps> = props => {
-  const { buttonRef, closeOnFocusOut, isOpen, openOnKeyboardFocus, toggle } = useChatSettingsDropdown()
-  const { BASE_CLASS, CLOSE_CLASS, OPEN_CLASS } = TWITCH_CHAT_SETTINGS.DROPDOWN
-
-  return (
-    <div
-      className={`${BASE_CLASS} ${isOpen ? OPEN_CLASS : CLOSE_CLASS}`}
-      onBlur={closeOnFocusOut}
-    >
-      <button
-        aria-expanded={isOpen}
-        aria-label={TWITCH_CHAT_SETTINGS.BUTTON_LABEL}
-        className={TWITCH_CHAT_SETTINGS.BUTTON_CLASS}
-        onClick={toggle}
-        onFocus={openOnKeyboardFocus}
-        ref={buttonRef}
-        type="button"
-      >
-        <LuSettings className="w-5 h-5 text-base-content/70" />
-      </button>
-
-      <ChatSettingsPanel {...props} />
-    </div>
-  )
+type ChatSettingsProps = ChatDisplayOptions & {
+  setUseColoredNames: (value: boolean) => void;
+  setHighlightRoles: (value: boolean) => void;
+  setIsShowDeletedMessages: (value: boolean) => void;
+  setShowSystemNotifications: (value: boolean) => void;
+  setHighlightPointsMessages: (value: boolean) => void;
+  setShowEmotes: (value: boolean) => void;
 }
+
+/**
+ * Выпадающая панель настроек отображения чата.
+ */
+export const ChatSettings: FC<ChatSettingsProps> = ({
+  useColoredNames,
+  setUseColoredNames,
+  highlightRoles,
+  setHighlightRoles,
+  setIsShowDeletedMessages,
+  isShowDeletedMessages,
+  showSystemNotifications,
+  setShowSystemNotifications,
+  highlightPointsMessages,
+  setHighlightPointsMessages,
+  showEmotes,
+  setShowEmotes,
+}) => (
+  <div className="dropdown dropdown-top group">
+    <button
+      aria-label="Настройки чата"
+      className="btn btn-ghost btn-sm btn-square"
+      tabIndex={0}
+    >
+      <LuSettings className="w-5 h-5 text-base-content/70" />
+    </button>
+    <div
+      className="dropdown-content pointer-events-none group-focus-within:pointer-events-auto
+                z-50 p-4 shadow-2xl bg-base-100 border border-base-300 rounded-box w-72 mb-2
+                flex flex-col gap-3 overflow-hidden box-border"
+      tabIndex={0}
+    >
+      <div className="text-xs font-bold uppercase tracking-wider
+                    text-base-content/50 w-full select-none"
+      >
+        Отображение чата
+      </div>
+
+      <div className="w-full flex flex-col gap-3">
+        <ChatSettingsToggle
+          checked={useColoredNames}
+          label="Цветные ники"
+          onChange={setUseColoredNames}
+        />
+
+        <ChatSettingsToggle
+          checked={showEmotes}
+          label="Смайлики Twitch"
+          onChange={setShowEmotes}
+        />
+
+        <ChatSettingsToggle
+          checked={highlightRoles}
+          label="Стили модеров, випов"
+          onChange={setHighlightRoles}
+        />
+
+        <ChatSettingsToggle
+          checked={highlightPointsMessages}
+          label="Выделенные сообщения"
+          onChange={setHighlightPointsMessages}
+        />
+
+        <ChatSettingsToggle
+          checked={isShowDeletedMessages}
+          label="Показать удаленные сообщения"
+          onChange={setIsShowDeletedMessages}
+        />
+
+        <ChatSettingsToggle
+          checked={showSystemNotifications}
+          label="Показать системные сообщения"
+          onChange={setShowSystemNotifications}
+        />
+      </div>
+    </div>
+  </div>
+)

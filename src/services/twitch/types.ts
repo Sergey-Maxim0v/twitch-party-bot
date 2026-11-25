@@ -32,19 +32,6 @@ export interface ChatDisplayOptions {
   showEmotes: boolean;
 }
 
-/** Обработчики настроек отображения чата. */
-export interface ChatSettingsHandlers {
-  setUseColoredNames: (value: boolean) => void;
-  setHighlightRoles: (value: boolean) => void;
-  setIsShowDeletedMessages: (value: boolean) => void;
-  setShowSystemNotifications: (value: boolean) => void;
-  setHighlightPointsMessages: (value: boolean) => void;
-  setShowEmotes: (value: boolean) => void;
-}
-
-/** Параметры выпадающей панели настроек чата. */
-export type ChatSettingsProps = ChatDisplayOptions & ChatSettingsHandlers
-
 export interface ParsedIrcMessage {
   /** Уникальный идентификатор сообщения: тег id Twitch или локальный fallback */
   id: string;
