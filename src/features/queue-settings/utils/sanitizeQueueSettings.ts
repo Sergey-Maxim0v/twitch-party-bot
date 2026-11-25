@@ -1,9 +1,12 @@
 import type { QueueGameConfig, QueueGameKey, QueueSettings } from '../types.ts'
-import { QUEUE_GAME_NICKNAME_PATTERNS } from '../../../constants/queue.constants.ts'
+import { DEFAULT_QUEUE_SETTINGS, QUEUE_GAME_NICKNAME_PATTERNS } from '../../../constants/queue.constants.ts'
+import { getCommandNameConflict } from './getCommandNameConflict.ts'
 import { getOwnValue, isPlainObject } from '../../../utils/objects.ts'
 
 /** Ключи игр, для которых разрешена проверка никнейма. */
 const SUPPORTED_GAME_KEYS = Object.keys(QUEUE_GAME_NICKNAME_PATTERNS)
+
+const COMMAND_KEYS = Object.keys(DEFAULT_QUEUE_SETTINGS.commands) as Array<keyof QueueSettings['commands']>
 
 /**
  * Возвращает ключ игры, если значение содержит ключ известной игры.
@@ -43,17 +46,43 @@ const sanitizeQueueGameConfig = (value: unknown): QueueGameConfig | undefined =>
 }
 
 /**
- * Убирает из настроек повреждённую конфигурацию игры.
+ * Возвращает настройки команд без повторяющихся триггеров.
+ * Конфликтующим командам возвращаются имена по умолчанию.
  *
- * Правило проверки никнейма берётся из списка игр по ключу, поэтому в настройках
- * хранится только ключ: подменённое правило не попадает в проверку никнеймов.
+ * @param commands - Настройки команд из хранилища.
+ * @returns Настройки с уникальными триггерами команд.
+ */
+const sanitizeQueueCommands = (commands: QueueSettings['commands']): QueueSettings['commands'] => {
+  let sanitizedCommands = commands
+
+  for (let pass = 0; pass < COMMAND_KEYS.length; pass += 1) {
+    const conflictingKeys = COMMAND_KEYS.filter(key => (
+      getCommandNameConflict(sanitizedCommands[key].name, sanitizedCommands, key) !== null
+    ))
+
+    if (!conflictingKeys.length) break
+
+    const nextCommands = { ...sanitizedCommands }
+    conflictingKeys.forEach(key => {
+      nextCommands[key] = DEFAULT_QUEUE_SETTINGS.commands[key]
+    })
+    sanitizedCommands = nextCommands
+  }
+
+  return sanitizedCommands
+}
+
+/**
+ * Убирает из настроек повреждённую конфигурацию игры и дубли команд.
+ * В настройках хранится только ключ игры: подменённое правило не попадает в проверку никнеймов.
  *
  * @param settings - Настройки очереди.
- * @returns Настройки с безопасной конфигурацией игры.
+ * @returns Безопасные настройки.
  */
 export const sanitizeQueueSettings = (settings: QueueSettings): QueueSettings => {
   const currentGame = sanitizeQueueGameConfig(settings.currentGame)
-  if (currentGame === settings.currentGame) return settings
+  const commands = sanitizeQueueCommands(settings.commands)
+  if (currentGame === settings.currentGame && commands === settings.commands) return settings
 
-  return { ...settings, currentGame }
+  return { ...settings, commands, currentGame }
 }

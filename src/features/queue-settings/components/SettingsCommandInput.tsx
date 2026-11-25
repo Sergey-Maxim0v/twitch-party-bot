@@ -1,4 +1,4 @@
-import { type FC, type KeyboardEvent } from 'react'
+import { type FC, type KeyboardEvent, useRef } from 'react'
 import { QUEUE_COMMAND_NAME_MAX_LENGTH } from '../../../constants/queue.constants.ts'
 import {
   SETTINGS_INPUT_CLASS,
@@ -12,6 +12,8 @@ interface SettingsCommandInputProps {
   commandValue: string;
   isModeratorValue: boolean;
   onCommandChange: (value: string) => void;
+  /** Сообщает об отказе в сохранении и сбросе введённого значения. */
+  onCommandRejected?: (error: string) => void;
   onModeratorChange: (checked: boolean) => void;
   disabled?: boolean;
   className?: string;
@@ -27,20 +29,38 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
   commandValue,
   isModeratorValue,
   onCommandChange,
+  onCommandRejected,
   onModeratorChange,
   disabled = false,
   className = '',
   validate,
 }) => {
   const [localValue, setLocalValue] = useSyncedInput(commandValue, String)
+  const rejectedValueRef = useRef<string | null>(null)
 
   const validationError = validate?.(localValue) ?? null
 
+  const handleInputChange = (value: string) => {
+    rejectedValueRef.current = null
+    setLocalValue(value)
+  }
+
   const handleSave = () => {
     if (localValue === commandValue) return
-    if (validate?.(localValue)) return
 
-    onCommandChange(localValue)
+    const error = validate?.(localValue)
+    if (!error) {
+      rejectedValueRef.current = null
+      onCommandChange(localValue)
+      return
+    }
+
+    if (rejectedValueRef.current !== localValue) {
+      rejectedValueRef.current = localValue
+      onCommandRejected?.(error)
+    }
+
+    setLocalValue(commandValue)
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -48,6 +68,7 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
       handleSave()
       e.currentTarget.blur()
     } else if (e.key === 'Escape') {
+      rejectedValueRef.current = null
       setLocalValue(commandValue)
     }
   }
@@ -68,7 +89,7 @@ export const SettingsCommandInput: FC<SettingsCommandInputProps> = ({
           disabled={disabled}
           maxLength={QUEUE_COMMAND_NAME_MAX_LENGTH}
           onBlur={handleSave}
-          onChange={e => setLocalValue(e.target.value)}
+          onChange={e => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="!команда"
           type="text"

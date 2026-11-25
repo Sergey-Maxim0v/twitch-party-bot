@@ -1,8 +1,15 @@
 import { type FC } from 'react'
 import { useQueueSettings } from '../hooks/useQueueSettings.ts'
+import { useSettingsLog } from '../hooks/useSettingsLog.ts'
 import type { QueueSettings, SettingsSectionProps } from '../types.ts'
-import { QUEUE_COMMAND_LABELS, QUEUE_PREFIX_CONFLICT_MESSAGES } from '../../../constants/queue.constants.ts'
+import {
+  QUEUE_COMMAND_CONFLICT_MESSAGES,
+  QUEUE_COMMAND_LABELS,
+  QUEUE_PREFIX_CONFLICT_MESSAGES,
+} from '../../../constants/queue.constants.ts'
+import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import { SettingsCommandInput } from './SettingsCommandInput.tsx'
+import { getCommandNameConflict } from '../utils/getCommandNameConflict.ts'
 import { getPrefixCommandConflict } from '../utils/getPrefixCommandConflict.ts'
 import { SettingsSection } from './SettingsSection.tsx'
 
@@ -23,6 +30,7 @@ export const QueueCommandsSection: FC<Pick<SettingsSectionProps, 'titleClassName
   titleClassName = '',
 }) => {
   const { settings, updateSettings } = useQueueSettings()
+  const logSettings = useSettingsLog()
 
   const handleCommandChange = (key: keyof typeof settings.commands, name: string) => {
     updateSettings({
@@ -42,10 +50,30 @@ export const QueueCommandsSection: FC<Pick<SettingsSectionProps, 'titleClassName
     })
   }
 
-  const validateCommandName = (value: string): string | null => {
-    const conflict = getPrefixCommandConflict(settings.messagePrefix, [value])
+  const validateCommandName = (key: keyof QueueSettings['commands'], value: string): string | null => {
+    const prefixConflict = getPrefixCommandConflict(settings.messagePrefix, [value])
+    if (prefixConflict) {
+      return QUEUE_PREFIX_CONFLICT_MESSAGES.COMMAND(settings.messagePrefix ?? '')
+    }
 
-    return conflict ? QUEUE_PREFIX_CONFLICT_MESSAGES.COMMAND(settings.messagePrefix ?? '') : null
+    const duplicateKey = getCommandNameConflict(value, settings.commands, key)
+    return duplicateKey
+      ? QUEUE_COMMAND_CONFLICT_MESSAGES.DUPLICATE(
+        settings.commands[duplicateKey].name,
+        QUEUE_COMMAND_LABELS[duplicateKey],
+      )
+      : null
+  }
+
+  const handleCommandRejected = (key: keyof QueueSettings['commands'], error: string) => {
+    logSettings({
+      message: QUEUE_COMMAND_CONFLICT_MESSAGES.REJECT(
+        error,
+        QUEUE_COMMAND_LABELS[key],
+        settings.commands[key].name,
+      ),
+      status: APP_LOG_STATUSES.ERROR,
+    })
   }
 
   return (
@@ -57,8 +85,9 @@ export const QueueCommandsSection: FC<Pick<SettingsSectionProps, 'titleClassName
           key={key}
           label={label}
           onCommandChange={val => handleCommandChange(key, val)}
+          onCommandRejected={error => handleCommandRejected(key, error)}
           onModeratorChange={chk => handleModChange(key, chk)}
-          validate={validateCommandName}
+          validate={value => validateCommandName(key, value)}
         />
       ))}
     </SettingsSection>

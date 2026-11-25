@@ -1,8 +1,6 @@
-import { useAppLogs } from '../../app-logs/hooks/useAppLogs.ts'
-import { APP_LOG_STATUSES, type AppLogStatus, APP_LOG_SOURCES, type LogSource } from '../../app-logs/types.ts'
-import { useActorUsername } from '../../auth/hooks/useActorUsername.ts'
 import { useQueueSettings } from './useQueueSettings.ts'
-import { useCallback, useEffect, useRef } from 'react'
+import { useSettingsLog } from './useSettingsLog.ts'
+import { useEffect, useRef } from 'react'
 import type { QueueSettings } from '../types.ts'
 import {
   QUEUE_COMMAND_LABELS,
@@ -14,34 +12,12 @@ import {
 } from '../../../constants/queue.constants.ts'
 import { formatSettingValue } from '../utils/formatSettingValue.ts'
 
-interface LogChangeArgs {
-  message: string;
-  status?: AppLogStatus;
-  source?: LogSource;
-  actorUsername?: string;
-}
-
 /** Логирует изменения настроек очереди, сделанные через панель. */
 export const usePanelSettingsLog = () => {
-  const logUserName = useActorUsername(QUEUE_SETTINGS_FALLBACKS.ACTOR)
   const { settings } = useQueueSettings()
-  const { pushLog } = useAppLogs()
+  const logChange = useSettingsLog()
 
   const prevSettingsRef = useRef<QueueSettings | null>(settings)
-
-  const logChange = useCallback(({
-    message,
-    status = APP_LOG_STATUSES.WARNING,
-    source = APP_LOG_SOURCES.STREAMER_UI,
-    actorUsername = logUserName,
-  }: LogChangeArgs) => {
-    pushLog({
-      message,
-      status,
-      source,
-      actorUsername,
-    })
-  }, [logUserName, pushLog])
 
   useEffect(() => {
     const prev = prevSettingsRef.current

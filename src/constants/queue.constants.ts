@@ -201,6 +201,9 @@ export const QUEUE_SETTING_LABELS = {
  */
 export const QUEUE_MESSAGE_PREFIX_LABEL = 'Префикс для автоматических сообщений в чат Twitch'
 
+/** Подсказка в сообщениях о конфликте имени команды. */
+export const QUEUE_COMMAND_NAME_HINT = 'Выберите другое имя команды.'
+
 /**
  * Предупреждения о конфликте префикса автоматических сообщений и команды чата.
  */
@@ -208,7 +211,17 @@ export const QUEUE_PREFIX_CONFLICT_MESSAGES = {
   PREFIX: (commandName: string): string =>
     `Префикс совпадает с командой «${commandName}». Выберите другой префикс.`,
   COMMAND: (prefix: string): string =>
-    `Команда совпадает с префиксом «${prefix}». Выберите другое имя команды.`,
+    `Команда совпадает с префиксом «${prefix}». ${QUEUE_COMMAND_NAME_HINT}`,
+} as const
+
+/**
+ * Сообщения о конфликте имени команды с другой командой чата.
+ */
+export const QUEUE_COMMAND_CONFLICT_MESSAGES = {
+  DUPLICATE: (commandName: string, commandLabel: string): string =>
+    `Команда «${commandName}» уже назначена на «${commandLabel}». ${QUEUE_COMMAND_NAME_HINT}`,
+  REJECT: (reason: string, commandLabel: string, previousName: string): string =>
+    `Отказано: ${reason} Значение «${commandLabel}» сброшено на «${previousName}».`,
 } as const
 
 /**
