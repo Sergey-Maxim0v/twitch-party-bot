@@ -195,8 +195,8 @@ export const QueueElement: FC<QueueEntryProps> = ({
 
           <button
             aria-label="Забанить"
-            className="tooltip tooltip-top rounded-lg p-1.5 text-base-content/25 transition-colors
-              hover:bg-error/10 hover:text-error"
+            className={`tooltip tooltip-top ${queueType === QUEUE_TYPES.HISTORY ? 'tooltip-end' : ''} rounded-lg p-1.5 text-base-content/25 
+            transition-colors hover:bg-error/10 hover:text-error`}
             data-tip="Забанить"
             onClick={handleBan}
             type="button"
@@ -207,9 +207,9 @@ export const QueueElement: FC<QueueEntryProps> = ({
           {queueType !== QUEUE_TYPES.HISTORY && (
             <button
               aria-label={QUEUE_COMMAND_LABELS.delete}
-              className="tooltip tooltip-top rounded-lg p-1.5 text-base-content/25 transition-colors
+              className="tooltip tooltip-top tooltip-end rounded-lg p-1.5 text-base-content/25 transition-colors
                 hover:bg-error/10 hover:text-error"
-              data-tip={QUEUE_COMMAND_LABELS.delete}
+              data-tip={queueType === QUEUE_TYPES.WAITING ? 'Удалить из ожидающих' : 'Удалить из очереди'}
               onClick={handleDelete}
               type="button"
             >
