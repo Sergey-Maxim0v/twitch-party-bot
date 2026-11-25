@@ -1,5 +1,6 @@
 import { type ChangeEvent, type FC, type KeyboardEvent } from 'react'
 import {
+  INPUT_KEYS,
   SETTINGS_INPUT_ERROR_CLASS,
   SETTINGS_VALIDATION_ERROR_CLASS,
 } from '../../../constants/ui.constants.ts'
@@ -34,11 +35,11 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useSyncedInput(value, String)
 
-  const normalizedValue = inputValue.trim().slice(0, max)
-  const validationError = validate?.(normalizedValue) ?? null
+  const normalizeValue = (stringValue: string) => stringValue.trim().slice(0, max)
+  const validationError = validate?.(normalizeValue(inputValue)) ?? null
 
   const commitValue = (stringValue: string) => {
-    const finalValue = stringValue.trim().slice(0, max)
+    const finalValue = normalizeValue(stringValue)
 
     if (validate?.(finalValue)) return
 
@@ -55,9 +56,14 @@ export const SettingsTextInput: FC<SettingsTextInputProps> = ({
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === INPUT_KEYS.ENTER) {
       commitValue(inputValue)
       e.currentTarget.blur()
+      return
+    }
+
+    if (e.key === INPUT_KEYS.ESCAPE) {
+      setInputValue(value)
     }
   }
 

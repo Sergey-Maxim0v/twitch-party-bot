@@ -1,7 +1,10 @@
 import { TWITCH_CHAT_COMMAND_SPLIT_REGEX } from '../../../constants/twitch.constants.ts'
 
+const getTrigger = (value: string): string =>
+  value.trim().split(TWITCH_CHAT_COMMAND_SPLIT_REGEX)[0]?.toLowerCase() ?? ''
+
 /**
- * Находит команду, совпадающую с первым словом префикса автоматических сообщений.
+ * Находит команду, первое слово которой совпадает с первым словом префикса.
  * Сравнение не учитывает регистр.
  *
  * @param prefix - Префикс автоматических сообщений.
@@ -12,9 +15,9 @@ export const getPrefixCommandConflict = (
   prefix: string | undefined,
   commandNames: readonly string[],
 ): string | null => {
-  const prefixToken = prefix?.trim().split(TWITCH_CHAT_COMMAND_SPLIT_REGEX)[0]?.toLowerCase() ?? ''
+  const prefixTrigger = getTrigger(prefix ?? '')
 
-  if (!prefixToken) return null
+  if (!prefixTrigger) return null
 
-  return commandNames.find(name => name.toLowerCase() === prefixToken) ?? null
+  return commandNames.find(name => getTrigger(name) === prefixTrigger) ?? null
 }

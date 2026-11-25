@@ -59,6 +59,14 @@ export const TWITCH_CHAT_STATUS_BUTTON_CLASSES: Record<string, string> = {
 }
 
 /**
+ * Клавиши, обрабатываемые в полях ввода.
+ */
+export const INPUT_KEYS = {
+  ENTER: 'Enter',
+  ESCAPE: 'Escape',
+} as const
+
+/**
  * CSS-классы контейнера секции панели настроек очереди.
  */
 export const SETTINGS_SECTION_CLASS = 'p-3 rounded-xl bg-base-200/50 border border-base-300/60 space-y-4 w-full min-w-0'
