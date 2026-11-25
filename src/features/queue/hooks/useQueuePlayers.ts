@@ -30,7 +30,7 @@ interface UseQueuePlayersArgs extends QueueStateAccess {
 }
 
 /**
- * Действия над игроками очереди: добавление, удаление, бан и перемещение.
+ * Действия над игроками очереди: добавление, удаление, бан, разбан и перемещение.
  */
 export const useQueuePlayers = ({
   setState,
@@ -114,17 +114,22 @@ export const useQueuePlayers = ({
 
     if (decision.isNoop) return
 
-    if (decision.isMoved && decision.sourceQueueType !== args.targetQueueType) {
+    if (!decision.isMoved) {
+      balanceAfterChange(args)
+      return
+    }
+
+    if (decision.sourceQueueType !== args.targetQueueType) {
       const username = args.displayedUsername ?? args.username
       const notify = args.targetQueueType === QUEUE_TYPES.ACTIVE ? addMovedToActiveUser : addMovedToWaitingUser
 
       notify(username)
     }
 
-    if (decision.isMoved) {
-      decision.displacedToWaiting.forEach(player => addMovedToWaitingUser(getQueuePlayerName(player)))
-      decision.displacedRemoved.forEach(player => addDeletedUser(getQueuePlayerName(player)))
-    }
+    decision.displacedToWaiting.forEach(player => addMovedToWaitingUser(getQueuePlayerName(player)))
+
+    const removedPlayers = [...decision.displacedRemoved, ...decision.displacedAlreadyWaiting]
+    removedPlayers.forEach(player => addDeletedUser(getQueuePlayerName(player)))
 
     balanceAfterChange(args)
   }, [
