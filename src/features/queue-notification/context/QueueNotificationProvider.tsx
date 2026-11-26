@@ -11,7 +11,9 @@ import { formatQueueOpenMessage } from '../utils/formatQueueOpenMessage.ts'
 import { formatQueueStatusMessage } from '../utils/formatQueueStatusMessage.ts'
 import { formatPrefixedMessage } from '../utils/formatPrefixedMessage.ts'
 import { removeActiveQueueUsersFromBuffer } from '../utils/removeActiveQueueUsersFromBuffer.ts'
+import { pruneNotificationBufferForClear } from '../utils/pruneNotificationBufferForClear.ts'
 import { resolveClearNotificationMessage } from '../utils/resolveClearNotificationMessage.ts'
+import { QUEUE_TYPES } from '../../queue/types.ts'
 import { useNotificationCycle } from '../hooks/useNotificationCycle.ts'
 import { QueueNotificationContext, type QueueNotificationContextType } from './QueueNotificationInstance.ts'
 import { useNotificationGuard } from '../hooks/useNotificationGuard.ts'
@@ -172,46 +174,55 @@ export const QueueNotificationProvider: FC<ChildrenProps> = ({ children }) => {
   }, [formatQueueStatus, sendMessage])
 
   const sendClearActive = useCallback((notify = true): void => {
-    if (!permissionsRef.current.onClearActive) {
-      return
-    }
-
-    setState(currentState => ({
-      ...currentState,
-      joined: new Set<string>(),
-      movedToActive: new Set<string>(),
+    setState(currentState => pruneNotificationBufferForClear({
+      state: currentState,
+      queueType: QUEUE_TYPES.ACTIVE,
+      usernames: activeQueueRef.current,
+      preservedDeletedUsernames: waitingQueueRef.current,
     }))
 
-    if (!notify) {
-      return
-    }
+    if (!notify) return
+    if (!permissionsRef.current.onClearActive) return
 
     sendMessage(formatPrefixedMessage(QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_ACTIVE, settings.messagePrefix))
   }, [sendMessage, settings.messagePrefix])
 
   const sendClearWaiting = useCallback((notify = true): void => {
-    if (!permissionsRef.current.onClearWaiting) {
-      return
-    }
-
-    setState(currentState => ({
-      ...currentState,
-      waiting: new Set<string>(),
-      movedToWaiting: new Set<string>(),
+    setState(currentState => pruneNotificationBufferForClear({
+      state: currentState,
+      queueType: QUEUE_TYPES.WAITING,
+      usernames: waitingQueueRef.current,
+      preservedDeletedUsernames: activeQueueRef.current,
     }))
 
-    if (!notify) {
-      return
-    }
+    if (!notify) return
+    if (!permissionsRef.current.onClearWaiting) return
 
     sendMessage(formatPrefixedMessage(QUEUE_CHAT_NOTIFICATION_MESSAGES.CLEARED_WAITING, settings.messagePrefix))
   }, [sendMessage, settings.messagePrefix])
 
-  const sendClearAll = useCallback((): void => {
+  const sendClearAll = useCallback((notify = true): void => {
+    const activeUsernames = activeQueueRef.current
+    const waitingUsernames = waitingQueueRef.current
+
+    setState(currentState => {
+      const withoutActive = pruneNotificationBufferForClear({
+        state: currentState,
+        queueType: QUEUE_TYPES.ACTIVE,
+        usernames: activeUsernames,
+      })
+
+      return pruneNotificationBufferForClear({
+        state: withoutActive,
+        queueType: QUEUE_TYPES.WAITING,
+        usernames: waitingUsernames,
+      })
+    })
+
+    if (!notify) return
+
     const message = resolveClearNotificationMessage(permissionsRef.current)
-    if (!message) {
-      return
-    }
+    if (!message) return
 
     sendMessage(formatPrefixedMessage(message, settings.messagePrefix))
   }, [sendMessage, settings.messagePrefix])

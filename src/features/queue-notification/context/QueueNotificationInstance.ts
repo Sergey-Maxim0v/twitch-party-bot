@@ -47,8 +47,8 @@ export interface QueueNotificationContextType {
   /** Сбрасывает буфер и, если нужно, отправляет сообщение об очистке списка ожидающих. */
   sendClearWaiting: (notify?: boolean) => void;
 
-  /** Отправляет объединённое сообщение об очистке с учётом разрешённых списков. */
-  sendClearAll: () => void;
+  /** Сбрасывает буфер и, если нужно, отправляет сообщение об очистке всех очередей. */
+  sendClearAll: (notify?: boolean) => void;
 
   /** Очищает накопленный буфер уведомлений. */
   clearBuffer: () => void;
