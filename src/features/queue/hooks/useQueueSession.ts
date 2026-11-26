@@ -128,7 +128,7 @@ export const useQueueSession = ({
       }
 
     if (!decision.isEmpty) {
-      const nicknames = decision.playedPlayers.map(user => `@${user.displayedUsername ?? user.username}`)
+      const nicknames = decision.playedPlayers.map(user => user.displayedUsername ?? user.username)
       sendMessage(formatFinishedQueueMessage({ nicknames, prefix: settings.messagePrefix }))
     }
 

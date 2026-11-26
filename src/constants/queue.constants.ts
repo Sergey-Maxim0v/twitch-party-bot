@@ -130,7 +130,7 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   botMessageCooldown: 5,
   sessionHistoryCooldown: 0,
   gamesPlayedCooldown: 0,
-  messagePrefix: '🎮 [PartyBot]',
+  messagePrefix: '🟢🟡🔴 [PartyBot]',
   commands: {
     join: { name: '!join', isModeratorOnly: false },
     leave: { name: '!leave', isModeratorOnly: false },
@@ -393,6 +393,9 @@ export const QUEUE_CHAT_NOTIFICATION_MESSAGES = {
  */
 export const QUEUE_CHAT_MESSAGE_SEPARATOR = ' | '
 
+/** Разделитель элементов списка в сообщениях бота. */
+export const QUEUE_LIST_SEPARATOR = ', '
+
 /**
  * Заголовок сообщения о заполнении очереди.
  */
@@ -424,14 +427,15 @@ export const QUEUE_NOTIFICATION_PART_TITLES = {
   DENIED: 'Отказано',
 } as const
 
-/**
- * Маркеры участников в уведомлениях о событиях очереди.
- */
-export const QUEUE_NOTIFICATION_MEMBER_MARKS = {
-  ACTIVE: '🟢@',
-  WAITING: '🟡@',
-  REMOVED: '🔴@',
+/** Маркеры участников в автоматических сообщениях очереди. */
+export const QUEUE_CHAT_MEMBER_MARKS = {
+  ACTIVE: '🟢 @',
+  WAITING: '🟡 @',
+  REMOVED: '🔴 @',
 } as const
+
+/** Маркер количества скрытых участников. */
+export const QUEUE_HIDDEN_MEMBERS_MARK = '+'
 
 /**
  * Префиксы сообщений журнала приложения по операциям со списками очереди.

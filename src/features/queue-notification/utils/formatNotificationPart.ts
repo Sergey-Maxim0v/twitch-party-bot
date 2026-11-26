@@ -1,3 +1,6 @@
+import { QUEUE_LIST_SEPARATOR } from '../../../constants/queue.constants.ts'
+import { formatHiddenMembersCount } from './formatHiddenMembersCount.ts'
+
 interface FormatNotificationPartArgs {
   /** Заголовок группы участников. */
   title: string;
@@ -17,8 +20,8 @@ export const formatNotificationPart = (
     return ''
   }
 
-  const visibleMembers = members.slice(0, limit).join(', ')
+  const visibleMembers = members.slice(0, limit).join(QUEUE_LIST_SEPARATOR)
   const hiddenCount = members.length - limit
 
-  return `${title}: ${visibleMembers}${hiddenCount > 0 ? ` +${hiddenCount}` : ''}`
+  return `${title}: ${visibleMembers}${formatHiddenMembersCount(hiddenCount)}`
 }
