@@ -12,6 +12,7 @@ import {
 } from '../../../constants/queue.constants.ts'
 import { getPrefixCommandConflict } from '../utils/getPrefixCommandConflict.ts'
 import type { SettingsSectionProps } from '../types.ts'
+import { Marks } from './Marks.tsx'
 import { SettingsSection } from './SettingsSection.tsx'
 
 /**
@@ -54,6 +55,8 @@ export const QueueMessageSection: FC<Pick<SettingsSectionProps, 'titleClassName'
         validate={validatePrefix}
         value={settings.messagePrefix}
       />
+
+      <Marks />
 
       <SettingsCheckbox
         checked={settings.chatNotificationPermissions.onQueueOpen}

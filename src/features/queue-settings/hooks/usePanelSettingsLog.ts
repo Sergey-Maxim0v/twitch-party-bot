@@ -1,9 +1,11 @@
 import { useQueueSettings } from './useQueueSettings.ts'
 import { useSettingsLog } from './useSettingsLog.ts'
 import { useEffect, useRef } from 'react'
-import type { QueueSettings } from '../types.ts'
+import type { QueueMarkKey, QueueSettings } from '../types.ts'
 import {
   QUEUE_COMMAND_LABELS,
+  QUEUE_MARK_LABELS,
+  QUEUE_MARK_LOG_MESSAGE,
   QUEUE_MESSAGE_PREFIX_LABEL,
   QUEUE_NOTIFICATION_LABELS,
   QUEUE_SETTINGS_FALLBACKS,
@@ -41,6 +43,17 @@ export const usePanelSettingsLog = () => {
     if (settings.messagePrefix !== prev.messagePrefix && prev.messagePrefix !== undefined) {
       logChange({
         message: `${QUEUE_SETTINGS_LOG_PREFIXES.MESSAGE} ${QUEUE_MESSAGE_PREFIX_LABEL} - ${formatSettingValue({ value: settings.messagePrefix })}`,
+      })
+    }
+
+    for (const key of Object.keys(QUEUE_MARK_LABELS) as QueueMarkKey[]) {
+      const currentMark = settings.marks[key]
+      const prevMark = prev.marks[key]
+
+      if (currentMark === prevMark || prevMark === undefined) continue
+
+      logChange({
+        message: QUEUE_MARK_LOG_MESSAGE(QUEUE_MARK_LABELS[key].toLowerCase(), prevMark, currentMark),
       })
     }
 

@@ -1,6 +1,7 @@
 import type { QueueGameConfig, QueueGameKey, QueueSettings } from '../types.ts'
 import { DEFAULT_QUEUE_SETTINGS, QUEUE_GAME_NICKNAME_PATTERNS } from '../../../constants/queue.constants.ts'
 import { getCommandNameConflict } from './getCommandNameConflict.ts'
+import { normalizeMark } from './normalizeMark.ts'
 import { getOwnValue, isPlainObject } from '../../../utils/objects.ts'
 
 /** Ключи игр, для которых разрешена проверка никнейма. */
@@ -73,7 +74,19 @@ const sanitizeQueueCommands = (commands: QueueSettings['commands']): QueueSettin
 }
 
 /**
- * Убирает из настроек повреждённую конфигурацию игры и дубли команд.
+ * Ограничивает длину маркеров статусов, чтобы повреждённые настройки не попадали в сообщения.
+ */
+const sanitizeMarks = (marks: QueueSettings['marks']): QueueSettings['marks'] => {
+  const active = normalizeMark(marks.active)
+  const removed = normalizeMark(marks.removed)
+  const waiting = normalizeMark(marks.waiting)
+  if (active === marks.active && removed === marks.removed && waiting === marks.waiting) return marks
+
+  return { active, removed, waiting }
+}
+
+/**
+ * Убирает из настроек повреждённую конфигурацию игры, дубли команд и длинные маркеры.
  * В настройках хранится только ключ игры: подменённое правило не попадает в проверку никнеймов.
  *
  * @param settings - Настройки очереди.
@@ -82,7 +95,8 @@ const sanitizeQueueCommands = (commands: QueueSettings['commands']): QueueSettin
 export const sanitizeQueueSettings = (settings: QueueSettings): QueueSettings => {
   const currentGame = sanitizeQueueGameConfig(settings.currentGame)
   const commands = sanitizeQueueCommands(settings.commands)
-  if (currentGame === settings.currentGame && commands === settings.commands) return settings
+  const marks = sanitizeMarks(settings.marks)
+  if (currentGame === settings.currentGame && commands === settings.commands && marks === settings.marks) return settings
 
-  return { ...settings, commands, currentGame }
+  return { ...settings, commands, currentGame, marks }
 }

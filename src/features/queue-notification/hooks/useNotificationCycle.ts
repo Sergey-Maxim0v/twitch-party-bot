@@ -73,6 +73,7 @@ export const useNotificationCycle = ({
         ? formatNotificationMessage({
           state: currentState,
           permissions: currentPermissions,
+          marks: settings.marks,
           prefix: settings.messagePrefix,
         })
         : ''

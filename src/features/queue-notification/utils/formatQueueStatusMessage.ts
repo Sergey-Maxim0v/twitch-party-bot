@@ -1,16 +1,16 @@
 import {
-  QUEUE_CHAT_MEMBER_MARKS,
   QUEUE_CHAT_MESSAGE_SEPARATOR,
   QUEUE_LIST_SEPARATOR,
   QUEUE_STATUS_MESSAGE_LABELS,
 } from '../../../constants/queue.constants.ts'
 import { fitChatMessage } from '../../../services/twitch/utils/fitChatMessage.ts'
 import { formatHiddenMembersCount } from './formatHiddenMembersCount.ts'
+import { formatMember } from './formatMember.ts'
 import { formatPrefixedMessage } from './formatPrefixedMessage.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import { isUnlimitedQueueSize } from '../../queue/utils/isUnlimitedQueueSize.ts'
 
-export interface FormatQueueStatusMessageArgs extends Pick<QueueSettings, 'maxQueueSize'> {
+export interface FormatQueueStatusMessageArgs extends Pick<QueueSettings, 'maxQueueSize' | 'marks'> {
   /** Ники активной очереди. */
   activeUsernames: string[];
   /** Ники ожидающей очереди. */
@@ -30,12 +30,13 @@ export const formatQueueStatusMessage = ({
   activeUsernames,
   waitingUsernames,
   maxQueueSize,
+  marks,
   prefix = '',
   header = '',
   separator = ' ',
 }: FormatQueueStatusMessageArgs): string => {
-  const activeMembers = activeUsernames.map(nick => `${QUEUE_CHAT_MEMBER_MARKS.ACTIVE}${nick}`)
-  const waitingMembers = waitingUsernames.map(nick => `${QUEUE_CHAT_MEMBER_MARKS.WAITING}${nick}`)
+  const activeMembers = activeUsernames.map(nick => formatMember({ mark: marks.active, nickname: nick }))
+  const waitingMembers = waitingUsernames.map(nick => formatMember({ mark: marks.waiting, nickname: nick }))
   const head = header ? formatPrefixedMessage(header, prefix) : prefix
   const headWithSeparator = head ? `${head}${separator}` : ''
   let counter = `(${activeMembers.length}/${maxQueueSize})`

@@ -129,7 +129,7 @@ export const useQueueSession = ({
 
     if (!decision.isEmpty) {
       const nicknames = decision.playedPlayers.map(user => user.displayedUsername ?? user.username)
-      sendMessage(formatFinishedQueueMessage({ nicknames, prefix: settings.messagePrefix }))
+      sendMessage(formatFinishedQueueMessage({ nicknames, marks: settings.marks, prefix: settings.messagePrefix }))
     }
 
     if (!args.silentLog) {
@@ -158,7 +158,7 @@ export const useQueueSession = ({
     }
 
     return result
-  }, [getState, setState, sendMessage, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, setQueueChannel, clearBuffer, setIsQueueOpen, balanceQueues])
+  }, [getState, setState, sendMessage, settings.marks, settings.messagePrefix, settings.moveOnSizeChange, pushLog, isQueueOpen, setQueueChannel, clearBuffer, setIsQueueOpen, balanceQueues])
 
   return { openQueue, closeQueue, autoCloseQueue, finishActiveQueue, balanceQueues }
 }

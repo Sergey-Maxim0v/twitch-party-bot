@@ -1,9 +1,11 @@
-import { QUEUE_CHAT_MEMBER_MARKS, QUEUE_LIST_SEPARATOR, QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
+import { QUEUE_LIST_SEPARATOR, QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 import { fitChatMessage } from '../../../services/twitch/utils/fitChatMessage.ts'
 import { formatHiddenMembersCount } from './formatHiddenMembersCount.ts'
+import { formatMember } from './formatMember.ts'
 import { formatPrefixedMessage } from './formatPrefixedMessage.ts'
+import type { QueueSettings } from '../../queue-settings/types.ts'
 
-interface FormatFinishedQueueMessageArgs {
+interface FormatFinishedQueueMessageArgs extends Pick<QueueSettings, 'marks'> {
   /** Ники игроков без символа `@`. */
   nicknames: string[];
   /** Префикс автоматических сообщений. */
@@ -13,7 +15,7 @@ interface FormatFinishedQueueMessageArgs {
 /**
  * Формирует сообщение о завершении сессии со списком игроков.
  */
-export const formatFinishedQueueMessage = ({ nicknames, prefix }: FormatFinishedQueueMessageArgs): string => {
+export const formatFinishedQueueMessage = ({ nicknames, marks, prefix }: FormatFinishedQueueMessageArgs): string => {
   const head = formatPrefixedMessage(QUEUE_SESSION_LOG_MESSAGES.FINISHED_CHAT_HEADER, prefix)
 
   if (nicknames.length === 0) return head
@@ -25,7 +27,7 @@ export const formatFinishedQueueMessage = ({ nicknames, prefix }: FormatFinished
       const hidden = nicknames.length - visible
       const formattedNicknames = nicknames
         .slice(0, visible)
-        .map(nickname => `${QUEUE_CHAT_MEMBER_MARKS.ACTIVE}${nickname}`)
+        .map(nickname => formatMember({ mark: marks.active, nickname }))
         .join(QUEUE_LIST_SEPARATOR)
 
       return `${head} ${formattedNicknames}${formatHiddenMembersCount(hidden)}`

@@ -1,15 +1,15 @@
+import { formatMember } from './formatMember.ts'
 import { formatNotificationPart } from './formatNotificationPart.ts'
 import { formatPrefixedMessage } from './formatPrefixedMessage.ts'
 import type { TwitchNotificationState } from '../types.ts'
 import type { QueueSettings } from '../../queue-settings/types.ts'
 import {
-  QUEUE_CHAT_MEMBER_MARKS,
   QUEUE_CHAT_MESSAGE_SEPARATOR,
   QUEUE_NOTIFICATION_PART_TITLES,
 } from '../../../constants/queue.constants.ts'
 import { fitChatMessage } from '../../../services/twitch/utils/fitChatMessage.ts'
 
-interface FormatNotificationMessageArgs {
+interface FormatNotificationMessageArgs extends Pick<QueueSettings, 'marks'> {
   /** Буфер накопленных событий очереди. */
   state: TwitchNotificationState;
   /** Разрешения на отправку уведомлений по типам событий. */
@@ -24,6 +24,7 @@ interface FormatNotificationMessageArgs {
 export const formatNotificationMessage = ({
   state,
   permissions,
+  marks,
   prefix,
 }: FormatNotificationMessageArgs): string => {
   const { joined, waiting, deleted, movedToActive, movedToWaiting, denied } = state
@@ -32,32 +33,32 @@ export const formatNotificationMessage = ({
   const groups = [
     {
       title: QUEUE_NOTIFICATION_PART_TITLES.JOINED,
-      members: Array.from(joined).map(nick => `${QUEUE_CHAT_MEMBER_MARKS.ACTIVE}${nick}`),
+      members: Array.from(joined).map(nick => formatMember({ mark: marks.active, nickname: nick })),
       enabled: onMemberAdd,
     },
     {
       title: QUEUE_NOTIFICATION_PART_TITLES.WAITING,
-      members: Array.from(waiting).map(nick => `${QUEUE_CHAT_MEMBER_MARKS.WAITING}${nick}`),
+      members: Array.from(waiting).map(nick => formatMember({ mark: marks.waiting, nickname: nick })),
       enabled: onMemberAdd,
     },
     {
       title: QUEUE_NOTIFICATION_PART_TITLES.DELETED,
-      members: Array.from(deleted).map(nick => `${QUEUE_CHAT_MEMBER_MARKS.REMOVED}${nick}`),
+      members: Array.from(deleted).map(nick => formatMember({ mark: marks.removed, nickname: nick })),
       enabled: onMemberRemove,
     },
     {
       title: QUEUE_NOTIFICATION_PART_TITLES.MOVED_TO_ACTIVE,
-      members: Array.from(movedToActive).map(nick => `${QUEUE_CHAT_MEMBER_MARKS.ACTIVE}${nick}`),
+      members: Array.from(movedToActive).map(nick => formatMember({ mark: marks.active, nickname: nick })),
       enabled: onMemberMove,
     },
     {
       title: QUEUE_NOTIFICATION_PART_TITLES.MOVED_TO_WAITING,
-      members: Array.from(movedToWaiting).map(nick => `${QUEUE_CHAT_MEMBER_MARKS.WAITING}${nick}`),
+      members: Array.from(movedToWaiting).map(nick => formatMember({ mark: marks.waiting, nickname: nick })),
       enabled: onMemberMove,
     },
     {
       title: QUEUE_NOTIFICATION_PART_TITLES.DENIED,
-      members: Array.from(denied).map(nick => `${QUEUE_CHAT_MEMBER_MARKS.REMOVED}${nick}`),
+      members: Array.from(denied).map(nick => formatMember({ mark: marks.removed, nickname: nick })),
       enabled: onMemberAdd,
     },
   ]

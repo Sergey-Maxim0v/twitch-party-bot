@@ -22,6 +22,19 @@ export interface QueueGameConfig {
   key: QueueGameKey;
 }
 
+/** Маркеры статусов участников в автоматических сообщениях. */
+export interface QueueMemberMarks {
+  /** Участник добавлен в активную очередь. */
+  active: string;
+  /** Участник удалён из очереди. */
+  removed: string;
+  /** Участник ожидает в списке ожидающих. */
+  waiting: string;
+}
+
+/** Ключи маркеров статусов участников. */
+export type QueueMarkKey = keyof QueueMemberMarks
+
 /** Настройки очереди. */
 export interface QueueSettings {
   /** Лимит участников в очереди; `0` означает отсутствие лимита. */
@@ -47,6 +60,9 @@ export interface QueueSettings {
 
   /** Префикс для автоматических сообщений об изменении в составе очереди. */
   messagePrefix?: string;
+
+  /** Маркеры статусов участников в автоматических сообщениях. */
+  marks: QueueMemberMarks;
 
   /** Настройки команд: строки, сообщения с которыми бот будет обрабатывать. */
   commands: {

@@ -95,10 +95,11 @@ export const QueueNotificationProvider: FC<ChildrenProps> = ({ children }) => {
     activeUsernames: activeQueueRef.current,
     waitingUsernames: waitingQueueRef.current,
     maxQueueSize,
+    marks: settings.marks,
     prefix: settings.messagePrefix,
     header,
     separator,
-  }), [maxQueueSize, settings.messagePrefix])
+  }), [maxQueueSize, settings.marks, settings.messagePrefix])
 
   const sendMessage = useCallback((text: string): boolean => {
     if (!permissionsRef.current.allowSending) {

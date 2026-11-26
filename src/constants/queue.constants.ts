@@ -120,6 +120,19 @@ export const QUEUE_COMMAND_NAME_MAX_LENGTH = 20
 export const QUEUE_MESSAGE_PREFIX_MAX_LENGTH = 20
 
 /**
+ * Максимальная длина маркера статуса участника.
+ */
+export const QUEUE_MARK_MAX_LENGTH = 3
+
+/** Заголовок настроек маркеров статусов. */
+export const QUEUE_MARK_SETTINGS_TITLE = `Маркеры (до ${QUEUE_MARK_MAX_LENGTH} символов)`
+
+/** Сообщения проверки маркеров статусов. */
+export const QUEUE_MARK_VALIDATION_MESSAGES = {
+  LENGTH: `Не более ${QUEUE_MARK_MAX_LENGTH} символов`,
+} as const
+
+/**
  * Настройки очереди по умолчанию.
  */
 export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
@@ -131,6 +144,11 @@ export const DEFAULT_QUEUE_SETTINGS: QueueSettings = {
   sessionHistoryCooldown: 0,
   gamesPlayedCooldown: 0,
   messagePrefix: '🟢🟡🔴 [PartyBot]',
+  marks: {
+    active: '🟢',
+    waiting: '🟡',
+    removed: '🔴',
+  },
   commands: {
     join: { name: '!join', isModeratorOnly: false },
     leave: { name: '!leave', isModeratorOnly: false },
@@ -174,6 +192,10 @@ export const QUEUE_SETTINGS_LOG_PREFIXES = {
   SETTING: 'Настройки изменены:',
 } as const
 
+/** Сообщение журнала об изменении маркера статуса. */
+export const QUEUE_MARK_LOG_MESSAGE = (label: string, previous: string, current: string): string =>
+  `${QUEUE_SETTINGS_LOG_PREFIXES.MESSAGE} Маркер статуса «${label}» изменен с "${previous}" на "${current}"`
+
 /** Значения по умолчанию для журнала настроек из интерфейса. */
 export const QUEUE_SETTINGS_FALLBACKS = {
   ACTOR: 'Стример',
@@ -200,6 +222,15 @@ export const QUEUE_SETTING_LABELS = {
  * Подпись настройки префикса автоматических сообщений.
  */
 export const QUEUE_MESSAGE_PREFIX_LABEL = 'Префикс для автоматических сообщений в чат Twitch'
+
+/**
+ * Подписи маркеров статусов участников в панели настроек и журнале.
+ */
+export const QUEUE_MARK_LABELS = {
+  active: 'Добавлен',
+  removed: 'Удален',
+  waiting: 'Ожидает',
+} as const satisfies Record<keyof QueueSettings['marks'], string>
 
 /** Подсказка в сообщениях о конфликте имени команды. */
 export const QUEUE_COMMAND_NAME_HINT = 'Выберите другое имя команды.'
@@ -425,13 +456,6 @@ export const QUEUE_NOTIFICATION_PART_TITLES = {
   MOVED_TO_ACTIVE: 'Перемещены в очередь',
   MOVED_TO_WAITING: 'Перемещены в ожидающие',
   DENIED: 'Отказано',
-} as const
-
-/** Маркеры участников в автоматических сообщениях очереди. */
-export const QUEUE_CHAT_MEMBER_MARKS = {
-  ACTIVE: '🟢 @',
-  WAITING: '🟡 @',
-  REMOVED: '🔴 @',
 } as const
 
 /** Маркер количества скрытых участников. */
