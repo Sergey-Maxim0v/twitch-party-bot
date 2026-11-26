@@ -39,13 +39,12 @@ export const QueueGeneralSettings: FC<Pick<SettingsSectionProps, 'titleClassName
     <SettingsSection title="Основные настройки" titleClassName={titleClassName}>
 
       <SettingsNumberInput
-        label={QUEUE_SETTING_LABELS.maxQueueSize}
+        label={ `${QUEUE_SETTING_LABELS.maxQueueSize} (0 - ${QUEUE_SETTING_VALUE_LABELS.UNLIMITED})`}
         max={99}
         min={0}
         onChange={handleChangeQueueLimit}
         value={settings.maxQueueSize}
       />
-      <p className="mt-1 text-[11px] text-base-content/50">0 — {QUEUE_SETTING_VALUE_LABELS.UNLIMITED}</p>
 
       <SettingsCheckbox
         checked={settings.allowPreJoin}
