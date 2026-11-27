@@ -70,7 +70,9 @@ export const QueueNotificationProvider: FC<ChildrenProps> = ({ children }) => {
   }, [])
 
   const clearBuffer = useCallback((): void => {
-    setState(createInitialNotificationState())
+    const emptyState = createInitialNotificationState()
+    stateRef.current = emptyState
+    setState(emptyState)
   }, [])
 
   const sendAndLogNotification = useCallback((message: string): boolean => sendChatMessage(message, {
@@ -135,7 +137,7 @@ export const QueueNotificationProvider: FC<ChildrenProps> = ({ children }) => {
   }, [sendAndLogNotification, isReadyForAutomations, chatAccessStatus, pushLog, actorUsername])
 
   const sendMessageOpen = useCallback((): void => {
-    setState(createInitialNotificationState())
+    clearBuffer()
 
     if (!permissionsRef.current.onQueueOpen) {
       return
@@ -143,17 +145,17 @@ export const QueueNotificationProvider: FC<ChildrenProps> = ({ children }) => {
 
     const messageText = formatQueueOpenMessage({ commands, prefix: settings.messagePrefix })
     sendMessage(messageText)
-  }, [commands, sendMessage, settings.messagePrefix])
+  }, [clearBuffer, commands, sendMessage, settings.messagePrefix])
 
   const sendMessageClose = useCallback((): void => {
-    setState(createInitialNotificationState())
+    clearBuffer()
 
     if (!permissionsRef.current.onQueueClose) {
       return
     }
 
     sendMessage(formatQueueStatus(QUEUE_CHAT_NOTIFICATION_MESSAGES.QUEUE_CLOSED, QUEUE_CHAT_MESSAGE_SEPARATOR))
-  }, [formatQueueStatus, sendMessage])
+  }, [clearBuffer, formatQueueStatus, sendMessage])
 
   const sendQueueFullMessage = useCallback((): void => {
     if (!permissionsRef.current.onQueueFull) {

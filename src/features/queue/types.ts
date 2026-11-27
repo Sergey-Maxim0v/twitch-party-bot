@@ -142,6 +142,11 @@ export interface QueueClearArgs extends QueueActionContext {
   notify?: boolean;
 }
 
+/** Аргументы автоматического закрытия очереди. */
+export type QueueAutoCloseArgs = QueueActorContext & {
+  message: string;
+}
+
 export interface QueueHandlerArgs extends QueueActionContext {
   setState: QueueSetState;
   getState: () => QueueState;

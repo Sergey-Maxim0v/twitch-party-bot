@@ -77,6 +77,7 @@ You can run the application in two ways:
 * **Clickjacking protection.** The app does not start inside an iframe and shows a warning instead of the bot UI.
 * **The bot runs only while the tab is open.** If you close the tab or the browser, the bot will stop responding in the chat. You need to keep the tab open during the stream. You can minimize the window.
 * **No cross-device sync.** The queue and settings are shared only between tabs of the same browser.
+* **Switching channels resets queue data.** The queue, waiting list, and history belong to the selected channel and are cleared when you switch channels.
 * **Token lifetime.** The Twitch token expires after a limited time and is not refreshed automatically. When it expires or is revoked, the app explains what happened and asks you to sign in again; the selected channel and settings are preserved.
 * **Twitch warnings (`/warn`) are not displayed.** Warnings are delivered through Twitch web chat and EventSub, not IRC, so the app never receives them. If the account receives a warning, sending messages may be blocked until it is acknowledged on the Twitch website; the warning must be acknowledged manually in the channel's web chat. Slash commands other than `/me` are not supported in the input field and are sent as plain text.
 

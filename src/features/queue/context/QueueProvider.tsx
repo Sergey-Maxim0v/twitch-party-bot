@@ -33,6 +33,7 @@ export const QueueProvider: FC<ChildrenProps> = ({ children }) => {
     setActiveQueueList,
     setWaitingQueueList,
     sendQueueFullMessage,
+    clearBuffer,
   } = useQueueNotification()
 
   const wasFullRef = useRef<boolean>(false)
@@ -95,6 +96,9 @@ export const QueueProvider: FC<ChildrenProps> = ({ children }) => {
     queueChannel,
     setQueueChannel,
     autoCloseQueue,
+    setState,
+    pushLog,
+    clearBuffer,
   })
 
   const { clearActiveQueue, clearWaitingQueue, clearQueueHistory } = useQueueClear({

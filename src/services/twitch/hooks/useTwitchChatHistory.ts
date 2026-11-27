@@ -13,8 +13,8 @@ import { trimChatHistory } from '../utils/trimChatHistory.ts'
 import { useTwitchChannelChange } from './useTwitchChannelChange.ts'
 import { useAppLogs } from '../../../features/app-logs/hooks/useAppLogs.ts'
 import { APP_LOG_SOURCES, APP_LOG_STATUSES } from '../../../features/app-logs/types.ts'
-import { APP_LOG_SYSTEM_ACTOR } from '../../../constants/app-logs.constants.ts'
 import type { ParsedIrcMessage, PendingChatMessage } from '../types.ts'
+import { useActorUsername } from '../../../features/auth/hooks/useActorUsername.ts'
 
 interface UseTwitchChatHistoryProps {
   client: TwitchIrcClient | null;
@@ -27,6 +27,7 @@ interface UseTwitchChatHistoryProps {
 export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchChatHistoryProps) => {
   const { pushLog } = useAppLogs()
   const [messages, setMessages] = useState<ParsedIrcMessage[]>([])
+  const actorUsername = useActorUsername()
 
   useTwitchChannelChange(client, ({ previous, current }) => {
     setMessages([])
@@ -38,7 +39,7 @@ export const useTwitchChatHistory = ({ client, pendingMessagesRef }: UseTwitchCh
       message: TWITCH_CHAT_HISTORY_LOG_MESSAGES.CHANNEL_CHANGED,
       status: APP_LOG_STATUSES.WARNING,
       source: APP_LOG_SOURCES.APPLICATION,
-      actorUsername: APP_LOG_SYSTEM_ACTOR,
+      actorUsername,
     })
   })
 

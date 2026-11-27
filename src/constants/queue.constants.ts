@@ -366,6 +366,7 @@ export const QUEUE_CLEAR_MESSAGES = {
   ACTIVE: 'Текущая очередь очищена.',
   WAITING: 'Список ожидающих очищен.',
   HISTORY: 'История сыгранных сессий очищена.',
+  CHANNEL_CHANGE: 'Очередь, список ожидающих и история игр очищены (смена канала).',
   REMOVED_PLAYERS: (count: number): string => ` Удалено ${count} игроков.`,
 } as const
 

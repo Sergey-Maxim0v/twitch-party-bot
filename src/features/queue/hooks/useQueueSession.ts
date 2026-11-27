@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import type { QueueActionContext, QueueActionLog, QueueStateAccess } from '../types'
+import type { QueueActionContext, QueueActionLog, QueueAutoCloseArgs, QueueStateAccess } from '../types'
 import { APP_LOG_STATUSES } from '../../app-logs/types.ts'
 import { QUEUE_SESSION_LOG_MESSAGES } from '../../../constants/queue.constants.ts'
 import { formatFinishedQueueMessage } from '../../queue-notification/utils/formatFinishedQueueMessage.ts'
@@ -10,10 +10,6 @@ import { handleFinishActiveQueue } from '../utils/handleFinishActiveQueue.ts'
 import { useQueueSettings } from '../../queue-settings/hooks/useQueueSettings.ts'
 import { useQueueNotification } from '../../queue-notification/hooks/useQueueNotification.ts'
 import type { BalanceQueuesArgs } from '../context/QueueInstance.ts'
-
-interface AutoCloseQueueArgs extends QueueActionContext {
-  message: string;
-}
 
 interface UseQueueSessionArgs extends QueueStateAccess {
   isQueueOpen: boolean;
@@ -102,7 +98,7 @@ export const useQueueSession = ({
   }, [isQueueOpen, setIsQueueOpen, pushLog, setQueueChannel, sendMessageClose])
 
   /** Закрывает очередь и сбрасывает буфер уведомлений без сообщения в чат. */
-  const autoCloseQueue = useCallback(({ source, actorUsername, message }: AutoCloseQueueArgs) => {
+  const autoCloseQueue = useCallback(({ source, actorUsername, message }: QueueAutoCloseArgs) => {
     if (!isQueueOpen) return
 
     setIsQueueOpen(false)
