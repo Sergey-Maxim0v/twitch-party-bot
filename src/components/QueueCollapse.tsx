@@ -1,4 +1,5 @@
 import type { FC, ReactNode } from 'react'
+import { LuChevronDown } from 'react-icons/lu'
 
 export interface QueueCollapseProps {
   /** Дополнительные CSS-классы контейнера. */
@@ -38,7 +39,6 @@ export const QueueCollapse: FC<QueueCollapseProps> = ({
   const isExpanded = open && !disabled
 
   const collapseStatusClass = isExpanded ? 'collapse-open' : 'collapse-close'
-  const arrowClass = disabled ? '' : 'collapse-arrow'
   const tooltipClasses = tooltipText
     ? 'md:tooltip md:tooltip-top md:tooltip-neutral z-50 delay-1000'
     : ''
@@ -54,7 +54,7 @@ export const QueueCollapse: FC<QueueCollapseProps> = ({
     <div
       className={`collapse border border-base-300 bg-base-200 rounded-lg transition-all
       ${disabled ? 'opacity-70 bg-base-300/30' : ''}
-      ${arrowClass} ${collapseStatusClass} ${tooltipClasses} ${className}`}
+      ${collapseStatusClass} ${tooltipClasses} ${className}`}
       data-tip={tooltipText}
     >
       <div
@@ -67,7 +67,16 @@ export const QueueCollapse: FC<QueueCollapseProps> = ({
         >
           {title}
         </span>
-        {badge && <div className="mr-6 shrink-0">{badge}</div>}
+        <div className="flex shrink-0 items-center gap-2">
+          {badge && <div className="shrink-0">{badge}</div>}
+          {!disabled && (
+            <LuChevronDown
+              aria-hidden="true"
+              className={`h-4 w-4 text-base-content/50 transition-transform duration-300 ease-in-out
+                ${isExpanded ? 'rotate-x-180' : ''}`}
+            />
+          )}
+        </div>
       </div>
 
       <div className="collapse-content p-0">

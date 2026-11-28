@@ -1,5 +1,5 @@
 import { type FC } from 'react'
-import { LuArrowLeftFromLine, LuArrowUpFromLine } from 'react-icons/lu'
+import { LuArrowRightFromLine, LuArrowUpFromLine } from 'react-icons/lu'
 import { PANEL_DIRECTIONS, type PanelDirection } from './types'
 
 interface PanelToggleProps {
@@ -26,9 +26,9 @@ export const PanelToggle: FC<PanelToggleProps> = ({
   direction = PANEL_DIRECTIONS.HORIZONTAL,
 }) => {
   const isHorizontal = direction === PANEL_DIRECTIONS.HORIZONTAL
-  const Icon = isHorizontal ? LuArrowLeftFromLine : LuArrowUpFromLine
+  const Icon = isHorizontal ? LuArrowRightFromLine : LuArrowUpFromLine
   const iconClasses = isHorizontal
-    ? (isOpen ? '-scale-x-100' : '')
+    ? (isOpen ? 'rotate-y-180' : '')
     : (isOpen ? '' : 'rotate-180')
 
   return (
