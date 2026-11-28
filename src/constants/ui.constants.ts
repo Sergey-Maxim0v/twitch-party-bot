@@ -97,11 +97,6 @@ export const SETTINGS_INPUT_ERROR_CLASS = 'input-error'
 export const SETTINGS_VALIDATION_ERROR_CLASS = 'text-error text-xs'
 
 /**
- * CSS-классы счётчика списка игроков.
- */
-export const QUEUE_BADGE_CLASS = 'badge badge-neutral text-xs font-semibold'
-
-/**
  * Параметры поля ввода сообщения в чат.
  */
 export const CHAT_INPUT_STYLES = {

@@ -16,7 +16,9 @@ export const Marks: FC = () => {
 
   return (
     <div className="w-full min-w-0 space-y-2">
-      <h4 className="text-xs font-medium text-base-content/70">{QUEUE_MARK_SETTINGS_TITLE}</h4>
+      <h4 className="label-text py-1 px-0 w-full break-normal whitespace-normal text-sm font-medium text-base-content/80">
+        {QUEUE_MARK_SETTINGS_TITLE}
+      </h4>
 
       <div className="flex w-full min-w-0 flex-wrap gap-2">
         {(Object.keys(QUEUE_MARK_LABELS) as QueueMarkKey[]).map(key => (

@@ -3,12 +3,13 @@ import { normalizeMark } from '../utils/normalizeMark.ts'
 import { useSyncedInput } from '../../../hooks/useSyncedInput.ts'
 import {
   INPUT_KEYS,
-  SETTINGS_INPUT_CLASS,
   SETTINGS_INPUT_ERROR_CLASS,
   SETTINGS_VALIDATION_ERROR_CLASS,
 } from '../../../constants/ui.constants.ts'
 import { QUEUE_MARK_MAX_LENGTH, QUEUE_MARK_VALIDATION_MESSAGES } from '../../../constants/queue.constants.ts'
 import type { QueueMarkKey } from '../types.ts'
+
+const INPUT_CLASS = 'input input-bordered w-full input-sm focus:input-primary focus:outline-none text-sm min-w-0'
 
 interface MarkInputProps {
   label: string;
@@ -48,15 +49,17 @@ export const MarkInput: FC<MarkInputProps> = ({ label, markKey, onChange, value 
   }
 
   return (
-    <div className="form-control min-w-20 flex-1 basis-20">
-      <label className="label py-1 px-0">
-        <span className="label-text text-xs text-base-content/70">{label}</span>
+    <div className="form-control w-full min-w-20 flex-1 basis-20">
+      <label className="label py-1 px-0 w-full">
+        <span className="label-text text-sm font-medium w-full break-normal whitespace-normal text-base-content/80">
+          {label}
+        </span>
       </label>
 
       <input
         aria-invalid={Boolean(validationError)}
         aria-label={label}
-        className={`${SETTINGS_INPUT_CLASS}${validationError ? ` ${SETTINGS_INPUT_ERROR_CLASS}` : ''}`}
+        className={`${INPUT_CLASS}${validationError ? ` ${SETTINGS_INPUT_ERROR_CLASS}` : ''}`}
         maxLength={QUEUE_MARK_MAX_LENGTH * 2}
         onBlur={() => { commitValue(inputValue) }}
         onChange={handleChange}
