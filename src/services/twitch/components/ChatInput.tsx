@@ -82,7 +82,7 @@ export const ChatInput = ({ onSendMessage, actions }: ChatInputProps) => {
         <textarea
           className={`textarea textarea-bordered textarea-sm w-full bg-base-100 text-sm
                     focus:outline-none placeholder-base-content/40 resize-none
-                    min-h-8 max-h-32 py-1.5 leading-relaxed custom-scrollbar
+                    min-h-8 max-h-32 py-1.5 leading-relaxed scrollbar-thin
                     ${isOverflowed ? 'overflow-y-auto' : 'overflow-hidden'}`}
           maxLength={TWITCH_CHAT_MESSAGE_MAX_LENGTH}
           minLength={TWITCH_CHAT_MESSAGE_MIN_LENGTH}
