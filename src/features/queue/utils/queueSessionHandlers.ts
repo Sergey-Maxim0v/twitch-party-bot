@@ -97,19 +97,23 @@ export const handleCloseQueue = ({
 }
 
 export const handleClearActiveQueue = ({
+  getState,
   setState,
   pushLog,
   source,
   actorUsername,
   silentLog,
 }: QueueHandlerArgs): QueueActionLog => {
+  const activeCount = getState().activeQueue.length
+
   setState(prev => ({
     ...prev,
     activeQueue: [],
   }))
 
   const result: QueueActionLog = {
-    message: QUEUE_CLEAR_MESSAGES.ACTIVE,
+    message: QUEUE_CLEAR_MESSAGES.ACTIVE
+      + (activeCount ? QUEUE_CLEAR_MESSAGES.REMOVED_PLAYERS(activeCount) : ''),
     logStatus: APP_LOG_STATUSES.WARNING,
   }
 

@@ -24,7 +24,7 @@ export const QueueRoleToggle: FC<QueueRoleToggleProps> = ({
     className="flex flex-1 cursor-pointer select-none items-center justify-center gap-1.5 rounded-xl
       border border-base-300/70 bg-base-100/40 px-2 py-1.5 text-[11px] font-semibold
       text-base-content/50 transition-all hover:border-base-content/20 hover:text-base-content/70
-      has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10 has-[:checked]:text-base-content"
+      has-checked:border-primary/40 has-checked:bg-primary/10 has-checked:text-base-content"
   >
     <span>{label}</span>
     <input
