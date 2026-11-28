@@ -32,7 +32,7 @@ export const QUEUE_SESSION_NAME = (sessionNumber: number): string => `Соста
 export const QUEUE_HISTORY_LIMIT = 100
 
 /** Максимум игроков в истории кулдаунов — ограничивает рост `twitch_queue_data`. */
-export const PLAYER_HISTORY_LIMIT = 100
+export const PLAYER_HISTORY_LIMIT = 1000
 
 /**
  * Результат попытки присоединения игрока к очереди.
